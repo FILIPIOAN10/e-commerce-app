@@ -7,6 +7,7 @@ import com.ecommerce.project.payload.AddressDTO;
 import com.ecommerce.project.repository.AddressRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.service.AddressService;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +16,13 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService {
 
-    private ModelMapper modelMapper ;
-    private AddressRepository addressRepository;
-    private UserRepository userRepository;
+    private final ModelMapper modelMapper ;
+    private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
 
-    public AddressServiceImpl(ModelMapper modelMapper,AddressRepository addressRepository,UserRepository userRepository) {
-        this.modelMapper = modelMapper;
-        this.addressRepository = addressRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public AddressDTO createAddress(AddressDTO addressDTO, User user) {

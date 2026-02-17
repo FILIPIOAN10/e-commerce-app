@@ -14,6 +14,7 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.util.AuthUtil;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -23,23 +24,18 @@ import java.util.stream.Stream;
 
 
 @Service
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
 
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    private AuthUtil authUtil;
-    private ProductRepository productRepository;
-    private CartItemRepository cartItemRepository;
-    private ModelMapper modelMapper;
+    private final AuthUtil authUtil;
+    private final ProductRepository productRepository;
+    private final CartItemRepository cartItemRepository;
+    private final ModelMapper modelMapper;
 
-    public CartServiceImpl(CartRepository cartRepository, AuthUtil authUtil, ProductRepository productRepository, CartItemRepository cartItemRepository, ModelMapper modelMapper) {
-        this.cartRepository = cartRepository;
-        this.authUtil = authUtil;
-        this.productRepository = productRepository;
-        this.cartItemRepository = cartItemRepository;
-        this.modelMapper = modelMapper;
-    }
+
 
     @Override
     public CartDTO addProductToCart(Long productId, Integer quantity) {

@@ -11,6 +11,7 @@ import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,33 +25,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private CartRepository cartRepository;
-    private AddressRepository addressRepository;
-    private PaymentRepository paymentRepository;
-    private OrderRepository orderRepository;
-    private OrderItemRepository orderItemRepository;
-    private ProductRepository productRepository;
-    private CartService cartService;
-    private ModelMapper modelMapper;
+    private final CartRepository cartRepository;
+    private final AddressRepository addressRepository;
+    private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final ProductRepository productRepository;
+    private final CartService cartService;
+    private final ModelMapper modelMapper;
 
-    private AuthUtil authUtil;
+    private final AuthUtil authUtil;
 
-    public OrderServiceImpl(CartRepository cartRepository, AddressRepository addressRepository,
-                            PaymentRepository paymentRepository, OrderRepository orderRepository,
-                            OrderItemRepository orderItemRepository, ProductRepository productRepository,
-                            CartService cartService, ModelMapper modelMapper,AuthUtil authUtil) {
-        this.cartRepository = cartRepository;
-        this.addressRepository = addressRepository;
-        this.paymentRepository = paymentRepository;
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.productRepository = productRepository;
-        this.cartService = cartService;
-        this.modelMapper = modelMapper;
-        this.authUtil = authUtil;
-    }
 
     @Override
     @Transactional // everything in this method successfully finishes or nothing finish

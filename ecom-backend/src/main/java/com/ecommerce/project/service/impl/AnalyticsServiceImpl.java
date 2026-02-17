@@ -4,19 +4,18 @@ import com.ecommerce.project.payload.AnalyticsResponse;
 import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.AnalyticsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
 public class AnalyticsServiceImpl implements AnalyticsService {
 
-    private ProductRepository productRepository;
-    private OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
-    public AnalyticsServiceImpl(ProductRepository productRepository, OrderRepository orderRepository) {
-        this.productRepository = productRepository;
-        this.orderRepository = orderRepository;
-    }
+
 
     @Override
     public AnalyticsResponse getAnalyticsData() {

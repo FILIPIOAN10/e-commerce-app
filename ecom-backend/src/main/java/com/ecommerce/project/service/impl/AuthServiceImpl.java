@@ -16,6 +16,7 @@ import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.AuthService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,23 +36,16 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private AuthenticationManager authenticationManager;
-    private JwtUtils jwtUtils;
-    private UserRepository userRepository;
-    private PasswordEncoder encoder;
-    private RoleRepository roleRepository;
-    private ModelMapper modelMapper;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final RoleRepository roleRepository;
+    private final ModelMapper modelMapper;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager,JwtUtils jwtUtils,UserRepository userRepository,PasswordEncoder encoder,RoleRepository roleRepository,ModelMapper modelMapper) {
-        this.authenticationManager = authenticationManager;
-        this.jwtUtils=jwtUtils;
-        this.userRepository=userRepository;
-        this.encoder=encoder;
-        this.roleRepository=roleRepository;
-        this.modelMapper=modelMapper;
-    }
 
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {

@@ -16,6 +16,7 @@ import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.FileService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.util.AuthUtil;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,14 +33,15 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    private ProductRepository productRepository;
-    private CategoryRepository categoryRepository;
-    private ModelMapper modelMapper;
-    private FileService fileService;
-    private CartRepository cartRepository;
-    private CartService cartService;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
+    private final FileService fileService;
+    private final CartRepository cartRepository;
+    private final CartService cartService;
 
     private AuthUtil authUtil;
     @Value("${project.image}")
@@ -48,15 +50,7 @@ public class ProductServiceImpl implements ProductService {
     @Value("${image.base.url}")
     private String imageBaseUrl;
 
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, ModelMapper modelMapper, FileService fileService, CartRepository cartRepository,CartService cartService,AuthUtil authUtil) {
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-        this.modelMapper = modelMapper;
-        this.fileService = fileService;
-        this.cartRepository = cartRepository;
-        this.cartService = cartService;
-        this.authUtil=authUtil;
-    }
+
 
     @Override
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
