@@ -28,17 +28,11 @@ public class AddressServiceImpl implements AddressService {
     public AddressDTO createAddress(AddressDTO addressDTO, User user) {
 
         Address address = modelMapper.map(addressDTO, Address.class);
-
-
         List<Address> addressesList = user.getAddresses();
         addressesList.add(address);
         user.setAddresses(addressesList);
-
         address.setUser(user);
-
         Address saveAddressService =  addressRepository.save(address);
-
-
         return modelMapper.map(saveAddressService,AddressDTO.class);
     }
 
@@ -69,36 +63,26 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDTO updateAddress(Long addressId, AddressDTO addressDTO) {
-        Address addressFromDatabase = addressRepository.findById(addressId)
+        Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "addressId", addressId));
 
-        addressFromDatabase.setCity(addressDTO.getCity());
-        addressFromDatabase.setPincode(addressDTO.getPincode());
-        addressFromDatabase.setState(addressDTO.getState());
-        addressFromDatabase.setCountry(addressDTO.getCountry());
-        addressFromDatabase.setStreet(addressDTO.getStreet());
-        addressFromDatabase.setBuildingName(addressDTO.getBuildingName());
 
-        Address updatedAddress = addressRepository.save(addressFromDatabase);
+        address.setCity(addressDTO.getCity());
+        address.setPincode(addressDTO.getPincode());
+        address.setState(addressDTO.getState());
+        address.setCountry(addressDTO.getCountry());
+        address.setStreet(addressDTO.getStreet());
+        address.setBuildingName(addressDTO.getBuildingName());
 
-        User user = addressFromDatabase.getUser();
-        user.getAddresses().removeIf(address -> address.getAddressId().equals(addressId));
-        user.getAddresses().add(updatedAddress);
-        userRepository.save(user);
-
-        return modelMapper.map(updatedAddress, AddressDTO.class);
+        return modelMapper.map(addressRepository.save(address), AddressDTO.class);
     }
 
     @Override
     public String deleteAddress(Long addressId) {
-        Address addressFromDatabase = addressRepository.findById(addressId)
+        Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "addressId", addressId));
 
-        User user = addressFromDatabase.getUser();
-        user.getAddresses().removeIf(address -> address.getAddressId().equals(addressId));
-        userRepository.save(user);
-
-        addressRepository.delete(addressFromDatabase);
+        addressRepository.delete(address);
 
         return "Address deleted successfully with addressId: " + addressId;
     }
