@@ -9,6 +9,7 @@ import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.AuthEntryPointJwt;
 import com.ecommerce.project.security.jwt.AuthTokenFilter;
 import com.ecommerce.project.security.services.UserDetailsServiceImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
+import java.util.List;
 import java.util.Set;
 
 @Configuration
@@ -36,6 +39,9 @@ public class WebSecurityConfig {
     private UserDetailsServiceImpl userDetailsService;
 
     private AuthEntryPointJwt unauthorizedHandler;
+
+    @Value("${frontend.url}")
+    String frontEndUrl;
 
     public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthEntryPointJwt unauthorizedHandler) {
         this.userDetailsService = userDetailsService;
@@ -65,7 +71,23 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthTokenFilter authTokenFilter) throws Exception {
-    http.cors(cors -> {})
+    http.cors(corsConfig -> corsConfig.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+
+            config.setAllowedOrigins(
+                    List.of("http://localhost:3000", frontEndUrl)
+            );
+
+            config.setAllowedMethods(
+                    List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            );
+
+            config.setAllowedHeaders(List.of("*"));
+            config.setAllowCredentials(true);
+            config.setMaxAge(3600L);
+
+            return config;
+        }))
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->

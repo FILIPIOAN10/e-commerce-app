@@ -41,9 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         //Fetch the categories
         List<Category> categories = categoryPage.getContent();
-        if (categories.isEmpty()) {
-            throw new APIException("No categories created till now");
-        }
+
 
         // mapping the category to CateogryDTO class
         // for every category in the list we are mapping that category to categoryDTO
