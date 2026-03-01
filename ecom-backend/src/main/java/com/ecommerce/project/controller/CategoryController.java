@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -56,6 +57,7 @@ public class CategoryController {
 
     @Tag(name = "Category")
     @PostMapping("/admin/categories")
+    @PreAuthorize("hasRole('ADMIN')")
     // creare categories
     public ResponseEntity<CategoryDTO> createCategory(
             @Valid @RequestBody CategoryDTO categoryDTO) {
@@ -71,6 +73,7 @@ public class CategoryController {
     // ștergere (doar admin)
     @Tag(name = "Category")
     @DeleteMapping("/admin/categories/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> deleteCategory(
             @Parameter(description = "Id of the Category that you wish to delete")
             @PathVariable Long categoryId) {
@@ -86,6 +89,7 @@ public class CategoryController {
     // update
     @Tag(name = "Category")
     @PutMapping("/admin/categories/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> updateCategory(@Valid @RequestBody CategoryDTO categoryDTO,
                                                  @PathVariable Long categoryId) {
 

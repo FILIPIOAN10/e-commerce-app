@@ -13,6 +13,7 @@ import com.stripe.model.PaymentIntent;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,6 +57,7 @@ public class OrderController {
 
     }
     @GetMapping("/admin/orders")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> getAllOrders(
             @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
@@ -69,6 +71,7 @@ public class OrderController {
 
 
     @GetMapping("/seller/orders")
+    @PreAuthorize("hasRole('ADMIN','SELLER')")
     public ResponseEntity<OrderResponse> getAllSellerOrders(
             @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
@@ -79,6 +82,7 @@ public class OrderController {
         return new ResponseEntity<OrderResponse>(orderResponse,HttpStatus.OK);
     }
     @PutMapping("/admin/orders/{orderId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderDTO> updateOrderStatus(@PathVariable Long orderId,
                                                       @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
 
@@ -88,6 +92,7 @@ public class OrderController {
 
 
     @PutMapping("/seller/orders/{orderId}/status")
+    @PreAuthorize("hasRole('ADMIN','SELLER')")
     public ResponseEntity<OrderDTO> updateOrderStatusSeller(@PathVariable Long orderId,
                                                       @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
 

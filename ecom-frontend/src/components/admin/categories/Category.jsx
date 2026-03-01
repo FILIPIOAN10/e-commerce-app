@@ -35,12 +35,12 @@ const Category = () => {
   // Calling the `useCategoryFilter` custom hook to handle category fetching and pagination based on the current URL parameters.
   useCategoryFilter();
 
+
   const tableRecords = categories?.map((item) => ({
     id: item.categoryId,
     categoryName: item.categoryName,
     version: item.version,
   }));
-
   const handleEdit = (category) => {
     setOpenUpdateModal(true);
     setSelectedCategory(category);

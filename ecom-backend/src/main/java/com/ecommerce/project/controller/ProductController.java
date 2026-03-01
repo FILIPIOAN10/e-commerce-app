@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +32,7 @@ public class ProductController {
      */
     @Tag(name = "Product")
     @PostMapping("/admin/categories/{categoryId}/product")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO,
                                                  @PathVariable Long categoryId) {
         ProductDTO savedProductDto = productService.addProduct(categoryId, productDTO);
@@ -39,6 +41,7 @@ public class ProductController {
 
     @Tag(name = "Product")
     @PostMapping("/seller/categories/{categoryId}/product")
+    @PreAuthorize("hasRole('ADMIN', 'SELLER')")
     public ResponseEntity<ProductDTO> addProductSeller(@Valid @RequestBody ProductDTO productDTO,
                                                  @PathVariable Long categoryId) {
         ProductDTO savedProductDto = productService.addProduct(categoryId, productDTO);
@@ -101,6 +104,7 @@ public class ProductController {
      */
     @Tag(name = "Product")
     @PutMapping("/admin/products/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> updateProduct(@Valid @RequestBody ProductDTO productDTO,
                                                     @PathVariable Long productId) {
         ProductDTO updatedProductDTO = productService.updateProduct(productId,productDTO);
@@ -112,6 +116,7 @@ public class ProductController {
      */
     @Tag(name = "Product")
     @DeleteMapping("/admin/products/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public  ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long productId) {
         ProductDTO deletedProduct = productService.deleteProduct(productId);
         return new ResponseEntity<>(deletedProduct,HttpStatus.OK);
@@ -122,6 +127,7 @@ public class ProductController {
      */
     @Tag(name = "Product")
     @PutMapping("/admin/products/{productId}/image")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> updateProductImage(@PathVariable Long productId,
                                                          @RequestParam("image") MultipartFile image) throws IOException {
 
@@ -132,6 +138,7 @@ public class ProductController {
 
     @Tag(name = "Product")
     @GetMapping("/admin/products")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> getAllProductsForAdmin(
             @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
@@ -146,6 +153,7 @@ public class ProductController {
 
     @Tag(name = "Product")
     @GetMapping("/seller/products")
+    @PreAuthorize("hasRole('ADMIN','SELLER')")
     public ResponseEntity<ProductResponse> getAllProductsForSeller(
             @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
@@ -157,6 +165,7 @@ public class ProductController {
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
     @PutMapping("/seller/products/{productId}")
+    @PreAuthorize("hasRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> updateProductSeller(@Valid @RequestBody ProductDTO productDTO,
                                                           @PathVariable Long productId){
         ProductDTO updatedProductDTO = productService.updateProduct(productId, productDTO);
@@ -164,12 +173,14 @@ public class ProductController {
     }
 
     @DeleteMapping("/seller/products/{productId}")
+    @PreAuthorize("hasRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> deleteProductSeller(@PathVariable Long productId){
         ProductDTO deletedProduct = productService.deleteProduct(productId);
         return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
     }
 
     @PutMapping("/seller/products/{productId}/image")
+    @PreAuthorize("hasRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> updateProductImageSeller(@PathVariable Long productId,
                                                                @RequestParam("image")MultipartFile image) throws IOException {
         ProductDTO updatedProduct = productService.updateProductImage(productId, image);

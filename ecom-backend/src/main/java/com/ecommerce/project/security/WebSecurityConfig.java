@@ -36,7 +36,7 @@ import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
     private UserDetailsServiceImpl userDetailsService;

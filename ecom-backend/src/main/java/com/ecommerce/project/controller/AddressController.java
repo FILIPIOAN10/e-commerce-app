@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class AddressController {
 
     @Tag(name = "Address")
     @GetMapping("/addresses")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AddressDTO>> getAddresses() {
         List<AddressDTO> addressList = addressService.getAddresses();
         return new ResponseEntity<>(addressList, HttpStatus.OK);
@@ -43,6 +45,7 @@ public class AddressController {
 
     @Tag(name = "Address")
     @GetMapping("/addresses/{addressesId}")
+    @PreAuthorize("hasRole('ADMIN') or returnObject.body !=null")
     public ResponseEntity<AddressDTO> getAddressById(@PathVariable Long addressesId) {
         AddressDTO addressDTO = addressService.getAddressesById(addressesId);
         return new ResponseEntity<>(addressDTO, HttpStatus.OK);
@@ -67,7 +70,8 @@ public class AddressController {
 
     @Tag(name = "Address")
     @DeleteMapping("/addresses/{addressId}")
-    public ResponseEntity<String> updateAddress(@PathVariable Long addressId){
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> deleteAddress(@PathVariable Long addressId){
         String status = addressService.deleteAddress(addressId);
         return new ResponseEntity<>(status, HttpStatus.OK);
     }
