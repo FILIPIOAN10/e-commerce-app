@@ -82,6 +82,15 @@ const Register = () => {
                         errors={errors}
                     
                     />
+                    <InputField 
+                        label="Password Hint"
+                        id="passwordHint"
+                        type="text"
+                        placeHolder="Ex: Numele animalului meu"
+                        register={register}
+                        errors={errors} 
+            
+                    />
                 </div>
 
 

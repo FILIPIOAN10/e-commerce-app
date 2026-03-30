@@ -22,6 +22,7 @@ import AdminProducts from './components/admin/products/AdminProducts'
 import Category from './components/admin/categories/Category'
 import Sellers from './components/admin/sellers/Sellers'
 import Orders from './components/admin/orders/Orders'
+import FilterDemo from './components/FilterDemo'
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route  path='/products' element ={<Products/>} />
         <Route  path='/about' element ={<About/>} />
         <Route  path='/contact' element ={<Contact/>} />
+        <Route  path='/filter-demo' element={<FilterDemo/>}/>
         <Route  path='/cart' element ={<Cart/>} />
         <Route path='/' element={<PrivateRoute />}>
           <Route path ="/checkout" element ={<Checkout/>}/>

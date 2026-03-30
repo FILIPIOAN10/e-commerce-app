@@ -1,4 +1,6 @@
+import toast from "react-hot-toast";
 import api from "../../api/api"
+import { duration } from "@mui/material";
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
@@ -118,7 +120,7 @@ export const removeFromCart =  (data, toast) => (dispatch, getState) => {
 
 
 export const authenticateSignInUser 
-    = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
+    = (sendData, toast, reset, navigate, setLoader,fetchHint) => async (dispatch) => {
         try {
             setLoader(true);
             const { data } = await api.post("/auth/signin", sendData);
@@ -130,6 +132,10 @@ export const authenticateSignInUser
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.message || "Internal Server Error");
+
+            if(fetchHint){
+                fetchHint(sendData.username);
+            }
         } finally {
             setLoader(false);
         }
@@ -625,5 +631,67 @@ export const addNewDashboardSeller =
     }
   };
 
+
+// @Prefilter Demo - Cart Items (filters items with qty 1-10)
+
+export const createCartWithFilteredItems =
+  (cartItems,toast,setLoader) => async (dispatch) => {
+    try {
+        setLoader(true);
+        const {data} = await api.post("/cart/create",cartItems);
+        toast.success("Cart updated! Items with invalid quantity were filtered out.")
+        dispatch({ type: "IS_SUCCESS"});
+        return data;
+    }catch (error){
+        console.log(error);
+        toast.error(error?.response?.data?.message || "Failed to create cart");
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to created cart",
+        });
+    } finally{
+        setLoader(false);
+    }
+  };
+
+
+  // @PostFilter Demo - Orders List (ADMIN see all, users see only their orders)
+  export const getFilteredOrdersList = () => async (dispatch) =>{
+    try{
+        dispatch({ type: "IS_FETCHING"});
+        const { data } = await api.get("/orders/list");
+        dispatch({
+            type: "FETCH_FILTERED_ORDERS",
+            payload: data,
+        });
+        dispatch ({ type: "IS_SUCCESS"});
+        return data;
+    } catch (error){
+        console.log(error);
+        dispatch({
+            type: "IS_ERROR",
+            payload:error?.response?.data?.message || "Failed to fetch orders",
+        });
+    }
+  };
+
+  export const getFilteredProductsForDisplay = () => async (dispatch) => {
+    try{
+        dispatch({ type: "IS_FETCHING"});
+        const { data } = await api.get("/products/display");
+        dispatch({
+            type:"FETCH_FILTERED_PRODUCTS",
+            payload:data,
+        });
+        dispatch({ type :"IS_SUCCESS"});
+        return data; 
+    }catch (error){
+        console.log(error);
+        dispatch({
+            type: "IS_ERROR",
+            payload:error?.response?.data?.message || "Failed to fetch filtered products",
+        });
+    }
+  };
 
 

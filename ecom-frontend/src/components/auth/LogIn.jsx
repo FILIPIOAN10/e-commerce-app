@@ -7,12 +7,29 @@ import { useDispatch } from "react-redux";
 import { authenticateSignInUser } from "../../store/actions";
 import toast from "react-hot-toast";
 import Spinners from "../shared/Spinners";
+import api from "../../api/api";
 
 
 const LogIn = () => {
 
     const navigate = useNavigate();
     const [loader,setLoader]= useState(false);
+
+    const [hint,setHint] = useState(null);
+
+    const fetchHint = async (username) => {
+        console.log(" log1 " )
+        try {
+            const {data}= await api.get(`/auth/hint/${username}`);
+            console.log("log 2 "+data);
+            if(data?.message && data.message !== "No hit available"){
+                setHint(data.message);
+            }
+            
+        } catch (e) {
+            console.log("Could not fetch hint",e);
+        }
+    };
 
     const dispatch = useDispatch();
     const {
@@ -27,7 +44,8 @@ const LogIn = () => {
 
     const loginHandler = async (data) => {
         console.log("Login Click");
-        dispatch(authenticateSignInUser(data,toast,reset,navigate,setLoader));
+        setHint(null);
+        dispatch(authenticateSignInUser(data,toast,reset,navigate,setLoader,fetchHint));
     };
 
     return (
@@ -88,6 +106,13 @@ const LogIn = () => {
                     )}
                   
                 </button>
+
+                { hint && (
+                    <p className="text-amber-600 text-sm text-center mt-2 p-2 bg-amber-50 rounded">
+                            Hint: {hint}
+                    </p>
+                )}
+
                 <p className="text-center text-sm text-slate-700 mt-6">
                     Don't have an account?
                     <Link 
