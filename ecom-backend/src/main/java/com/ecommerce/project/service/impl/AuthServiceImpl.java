@@ -84,6 +84,7 @@ public class AuthServiceImpl implements AuthService {
                 signupRequest.getEmail(),
                 encoder.encode(signupRequest.getPassword())
         );
+        user.setPasswordHint(signupRequest.getPasswordHint());
         Set<String> strRoles = signupRequest.getRole();
         Set<Role> roles = new HashSet<>();
 
@@ -150,6 +151,19 @@ public class AuthServiceImpl implements AuthService {
         response.setTotalPages(allUsers.getTotalPages());
         response.setLastPage(allUsers.isLast());
         return response;
+    }
+
+    @Override
+    public ResponseEntity<?> getPasswordHint(String username) {
+        Optional<User> userOpt = userRepository.findByUserName(username);
+        if(userOpt.isEmpty()){
+            return ResponseEntity.badRequest().body(new MessageResponse("User not found"));
+        }
+        String hint = userOpt.get().getPasswordHint();
+        if(hint == null || hint.isEmpty()){
+            return ResponseEntity.ok(new MessageResponse("No hint available"));
+        }
+        return ResponseEntity.ok(new MessageResponse(hint));
     }
 
 

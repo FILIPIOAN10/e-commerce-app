@@ -1,62 +1,40 @@
 -- =========================
 -- INSERT ROLES
 -- =========================
-
-INSERT INTO roles (role_name)
-VALUES ('ROLE_USER')
-ON DUPLICATE KEY UPDATE role_name=role_name;
-
-INSERT INTO roles (role_name)
-VALUES ('ROLE_SELLER')
-ON DUPLICATE KEY UPDATE role_name=role_name;
-
-INSERT INTO roles (role_name)
-VALUES ('ROLE_ADMIN')
-ON DUPLICATE KEY UPDATE role_name=role_name;
-
+INSERT IGNORE INTO roles (role_id, role_name) VALUES (1, 'ROLE_USER');
+INSERT IGNORE INTO roles (role_id, role_name) VALUES (2, 'ROLE_SELLER');
+INSERT IGNORE INTO roles (role_id, role_name) VALUES (3, 'ROLE_ADMIN');
 
 -- =========================
 -- INSERT USERS
 -- =========================
 
-INSERT INTO users (username, email, password)
-VALUES ('user1', 'user1@example.com',
-'$2a$10$7QJzP2E8m3nYhRrj9KcGxO6lP7Hc8mN2WfYQ2rZ6WkUjPp8ZxH9aK')
-ON DUPLICATE KEY UPDATE username=username;
+-- admin (password: adminPass)
+INSERT IGNORE INTO users (user_id, username, email, password,password_hint)
+VALUES (1, 'admin', 'admin@example.com',
+'$2a$12$A.Gu/hG5ZPM8qSDl1/Q9aeSikYy.bHg/E.KMa8X91ubaJOPVBBGuK','adminXXXX');
 
-INSERT INTO users (username, email, password)
-VALUES ('seller1', 'seller1@example.com',
-'$2a$10$E9sDf3Gh4JkLmN7OpQrStU6vWxYz8AbCdEfGhIjKlMnOpQrStUvWx')
-ON DUPLICATE KEY UPDATE username=username;
+-- user1 (password: password1)
+INSERT IGNORE INTO users (user_id, username, email, password,password_hint)
+VALUES (2, 'user1', 'user1@example.com',
+'$2a$12$Smyyd9c9bDpI69K27xh7Rutyes.ki7jxjcUN2Ok/2xd.AQ9E9IIcC','passwordx');
 
-INSERT INTO users (username, email, password)
-VALUES ('admin', 'admin@example.com',
-'$2a$10$XyZ12AbCdEfGhIjKlMnOpQrStUvWxYz1234567890abcdefghi')
-ON DUPLICATE KEY UPDATE username=username;
-
+-- seller1 (password: password2)
+INSERT IGNORE INTO users (user_id, username, email, password,password_hint)
+VALUES (3, 'seller1', 'seller1@example.com',
+'$2a$12$bPLjTZ75BrBKJQz0gcDUZuO8czeDM21JIJYZYRtUK99xBkBX7WyUG','passwordx');
 
 -- =========================
--- USER_ROLE RELATIONS
+-- USER ROLES
 -- =========================
 
--- user1 -> ROLE_USER
-INSERT INTO user_role (user_id, role_id)
-SELECT u.user_id, r.role_id
-FROM users u, roles r
-WHERE u.username='user1' AND r.role_name='ROLE_USER'
-ON DUPLICATE KEY UPDATE user_id=user_id;
+-- admin → toate rolurile
+INSERT IGNORE INTO user_role (user_id, role_id) VALUES (1, 1);
+INSERT IGNORE INTO user_role (user_id, role_id) VALUES (1, 2);
+INSERT IGNORE INTO user_role (user_id, role_id) VALUES (1, 3);
 
--- seller1 -> ROLE_SELLER
-INSERT INTO user_role (user_id, role_id)
-SELECT u.user_id, r.role_id
-FROM users u, roles r
-WHERE u.username='seller1' AND r.role_name='ROLE_SELLER'
-ON DUPLICATE KEY UPDATE user_id=user_id;
+-- user1 → USER
+INSERT IGNORE INTO user_role (user_id, role_id) VALUES (2, 1);
 
--- admin -> ROLE_USER, ROLE_SELLER, ROLE_ADMIN
-INSERT INTO user_role (user_id, role_id)
-SELECT u.user_id, r.role_id
-FROM users u, roles r
-WHERE u.username='admin'
-AND r.role_name IN ('ROLE_USER','ROLE_SELLER','ROLE_ADMIN')
-ON DUPLICATE KEY UPDATE user_id=user_id;
+-- seller1 → SELLER
+INSERT IGNORE INTO user_role (user_id, role_id) VALUES (3, 2);

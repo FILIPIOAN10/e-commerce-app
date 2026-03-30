@@ -21,4 +21,6 @@ public interface AuthService {
     ResponseCookie logoutUser();
 
     UserResponse getAllSellers(Pageable pageDetails);
+
+    ResponseEntity<?> getPasswordHint(String username);
 }

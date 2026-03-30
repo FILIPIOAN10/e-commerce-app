@@ -42,6 +42,10 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @Size(max = 100)
+    @Column(name = "password_hint")
+    private String passwordHint;
+
 
     public User(String userName, String email, String password) {
         this.userName = userName;

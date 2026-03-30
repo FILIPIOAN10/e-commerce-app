@@ -10,6 +10,7 @@ import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
@@ -109,5 +110,10 @@ public class AuthController {
         Pageable pageDetails =  PageRequest.of(pageNumber,Integer.parseInt(AppConstants.PAGE_SIZE),sortByAndOrder);
         return ResponseEntity.ok(authService.getAllSellers((org.springframework.data.domain.Pageable) pageDetails));
 
+    }
+
+    @GetMapping("/hint/{username}")
+    public ResponseEntity<?> getPasswordHint(@PathVariable String username){
+        return authService.getPasswordHint(username);
     }
 }
