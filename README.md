@@ -20,3 +20,5 @@ Designed complex entity relationships using JPA/Hibernate with PostgreSQL databa
 <img width="1397" height="962" alt="10" src="https://github.com/user-attachments/assets/feeb912a-ff1e-49cb-8a24-a37b24bb594b" />
 <img width="1908" height="994" alt="11" src="https://github.com/user-attachments/assets/47c13b4b-45f6-45df-8c5c-43b526947fe3" />
 <img width="1904" height="760" alt="12" src="https://github.com/user-attachments/assets/095cf000-7c47-49c4-b76e-1b2c26e06060" />
+<img width="552" height="592" alt="s1" src="https://github.com/user-attachments/assets/3694632a-1fd7-49ce-b371-c866b89868a8" />
+
