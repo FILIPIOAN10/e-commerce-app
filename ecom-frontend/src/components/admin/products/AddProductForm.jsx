@@ -28,6 +28,11 @@ const AddProductForm = ({setOpen,product,update=false}) => {
         });
     const saveProductHandler = (data) => {
         if(!update){
+
+            if(!selectCategory?.categoryId){
+                toast.error("Please select a category")
+                return;
+            }
             const sendData ={
                 ...data,
                 categoryId: selectCategory.categoryId,
@@ -53,6 +58,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                 setValue("discount",product?.discount);
                 setValue("specialPrice",product?.specialPrice);
                 setValue("description",product?.description);
+                setValue("tags",product?.tags || "");
             }
         },[update,product]);
 
@@ -83,7 +89,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             <form className='space-y-4'
             
                 onSubmit={handleSubmit(saveProductHandler)}>
-                <div className='flex md:flex-row flex:col gap-4 w-full'>
+                <div className='flex md:flex-row flex-col gap-4 w-full'>
                     <InputField 
                         label="Product Name"
                         required
@@ -112,6 +118,8 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                         id="price"
                         type="number"
                         message="This field is required"
+                        min={0}
+                        step="0.01"
                         placeHolder="Product Price"
                         register={register}
                         errors={errors}
@@ -125,6 +133,8 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                         message="This field is required"
                         register={register}
                         placeHolder="Product Quantity"
+                        minValue={0}
+                        step="1"
                         errors={errors}
                         />
                 </div>
@@ -136,6 +146,9 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             type="number"
             message="This field is required*"
             placeHolder="Product Discount"
+            minValue={0}
+            maxValue={100}
+            step="0.01"
             register={register}
             errors={errors}
           />
@@ -173,7 +186,15 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                 </p>
             )}
         </div>
-            <div className='flex w-full justify-between items-center absolute bottom-14'>
+            <InputField
+                label="Tags"
+                id="tags"
+                type="text"
+                placeHolder="gradinarit,curte,pamant,unelte"
+                register={register}
+                errors={errors}
+                />
+                <div className='flex w-full justify-between items-center pt-4'>
                 <Button disabled={loader}
                             onClick={() => setOpen(false)}
                             variant='outlined'

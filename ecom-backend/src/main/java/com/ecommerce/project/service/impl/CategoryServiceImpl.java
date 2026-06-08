@@ -9,6 +9,9 @@ import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +32,10 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
+    @Cacheable(
+            value = "publicCategories",
+            key = " #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder "
+    )
     public CategoryResponse getAllCategories(Integer pageNumber, Integer pageSize,String sortBy,String sortOrder) {
 
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
@@ -60,6 +67,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicCategories",allEntries = true),
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
 
         Category category = modelMapper.map(categoryDTO, Category.class);
@@ -75,6 +88,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicCategories",allEntries = true),
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
     public CategoryDTO deleteCategory(Long categoryId) {
 
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", categoryId));
@@ -84,6 +103,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicCategories",allEntries = true),
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
     public CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId) {
 
         Category savedCategory = categoryRepository.findById(categoryId)

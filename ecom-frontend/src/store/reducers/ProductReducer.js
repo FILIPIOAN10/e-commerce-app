@@ -20,6 +20,46 @@ export const productReducer = (state = initialState, action ) => {
                 },
 
             };
+        
+
+        case "DELETE_CATEGORY_SUCCESS": {
+            const nextCategories = state.categories
+                ? state.categories.filter((category) =>
+                        category.categoryId !== action.payload && category.id !== action.payload
+            )
+            : state.categories;
+            const deletedFromCurrentPage = state.categories?.length !==nextCategories?.length;
+
+            return {
+                ...state,
+                categories: nextCategories,
+                pagination: {
+                    ...state.pagination,
+                    totalElements: deletedFromCurrentPage && state.pagination.totalElements !==undefined
+                    ? Math.max(state.pagination.totalElements -1,0)
+                    : state.pagination.totalElements,
+                },
+            };
+        
+        }
+        case "DELETE_PRODUCT_SUCCESS": {
+            const nextProducts = state.products
+                ? state.products.filter( (product) =>
+                      product.productId !== action.payload && product.id !== action.payload
+            )
+            : state.products;
+            const deletedFromCurrentPage = state.products?.length !== nextProducts?.length;
+            return{
+                ...state,
+                products:nextProducts,
+                pagination :{
+                    ...state.pagination,
+                    totalElements: deletedFromCurrentPage && state.pagination.totalElements !==undefined
+                    ? Math.max(state.pagination.totalElements-1,0)
+                    :state.pagination.totalElements,
+                },
+            };
+        }
 
         case "FETCH_CATEGORIES":
             return {

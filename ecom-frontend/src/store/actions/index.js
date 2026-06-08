@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 import api from "../../api/api"
 import { duration } from "@mui/material";
+import { get } from "react-hook-form";
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
@@ -123,7 +124,13 @@ export const authenticateSignInUser
     = (sendData, toast, reset, navigate, setLoader,fetchHint) => async (dispatch) => {
         try {
             setLoader(true);
-            const { data } = await api.post("/auth/signin", sendData);
+            
+            localStorage.removeItem("auth");
+            const loginData = {
+                ...sendData,
+                username :String(sendData.username || "").trim(),
+            };
+            const {data} = await api.post("/auth/sigin",loginData);
             dispatch({ type: "LOGIN_USER", payload: data });
             localStorage.setItem("auth", JSON.stringify(data));
             reset();
@@ -222,7 +229,7 @@ export const clearCheckoutAddress = () => {
 export const getUserAddresses = () => async (dispatch, getState) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get(`/addresses`);
+        const { data } = await api.get(`/users/addresses`);
         dispatch({type: "USER_ADDRESS", payload: data});
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
@@ -341,11 +348,14 @@ export const analyticsAction = () => async (dispatch, getState) => {
         }
 };
 
-export const getOrdersForDashboard = (queryString, isAdmin) => async (dispatch) => {
+export const getOrdersForDashboard = (queryString= "", isAdmin) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const endpoint = isAdmin ? "/admin/orders" : "/seller/orders";
-        const { data } = await api.get(`${endpoint}?${queryString}`);
+        const {user} = getState().auth;
+        const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
+        const endpoint = adminRequest ? "/admin/orders" : "/seller/orders";
+        const requestUrl = queryString ? `${endpoint}?${queryString}`:endpoint;
+        const {data} = await api.get(requestUrl);
         dispatch({
             type: "GET_ADMIN_ORDERS",
             payload: data.content,
@@ -371,12 +381,12 @@ export const updateOrderStatusFromDashboard =
      (orderId, orderStatus, toast, setLoader, isAdmin) => async (dispatch, getState) => {
     try {
         setLoader(true);
-        const endpoint = isAdmin ? "/admin/orders/" : "/seller/orders/";
-        const { data } = await api.put(`${endpoint}${orderId}/status`, { status: orderStatus});
-
+        const {user} = getState().auth;
+        const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
+        const endpoint = adminRequest ? "/admin/orders/":"/seller/orders/";
 
         toast.success(data.message || "Order updated successfully");
-        await dispatch(getOrdersForDashboard());
+        await dispatch(getOrdersForDashboard("",adminRequest));
     } catch (error) {
         console.log(error);
         toast.error(error?.response?.data?.message || "Internal Server Error");
@@ -390,7 +400,8 @@ export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch
     try {
         dispatch({ type: "IS_FETCHING" });
         const endpoint = isAdmin ? "/admin/products" : "/seller/products";
-        const { data } = await api.get(`${endpoint}?${queryString}`);
+        const requestUrl = queryString ? `${endpoint}?${queryString}`:endpoint;
+        const {data} = await api.get(requestUrl);
         dispatch({
             type: "FETCH_PRODUCTS",
             payload: data.content,
@@ -411,10 +422,11 @@ export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch
 };
 
 
-export const getAllCategoriesDashboard = (queryString) => async (dispatch) => {
+export const getAllCategoriesDashboard = (queryString="") => async (dispatch) => {
   dispatch({ type: "CATEGORY_LOADER" });
   try {
-    const { data } = await api.get(`/public/categories?${queryString}`);
+    const requestUrl = queryString ? `/public/categories?${queryString}` : "/public/categories";
+    const {data} = await api.get(requestUrl);
     dispatch({
       type: "FETCH_CATEGORIES",
       payload: data["content"],
@@ -443,8 +455,8 @@ export const updateCategoryDashboardAction =
     try {
       dispatch({ type: "CATEGORY_LOADER" });
 
-              const endpoint = isAdmin ? "/admin/products/" : "/seller/products/";
-        await api.put(`${endpoint}${sendData.id}`, sendData);
+    
+      await api.put(`/admin/categories/${categoryID}`,sendData);
 
       dispatch({ type: "CATEGORY_SUCCESS" });
 
@@ -494,33 +506,38 @@ export const updateProductFromDashboard =
         try {
             setLoader(true);
     
-            await api.put(`/admin/products/${sendData.id}`,sendData);
+            const endpoint = isAdmin ? "/admin/products": "/seller/products/";
+            await api.put(`${endpoint}${sendData.id}`,sendData);
             toast.success("Product update successful");
             reset();
             setLoader(false);
             setOpen(false);
-            await dispatch(dashboardProductsAction());
+            await dispatch(dashboardProductsAction("",isAdmin));
         } catch (error) {
-            toast.error(error?.data?.description || "Product update failed");
+            console.error("Product update failed", error?.response?.status, error?.config?.url, error);
+            toast.error(error?.response?.data?.description || error?.response?.data?.message || "Product update failed");
         }
 }
 
 
 export const deleteProduct = 
-    (setLoader,productId,toast,setOpenDeleteModal,isAdmin)=> async (dispatch,getState) => {
+    (setLoader,productId,toast,setOpenDeleteModal,isAdmin, queryString = "")=> async (dispatch,getState) => {
 
     try {
         setLoader(true);
         const endpoint = isAdmin ? "/admin/products/" : "/seller/products/";
         await api.delete(`${endpoint}${productId}`);
+        dispatch({ type :"DELETE_PRODUCT_SUCCESS",payload :productId});
         toast.success("Product deleted successfully");
-        setLoader(false);
+
         setOpenDeleteModal(false);
-        await dispatch(dashboardProductsAction());
+        await dispatch(dashboardProductsAction(queryString),isAdmin);
      
     } catch (error){    
-        console.log(error);
+        console.log("Product delete failed",error?.response?.status, error?.config?.url,error);
         toast.error(error?.response?.data?.message || "Some Error Occured");
+    } finally{
+        setLoader(false);
     }
 };
 
@@ -537,8 +554,8 @@ export const addNewProductFromDashboard =
             setOpen(false);
             await dispatch(dashboardProductsAction());
         } catch (error) {
-            console.error(err);
-            toast.error(err?.response?.data?.description || "Product creation failed");
+            console.error(error);
+            toast.error(error?.response?.data?.description || "Product creation failed");
         } finally {
             setLoader(false);
         }
@@ -553,7 +570,7 @@ export const updateProductImageFromDashboard =
         toast.success("Image update successful");
         setLoader(false);
         setOpen(false);
-        await dispatch(dashboardProductsAction());
+        await dispatch(dashboardProductsAction("",isAdmin));
     } catch (error){    
       
         toast.error(error?.response?.data?.description || "Product Image upload failed");
@@ -563,6 +580,7 @@ export const updateProductImageFromDashboard =
 export const deleteCategoryDashboardAction =
   (setOpen, categoryID, toast) => async (dispatch, getState) => {
     try {
+      dispatch({type:"DELETE_CATEGORY_SUCCESS",payload:categoryID});
       dispatch({ type: "CATEGORY_LOADER" });
 
       await api.delete(`/admin/categories/${categoryID}`);
@@ -571,7 +589,6 @@ export const deleteCategoryDashboardAction =
 
       toast.success("Category Delete Successful");
       setOpen(false);
-      await dispatch(getAllCategoriesDashboard());
     } catch (err) {
       console.log(err);
       toast.error(err?.response?.data?.message || "Failed to delete category");

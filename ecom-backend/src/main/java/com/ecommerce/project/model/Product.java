@@ -31,6 +31,7 @@ public class Product {
     @NotBlank
     @Size(min = 6, message = "Product description must contain at least 3 characters")
     private String description;
+    private String tags;
     private Integer quantity;
     private double price; // 100
     private double discount; // 25

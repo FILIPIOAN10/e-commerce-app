@@ -43,12 +43,16 @@ const useProductFilter =  () => {
 
 export const useDashboardProductFilter = () => {
     const { user } = useSelector((state) => state.auth);
-    const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
+    const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
     const [searchParams] = useSearchParams();
     const dispatch = useDispatch();
 
 
     useEffect(() => {
+
+        if(!user){
+            return;
+        }
         const params = new URLSearchParams();
 
         const currentPage = searchParams.get("page")
@@ -60,9 +64,8 @@ export const useDashboardProductFilter = () => {
         
         dispatch(dashboardProductsAction(queryString, isAdmin));
 
-    }, [dispatch, searchParams]); // Am lăsat dependențele originale
+    }, [dispatch, searchParams,user,isAdmin]); 
 };
-
 
 
 

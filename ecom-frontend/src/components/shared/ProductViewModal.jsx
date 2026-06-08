@@ -6,7 +6,7 @@ import { MdClose, MdDone } from 'react-icons/md';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
   
-  const {id, productName, image, description, quantity, price, discount, specialPrice} = product;
+  const {id, productName, image, description,tags,quantity, price, discount, specialPrice} = product;
   const handleClickOpen = () => {
     setOpen(true);
   }

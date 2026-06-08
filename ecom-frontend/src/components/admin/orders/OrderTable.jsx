@@ -37,7 +37,7 @@ const OrderTable = ({adminOrder,pagination}) => {
   const page = paginationModel.page + 1;
   setCurrentPage(page);
   params.set("page",page.toString());
-  navigate(`${pathname} ?{params}`)
+  navigate(`${pathname}?${params}`)
  }
 
  const handleEdit = (order) => {
@@ -64,7 +64,7 @@ const OrderTable = ({adminOrder,pagination}) => {
             },
           },
         }}
-        onPaginationMetaChange={handlePaginationChange}
+        onPaginationModelChange={handlePaginationChange}
         disableRowSelectionOnClick
         pageSizeOptions={[pagination?.pageSize || 10]}
         pagination

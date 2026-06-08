@@ -14,11 +14,16 @@ import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.FileService;
+import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.util.AuthUtil;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,8 +33,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Service
@@ -42,17 +51,26 @@ public class ProductServiceImpl implements ProductService {
     private final FileService fileService;
     private final CartRepository cartRepository;
     private final CartService cartService;
+    private final ProductSemanticSearchService productSemanticSearchService;
 
-    private AuthUtil authUtil;
+    private final AuthUtil authUtil;
     @Value("${project.image}")
     private String path;
 
     @Value("${image.base.url}")
     private String imageBaseUrl;
 
+    @Value("${app.search.semantic.top-k:20}")
+    private int semanticTopK;
+
 
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
 
 
@@ -75,6 +93,7 @@ public class ProductServiceImpl implements ProductService {
             //automatically converts (maps) the productDTO object into a Product object.
             Product product = modelMapper.map(productDTO, Product.class);
             product.setImage("cal.png");
+            product.setTags(productDTO.getTags());
             product.setCategory(category);
             product.setUser(authUtil.loggedInUser());
             double specialPrice = product.getPrice() -
@@ -91,6 +110,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(
+            value = "publicProducts",
+            key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder + '/' + (#keyword == null ?'':#keyword.toLowerCase()) + '/' + (#category == null ? '': #category.toLowerCase())"
+    )
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
 
         //Implement pagination
@@ -145,25 +168,7 @@ public class ProductServiceImpl implements ProductService {
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
         Page<Product> pageProducts = productRepository.findAll(pageDetails);
 
-
-        // check if product size is 0 or not
-        List<Product> products = pageProducts.getContent();
-
-        // Transformation of the list of products into product response
-        List<ProductDTO> productDTOs = products.stream()
-                .map(product -> {
-                    ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
-                    productDTO.setImage(constructImageUrl(product.getImage()));
-                    return productDTO;
-                }).toList();
-        ProductResponse productResponse = new ProductResponse();
-        productResponse.setContent(productDTOs);
-        productResponse.setPageNumber(pageProducts.getNumber());
-        productResponse.setPageSize(pageProducts.getSize());
-        productResponse.setTotalElements(pageProducts.getTotalElements());
-        productResponse.setTotalPages(pageProducts.getTotalPages());
-        productResponse.setLastPage(pageProducts.isLast());
-        return productResponse;
+        return buildProductResponse(pageProducts);
     }
 
     @Override
@@ -176,24 +181,45 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> pageProducts = productRepository.findByUser(user,pageDetails);
 
 
-        // check if product size is 0 or not
-        List<Product> products = pageProducts.getContent();
 
-        // Transformation of the list of products into product response
-        List<ProductDTO> productDTOs = products.stream()
-                .map(product -> {
-                    ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
-                    productDTO.setImage(constructImageUrl(product.getImage()));
-                    return productDTO;
-                }).toList();
-        ProductResponse productResponse = new ProductResponse();
-        productResponse.setContent(productDTOs);
-        productResponse.setPageNumber(pageProducts.getNumber());
-        productResponse.setPageSize(pageProducts.getSize());
-        productResponse.setTotalElements(pageProducts.getTotalElements());
-        productResponse.setTotalPages(pageProducts.getTotalPages());
-        productResponse.setLastPage(pageProducts.isLast());
-        return productResponse;
+        return buildProductResponse(pageProducts);
+    }
+
+    @Override
+    @Cacheable(
+            value = "productSearch",
+            key = " 'search/' + (#query == null ? '' : #query.toLowerCase()) + '/' + #semantic + '/' + #pageNumber + '/' + #pageSize + '/' #sortBy + '/' + #sortOrder"
+    )
+    public ProductResponse searchProducts(String query, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, Boolean semantic) {
+        List<String> terms = parseSearchTerms(query);
+        Sort sortByAndOrder = buildProductSort(sortBy,sortOrder);
+        List<Product> classicProducts = productRepository.findAll(buildClassicSearchSpec(terms),sortByAndOrder);
+        boolean hasCommaSeparatedTerms = query !=null && query.contains(",");
+        boolean shouldUseSemanticSearch = semantic && productSemanticSearchService.isEnabled() && query !=null && !query.isBlank();
+
+        if(!shouldUseSemanticSearch){
+            return buildProductResponse(classicProducts,pageNumber,pageSize);
+        }
+
+        int safePageNumber = pageNumber == null ? 0 : Math.max(pageNumber,0);
+        int safePageSize   = pageSize == null ? 10: Math.max(pageSize,1);
+        int semanticLimit = Math.max(semanticTopK,(safePageNumber +1) *safePageSize);
+        List<Long> semanticProductIds = productSemanticSearchService.searchProductIds(query,semanticLimit);
+        List<Product> semanticProducts = findProductsByOrderedIds(semanticProductIds);
+        List<Product> products = hasCommaSeparatedTerms
+                ? mergePrioritizedProducts(classicProducts,semanticProducts)
+                : mergePrioritizedProducts(semanticProducts,classicProducts);
+
+        return buildProductResponse(products,pageNumber,pageSize);
+    }
+
+
+    @Override
+    public int reindexProductSearch() {
+        List<Product> products = productRepository.findAll();
+        products.forEach(productSemanticSearchService::indexProduct);
+
+        return products.size();
     }
 
 
@@ -300,10 +326,15 @@ public class ProductServiceImpl implements ProductService {
         }).collect(Collectors.toList());
 
         cartDTOS.forEach(cart -> cartService.updateProductsInCarts(cart.getCartId(),productId));
-        return modelMapper.map(savedProduct, ProductDTO.class);
+        return mapProductToDTO(savedProduct);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
     public ProductDTO deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
@@ -317,6 +348,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
     public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
 
         // Get product from DB
@@ -333,6 +369,100 @@ public class ProductServiceImpl implements ProductService {
         Product updatedProduct = productRepository.save(productFromDb);
         // return DTO after mapping product to DTO
         return modelMapper.map(updatedProduct, ProductDTO.class);
+    }
+
+    private List<String> parseSearchTerms(String query){
+        if(query==null || query.isBlank()){
+            return List.of();
+        }
+
+        return Stream.of(query.split(","))
+                .map(String::trim)
+                .filter(term->!term.isBlank())
+                .toList();
+    }
+
+    private Sort buildProductSort(String sortBy,String sortOrder){
+        return sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+    }
+
+    private Specification<Product> buildClassicSearchSpec(List<String> terms){
+        if(terms.isEmpty()){
+            return (root,query,cb)-> cb.disjunction();
+        }
+        return (root,query,cb)->{
+            List<Predicate> termPredicates = new ArrayList<>();
+
+            for (String term:terms){
+                String likeTerm = "%" + term.toLowerCase() + "%";
+                termPredicates.add(
+                        cb.or(
+                                cb.like(cb.lower(root.get("productName")),likeTerm),
+                                cb.like(cb.lower(root.get("description")),likeTerm),
+                                cb.like(cb.lower(root.get("tags")),likeTerm),
+                                cb.like(cb.lower(root.get("category").get("categoryName")),likeTerm)
+                        ));
+            }
+            return cb.or(termPredicates.toArray(Predicate[]::new));
+        };
+    }
+    private ProductDTO mapProductToDTO(Product product){
+        ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
+        productDTO.setImage(constructImageUrl(product.getImage()));
+        productDTO.setTags(product.getTags());
+        return productDTO;
+    }
+
+    private ProductResponse buildProductResponse(Page<Product> pageProducts){
+        List<ProductDTO> productDTOS = pageProducts.getContent().stream()
+                .map(this::mapProductToDTO)
+                .toList();
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNumber(pageProducts.getNumber());
+        productResponse.setPageSize(pageProducts.getSize());
+        productResponse.setTotalElements(pageProducts.getTotalElements());
+        productResponse.setTotalPages(pageProducts.getTotalPages());
+        productResponse.setLastPage(pageProducts.isLast());
+        return productResponse;
+    }
+
+    private ProductResponse buildProductResponse(List<Product> products,Integer pageNumber,Integer pageSize){
+        int safePageNumber = pageNumber == null ?  0 : Math.max(pageNumber,0);
+        int safePageSize = pageNumber == null ?  10 : Math.max(pageSize,1);
+        int fromIndex = Math.min(safePageNumber * safePageSize,products.size());
+        int toIndex = Math.min(fromIndex+safePageSize,products.size());
+        List<ProductDTO> productDTOS = products.subList(fromIndex,toIndex).stream()
+                .map(this::mapProductToDTO)
+                .toList();
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNumber(safePageNumber);
+        productResponse.setPageSize(safePageSize);
+        productResponse.setTotalElements((long) products.size());
+        productResponse.setTotalPages((int) Math.ceil((double) products.size() / safePageSize));
+        productResponse.setLastPage(toIndex>=products.size());
+        return productResponse;
+    }
+
+    private List<Product> mergePrioritizedProducts(List<Product> primaryProducts,List<Product> secondaryProducts){
+        Map<Long,Product> mergedProducts =  new LinkedHashMap<>();
+        Stream.concat(primaryProducts.stream(),secondaryProducts.stream())
+                .forEach(product -> mergedProducts.putIfAbsent(product.getProductId(),product));
+        return new ArrayList<>(mergedProducts.values());
+    }
+
+    private List<Product> findProductsByOrderedIds(List<Long> productsIds){
+        if(productsIds.isEmpty()){
+            return List.of();
+        }
+        Map<Long,Product> productsById = productRepository.findAllById(productsIds).stream()
+                .collect(Collectors.toMap(Product::getProductId,product -> product));
+        return productsIds.stream()
+                .map(productsById::get)
+                .filter(product -> product!=null)
+                .toList();
     }
 
 

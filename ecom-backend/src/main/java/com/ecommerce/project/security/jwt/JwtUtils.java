@@ -87,7 +87,9 @@ public class JwtUtils {
     }
 
 
-
+    public String generateJwtToken(UserDetailsImpl userPrincipal){
+     return generateTokenFromUsername(userPrincipal.getUsername());
+    }
 
 
     // generate clean JWT cookie

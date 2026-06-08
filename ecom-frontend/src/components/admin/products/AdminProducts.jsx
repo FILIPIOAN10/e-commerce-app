@@ -56,6 +56,7 @@ const AdminProducts = () => {
     id:item.productId,
     productName: item.productName,
     description:item.description,
+    tags:item.tags || "",
     discount:item.discount,
     image:item.image,
     price:item.price,
@@ -96,7 +97,19 @@ const handlePaginationChange = (paginationModel) =>{
  };
 
  const onDeleteHandler = () => {
-  dispatch(deleteProduct(setLoader, selectedProduct?.id, toast,setOpenDeleteModal,isAdmin));
+  
+  const deleteParams = new URLSearchParams();
+  const page = searchParams.get("page") ? Number(searchParams.get("page")) : currentPage;
+  deleteParams.set("pageNumber",Math.max(page-1),0);
+
+  dispatch(deleteProduct(
+    setLoader,
+    selectedProduct?.id,
+    toast,
+    setOpenDeleteModal,
+    isAdmin,
+    deleteParams.toString()
+  ));
  };
 
 
@@ -167,7 +180,7 @@ const handlePaginationChange = (paginationModel) =>{
         title={openUpdateModal ? "Update Product": "Add Product"}>
             <AddProductForm
              //  give acces to the fuction which will allow openning and closing the from
-              setOpen ={setOpenUpdateModal}
+              setOpen ={setOpenUpdateModal ? setOpenUpdateModal : setOpenAddModal}
               product= {selectedProduct}
               update={openUpdateModal}
 

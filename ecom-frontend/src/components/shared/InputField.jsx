@@ -8,9 +8,39 @@ const InputField = ({
     message,
     className,
     min,
+    minValue,
+    maxValue,
+    step,
     value,
     placeHolder,
 }) => {
+    const validationRules = {
+        required: {value: required,message},
+        ...(type !== "number" && min
+            ? {minLength: {value:min,message:`Minimun ${min} character is required`}}
+            :{}),
+        ...(minValue !== undefined 
+            ? {min : {value:min,message:`Minimum value is ${minValue}`}}
+            :{}),
+        ...(maxValue !== undefined 
+            ? {min : {value:maxValue,message:`Maximum value is ${maxValue}`}}
+            :{}),
+        ...(type !== "number" 
+            ? {setValueAs : (inputValue) => inputValue === "" ? undefined : Number(inputValue) }
+            :{}),
+        pattern:
+            type === "email"
+                ? {
+                    value: /^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/,
+                    message: "Invalid email"
+                }
+                : type === "url"
+                ? {
+                    value: /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w\-./?%&=]*)?$/,
+                    message: "Invalid URL"
+                }
+                : null
+    };
     return  (
         <div className="flex flex-col gap-1 w-full">
             <label
@@ -25,6 +55,9 @@ const InputField = ({
             
             type={type}
             id={id}
+            min={minValue}
+            max={maxValue}
+            step={step}
             placeholder={placeHolder}
             className={`${
                 className ? className : ""
@@ -32,26 +65,7 @@ const InputField = ({
                 errors[id]?.message ? "border-red-500": "border-slate-700"
             }`}
 
-            {...register(id,{
-                required: {value: required, message},
-                minLength: min 
-                ? {value :min,message:`Minimum ${min} character is required`}
-                :null,
-                pattern:
-                    type === "email" 
-                        ? {
-                            value:/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-                            message:"Invalid email"
-
-                        }
-                        : type === "url"
-                        ?{
-                            value:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
-                            message:"Please enter a valid url"
-                        }
-                        :null
-
-            })}
+            {...register(id,validationRules)}
             />
 
             {errors[id]?.message && (

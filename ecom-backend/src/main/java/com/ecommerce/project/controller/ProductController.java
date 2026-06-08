@@ -2,6 +2,7 @@ package com.ecommerce.project.controller;
 
 
 import com.ecommerce.project.config.AppConstants;
+import com.ecommerce.project.payload.ApiResponse;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductService;
@@ -41,7 +42,7 @@ public class ProductController {
 
     @Tag(name = "Product")
     @PostMapping("/seller/categories/{categoryId}/product")
-    @PreAuthorize("hasRole('ADMIN', 'SELLER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     public ResponseEntity<ProductDTO> addProductSeller(@Valid @RequestBody ProductDTO productDTO,
                                                  @PathVariable Long categoryId) {
         ProductDTO savedProductDto = productService.addProduct(categoryId, productDTO);
@@ -98,6 +99,27 @@ public class ProductController {
         return new ResponseEntity<>(productResponse, HttpStatus.FOUND);
 
     }
+    @Tag(name="Product")
+    @GetMapping("/public/products/search")
+    public ResponseEntity<ProductResponse> searchProducts(@RequestParam(name = "q") String query,
+                                                          @RequestParam(name = "semantic",defaultValue = "true",required = false) Boolean semantic,
+                                                          @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                                                          @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                                                          @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
+                                                          @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder){
+        ProductResponse productResponse = productService.searchProducts(query,pageNumber,pageSize,sortBy,sortOrder,semantic);
+        return new ResponseEntity<>(productResponse,HttpStatus.OK);
+    }
+
+
+    @Tag(name="Product")
+    @PostMapping("/admin/products/search/reindex")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> reindexProductSearch(){
+        int indexedProducts = productService.reindexProductSearch();
+        ApiResponse response = new ApiResponse("Reindexed " + indexedProducts +" products",true);
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
 
     /**
      * Actualizează un produs existent.
@@ -153,7 +175,7 @@ public class ProductController {
 
     @Tag(name = "Product")
     @GetMapping("/seller/products")
-    @PreAuthorize("hasRole('ADMIN','SELLER')")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductResponse> getAllProductsForSeller(
             @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
@@ -165,7 +187,7 @@ public class ProductController {
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
     @PutMapping("/seller/products/{productId}")
-    @PreAuthorize("hasRole('ADMIN','SELLER')")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> updateProductSeller(@Valid @RequestBody ProductDTO productDTO,
                                                           @PathVariable Long productId){
         ProductDTO updatedProductDTO = productService.updateProduct(productId, productDTO);
@@ -173,7 +195,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/seller/products/{productId}")
-    @PreAuthorize("hasRole('ADMIN','SELLER')")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> deleteProductSeller(@PathVariable Long productId){
         ProductDTO deletedProduct = productService.deleteProduct(productId);
         return new ResponseEntity<>(deletedProduct, HttpStatus.OK);

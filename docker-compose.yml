@@ -1,0 +1,65 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7.4-alpine # Fixed typo 'apline' -> 'alpine'
+    container_name: ecommerce-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg16-trixie
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ecommerce}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cisco@123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Fixed underscore to hyphen to match the bottom volume
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ecommerce}"] # Doubled $$ to escape properly for healthchecks
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: maven:3.9.9-eclipse-temurin-17
+    working_dir: /workspace
+    command: ./mvnw spring-boot:run
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./ecom-backend:/workspace
+      - backend-m2:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ecommerce}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-cisco@123}
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      APP_SEARCH_SEMANTIC_ENABLED: ${APP_SEARCH_SEMANTIC_ENABLED:-false}
+      APP_SEARCH_SEMANTIC_TOP_K: ${APP_SEARCH_SEMANTIC_TOP_K:-20}
+      SPRING_AI_MODEL_EMBEDDING: ${SPRING_AI_MODEL_EMBEDDING:-none}
+      SPRING_AI_VECTORE_TYPE: ${SPRING_AI_VECTORE_TYPE:-none}
+      SPRING_AI_MODEL_CHAT: ${SPRING_AI_MODEL_CHAT:-none}
+      SPRING_AI_MODEL_IMAGE: ${SPRING_AI_MODEL_IMAGE:-none}
+      SPRING_AI_MODEL_MODERATION: ${SPRING_AI_MODEL_MODERATION:-none}
+      SPRING_AI_MODEL_AUDIO_SPEECH: ${SPRING_AI_MODEL_AUDIO_SPEECH:-none}
+      SPRING_AI_MODEL_AUDIO_TRANSCRIPTION: ${SPRING_AI_MODEL_AUDIO_TRANSCRIPTION:-none}
+      SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA: ${SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA:-true}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+
+volumes:
+  redis-data:
+  postgres-data:
+  backend-m2:
