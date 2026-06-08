@@ -40,7 +40,7 @@ export const fetchCategories = () => async (dispatch) => {
             totalPages: data.totalPages,
             lastPage: data.lastPage,
         });
-        dispatch({ type: "IS_ERROR" });
+        dispatch({ type: "CATEGORY_SUCCESS" });
     } catch (error) {
         console.log(error);
         dispatch({ 
@@ -399,7 +399,9 @@ export const updateOrderStatusFromDashboard =
 export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const endpoint = isAdmin ? "/admin/products" : "/seller/products";
+        const {user} = getState.auth;
+        const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
+        const endpoint = adminRequest ? "/admin/products" : "/seller/products";
         const requestUrl = queryString ? `${endpoint}?${queryString}`:endpoint;
         const {data} = await api.get(requestUrl);
         dispatch({
@@ -510,12 +512,13 @@ export const updateProductFromDashboard =
             await api.put(`${endpoint}${sendData.id}`,sendData);
             toast.success("Product update successful");
             reset();
-            setLoader(false);
             setOpen(false);
             await dispatch(dashboardProductsAction("",isAdmin));
         } catch (error) {
             console.error("Product update failed", error?.response?.status, error?.config?.url, error);
             toast.error(error?.response?.data?.description || error?.response?.data?.message || "Product update failed");
+        }finally{
+            setLoader(false);
         }
 }
 
@@ -531,7 +534,7 @@ export const deleteProduct =
         toast.success("Product deleted successfully");
 
         setOpenDeleteModal(false);
-        await dispatch(dashboardProductsAction(queryString),isAdmin);
+        await dispatch(dashboardProductsAction(queryString,isAdmin));
      
     } catch (error){    
         console.log("Product delete failed",error?.response?.status, error?.config?.url,error);
@@ -552,7 +555,7 @@ export const addNewProductFromDashboard =
             toast.success("Product created successfully");
             reset();
             setOpen(false);
-            await dispatch(dashboardProductsAction());
+            await dispatch(dashboardProductsAction("",isAdmin));
         } catch (error) {
             console.error(error);
             toast.error(error?.response?.data?.description || "Product creation failed");

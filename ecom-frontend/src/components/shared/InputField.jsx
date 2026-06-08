@@ -23,7 +23,7 @@ const InputField = ({
             ? {min : {value:minValue,message:`Minimum value is ${minValue}`}}
             :{}),
         ...(maxValue !== undefined 
-            ? {min : {value:maxValue,message:`Maximum value is ${maxValue}`}}
+            ? {max : {value:maxValue,message:`Maximum value is ${maxValue}`}}
             :{}),
         ...(type === "number" 
             ? {setValueAs : (inputValue) => inputValue === "" ? undefined : Number(inputValue) }

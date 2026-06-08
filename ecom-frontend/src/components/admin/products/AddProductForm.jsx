@@ -27,6 +27,13 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             mode :"onTouched"
         });
     const saveProductHandler = (data) => {
+
+        const saveProductData = {
+            ...data,
+            price:Number(data.price),
+            quantity:Number(data.quantity),
+            discount:Number(data.discount || 0),
+        };
         if(!update){
 
             if(!selectCategory?.categoryId){
