@@ -20,12 +20,12 @@ const InputField = ({
             ? {minLength: {value:min,message:`Minimun ${min} character is required`}}
             :{}),
         ...(minValue !== undefined 
-            ? {min : {value:min,message:`Minimum value is ${minValue}`}}
+            ? {min : {value:minValue,message:`Minimum value is ${minValue}`}}
             :{}),
         ...(maxValue !== undefined 
             ? {min : {value:maxValue,message:`Maximum value is ${maxValue}`}}
             :{}),
-        ...(type !== "number" 
+        ...(type === "number" 
             ? {setValueAs : (inputValue) => inputValue === "" ? undefined : Number(inputValue) }
             :{}),
         pattern:
@@ -45,7 +45,7 @@ const InputField = ({
         <div className="flex flex-col gap-1 w-full">
             <label
             
-            htmlFor="id"
+            htmlFor={id}
             className={`${
                 className ? className : ""
             } font-semibold text-sm text-slate-800}`}>

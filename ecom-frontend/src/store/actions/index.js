@@ -130,7 +130,7 @@ export const authenticateSignInUser
                 ...sendData,
                 username :String(sendData.username || "").trim(),
             };
-            const {data} = await api.post("/auth/sigin",loginData);
+            const {data} = await api.post("/auth/signin",loginData);
             dispatch({ type: "LOGIN_USER", payload: data });
             localStorage.setItem("auth", JSON.stringify(data));
             reset();
