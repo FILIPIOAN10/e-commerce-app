@@ -396,10 +396,10 @@ export const updateOrderStatusFromDashboard =
 };
 
 
-export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch) => {
+export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch,getState) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const {user} = getState.auth;
+        const {user} = getState().auth;
         const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
         const endpoint = adminRequest ? "/admin/products" : "/seller/products";
         const requestUrl = queryString ? `${endpoint}?${queryString}`:endpoint;
