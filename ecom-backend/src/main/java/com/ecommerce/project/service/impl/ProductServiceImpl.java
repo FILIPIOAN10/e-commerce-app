@@ -124,7 +124,14 @@ public class ProductServiceImpl implements ProductService {
 
         Specification<Product> spec = (root, query, cb) -> cb.conjunction();
         if(keyword !=null && !keyword.isEmpty()) {
-            spec = spec.and((root,query,cb) -> cb.like(cb.lower(root.get("productName")), "%" + keyword.toLowerCase() + "%"));
+            spec = spec.and((root, query, cb) -> {
+                String likeKeyword = "%" +keyword.toLowerCase() + "%";
+                return cb.or(
+                        cb.like(cb.lower(root.get("productName")),likeKeyword),
+                        cb.like(cb.lower(root.get("description")),likeKeyword),
+                        cb.like(cb.lower(root.get("tags")),likeKeyword)
+                );
+            });
         }
 
         if(category !=null && !category.isEmpty()) {
@@ -188,7 +195,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Cacheable(
             value = "productSearch",
-            key = " 'search/' + (#query == null ? '' : #query.toLowerCase()) + '/' + #semantic + '/' + #pageNumber + '/' + #pageSize + '/' #sortBy + '/' + #sortOrder"
+            key = " 'search/' + (#query == null ? '' : #query.toLowerCase()) + '/' + #semantic + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse searchProducts(String query, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, Boolean semantic) {
         List<String> terms = parseSearchTerms(query);
@@ -309,6 +316,7 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setDiscount(product.getDiscount());
         productFromDB.setPrice(product.getPrice());
         productFromDB.setSpecialPrice(product.getSpecialPrice());
+        productFromDB.setTags(product.getTags());
 
 
         // Save to database

@@ -109,13 +109,13 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
     private Optional<Long> extractProductId(Document document){
         Object productId = document.getMetadata().get(PRODUCT_ID_METADATA);
 
-        if(productId instanceof Number number){
-            return Optional.of(number.longValue());
+        if(productId instanceof Number){
+            return Optional.of(((Number) productId).longValue());
         }
 
-        if (productId instanceof String value && !value.isBlank()){
+        if (productId instanceof String &&  !((String) productId).isBlank()){
             try {
-                return Optional.of(Long.parseLong(value));
+                return Optional.of(Long.parseLong((String) productId));
             }catch (NumberFormatException ignored){
                 return Optional.empty();
             }
