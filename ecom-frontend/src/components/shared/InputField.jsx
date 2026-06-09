@@ -67,7 +67,7 @@ const InputField = ({
                 errors[id]?.message ? "border-red-500": "border-slate-700"
             }`}
 
-            {...(register && typeof register === 'function' ? register(id,validationRules) : {})}
+            {...register(id,validationRules)}
             />
 
             {errors[id]?.message && (
