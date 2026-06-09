@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +32,9 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
 
     private final VectorStore vectorStore;
 
+    @Value("${app.search.semantic.similarity-threshold:0.60}")
+    private double similarityThreshold;
+
     @Override
     public boolean isEnabled() {
         return true;
@@ -46,7 +49,7 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
             SearchRequest searchRequest = SearchRequest.builder()
                     .query(query)
                     .topK(limit)
-                    .similarityThresholdAll()
+                    .similarityThreshold(similarityThreshold)
                     .build();
             return vectorStore.similaritySearch(searchRequest).stream()
                     .map(this::extractProductId)
@@ -61,7 +64,7 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
 
     @Override
     public void indexProduct(Product product) {
-        if (product == null || product.getProducts() == null) {
+        if (product == null || product.getProductId() == null) {
             return;
         }
         try {
@@ -92,6 +95,7 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
                 productSearchText(product),
                 Map.of(PRODUCT_ID_METADATA, product.getProductId(),
                         "productName", nullToEmpty(product.getProductName()),
+                        "tags",nullToEmpty(product.getTags()),
                         "categoryName", product.getCategory() == null ? " " : nullToEmpty(product.getCategory().getCategoryName()))
         );
     }

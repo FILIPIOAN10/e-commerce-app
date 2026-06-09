@@ -24,7 +24,7 @@ public class NoOpProductSemanticSearchService implements ProductSemanticSearchSe
     }
 
     @Override
-    public void deleteProduct(Long product) {
+    public void deleteProduct(Long productId) {
 
     }
 }

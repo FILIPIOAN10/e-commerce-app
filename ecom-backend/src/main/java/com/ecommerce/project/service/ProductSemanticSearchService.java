@@ -10,5 +10,5 @@ public interface ProductSemanticSearchService {
 
     List<Long> searchProductIds(String query, int limit);
     void indexProduct(Product product);
-    void deleteProduct(Long product);
+    void deleteProduct(Long productId);
 }

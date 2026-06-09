@@ -6,7 +6,17 @@ import { get } from "react-hook-form";
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get(`/public/products?${queryString}`);
+        const searchParams = new URLSearchParams(queryString);
+        const keyword = searchParams.get("keyword");
+        const category = searchParams.get("category");
+        let requestUrl = `/public/products?${queryString}`;
+        if( keyword && !category){
+            searchParams.delete("keyword")
+            searchParams.set("q",keyword)
+            searchParams.set("semantic","true");
+            requestUrl = `/public/products/search?${searchParams.toString()}`;
+        }
+        const {data} = await api.get(requestUrl);
         dispatch({
             type: "FETCH_PRODUCTS",
             payload: data.content,

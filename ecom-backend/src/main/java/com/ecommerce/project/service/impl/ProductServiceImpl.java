@@ -33,10 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -100,6 +97,7 @@ public class ProductServiceImpl implements ProductService {
                     ((product.getDiscount() * 0.01) * product.getPrice());
             product.setSpecialPrice(specialPrice);
             Product savedProduct = productRepository.save(product);
+            productSemanticSearchService.indexProduct(savedProduct);
             return modelMapper.map(savedProduct, ProductDTO.class);
         } else throw new APIException("Product already exists !!!");
     }
@@ -198,11 +196,15 @@ public class ProductServiceImpl implements ProductService {
             key = " 'search/' + (#query == null ? '' : #query.toLowerCase()) + '/' + #semantic + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse searchProducts(String query, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, Boolean semantic) {
-        List<String> terms = parseSearchTerms(query);
-        Sort sortByAndOrder = buildProductSort(sortBy,sortOrder);
-        List<Product> classicProducts = productRepository.findAll(buildClassicSearchSpec(terms),sortByAndOrder);
         boolean hasCommaSeparatedTerms = query !=null && query.contains(",");
-        boolean shouldUseSemanticSearch = semantic && productSemanticSearchService.isEnabled() && query !=null && !query.isBlank();
+        List<String> terms = parseSearchTerms(query);
+        List<String> classicTerms = hasCommaSeparatedTerms ? terms : buildClassicFallbackTerms(query);
+        Sort sortByAndOrder = buildProductSort(sortBy,sortOrder);
+        List<Product> classicProducts = productRepository.findAll(buildClassicSearchSpec(classicTerms),sortByAndOrder);
+        boolean shouldUseSemanticSearch = Boolean.TRUE.equals(semantic)
+                && productSemanticSearchService.isEnabled()
+                && !terms.isEmpty();
+
 
         if(!shouldUseSemanticSearch){
             return buildProductResponse(classicProducts,pageNumber,pageSize);
@@ -211,7 +213,7 @@ public class ProductServiceImpl implements ProductService {
         int safePageNumber = pageNumber == null ? 0 : Math.max(pageNumber,0);
         int safePageSize   = pageSize == null ? 10: Math.max(pageSize,1);
         int semanticLimit = Math.max(semanticTopK,(safePageNumber +1) *safePageSize);
-        List<Long> semanticProductIds = productSemanticSearchService.searchProductIds(query,semanticLimit);
+        List<Long> semanticProductIds = searchSemanticProductIds(query,terms,hasCommaSeparatedTerms,semanticLimit);
         List<Product> semanticProducts = findProductsByOrderedIds(semanticProductIds);
         List<Product> products = hasCommaSeparatedTerms
                 ? mergePrioritizedProducts(classicProducts,semanticProducts)
@@ -471,6 +473,49 @@ public class ProductServiceImpl implements ProductService {
                 .map(productsById::get)
                 .filter(product -> product!=null)
                 .toList();
+    }
+    public List<String> buildClassicFallbackTerms(String query){
+        if(query==null || query.isBlank()){
+            return List.of();
+        }
+
+        List<String> terms = new ArrayList<>();
+        String normalizedQuery= query.trim();
+        terms.add(normalizedQuery);
+
+        Arrays.stream(normalizedQuery.split("\\s+"))
+                .map(this::normalizeSearchToken)
+                .filter(token-> token.length() >=3)
+                .filter(token-> !isSearchStopWord(token))
+                .forEach(terms::add);
+
+        return terms.stream().distinct().toList();
+
+    }
+
+    private String normalizeSearchToken(String token){
+        return token ==null ? "":token
+                .toLowerCase()
+                .replaceAll("[^\\p{L}\\{N}] +|[^\\p{L}\\p{N}]+$","");
+    }
+
+    private boolean isSearchStopWord(String token){
+        return List.of(
+                "ce","ca","cu","de","din","la","si","sau","in",
+                "pe","un","o","sa","sunt","este","pentru","cand",
+                "cat","cum","care","the","and","for","with"
+        ).contains(token);
+    }
+
+    private List<Long> searchSemanticProductIds(String query,List<String> terms,boolean hasCommaSeparatedTerms,int limit){
+        if(hasCommaSeparatedTerms){
+            return terms.stream()
+                    .flatMap(term -> productSemanticSearchService.searchProductIds(term,limit).stream())
+                    .distinct()
+                    .limit(limit)
+                    .toList();
+        }
+        return productSemanticSearchService.searchProductIds(query,limit);
     }
 
 
