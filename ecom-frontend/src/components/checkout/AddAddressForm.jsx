@@ -64,6 +64,8 @@ const AddAddressForm = ({address,setOpenAddressModal}) => {
                         type="text"
                         message="*Building Name is required"
                         placeHolder="Enter Building Name"
+                        min={5}
+                        minLengthMessage="Building name trebuie sa aiba cel putin 5 caractere"
                         register={register}
                         errors={errors}
                     
@@ -78,6 +80,8 @@ const AddAddressForm = ({address,setOpenAddressModal}) => {
                         type="text"
                         message="*City is required"
                         placeHolder="Enter City"
+                        min={2}
+                        minLengthMessage="Orasul trebuie sa aiba cel putin 2 caractere"
                         register={register}
                         errors={errors}
                     
@@ -91,6 +95,8 @@ const AddAddressForm = ({address,setOpenAddressModal}) => {
                         type="text"
                         message="*State is required"
                         placeHolder="Enter State"
+                        min={4}
+                        minLengthMessage="Judetul trebuie sa aiba cel putin 2 caractere"
                         register={register}
                         errors={errors}
                     
@@ -105,6 +111,8 @@ const AddAddressForm = ({address,setOpenAddressModal}) => {
                         type="text"
                         message="*Pincode is required"
                         placeHolder="Enter Pincode"
+                        min={4}
+                        minLengthMessage="Codul postal trebuie sa aiba cel putin 4 caractere"
                         register={register}
                         errors={errors}
                     
@@ -118,6 +126,8 @@ const AddAddressForm = ({address,setOpenAddressModal}) => {
                         type="text"
                         message="*Street is required"
                         placeHolder="Enter Street"
+                        min={5}
+                        minLengthMessage="Strada trebuie sa aiba cel putin 5 caractere"
                         register={register}
                         errors={errors}
                     

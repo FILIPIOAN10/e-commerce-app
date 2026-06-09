@@ -189,6 +189,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             message="This field is required*"
             placeHolder="Calculated from price and discount"
             readOnly
+            register={register}
             errors={errors}
           />
         </div>
@@ -207,6 +208,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             maxLength={255}
             {...register("description",{
                 required: {value: true, message:"Description is required"},
+                minLength:{value:10, message:"Descrierea trebuie sa aiba cel putin 10 caractere"}
             })}
             />
 

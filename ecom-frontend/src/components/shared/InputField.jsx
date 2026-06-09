@@ -8,6 +8,7 @@ const InputField = ({
     message,
     className,
     min,
+    minLengthMessage,
     minValue,
     maxValue,
     step,
@@ -18,7 +19,7 @@ const InputField = ({
     const validationRules = {
         required: {value: required,message},
         ...(type !== "number" && min
-            ? {minLength: {value:min,message:`Minimun ${min} character is required`}}
+            ? {minLength: {value:min,message:minLengthMessage ||`Minimum ${min} character is required` }}
             :{}),
         ...(minValue !== undefined 
             ? {min : {value:minValue,message:`Minimum value is ${minValue}`}}
