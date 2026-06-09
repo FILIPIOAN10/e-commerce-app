@@ -180,7 +180,7 @@ const handlePaginationChange = (paginationModel) =>{
         title={openUpdateModal ? "Update Product": "Add Product"}>
             <AddProductForm
              //  give acces to the fuction which will allow openning and closing the from
-              setOpen ={setOpenUpdateModal ? setOpenUpdateModal : setOpenAddModal}
+              setOpen ={openUpdateModal ? setOpenUpdateModal : setOpenAddModal}
               product= {selectedProduct}
               update={openUpdateModal}
 

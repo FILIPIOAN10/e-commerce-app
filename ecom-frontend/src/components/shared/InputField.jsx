@@ -12,6 +12,7 @@ const InputField = ({
     maxValue,
     step,
     value,
+    readOnly,
     placeHolder,
 }) => {
     const validationRules = {
@@ -58,14 +59,15 @@ const InputField = ({
             min={minValue}
             max={maxValue}
             step={step}
+            readOnly={readOnly}
             placeholder={placeHolder}
             className={`${
                 className ? className : ""
-            } px-2 py-2 border outline-none bg-transparent text-slate-800 rounded-md ${
+            } px-2 py-2 border outline-none ${readOnly ? "bg-slate-100":"bg-transparent"} text-slate-800 rounded-md ${
                 errors[id]?.message ? "border-red-500": "border-slate-700"
             }`}
 
-            {...register(id,validationRules)}
+            {...(register && typeof register === 'function' ? register(id,validationRules) : {})}
             />
 
             {errors[id]?.message && (

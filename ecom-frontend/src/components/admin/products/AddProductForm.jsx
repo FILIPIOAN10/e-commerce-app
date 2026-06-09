@@ -22,10 +22,32 @@ const AddProductForm = ({setOpen,product,update=false}) => {
         handleSubmit,
         reset,
         setValue,
+        watch,
         formState: { errors}
         } = useForm({
             mode :"onTouched"
         });
+    
+    const price = watch("price");
+    const discount = watch("discount");
+    const calculateSpecialPrice = (priceValue, discountValue) =>{
+        const numericPrice = Number(priceValue);
+        const numericDiscount= Number(discountValue || 0);
+
+        if(!Number.isFinite(numericPrice) || numericPrice<0){
+            return "";
+        }
+
+        const boundedDiscount = Math.min(Math.max(Number.isFinite(numericDiscount) ? numericDiscount :0,0), 100);
+        return Number((numericPrice - ((boundedDiscount *0.01) * numericPrice).toFixed(2)));
+    };
+
+    useEffect(() => {
+        setValue("specialPrice", calculateSpecialPrice(price, discount), {
+            shouldValidate: true,
+            shouldDirty: true,
+        });
+    }, [price, discount, setValue]);
     const saveProductHandler = (data) => {
 
         const saveProductData = {
@@ -33,6 +55,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             price:Number(data.price),
             quantity:Number(data.quantity),
             discount:Number(data.discount || 0),
+            specialPrice : calculateSpecialPrice(data.price,data.discount),
         };
         if(!update){
 
@@ -41,7 +64,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                 return;
             }
             const sendData ={
-                ...data,
+                ...saveProductData,
                 categoryId: selectCategory.categoryId,
             };
             // create new product logic 
@@ -50,7 +73,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             ));
         }else {
             const sendData ={
-                ...data,
+                ...saveProductData,
                 id: product.id,
             };
             dispatch(updateProductFromDashboard(sendData,toast,reset,setLoader,setOpen,isAdmin));
@@ -118,14 +141,14 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                 </div>
 
 
-                <div className='flex md:flex-row flex:col gap-4 w-full'>
+                <div className='flex md:flex-row flex-col gap-4 w-full'>
                     <InputField 
                         label="Price"
                         required
                         id="price"
                         type="number"
                         message="This field is required"
-                        min={0}
+                        minValue={0}
                         step="0.01"
                         placeHolder="Product Price"
                         register={register}
@@ -160,12 +183,12 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             errors={errors}
           />
           <InputField
-            label="Special Price"
+            label="Special Price {calculated}"
             id="specialPrice"
             type="number"
             message="This field is required*"
-            placeHolder="Product Discount"
-            register={register}
+            placeHolder="Calculated from price and discount"
+            readOnly
             errors={errors}
           />
         </div>

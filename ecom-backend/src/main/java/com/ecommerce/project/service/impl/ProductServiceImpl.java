@@ -93,9 +93,7 @@ public class ProductServiceImpl implements ProductService {
             product.setTags(productDTO.getTags());
             product.setCategory(category);
             product.setUser(authUtil.loggedInUser());
-            double specialPrice = product.getPrice() -
-                    ((product.getDiscount() * 0.01) * product.getPrice());
-            product.setSpecialPrice(specialPrice);
+            product.setSpecialPrice(calculateSpecialPrice(product.getPrice(),product.getDiscount()));
             Product savedProduct = productRepository.save(product);
             productSemanticSearchService.indexProduct(savedProduct);
             return modelMapper.map(savedProduct, ProductDTO.class);
@@ -304,6 +302,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicProducts", allEntries = true),
+            @CacheEvict(value = "categoryProducts", allEntries = true),
+            @CacheEvict(value = "productSearch", allEntries = true),
+    })
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
 
         // Get the existing product from DB
@@ -317,7 +320,7 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setQuantity(product.getQuantity());
         productFromDB.setDiscount(product.getDiscount());
         productFromDB.setPrice(product.getPrice());
-        productFromDB.setSpecialPrice(product.getSpecialPrice());
+        productFromDB.setSpecialPrice(calculateSpecialPrice(product.getPrice(),product.getDiscount()));
         productFromDB.setTags(product.getTags());
 
 
@@ -336,6 +339,7 @@ public class ProductServiceImpl implements ProductService {
         }).collect(Collectors.toList());
 
         cartDTOS.forEach(cart -> cartService.updateProductsInCarts(cart.getCartId(),productId));
+        productSemanticSearchService.indexProduct(savedProduct);
         return mapProductToDTO(savedProduct);
     }
 
@@ -352,8 +356,9 @@ public class ProductServiceImpl implements ProductService {
 
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
         carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(),productId));
-        
+
         productRepository.delete(product);
+        productSemanticSearchService.deleteProduct(productId);
         return modelMapper.map(product, ProductDTO.class);
     }
 
@@ -377,6 +382,7 @@ public class ProductServiceImpl implements ProductService {
 
         // Save updated product
         Product updatedProduct = productRepository.save(productFromDb);
+        productSemanticSearchService.indexProduct(updatedProduct);
         // return DTO after mapping product to DTO
         return modelMapper.map(updatedProduct, ProductDTO.class);
     }
@@ -440,7 +446,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductResponse buildProductResponse(List<Product> products,Integer pageNumber,Integer pageSize){
         int safePageNumber = pageNumber == null ?  0 : Math.max(pageNumber,0);
-        int safePageSize = pageNumber == null ?  10 : Math.max(pageSize,1);
+        int safePageSize = pageSize == null ?  10 : Math.max(pageSize,1);
         int fromIndex = Math.min(safePageNumber * safePageSize,products.size());
         int toIndex = Math.min(fromIndex+safePageSize,products.size());
         List<ProductDTO> productDTOS = products.subList(fromIndex,toIndex).stream()
@@ -496,7 +502,7 @@ public class ProductServiceImpl implements ProductService {
     private String normalizeSearchToken(String token){
         return token ==null ? "":token
                 .toLowerCase()
-                .replaceAll("[^\\p{L}\\{N}] +|[^\\p{L}\\p{N}]+$","");
+                .replaceAll("^[^\\p{L}\\p{N}] +|[^\\p{L}\\p{N}]+$","");
     }
 
     private boolean isSearchStopWord(String token){
@@ -516,6 +522,10 @@ public class ProductServiceImpl implements ProductService {
                     .toList();
         }
         return productSemanticSearchService.searchProductIds(query,limit);
+    }
+
+    private double calculateSpecialPrice(double price,double discount){
+        return  price - ((discount *0.01)*price);
     }
 
 
