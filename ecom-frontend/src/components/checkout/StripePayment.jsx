@@ -1,7 +1,7 @@
 import { Alert, AlertTitle, Skeleton } from '@mui/material'
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import PaymentForm from './PaymentForm';
 import { createStripePaymentSecret } from '../../store/actions';
@@ -13,9 +13,14 @@ const StripePayment = () => {
   const dispatch = useDispatch();
   const {clientSecret} = useSelector((state) => state.auth);
   const {totalPrice} = useSelector((state) => state.carts);
-  const {isloading, errorMessage} = useSelector((state) => state.errors);
+  const {isLoading, errorMessage} = useSelector((state) => state.errors);
 
   const {user, selectedUserCheckoutAddress} = useSelector((state) => state.auth);
+
+  // Memoize options object to prevent Elements remounting
+  const options = useMemo(() => ({
+    clientSecret: clientSecret,
+  }), [clientSecret]);
 
 
 
@@ -36,7 +41,7 @@ const StripePayment = () => {
     }
   }, [clientSecret])
   
-  if (isloading){
+  if (isLoading){
     return(
       <div className='max-w-lg mx-auto'>
         <Skeleton/>
@@ -46,7 +51,7 @@ const StripePayment = () => {
   return (
       <>
       {clientSecret && (
-        <Elements stripe={stripePromise} options={{clientSecret}}>
+        <Elements key={clientSecret} stripe={stripePromise} options={options}>
           <PaymentForm clientSecret={clientSecret} totalPrice={totalPrice} />
 
         </Elements>

@@ -15,13 +15,18 @@ const PaymentForm = ({clientSecret,totalPrice}) => {
         }
          
         // checking form for errors
-        const {error : submitError } = await elements.submit();
+        const {error: submitError} = await elements.submit();
+        
+        if(submitError) {
+            setErrorMessage(submitError.message);
+            return;
+        }
+        
         // confirm the payment with stripe
-
-        const {error } = await stripe.confirmPayment ({
+        const {error} = await stripe.confirmPayment({
             elements,
             clientSecret,
-            confirmParams : {
+            confirmParams: {
                 return_url: `${import.meta.env.VITE_FRONTEND_URL}/checkout/order-confirm`, 
             },
         });
