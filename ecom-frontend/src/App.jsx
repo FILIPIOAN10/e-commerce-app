@@ -22,6 +22,7 @@ import AdminProducts from './components/admin/products/AdminProducts'
 import Category from './components/admin/categories/Category'
 import Sellers from './components/admin/sellers/Sellers'
 import Orders from './components/admin/orders/Orders'
+import Profile from './components/profile/Profile'
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />
         <Route path='/' element={<PrivateRoute />}>
+          <Route path="/profile" element={<Profile />} />
           <Route path ="/checkout" element ={<Checkout/>}/>
           <Route path ="/checkout/order-confirm" element ={<PaymentConfirmation />}/>
         </Route>
@@ -52,6 +54,10 @@ function App() {
             <Route path='orders' element={<Orders />}/>
             <Route path='categories' element={<Category />}/>
           </Route>
+        </Route>
+
+        <Route path='/' element ={<PrivateRoute />}>
+          <Route path='/profile/orders' element={<Orders />}/>
         </Route>
       </Routes>
     </Router>

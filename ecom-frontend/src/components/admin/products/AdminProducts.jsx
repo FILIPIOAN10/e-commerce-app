@@ -93,14 +93,14 @@ const handlePaginationChange = (paginationModel) =>{
   const page = paginationModel.page + 1;
   setCurrentPage(page);
   params.set("page",page.toString());
-  navigate(`${pathname} ?{params}`)
+  navigate(`${pathname}?${params}`)
  };
 
  const onDeleteHandler = () => {
   
   const deleteParams = new URLSearchParams();
   const page = searchParams.get("page") ? Number(searchParams.get("page")) : currentPage;
-  deleteParams.set("pageNumber",Math.max(page-1),0);
+  deleteParams.set("pageNumber", Math.max(page-1, 0));
 
   dispatch(deleteProduct(
     setLoader,
@@ -159,7 +159,7 @@ const handlePaginationChange = (paginationModel) =>{
                       },
                     },
                   }}
-                  onPaginationMetaChange={handlePaginationChange}
+                  onPaginationModelChange={handlePaginationChange}
                   disableRowSelectionOnClick
                   pageSizeOptions={[pagination?.pageSize || 10]}
                   pagination

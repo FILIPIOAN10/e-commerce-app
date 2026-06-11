@@ -102,7 +102,7 @@ export const increaseCartQuantity =
 
             dispatch({
                 type: "ADD_CART",
-                payload: {...data, quantity: newQuantity + 1 },
+                payload: {...data, quantity: newQuantity },
             });
             localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
         } else {
@@ -358,7 +358,7 @@ export const analyticsAction = () => async (dispatch, getState) => {
         }
 };
 
-export const getOrdersForDashboard = (queryString= "", isAdmin) => async (dispatch) => {
+export const getOrdersForDashboard = (queryString= "", isAdmin) => async (dispatch, getState) => {
     try {
         dispatch({ type: "IS_FETCHING" });
         const {user} = getState().auth;
@@ -393,15 +393,17 @@ export const updateOrderStatusFromDashboard =
         setLoader(true);
         const {user} = getState().auth;
         const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
-        const endpoint = adminRequest ? "/admin/orders/":"/seller/orders/";
+        const endpoint = adminRequest ? "/admin/orders/" : "/seller/orders/";
+
+        const { data } = await api.put(`${endpoint}${orderId}/status`, { status: orderStatus });
 
         toast.success(data.message || "Order updated successfully");
-        await dispatch(getOrdersForDashboard("",adminRequest));
+        await dispatch(getOrdersForDashboard("", adminRequest));
     } catch (error) {
         console.log(error);
         toast.error(error?.response?.data?.message || "Internal Server Error");
     } finally {
-        setLoader(false)
+        setLoader(false);
     }
 };
 

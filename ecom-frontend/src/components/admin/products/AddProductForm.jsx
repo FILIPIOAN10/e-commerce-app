@@ -39,7 +39,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
         }
 
         const boundedDiscount = Math.min(Math.max(Number.isFinite(numericDiscount) ? numericDiscount :0,0), 100);
-        return Number((numericPrice - ((boundedDiscount *0.01) * numericPrice).toFixed(2)));
+        return Number((numericPrice - boundedDiscount * 0.01 * numericPrice).toFixed(2));
     };
 
     useEffect(() => {
@@ -105,12 +105,6 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                 setSelectedCategory(categories[0])
             }
         }, [categories]);
-        useEffect( () => {
-            if(!categories && categories){
-                setSelectedCategory(categories[0]);
-            }
-
-        },[categories,categoryLoader] )
 
         if (categoryLoader) return <Skeleton/>
         if (errorMessage) return <ErrorPage message={errorMessage}/>

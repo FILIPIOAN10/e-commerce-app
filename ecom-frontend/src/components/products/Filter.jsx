@@ -50,7 +50,7 @@ const Filter = ({categories}) => {
             }
             navigate(`${pathName}?${params}`);
 
-            setCategory(event.targe.value);
+            setCategory(event.target.value);
         };
 
         const toggleSortOrder = () =>{

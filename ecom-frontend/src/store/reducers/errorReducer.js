@@ -22,7 +22,6 @@ export const errorReducer = (state = initialState, action ) => {
                 btnLoader :true,
                 errorMessage : null,
                 categoryError: null,
-                btnLoader: false,
                 categoryError:null,
                 categoryLoader:false,
 

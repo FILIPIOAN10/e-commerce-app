@@ -63,7 +63,7 @@ const UserMenu = () => {
 
         <Link to="/profile/orders">
         <MenuItem  className='flex ga-2' 
-            onClick={logOutHandler}>
+            onClick={handleClose}>
                 <FaShoppingCart className="text-xl" />
                 <span className='font-semibold'>
                     Order
