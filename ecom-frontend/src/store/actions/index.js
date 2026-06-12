@@ -516,24 +516,29 @@ export const createCategoryDashboardAction =
   };
 
 export const updateProductFromDashboard = 
-    (sendData,toast,reset,setLoader,setOpen,isAdmin) => async (dispatch) => {
+    (sendData, toast, reset, setLoader, setOpen, isAdmin) => async (dispatch) => {
         try {
             setLoader(true);
     
-            const endpoint = isAdmin ? "/admin/products": "/seller/products/";
-            await api.put(`${endpoint}${sendData.id}`,sendData);
+            const endpoint = isAdmin ? "/admin/products/" : "/seller/products/"; 
+            // NOTĂ: Asigură-te că endpoint-ul are / la final dacă id-ul se lipește direct: "/admin/products/"
+            await api.put(`${endpoint}${sendData.id}`, sendData);
+            
             toast.success("Product update successful");
-            reset();
+            
+            // 1. Mai întâi re-aducem produsele ca să se actualizeze tabelul în spate
+            await dispatch(dashboardProductsAction("", isAdmin));
+            
+            // 2. Abia după ce datele s-au reîmprospătat cu succes, închidem modalul și curățăm form-ul
             setOpen(false);
-            await dispatch(dashboardProductsAction("",isAdmin));
+            reset();
         } catch (error) {
             console.error("Product update failed", error?.response?.status, error?.config?.url, error);
             toast.error(error?.response?.data?.description || error?.response?.data?.message || "Product update failed");
-        }finally{
+        } finally {
             setLoader(false);
         }
 }
-
 
 export const deleteProduct = 
     (setLoader,productId,toast,setOpenDeleteModal,isAdmin, queryString = "")=> async (dispatch,getState) => {
@@ -725,5 +730,32 @@ export const createCartWithFilteredItems =
         });
     }
   };
-
+  
+export const getUserOrders = (queryString = "") => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        
+        const requestUrl = queryString ? `/orders/my-orders?${queryString}` : "/orders/my-orders";
+        
+        const { data } = await api.get(requestUrl);
+        
+        dispatch({
+            type: "GET_USER_ORDERS",
+            payload: data.content,
+            pageNumber: data.pageNumber,
+            pageSize: data.pageSize,
+            totalElements: data.totalElements,
+            totalPages: data.totalPages,
+            lastPage: data.lastPage,
+        });
+        
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        console.log("Failed to fetch user orders:", error);
+        dispatch({ 
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch your orders",
+         });
+    }
+};
 

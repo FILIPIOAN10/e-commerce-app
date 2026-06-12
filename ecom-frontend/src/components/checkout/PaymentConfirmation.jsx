@@ -34,7 +34,7 @@ const PaymentConfirmation = () => {
                     "addressId":selectedUserCheckoutAddress.addressId,
                     "pgName":"Stripe",
                     "pgPaymentId":paymentIntent,
-                    "pgStatus":"succed",
+                    "pgStatus":"succeeded",
                     "pgResponseMessage":"Payment successful"
                 };
                 console.log(selectedUserCheckoutAddress);

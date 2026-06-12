@@ -32,11 +32,11 @@ const Checkout = () => {
 
         const handleNext = () =>{
           if(activeStep === 0 && !selectedUserCheckoutAddress) {
-            toast.error("Please select payment method before proceeding.");
+            toast.error("Please select checkout address before proceeding.");
             return;
           }
           if(activeStep ===1 && (!selectedUserCheckoutAddress || !paymentMethod)) {
-            toast.error("Please select payment address before proceeding.");
+            toast.error("Please select payment method before proceeding.");
             return;
           }
           

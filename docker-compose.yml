@@ -29,7 +29,7 @@ services:
   backend:
     image: maven:3.9.9-eclipse-temurin-17
     working_dir: /workspace
-    command: ./mvnw spring-boot:run
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,6 +37,7 @@ services:
         condition: service_started
     ports:
       - "8080:8080"
+      - "5005:5005"
     volumes:
       - ./ecom-backend:/workspace
       - backend-m2:/root/.m2

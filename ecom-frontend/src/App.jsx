@@ -23,6 +23,7 @@ import Category from './components/admin/categories/Category'
 import Sellers from './components/admin/sellers/Sellers'
 import Orders from './components/admin/orders/Orders'
 import Profile from './components/profile/Profile'
+import ProfileOrders from './components/profile/ProfileOrders'
 
 
 function App() {
@@ -57,7 +58,7 @@ function App() {
         </Route>
 
         <Route path='/' element ={<PrivateRoute />}>
-          <Route path='/profile/orders' element={<Orders />}/>
+          <Route path='/profile/orders' element={<ProfileOrders />} />
         </Route>
       </Routes>
     </Router>

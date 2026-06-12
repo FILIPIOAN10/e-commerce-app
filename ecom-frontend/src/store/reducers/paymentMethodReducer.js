@@ -14,5 +14,4 @@ export const paymentMethodReducer = (state = initialState, action ) => {
             return state;
     }
     
-    return state;
 };
