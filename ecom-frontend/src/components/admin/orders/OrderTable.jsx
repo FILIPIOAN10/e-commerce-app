@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import UpdateOrderForm from './UpdateOrderForm';
 import Modal from '../../shared/Modal';
-import { useSelector } from 'react-redux';  // adaugă asta
+import { useSelector } from 'react-redux';
 
 const OrderTable = ({adminOrder, pagination}) => {
 
@@ -20,9 +20,12 @@ const OrderTable = ({adminOrder, pagination}) => {
   const params = new URLSearchParams(searchParams);
   const pathname = useLocation().pathname;
 
-  // ✅ verifică rolul
   const { user } = useSelector((state) => state.auth);
   const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
+  // ✅ adaugă seller
+  const isSeller = Boolean(user?.roles?.includes("ROLE_SELLER"));
+  // ✅ admin sau seller pot edita
+  const canEdit = isAdmin || isSeller;
 
   const tableRecords = adminOrder?.map((item) => ({
     id: item.orderId,
@@ -53,8 +56,8 @@ const OrderTable = ({adminOrder, pagination}) => {
         <DataGrid
           className='w-full'
           rows={tableRecords}
-          // ✅ pasează isAdmin ca să ascundă/arate coloana Action
-          columns={adminOrderTableColumn(handleEdit, isAdmin)}
+          // ✅ coloana Edit apare pentru admin și seller
+          columns={adminOrderTableColumn(handleEdit, canEdit)}
           paginationMode='server'
           rowCount={pagination?.totalElements || 0}
           initialState={{
@@ -72,8 +75,8 @@ const OrderTable = ({adminOrder, pagination}) => {
         />
       </div>
 
-      {/* ✅ modalul se randează doar pentru admin */}
-      {isAdmin && (
+      {/* ✅ modalul apare pentru admin și seller */}
+      {canEdit && (
         <Modal
           open={updateOpenModal}
           setOpen={setUpdateOpenModal}

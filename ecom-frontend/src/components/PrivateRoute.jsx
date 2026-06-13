@@ -5,35 +5,35 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 const PrivateRoute = ({ publicPage = false, adminOnly = false }) => {
     const { user } = useSelector((state) => state.auth);
     const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
-    const isSeller = user && user?.roles.includes("ROLE_SELLER");
-    const isUser = user && user?.roles.includes("ROLE_USER");
+    const isSeller = user && user?.roles?.includes("ROLE_SELLER");
+    const isUser = user && user?.roles?.includes("ROLE_USER");
     const location = useLocation();
 
     if (publicPage) {
         return user ? <Navigate to="/" /> : <Outlet />
     }
 
+    if (!user) {
+        return <Navigate to="/login" replace />
+    }
+
     if (adminOnly) {
-        if (isSeller && !isAdmin) {
+        // ✅ admin trece liber
+        if (isAdmin) return <Outlet />
+
+        // ✅ seller are acces doar la orders și products
+        if (isSeller) {
             const sellerAllowedPaths = ["/admin/orders", "/admin/products"];
-            const sellerAllowed = sellerAllowedPaths.some(path => 
+            const sellerAllowed = sellerAllowedPaths.some(path =>
                 location.pathname.startsWith(path)
             );
-            if (!sellerAllowed) {
-                return <Navigate to="/" replace />
-            }
+            return sellerAllowed ? <Outlet /> : <Navigate to="/" replace />
         }
-    }
-    if(!user){
 
-        return <Navigate to ="/login" replace/>
-
+        // ✅ user normal nu are acces
+        return <Navigate to="/" replace />
     }
 
-    if (!isAdmin && !isSeller && !isUser) {
-        return <Navigate to="/" replace/>
-    }
-    
     return <Outlet />
 }
 
