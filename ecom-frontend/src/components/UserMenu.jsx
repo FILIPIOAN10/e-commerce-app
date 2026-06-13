@@ -60,17 +60,17 @@ const UserMenu = () => {
                 </span>
         </MenuItem>
         </Link>
-
-        <Link to="/profile/orders">
-        <MenuItem  className='flex ga-2' 
-            onClick={handleClose}>
-                <FaShoppingCart className="text-xl" />
-                <span className='font-semibold'>
-                    Order
-                </span>
-        </MenuItem>
-        </Link>
-
+        {!isAdmin && (
+          <Link to="/profile/orders">
+          <MenuItem  className='flex ga-2' 
+              onClick={handleClose}>
+                  <FaShoppingCart className="text-xl" />
+                  <span className='font-semibold'>
+                      Order
+                  </span>
+          </MenuItem>
+          </Link>
+        )}
       {(isAdmin || isSeller) &&(
       <Link to={isAdmin ?"/admin" : "/admin/orders"}>
         <MenuItem  className='flex ga-2' 

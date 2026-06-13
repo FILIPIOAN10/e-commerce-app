@@ -4,17 +4,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
 import { getUserOrders } from '../../store/actions';
-
 import OrderTable from '../admin/orders/OrderTable';
 
 const ProfileOrders = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   
-  // Extragem starea dedicată utilizatorului normal din reducer-ul modificat anterior
   const { userOrders, pagination } = useSelector((state) => state.order);
 
-  // Ascultăm schimbările de query parametri (de exemplu, când se schimbă pagina: ?pageNumber=1)
   useEffect(() => {
     const queryString = location.search.startsWith('?') 
       ? location.search.substring(1) 

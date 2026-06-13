@@ -521,15 +521,12 @@ export const updateProductFromDashboard =
             setLoader(true);
     
             const endpoint = isAdmin ? "/admin/products/" : "/seller/products/"; 
-            // NOTĂ: Asigură-te că endpoint-ul are / la final dacă id-ul se lipește direct: "/admin/products/"
             await api.put(`${endpoint}${sendData.id}`, sendData);
-            
+
             toast.success("Product update successful");
-            
-            // 1. Mai întâi re-aducem produsele ca să se actualizeze tabelul în spate
+        
             await dispatch(dashboardProductsAction("", isAdmin));
             
-            // 2. Abia după ce datele s-au reîmprospătat cu succes, închidem modalul și curățăm form-ul
             setOpen(false);
             reset();
         } catch (error) {

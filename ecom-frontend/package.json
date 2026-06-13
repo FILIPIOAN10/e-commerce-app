@@ -21,6 +21,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
     "classnames": "^2.5.1",
+    "country-state-city": "^3.2.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
