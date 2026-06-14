@@ -158,12 +158,17 @@ export const authenticateSignInUser
         }
 }
 
-
 export const registerNewUser 
     = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
         try {
             setLoader(true);
-            const { data } = await api.post("/auth/signup", sendData);
+
+            const payload = {
+                ...sendData,
+                roles: sendData.role ? [sendData.role] : ["ROLE_USER"],
+            };
+            delete payload.role; 
+            const { data } = await api.post("/auth/signup", payload);
             reset();
             toast.success(data?.message || "User Registered Successfully");
             navigate("/login");

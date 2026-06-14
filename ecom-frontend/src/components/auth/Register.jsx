@@ -91,6 +91,21 @@ const Register = () => {
                         errors={errors} 
             
                     />
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-slate-700 font-medium text-sm">Role</label>
+                        <select
+                            {...register("role", { required: true })}
+                            className="border border-gray-300 rounded-sm px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        >
+                            <option value="">Select a role</option>
+                            <option value="ROLE_USER">User</option>
+                            <option value="ROLE_SELLER">Seller</option>
+                        </select>
+                        {errors.role && (
+                            <span className="text-red-500 text-xs">*Role is required</span>
+                        )}
+                    </div>
                 </div>
 
 
