@@ -2,6 +2,7 @@ package com.ecommerce.project.security;
 
 
 
+import com.ecommerce.project.config.OAuth2LoginSuccessHandler;
 import com.ecommerce.project.ratelimit.RateLimitFilter;
 import com.ecommerce.project.security.jwt.AuthEntryPointJwt;
 import com.ecommerce.project.security.jwt.AuthTokenFilter;
@@ -23,12 +24,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.ecommerce.project.security.filter.CsrfCookieFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
-import java.util.Set;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 @EnableWebSecurity
@@ -69,7 +70,9 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthTokenFilter authTokenFilter, RateLimitFilter rateLimitFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthTokenFilter authTokenFilter,
+                                           RateLimitFilter rateLimitFilter,
+                                           @Lazy OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) throws Exception {
         CsrfTokenRequestAttributeHandler requestHandler =
                 new CsrfTokenRequestAttributeHandler();
         requestHandler.setCsrfRequestAttributeName("_csrf");
@@ -107,7 +110,11 @@ public class WebSecurityConfig {
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
-                        .anyRequest().authenticated());
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
+                    .successHandler(oAuth2LoginSuccessHandler)
+                        .failureUrl(frontEndUrl + "/login?error=oauth2")
+            );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(rateLimitFilter,AuthTokenFilter.class);

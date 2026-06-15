@@ -761,3 +761,24 @@ export const getUserOrders = (queryString = "") => async (dispatch) => {
     }
 };
 
+export const fetchUserDetails = (token) => async (dispatch) => {
+    try {
+        const { data } = await api.get("/auth/user", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const authData = {
+            jwtToken: token,
+            id: data.id,
+            username: data.username,
+            email: data.email,
+            roles: data.roles,
+        };
+
+        dispatch({ type: "LOGIN_USER", payload: authData });
+        localStorage.setItem("auth", JSON.stringify(authData));
+    } catch (error) {
+        console.log("Failed to fetch user details", error);
+        throw error;
+    }
+};

@@ -43,7 +43,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         logger.debug("AuthTokenFilter called for URI: {} ",
                 request.getRequestURI());
 
-        if(request.getRequestURI().startsWith("/api/auth/")){
+        String uri = request.getRequestURI();
+        if(uri.equals("/api/auth/signin") || uri.equals("/api/auth/signup")){
             filterChain.doFilter(request,response);
             return;
         }

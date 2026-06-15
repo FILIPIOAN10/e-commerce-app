@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -121,16 +122,65 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
+    // ACEASTA ESTE METODA MODIFICATĂ - Acum suportă și OAuth2 (GitHub)
     @Override
     public UserInfoResponse getCurrentUserDetails(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+        // Verificare dacă authentication e null
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User not authenticated");
+        }
 
-        UserInfoResponse response = new UserInfoResponse(userDetails.getId(),userDetails.getUsername(), roles);
+        Object principal = authentication.getPrincipal();
 
-        return  response;
+        // Cazul 1: Login normal cu username/password (JWT)
+        if (principal instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .toList();
+
+            return new UserInfoResponse(
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    roles,
+                    userDetails.getEmail(),
+                    null
+            );
+        }
+
+        // Cazul 2: Login cu OAuth2 (GitHub, Google, etc.)
+        if (principal instanceof OAuth2User) {
+            OAuth2User oauth2User = (OAuth2User) principal;
+
+            // Extrage email-ul din GitHub
+            String email = oauth2User.getAttribute("email");
+            String name = oauth2User.getAttribute("name");
+
+            if (email == null) {
+                // Dacă GitHub nu returnează email, încercați să-l obțineți din altă parte
+                throw new RuntimeException("Email not provided by GitHub. Please make sure your GitHub account has a public email.");
+            }
+
+            // Găsiți user-ul în baza de date
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+            // Obțineți rolurile
+            List<String> roles = user.getRoles().stream()
+                    .map(role -> role.getRoleName().name())
+                    .collect(Collectors.toList());
+
+            return new UserInfoResponse(
+                    user.getUserId(),
+                    user.getUserName(),
+                    roles,
+                    user.getEmail(),
+                    null
+            );
+        }
+
+        // Dacă niciun tip nu e recunoscut
+        throw new RuntimeException("Unsupported authentication type: " + principal.getClass().getName());
     }
 
     @Override

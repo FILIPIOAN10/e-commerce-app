@@ -46,6 +46,11 @@ public class User {
     @Column(name = "password_hint")
     private String passwordHint;
 
+    @Column(name = "provider")
+    private String provider; // LOCAL, GITHUB, GOOGLE
+
+    @Column(name = "provider_id")
+    private String providerId;
 
     public User(String userName, String email, String password) {
         this.userName = userName;
@@ -59,7 +64,7 @@ public class User {
     // relationships between tables
     @Setter
     @Getter
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+    @ManyToMany(cascade = {CascadeType.MERGE},
                 fetch = FetchType.EAGER)
     @JoinTable( name = "user_role",
                 joinColumns = @JoinColumn(name = "user_id"),

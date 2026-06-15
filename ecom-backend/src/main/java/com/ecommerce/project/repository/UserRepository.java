@@ -15,15 +15,17 @@ import java.util.Optional;
 
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
-
+public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUserName(String username);
+
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByProviderId(String providerId);
 
     Boolean existsByUserName(String userName);
 
     Boolean existsByEmail(String email);
-
 
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.roleName = :role")
     Page<User> findByRoleName(@Param("role") AppRole roleSeller, Pageable pageable);

@@ -14,6 +14,16 @@ const LogIn = () => {
 
     const navigate = useNavigate();
     const [loader,setLoader]= useState(false);
+    const dispatch = useDispatch();
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState:{errors},
+
+    } = useForm({
+        mode:"onTouched",
+    });
 
     const [hint,setHint] = useState(null);
 
@@ -31,39 +41,32 @@ const LogIn = () => {
         }
     };
 
-    const dispatch = useDispatch();
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState:{errors},
-
-    } = useForm({
-        mode:"onTouched",
-    });
-
     const loginHandler = async (data) => {
         console.log("Login Click");
-        setHint(null);
-        dispatch(authenticateSignInUser(data,toast,reset,navigate,setLoader,fetchHint));
+        dispatch(authenticateSignInUser(data, toast, reset, navigate, setLoader));
     };
 
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">
+
             <form
-            onSubmit={handleSubmit(loginHandler)}
-            className="sm:w-112.5 w-90 shadow-custom py-8 sm:px-8 px-4 rounded-md"
+                onSubmit={handleSubmit(loginHandler)}
+                className="sm:w-112.5 w-90 shadow-custom py-8 sm:px-8 px-4 rounded-md"
             >
-                <div className=" flex flex-col items-center justify-center space-y-4">
-                    <AiOutlineLogin className="text-slate-800 text-5xl"/>
+
+                {/* HEADER */}
+                <div className="flex flex-col items-center justify-center space-y-4">
+                    <AiOutlineLogin className="text-slate-800 text-5xl" />
                     <h1 className="text-slate-800 text-center font-montserrat lg:text-3xl text-2xl font-bold">
                         Login Here
                     </h1>
                 </div>
-                <hr className="mt-2 mb-5 text-black"/>
+
+                <hr className="mt-2 mb-5 text-black" />
+
+                {/* INPUTS */}
                 <div className="flex flex-col gap-3">
                     <InputField
-                    
                         label="UserName"
                         required
                         id="username"
@@ -72,12 +75,9 @@ const LogIn = () => {
                         placeHolder="Enter your username"
                         register={register}
                         errors={errors}
-                    
                     />
 
-
                     <InputField
-                    
                         label="Password"
                         required
                         id="password"
@@ -86,42 +86,61 @@ const LogIn = () => {
                         placeHolder="Enter your password"
                         register={register}
                         errors={errors}
-                    
                     />
                 </div>
 
-
+                {/* LOGIN BUTTON */}
                 <button
                     disabled={loader}
                     className="bg-button-gradient flex gap-2 items-center justify-center font-semibold text-white w-full py-2 hover:text-slate-400 transition-colors duration-100 rounded-sm my-3"
                     type="submit"
                 >
                     {loader ? (
-                        <> 
-                       <Spinners/> Loading...   </>
-                       
+                        <>
+                            <Spinners /> Loading...
+                        </>
                     ) : (
-                        <> Login</>
-                       
+                        <>Login</>
                     )}
-                  
                 </button>
 
-                { hint && (
-                    <p className="text-amber-600 text-sm text-center mt-2 p-2 bg-amber-50 rounded">
-                            Hint: {hint}
+                {/* OAUTH SECTION */}
+                <div className="flex flex-col gap-2 mt-2">
+
+                    <a
+                        href={`${import.meta.env.VITE_BACK_END_URL}/oauth2/authorization/github`}
+                        className="w-full text-center bg-black text-white py-2 rounded-md hover:opacity-80 transition"
+                    >
+                        Login with GitHub
+                    </a>
+
+                    <a
+                        href={`${import.meta.env.VITE_BACK_END_URL}/oauth2/authorization/google`}
+                        className="w-full text-center bg-red-500 text-white py-2 rounded-md hover:opacity-80 transition"
+                    >
+                        Login with Google
+                    </a>
+
+                </div>
+
+                {/* HINT */}
+                {hint && (
+                    <p className="text-amber-600 text-sm text-center mt-3 p-2 bg-amber-50 rounded">
+                        Hint: {hint}
                     </p>
                 )}
 
+                {/* REGISTER */}
                 <p className="text-center text-sm text-slate-700 mt-6">
-                    Don't have an account?
-                    <Link 
-                    className="font-semibold underline hover:text-black"
-                    to="/register"
+                    Don't have an account?{" "}
+                    <Link
+                        className="font-semibold underline hover:text-black"
+                        to="/register"
                     >
-                    <span>SignUp</span>
+                        SignUp
                     </Link>
                 </p>
+
             </form>
         </div>
     );

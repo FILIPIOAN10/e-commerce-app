@@ -25,6 +25,7 @@ import Orders from './components/admin/orders/Orders'
 import Profile from './components/profile/Profile'
 import ProfileOrders from './components/profile/ProfileOrders'
 
+import OAuth2Redirect from './components/shared/OAuth2Redirect'
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
         <Route  path='/about' element ={<About/>} />
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />
+        <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
         <Route path='/' element={<PrivateRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path ="/checkout" element ={<Checkout/>}/>

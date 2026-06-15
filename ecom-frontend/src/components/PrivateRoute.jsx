@@ -18,10 +18,9 @@ const PrivateRoute = ({ publicPage = false, adminOnly = false }) => {
     }
 
     if (adminOnly) {
-        // ✅ admin trece liber
+     
         if (isAdmin) return <Outlet />
 
-        // ✅ seller are acces doar la orders și products
         if (isSeller) {
             const sellerAllowedPaths = ["/admin/orders", "/admin/products"];
             const sellerAllowed = sellerAllowedPaths.some(path =>
@@ -30,7 +29,6 @@ const PrivateRoute = ({ publicPage = false, adminOnly = false }) => {
             return sellerAllowed ? <Outlet /> : <Navigate to="/" replace />
         }
 
-        // ✅ user normal nu are acces
         return <Navigate to="/" replace />
     }
 
