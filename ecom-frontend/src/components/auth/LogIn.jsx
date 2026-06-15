@@ -8,6 +8,8 @@ import { authenticateSignInUser } from "../../store/actions";
 import toast from "react-hot-toast";
 import Spinners from "../shared/Spinners";
 import api from "../../api/api";
+import { FaGithub } from "react-icons/fa"; 
+import { FcGoogle } from "react-icons/fc";
 
 
 const LogIn = () => {
@@ -109,16 +111,21 @@ const LogIn = () => {
 
                     <a
                         href={`${import.meta.env.VITE_BACK_END_URL}/oauth2/authorization/github`}
-                        className="w-full text-center bg-black text-white py-2 rounded-md hover:opacity-80 transition"
+                        className="w-full flex items-center justify-center gap-2 bg-black text-white py-2 rounded-md hover:opacity-80 transition font-medium"
                     >
-                        Login with GitHub
+                        <FaGithub className="text-xl" />
+                        <span>Login with GitHub</span>
                     </a>
 
                     <a
                         href={`${import.meta.env.VITE_BACK_END_URL}/oauth2/authorization/google`}
-                        className="w-full text-center bg-red-500 text-white py-2 rounded-md hover:opacity-80 transition"
+                        className="w-full flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-md hover:opacity-80 transition font-medium"
                     >
-                        Login with Google
+                        {/* Adăugăm un fundal alb mic rotund în spatele iconiței Google dacă vrei să se vadă perfect pe roșu, sau o lăsăm simplă */}
+                        <div className="bg-white p-0.5 rounded-full flex items-center justify-center">
+                            <FcGoogle className="text-lg" />
+                        </div>
+                        <span>Login with Google</span>
                     </a>
 
                 </div>
