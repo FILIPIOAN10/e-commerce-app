@@ -10,12 +10,16 @@ import Spinners from "../shared/Spinners";
 import api from "../../api/api";
 import { FaGithub } from "react-icons/fa"; 
 import { FcGoogle } from "react-icons/fc";
+import Verify2FALogin from "./Verify2FALogin";
 
 
 const LogIn = () => {
 
     const navigate = useNavigate();
     const [loader,setLoader]= useState(false);
+    const [needs2FA, setNeeds2FA] = useState(false);
+    const [temp2FAToken, setTemp2FAToken] = useState(null);
+    const [loginEmail, setLoginEmail] = useState(null);
     const dispatch = useDispatch();
     const {
         register,
@@ -45,9 +49,32 @@ const LogIn = () => {
 
     const loginHandler = async (data) => {
         console.log("Login Click");
-        dispatch(authenticateSignInUser(data, toast, reset, navigate, setLoader));
+        dispatch(authenticateSignInUser(
+            data, 
+            toast, 
+            reset, 
+            navigate, 
+            setLoader, 
+            fetchHint,
+            setNeeds2FA,
+            setTemp2FAToken,
+            setLoginEmail
+        ));
     };
 
+            const handle2FASuccess = (authData) => {
+                    console.log("=== 1. authData primit:", authData);
+                    console.log("=== 2. typeof authData:", typeof authData);
+                console.log("2FA success, authData:", authData); // vezi ce vine de la backend
+                localStorage.setItem("auth", JSON.stringify(authData));
+                dispatch({ type: "LOGIN_USER", payload: authData });
+                toast.success("Login Success");
+                setNeeds2FA(false);
+                setTemp2FAToken(null);
+                setLoginEmail(null);
+                reset();
+                navigate("/");
+            };
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">
 
@@ -149,6 +176,20 @@ const LogIn = () => {
                 </p>
 
             </form>
+
+            {/* 2FA VERIFICATION MODAL */}
+            {needs2FA && temp2FAToken && (
+                <Verify2FALogin
+                    jwtToken={temp2FAToken}
+                    email={loginEmail}
+                    onVerifySuccess={handle2FASuccess}
+                    onCancel={() => {
+                        setNeeds2FA(false);
+                        setTemp2FAToken(null);
+                        setLoginEmail(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

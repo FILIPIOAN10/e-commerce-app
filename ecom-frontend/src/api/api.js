@@ -8,13 +8,17 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
 
     const requestUrl = config.url || "";
-    const isAuthRequest = requestUrl.includes("/auth/");
+
+    // Exclude DOAR endpoint-urile publice de auth, nu toate /auth/
+    const isPublicAuthRequest = 
+        requestUrl.includes("/auth/signin") || 
+        requestUrl.includes("/auth/signup") ||
+        requestUrl.includes("/auth/signout") ||
+        requestUrl.includes("/auth/public/");
 
     config.headers = config.headers || {};
 
-    // For non-auth requests, add token from localStorage
-    // For auth requests, allow explicit headers through without overwriting
-    if(!isAuthRequest){
+    if(!isPublicAuthRequest){
         const auth = localStorage.getItem("auth");
         const user = auth ? JSON.parse(auth) : null;
         const jwtToken = user?.jwtToken;
@@ -42,12 +46,16 @@ api.interceptors.response.use(
     (error) => {
         const status = error?.response?.status;
         const requestUrl = error?.config?.url || "";
-        const isAuthRequest =requestUrl.includes("/auth/");
+        const isPublicAuthRequest = 
+            requestUrl.includes("/auth/signin") || 
+            requestUrl.includes("/auth/signup") ||
+            requestUrl.includes("/auth/signout") ||
+            requestUrl.includes("/auth/public/");
 
-        if(status == 401 && !isAuthRequest){
+        if(status == 401 && !isPublicAuthRequest){
             localStorage.removeItem("auth");
             if(window.location.pathname !== "/login"){
-                window.location.href ="/login";
+                window.location.href = "/login";
             }
         }
 

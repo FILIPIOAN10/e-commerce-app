@@ -88,7 +88,11 @@ public class User {
     @OneToMany(mappedBy = "user",cascade = {CascadeType.PERSIST, CascadeType.MERGE},
                 orphanRemoval = true)
     private Set<Product> products;
+    @Column(name = "two_factor_secret")
+    private String twoFactorSecret;
 
+    @Column(name = "two_factor_enabled", nullable = false, columnDefinition = "boolean default false")
+    private boolean twoFactorEnabled = false;
 
 
 }

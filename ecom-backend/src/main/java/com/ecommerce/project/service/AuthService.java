@@ -6,6 +6,7 @@ import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.security.response.UserInfoResponse;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -23,4 +24,14 @@ public interface AuthService {
     UserResponse getAllSellers(Pageable pageDetails);
 
     ResponseEntity<?> getPasswordHint(String username);
+
+    GoogleAuthenticatorKey generate2FASecret(Long userId);
+
+    boolean validate2FACode(Long userId, int code);
+
+    void enable2FA(Long userId);
+
+    void disable2FA(Long userId);
+
+    boolean verify2FALogin(String jwtToken, int code);
 }

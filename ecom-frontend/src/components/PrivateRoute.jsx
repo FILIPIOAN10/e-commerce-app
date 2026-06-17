@@ -4,6 +4,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 const PrivateRoute = ({ publicPage = false, adminOnly = false }) => {
     const { user } = useSelector((state) => state.auth);
+    console.log("PrivateRoute Verificare - User din Redux este:", user);
     const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
     const isSeller = user && user?.roles?.includes("ROLE_SELLER");
     const isUser = user && user?.roles?.includes("ROLE_USER");

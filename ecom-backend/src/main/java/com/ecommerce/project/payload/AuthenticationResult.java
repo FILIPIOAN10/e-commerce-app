@@ -5,11 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseCookie;
 
-
 @Data
 @AllArgsConstructor
 public class AuthenticationResult {
-
     private final UserInfoResponse response;
     private final ResponseCookie jwtCookie;
+    private final boolean needs2FA;
+    private final String temp2FAToken;
 }

@@ -15,6 +15,8 @@ import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.AuthService;
+import com.ecommerce.project.service.TotpService;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -47,18 +49,30 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
 
+    private final TotpService totpService;
 
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
-            );
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // Verifică dacă userul are 2FA activat
+        User user = userRepository.findByUserName(loginRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.isTwoFactorEnabled()) {
+            String tempToken = jwtUtils.generateJwtToken(userDetails);
+            return new AuthenticationResult(null, null, true, tempToken);
+        }
+
+        // Login normal fără 2FA
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
         String jwtToken = jwtUtils.generateJwtToken(userDetails);
 
@@ -66,8 +80,10 @@ public class AuthServiceImpl implements AuthService {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        UserInfoResponse  response=  new  UserInfoResponse(userDetails.getId(),userDetails.getUsername(), roles,userDetails.getEmail(),jwtToken);
-        return new AuthenticationResult(response,jwtCookie);
+        UserInfoResponse response = new UserInfoResponse(
+                userDetails.getId(), userDetails.getUsername(), roles, userDetails.getEmail(), jwtToken
+        );
+        return new AuthenticationResult(response, jwtCookie, false, null);
     }
 
     @Override
@@ -216,6 +232,49 @@ public class AuthServiceImpl implements AuthService {
         }
         return ResponseEntity.ok(new MessageResponse(hint));
     }
+
+    @Override
+    public GoogleAuthenticatorKey generate2FASecret(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+        GoogleAuthenticatorKey key = totpService.generateSecret();
+        user.setTwoFactorSecret(key.getKey());
+        userRepository.save(user);
+        return key;
+    }
+
+    @Override
+    public boolean validate2FACode(Long userId, int code) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return totpService.verifyCode(user.getTwoFactorSecret(), code);
+    }
+
+    @Override
+    public void enable2FA(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setTwoFactorEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void disable2FA(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setTwoFactorEnabled(false);
+        user.setTwoFactorSecret(null);
+        userRepository.save(user);
+    }
+
+    @Override
+    public boolean verify2FALogin(String jwtToken, int code) {
+        String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return validate2FACode(user.getUserId(), code);
+    }
+
 
 
 }

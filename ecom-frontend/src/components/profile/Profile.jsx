@@ -1,8 +1,10 @@
 // Sugestie de conținut: afișează datele user-ului din Redux
 import { useSelector } from 'react-redux';
+import TwoFactorSettings from './TwoFactorSettings';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
+  console.log("User-ul curent din Redux în Profile:", user);
   const isAdmin = user?.roles?.includes("ROLE_ADMIN");
   const isSeller = user?.roles?.includes("ROLE_SELLER");
 
@@ -13,6 +15,11 @@ const Profile = () => {
         <p><strong>Username:</strong> {user?.username}</p>
         <p><strong>Rol:</strong> {isAdmin ? "Admin" : isSeller ? "Seller" : "User"}</p>
         {/* Aici poți adăuga: email, telefon, avatar, buton editare etc. */}
+      </div>
+
+      {/* Two-Factor Authentication Settings */}
+      <div className="mt-8">
+        <TwoFactorSettings />
       </div>
     </div>
   );

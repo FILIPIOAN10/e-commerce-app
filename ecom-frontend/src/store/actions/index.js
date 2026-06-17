@@ -130,33 +130,45 @@ export const removeFromCart =  (data, toast) => (dispatch, getState) => {
 
 
 
-export const authenticateSignInUser 
-    = (sendData, toast, reset, navigate, setLoader,fetchHint) => async (dispatch) => {
-        try {
-            setLoader(true);
-            
-            localStorage.removeItem("auth");
-            const loginData = {
-                ...sendData,
-                username :String(sendData.username || "").trim(),
-            };
-            const {data} = await api.post("/auth/signin",loginData);
-            dispatch({ type: "LOGIN_USER", payload: data });
-            localStorage.setItem("auth", JSON.stringify(data));
-            reset();
-            toast.success("Login Success");
-            navigate("/");
-        } catch (error) {
-            console.log(error);
-            toast.error(error?.response?.data?.message || "Internal Server Error");
+export const authenticateSignInUser = (
+    sendData, toast, reset, navigate, setLoader, fetchHint,
+    setNeeds2FA, setTemp2FAToken, setLoginEmail
+) => async (dispatch) => {
+    try {
+        setLoader(true);
+        localStorage.removeItem("auth");
 
-            if(fetchHint){
-                fetchHint(sendData.username);
-            }
-        } finally {
-            setLoader(false);
+        const loginData = {
+            ...sendData,
+            username: String(sendData.username || "").trim(),
+        };
+
+        const { data } = await api.post("/auth/signin", loginData);
+        console.log("=== SIGNIN RESPONSE ===", data);
+
+        // Dacă backend-ul cere 2FA
+        if (data.needs2FA) {                        // <- fix: era mfaRequired
+            setNeeds2FA(true);
+            setTemp2FAToken(data.temp2FAToken);     // <- fix: era jwtToken
+            setLoginEmail(sendData.username);
+            return;
         }
-}
+
+        // Login normal fără 2FA
+        dispatch({ type: "LOGIN_USER", payload: data });
+        localStorage.setItem("auth", JSON.stringify(data));
+        reset();
+        toast.success("Login Success");
+        navigate("/");
+
+    } catch (error) {
+        console.log(error);
+        toast.error(error?.response?.data?.message || "Internal Server Error");
+        if (fetchHint) fetchHint(sendData.username);
+    } finally {
+        setLoader(false);
+    }
+};
 
 export const registerNewUser 
     = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {

@@ -2,35 +2,56 @@ package com.ecommerce.project.controller;
 
 
 import com.ecommerce.project.config.AppConstants;
+import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.AuthenticationResult;
+import com.ecommerce.project.repository.UserRepository;
+import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.service.AuthService;
+import com.ecommerce.project.service.TotpService;
+import com.ecommerce.project.util.AuthUtil;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Pageable;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/auth")
 // Controller pentru autentificare, înregistrare și gestionarea JWT
 public class AuthController {
 
     private AuthService authService;
+    private AuthUtil authUtil;
 
+    private TotpService totpService;
+    private JwtUtils jwtUtils;
+    private UserRepository userRepository;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,AuthUtil authUtil,TotpService totpService,UserRepository userRepository,JwtUtils jwtUtils) {
 
         this.authService=authService;
+        this.authUtil = authUtil;
+        this.totpService=totpService;
+        this.userRepository=userRepository;
+        this.jwtUtils=jwtUtils;
     }
 
 
@@ -43,10 +64,18 @@ public class AuthController {
     @Tag(name = "Authentication")
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+        AuthenticationResult result = authService.login(loginRequest);
 
-         AuthenticationResult result = authService.login(loginRequest);
+        if (result.isNeeds2FA()) {
+            Map<String, Object> body = new HashMap<>();
+            body.put("needs2FA", true);
+            body.put("temp2FAToken", result.getTemp2FAToken());
+            return ResponseEntity.ok(body);
+        }
 
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString()).body(result.getResponse());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
+                .body(result.getResponse());
     }
 
 
@@ -115,5 +144,73 @@ public class AuthController {
     @GetMapping("/hint/{username}")
     public ResponseEntity<?> getPasswordHint(@PathVariable String username){
         return authService.getPasswordHint(username);
+    }
+
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<String> enable2FA() {
+        Long userId = authUtil.loggedInUserId();
+        GoogleAuthenticatorKey secret = authService.generate2FASecret(userId);
+        String qrCodeUrl = totpService.getQrCodeUrl(secret, authUtil.loggedInEmail());
+        return ResponseEntity.ok(qrCodeUrl);
+    }
+
+    @PostMapping("/disable-2fa")
+    public ResponseEntity<String> disable2FA() {
+        Long userId = authUtil.loggedInUserId();
+        authService.disable2FA(userId);
+        return ResponseEntity.ok("2FA disabled successfully");
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<String> verify2FA(@RequestParam int code) {
+        Long userId = authUtil.loggedInUserId();
+        boolean isValid = authService.validate2FACode(userId, code);
+        if (!isValid) {
+            return ResponseEntity.badRequest().body("Invalid 2FA code");
+        }
+        authService.enable2FA(userId);
+        return ResponseEntity.ok("2FA enabled successfully");
+    }
+
+    @PostMapping("/user/2fa-status")
+    public ResponseEntity<?> get2FAStatus() {
+        User user = authUtil.loggedInUser();
+        if (user != null) {
+            return ResponseEntity.ok().body(Map.of("is2faEnabled", user.isTwoFactorEnabled()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
+        }
+    }
+
+    @PostMapping("/public/verify-2fa-login")
+    public ResponseEntity<?> verify2FALogin(@RequestParam int code,
+                                            @RequestParam String jwtToken) {
+        boolean isValid = authService.verify2FALogin(jwtToken, code);
+        if (isValid) {
+            String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
+
+            User user = userRepository.findByUserName(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<String> roles = user.getRoles().stream()
+                    .map(role -> role.getRoleName().name())
+                    .collect(Collectors.toList());
+
+            String newToken = jwtUtils.generateTokenFromUsername(username);
+
+            UserInfoResponse response = new UserInfoResponse(
+                    user.getUserId(),
+                    user.getUserName(),
+                    roles,
+                    user.getEmail(),
+                    newToken
+            );
+
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid 2FA Code");
+        }
     }
 }
