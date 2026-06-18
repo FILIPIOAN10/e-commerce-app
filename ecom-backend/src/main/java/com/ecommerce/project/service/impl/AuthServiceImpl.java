@@ -213,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
                 .collect(Collectors.toList());
         UserResponse response = new UserResponse();
         response.setContent(userDTOs);
-        response.setPageNumber(allUsers.getSize());
+        response.setPageNumber(allUsers.getNumber());
         response.setTotalElements(allUsers.getTotalElements());
         response.setTotalPages(allUsers.getTotalPages());
         response.setLastPage(allUsers.isLast());
