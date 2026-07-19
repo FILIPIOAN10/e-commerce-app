@@ -2,6 +2,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useState, useEffect } from 'react';
 import { use2FA } from '../../hooks/use2FA';
 import './Setup2FA.css';
+
+
 const Setup2FA = ({ onClose, onSuccess }) => {
   const { enable2FA, verify2FA, loading, error, qrCode, setError } = use2FA();
   const [verificationCode, setVerificationCode] = useState('');

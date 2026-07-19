@@ -1,8 +1,6 @@
-version: '3.9'
-
 services:
   redis:
-    image: redis:7.4-alpine # Fixed typo 'apline' -> 'alpine'
+    image: redis:7.4-alpine
     container_name: ecommerce-redis
     ports:
       - "6379:6379"
@@ -19,12 +17,43 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data # Fixed underscore to hyphen to match the bottom volume
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ecommerce}"] # Doubled $$ to escape properly for healthchecks
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ecommerce}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: ecommerce-vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "root"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    cap_add:
+      - IPC_LOCK
+
+  vault-init:
+    image: hashicorp/vault:latest
+    container_name: vault-init
+    depends_on:
+      - vault
+    env_file:
+      - .env
+    environment:
+      VAULT_ADDR: "http://vault:8200"
+      VAULT_TOKEN: "root"
+    command:
+      - sh
+      - -c
+      - |
+        echo 'Asteptam 5 secunde ca Vault sa porneasca complet...'
+        sleep 5
+        echo 'Injectam secretele in Vault...'
+        vault kv put secret/sb-ecom spring.security.oauth2.client.registration.github.client-id="$$GITHUB_CLIENT_ID" spring.security.oauth2.client.registration.github.client-secret="$$GITHUB_CLIENT_SECRET" spring.security.oauth2.client.registration.google.client-id="$$GOOGLE_CLIENT_ID" spring.security.oauth2.client.registration.google.client-secret="$$GOOGLE_CLIENT_SECRET" stripe.secret.key="$$STRIPE_SECRET_KEY" spring.app.jwtSecret="$$JWT_SECRET" spring.ai.openai.api-key="$$OPENAI_API_KEY" spring.datasource.password="$$DB_PASSWORD"
+        echo '!!! SECRETELE AU FOST SALVATE IN VAULT CU SUCCES !!!'
 
   backend:
     image: maven:3.9.9-eclipse-temurin-17
@@ -34,6 +63,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_started
+      vault:
         condition: service_started
     ports:
       - "8080:8080"
@@ -49,6 +80,14 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: create
+
+      SPRING_CLOUD_VAULT_URI: http://vault:8200
+      SPRING_CLOUD_VAULT_TOKEN: root
+      SPRING_CLOUD_VAULT_KV_ENABLED: "true"
+      SPRING_CLOUD_VAULT_KV_VERSION: "2"
+      SPRING_CLOUD_VAULT_KV_BACKEND: "secret"
+      SPRING_CLOUD_VAULT_KV_APPLICATION_NAME: "sb-ecom"
+
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       APP_SEARCH_SEMANTIC_ENABLED: ${APP_SEARCH_SEMANTIC_ENABLED:-false}
       APP_SEARCH_SEMANTIC_TOP_K: ${APP_SEARCH_SEMANTIC_TOP_K:-20}
@@ -59,14 +98,8 @@ services:
       SPRING_AI_MODEL_IMAGE: ${SPRING_AI_MODEL_IMAGE:-none}
       SPRING_AI_MODEL_MODERATION: ${SPRING_AI_MODEL_MODERATION:-none}
       SPRING_AI_MODEL_AUDIO_SPEECH: ${SPRING_AI_MODEL_AUDIO_SPEECH:-none}
-      SPRING_AI_MODEL_AUDIO_TRANSCRIPTION: ${SPRING_AI_MODEL_AUDIO_TRANSCRIPTION:-none}8483
+      SPRING_AI_MODEL_AUDIO_TRANSCRIPTION: ${SPRING_AI_MODEL_AUDIO_TRANSCRIPTION:-none}
       SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA: ${SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA:-true}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
 
 volumes:
   redis-data:
