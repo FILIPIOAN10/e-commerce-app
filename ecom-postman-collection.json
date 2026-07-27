@@ -1,0 +1,146 @@
+{
+  "info": {
+    "name": "Ecommerce Seed - 100 Products",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Login Admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/signin",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let json = pm.response.json();",
+              "if (json.accessToken) {",
+              "  pm.collectionVariables.set('token', json.accessToken);",
+              "  console.log('Token saved');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create Category - Electronics",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/admin/categories",
+        "body": { "mode": "raw", "raw": "{\n  \"categoryName\": \"Electronics\"\n}" }
+      }
+    },
+    {
+      "name": "2. Create Category - Clothing",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/admin/categories",
+        "body": { "mode": "raw", "raw": "{\n  \"categoryName\": \"Clothing\"\n}" }
+      }
+    },
+    {
+      "name": "2. Create Category - Home & Garden",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/admin/categories",
+        "body": { "mode": "raw", "raw": "{\n  \"categoryName\": \"Home & Garden\"\n}" }
+      }
+    },
+    {
+      "name": "2. Create Category - Sports",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/admin/categories",
+        "body": { "mode": "raw", "raw": "{\n  \"categoryName\": \"Sports\"\n}" }
+      }
+    },
+    {
+      "name": "2. Create Category - Books",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/admin/categories",
+        "body": { "mode": "raw", "raw": "{\n  \"categoryName\": \"Books\"\n}" }
+      }
+    },
+    {
+      "name": "3. Get All Categories (to find IDs)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/public/categories?pageSize=50"
+      }
+    },
+    {
+      "name": "4. Create Product (example - replace {{categoryId}})",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/admin/categories/{{categoryId}}/product",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productName\": \"Wireless Headphones\",\n  \"description\": \"Premium noise-cancelling Bluetooth headphones with 30h battery life\",\n  \"tags\": \"audio,bluetooth,wireless\",\n  \"image\": \"https://picsum.photos/seed/123/400/400\",\n  \"quantity\": 50,\n  \"price\": 199.99,\n  \"discount\": 10,\n  \"specialPrice\": 179.99\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Get All Products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/public/products?pageSize=100"
+      }
+    },
+    {
+      "name": "6. Get Products by Category (replace {{categoryId}})",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/public/categories/{{categoryId}}/products?pageSize=50"
+      }
+    },
+    {
+      "name": "7. Search Products by Keyword",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/public/products/keyword/headphones?pageSize=10"
+      }
+    }
+  ]
+}
