@@ -60,7 +60,6 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         // Verifică dacă userul are 2FA activat
@@ -68,11 +67,12 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (user.isTwoFactorEnabled()) {
-            String tempToken = jwtUtils.generateJwtToken(userDetails);
+            String tempToken = jwtUtils.generateTwoFactorToken(userDetails);
             return new AuthenticationResult(null, null, true, tempToken);
         }
 
         // Login normal fără 2FA
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
         String jwtToken = jwtUtils.generateJwtToken(userDetails);
 
@@ -103,37 +103,9 @@ public class AuthServiceImpl implements AuthService {
                 encoder.encode(signupRequest.getPassword())
         );
         user.setPasswordHint(signupRequest.getPasswordHint());
-        Set<String> strRoles = signupRequest.getRole();
-        Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
-            roles.add(userRole);
-        } else {
-            // admin --> ROLE_ADMIN
-            // seller --> ROLE_SELLER
-
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
-                        roles.add(adminRole);
-                        break;
-                    case "seller":
-                        Role sellerRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
-                        roles.add(sellerRole);
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
-                        roles.add(userRole);
-                }
-            });
-        }
-        user.setRoles(roles);
+        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+        user.setRoles(Set.of(userRole));
         userRepository.save(user);
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
@@ -269,6 +241,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean verify2FALogin(String jwtToken, int code) {
+        if (!jwtUtils.validateTwoFactorToken(jwtToken)) {
+            return false;
+        }
         String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
         User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));

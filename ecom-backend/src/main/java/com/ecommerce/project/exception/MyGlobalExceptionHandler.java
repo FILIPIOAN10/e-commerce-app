@@ -35,7 +35,7 @@ public class MyGlobalExceptionHandler {
     /**
      * Gestionează cazurile când o resursă nu este găsită în baza de date.
      */
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse> myResourceNotFoundException(ResourceNotFoundException e) {
         String message = e.getMessage();
         ApiResponse apiResponse = new ApiResponse(message, false);
