@@ -2,6 +2,7 @@ package com.ecommerce.project.security.jwt;
 
 
 import com.ecommerce.project.security.services.UserDetailsImpl;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -27,6 +28,10 @@ import java.util.Date;
 public class JwtUtils {
 
 
+    private static final String TOKEN_PURPOSE_CLAIM = "purpose";
+    private static final String ACCESS_TOKEN_PURPOSE = "access";
+    private static final String TWO_FACTOR_TOKEN_PURPOSE = "2fa_challenge";
+    private static final long TWO_FACTOR_TOKEN_EXPIRATION_MS = 5 * 60 * 1000L;
     private static Logger logger = LoggerFactory.getLogger(JwtUtils.class);
     // Getting JWT From Header
 
@@ -91,6 +96,10 @@ public class JwtUtils {
      return generateTokenFromUsername(userPrincipal.getUsername());
     }
 
+    public String generateTwoFactorToken(UserDetailsImpl userPrincipal) {
+        return generateToken(userPrincipal.getUsername(), TWO_FACTOR_TOKEN_PURPOSE, TWO_FACTOR_TOKEN_EXPIRATION_MS);
+    }
+
 
     // generate clean JWT cookie
     /**
@@ -109,24 +118,41 @@ public class JwtUtils {
      */
     public String generateTokenFromUsername(String username) {
 //        String username = userDetails.getUsername();
+        return generateToken(username, ACCESS_TOKEN_PURPOSE, jwtExpirationMs);
+
+    }
+
+    private String generateToken(String username, String purpose, long expirationMs) {
+        Date issuedAt = new Date();
         return Jwts.builder()
                 .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date((new Date().getTime() + jwtExpirationMs)))
+                .claim(TOKEN_PURPOSE_CLAIM, purpose)
+                .issuedAt(issuedAt)
+                .expiration(new Date(issuedAt.getTime() + expirationMs))
                 .signWith(key())
                 .compact();
-
     }
     // Getting Username from JWT Token
     /**
      * Extracts username from JWT token.
      */
     public String getUserNameFromJWTToken(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    public boolean validateTwoFactorToken(String token) {
+        try {
+            return TWO_FACTOR_TOKEN_PURPOSE.equals(parseClaims(token).get(TOKEN_PURPOSE_CLAIM, String.class));
+        } catch (RuntimeException exception) {
+            return false;
+        }
+    }
+
+    private Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) key())
                 .build().parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
     }
     // Generate Signing key
 
@@ -144,12 +170,8 @@ public class JwtUtils {
      */
     public boolean validateJwtToken(String authToken) {
         try {
-
-            System.out.println("Validate");
-            Jwts.parser()
-                    .verifyWith((SecretKey) key())
-                    .build().parseSignedClaims(authToken);
-            return true;
+            Claims claims = parseClaims(authToken);
+            return ACCESS_TOKEN_PURPOSE.equals(claims.get(TOKEN_PURPOSE_CLAIM, String.class));
 
         } catch (MalformedJwtException e) {
                 logger.error("Invalid JWT token: {}", e.getMessage());
