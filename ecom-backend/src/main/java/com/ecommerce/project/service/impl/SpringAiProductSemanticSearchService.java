@@ -8,8 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,8 +22,7 @@ import java.util.Optional;
 @Primary
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(VectorStore.class)
-@ConditionalOnProperty(name = "app.search.semantic.enabled", havingValue = "true")
+@ConditionalOnExpression("'${spring.ai.vectorstore.type:none}' == 'pgvector' and '${app.search.semantic.enabled:false}' == 'true'")
 public class SpringAiProductSemanticSearchService implements ProductSemanticSearchService {
 
     private static final String PRODUCT_ID_METADATA = "productId";
