@@ -161,29 +161,15 @@ public class OrderServiceImpl implements OrderService {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNumber,pageSize,sortByAndOrder);
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
 
         User seller = authUtil.loggedInUser();
 
-        Page<Order> pageOrders= orderRepository.findAll(pageDetails);
+        Page<Order> pageOrders = orderRepository.findOrdersBySellerId(seller.getUserId(), pageDetails);
 
-        // filtering the orders to include only those with at least one product belonging to this particular seller over here.
-        List<Order> sellerOrders = pageOrders.getContent().stream()
-                .filter(order -> order.getOrderItems().stream()
-                        // for every order item we are getting the product
-                        .anyMatch(orderItem -> {
-                            var product= orderItem.getProduct();
-                            if(product == null || product.getUser() == null){
-                                return false;
-                            }
-                            return product.getUser().getUserId().equals(seller.getUserId());
-                        })).toList();
-
-
-        List<OrderDTO> orderDTOS = sellerOrders.stream()
+        List<OrderDTO> orderDTOS = pageOrders.getContent().stream()
                 .map(order -> modelMapper.map(order, OrderDTO.class))
                 .toList();
-
 
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setContent(orderDTOS);
