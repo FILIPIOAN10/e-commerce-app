@@ -25,6 +25,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.data.domain.Pageable;
 
@@ -141,6 +142,7 @@ public class AuthController {
 
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/hint/{username}")
     public ResponseEntity<?> getPasswordHint(@PathVariable String username){
         return authService.getPasswordHint(username);
