@@ -75,8 +75,7 @@ public class OrderServiceImpl implements OrderService {
         // for every cart item you creat an order item
         for (CartItem cartItem : cartItems) {
 
-            System.out.println("Product special price: " + cartItem.getProduct().getSpecialPrice());
-            System.out.println("Cart product price: " + cartItem.getProductPrice());
+
             //Creating an object of order item
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(cartItem.getProduct());
