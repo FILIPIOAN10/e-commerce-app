@@ -104,8 +104,8 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         String jwt = jwtUtils.generateTokenFromUsername(user.getUserName());
 
         // SET COOKIE instead of URL parameter
-        ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwt)
-                .path("/")
+        ResponseCookie jwtCookie = ResponseCookie.from(jwtUtils.getJwtCookieName(), jwt)
+                .path("/api")
                 .maxAge(24 * 60 * 60)
                 .httpOnly(true)
                 .secure(true)
