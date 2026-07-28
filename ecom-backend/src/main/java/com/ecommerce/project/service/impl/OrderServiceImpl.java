@@ -94,10 +94,15 @@ public class OrderServiceImpl implements OrderService {
             int quantity = item.getQuantity();
             Product product = item.getProduct();
 
-            // updating the stock
+            if (product.getQuantity() < quantity) {
+                throw new APIException("Insufficient stock for product: "
+                        + product.getProductName()
+                        + ". Available: " + product.getQuantity()
+                        + ", requested: " + quantity);
+            }
+
             product.setQuantity(product.getQuantity() - quantity);
             productRepository.save(product);
-            // Clear the cart
             cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId());
         });
 
