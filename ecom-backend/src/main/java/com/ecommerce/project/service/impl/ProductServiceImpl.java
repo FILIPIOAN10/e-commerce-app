@@ -82,7 +82,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 3. Mapare și salvare produs nou
         Product product = modelMapper.map(productDTO, Product.class);
-        product.setImage("cal.png");
+        product.setImage(productDTO.getImage() != null && !productDTO.getImage().isBlank() ? productDTO.getImage() : "cal.png");
         product.setTags(productDTO.getTags());
         product.setCategory(category);
         product.setUser(authUtil.loggedInUser());
@@ -97,6 +97,9 @@ public class ProductServiceImpl implements ProductService {
 
 
     private String constructImageUrl(String imageName) {
+        if (imageName != null && (imageName.startsWith("http://") || imageName.startsWith("https://"))) {
+            return imageName;
+        }
         return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
     }
 

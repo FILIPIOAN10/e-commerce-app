@@ -45,15 +45,9 @@ services:
     environment:
       VAULT_ADDR: "http://vault:8200"
       VAULT_TOKEN: "root"
-    command:
-      - sh
-      - -c
-      - |
-        echo 'Asteptam 5 secunde ca Vault sa porneasca complet...'
-        sleep 5
-        echo 'Injectam secretele in Vault...'
-        vault kv put secret/sb-ecom spring.security.oauth2.client.registration.github.client-id="$$GITHUB_CLIENT_ID" spring.security.oauth2.client.registration.github.client-secret="$$GITHUB_CLIENT_SECRET" spring.security.oauth2.client.registration.google.client-id="$$GOOGLE_CLIENT_ID" spring.security.oauth2.client.registration.google.client-secret="$$GOOGLE_CLIENT_SECRET" stripe.secret.key="$$STRIPE_SECRET_KEY" spring.app.jwtSecret="$$JWT_SECRET" spring.ai.openai.api-key="$$OPENAI_API_KEY" spring.datasource.password="$$DB_PASSWORD"
-        echo '!!! SECRETELE AU FOST SALVATE IN VAULT CU SUCCES !!!'
+    volumes:
+      - ./scripts/vault-init.sh:/vault-init.sh:ro
+    entrypoint: ["/bin/sh", "/vault-init.sh"]
 
   backend:
     image: maven:3.9.9-eclipse-temurin-17
@@ -64,8 +58,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      vault:
-        condition: service_started
+      vault-init: # [MODIFICAT]: Acum backend-ul asteapta ca scriptul de initiere Vault sa se termine cu succes
+        condition: service_completed_successfully
     ports:
       - "8080:8080"
       - "5005:5005"
@@ -79,7 +73,7 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # [MODIFICAT]: Schimbat din 'create' in 'update' pentru a nu sterge datele la restart
 
       SPRING_CLOUD_VAULT_URI: http://vault:8200
       SPRING_CLOUD_VAULT_TOKEN: root
@@ -100,6 +94,7 @@ services:
       SPRING_AI_MODEL_AUDIO_SPEECH: ${SPRING_AI_MODEL_AUDIO_SPEECH:-none}
       SPRING_AI_MODEL_AUDIO_TRANSCRIPTION: ${SPRING_AI_MODEL_AUDIO_TRANSCRIPTION:-none}
       SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA: ${SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA:-true}
+      SPRING_AI_VECTORSTORE_PGVECTOR_ID_TYPE: ${SPRING_AI_VECTORSTORE_PGVECTOR_ID_TYPE:-text}
 
 volumes:
   redis-data:
