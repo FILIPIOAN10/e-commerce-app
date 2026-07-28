@@ -179,4 +179,7 @@ public class JwtUtils {
         }
         return false;
     }
+    public String getJwtCookieName() {
+        return jwtCookie;
+    }
 }
