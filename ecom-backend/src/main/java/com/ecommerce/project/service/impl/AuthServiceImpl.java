@@ -17,7 +17,7 @@ import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.AuthService;
 import com.ecommerce.project.service.TotpService;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;

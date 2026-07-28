@@ -2,7 +2,7 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderResponse;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface OrderService {
     @Transactional

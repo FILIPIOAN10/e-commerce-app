@@ -10,7 +10,7 @@ import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
