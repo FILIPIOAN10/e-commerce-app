@@ -1,6 +1,5 @@
 package com.ecommerce.project.util;
 
-
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -11,38 +10,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthUtil {
 
-    private UserRepository userRepository;
-
-
-    // class that have everthing around authentication
+    private final UserRepository userRepository;
 
     public AuthUtil(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    // get the email id of login user
-    public String loggedInEmail(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + authentication.getName()));
-
-        return user.getEmail();
+    public String loggedInEmail() {
+        return loggedInUser().getEmail();
     }
 
-    public Long loggedInUserId(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + authentication.getName()));
-
-        return user.getUserId();
+    public Long loggedInUserId() {
+        return loggedInUser().getUserId();
     }
 
-    public User loggedInUser(){
+    public User loggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        User user = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + authentication.getName()));
-        return user;
-
+        if (authentication == null || authentication.getName() == null) {
+            throw new UsernameNotFoundException("No authenticated user found");
+        }
+        return userRepository.findByUserName(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "User Not Found with username: " + authentication.getName()));
     }
 }
