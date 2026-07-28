@@ -45,15 +45,9 @@ services:
     environment:
       VAULT_ADDR: "http://vault:8200"
       VAULT_TOKEN: "root"
-    command:
-      - sh
-      - -c
-      - |
-        echo 'Asteptam 5 secunde ca Vault sa porneasca complet...'
-        sleep 5
-        echo 'Injectam secretele in Vault...'
-        vault kv put secret/sb-ecom spring.security.oauth2.client.registration.github.client-id="$$GITHUB_CLIENT_ID" spring.security.oauth2.client.registration.github.client-secret="$$GITHUB_CLIENT_SECRET" spring.security.oauth2.client.registration.google.client-id="$$GOOGLE_CLIENT_ID" spring.security.oauth2.client.registration.google.client-secret="$$GOOGLE_CLIENT_SECRET" stripe.secret.key="$$STRIPE_SECRET_KEY" spring.app.jwtSecret="$$JWT_SECRET" spring.ai.openai.api-key="$$OPENAI_API_KEY" spring.datasource.password="$$DB_PASSWORD"
-        echo '!!! SECRETELE AU FOST SALVATE IN VAULT CU SUCCES !!!'
+    volumes:
+      - ./scripts/vault-init.sh:/vault-init.sh:ro
+    entrypoint: ["/bin/sh", "/vault-init.sh"]
 
   backend:
     image: maven:3.9.9-eclipse-temurin-17
