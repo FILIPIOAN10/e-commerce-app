@@ -22,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RateLimitFilter  extends OncePerRequestFilter {
 
-    private static final String ERROR_BODY = "{\"message\":\"Too many reuqests. Try again later.\",\"status\":false}";
+    private static final String ERROR_BODY = "{\"message\":\"Too many requests. Try again later.\",\"status\":false}";
 
     private final RedisRateLimitService redisRateLimitService;
     private final List<RateLimitRule> rateLimitRules;
