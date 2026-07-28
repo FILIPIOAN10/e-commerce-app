@@ -56,14 +56,16 @@ public class JwtUtils {
     /**
      * Extracts JWT token from HttpOnly cookie.
      */
-    public String getJwtFromCookies(HttpServletRequest request) {
-        // Extract jwt token from cookies
-        Cookie cookie = WebUtils.getCookie(request, jwtCookie);
-        if (cookie != null) {
-            return cookie.getValue();
-        } else {
-            return null;
-        }
+    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal){
+        String jwt = generateTokenFromUsername(userPrincipal.getUsername());
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
+                .path("/api")
+                .maxAge(24 * 60 * 60)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
+        return cookie;
     }
 
     public String getJwtFromHeader(HttpServletRequest request) {
