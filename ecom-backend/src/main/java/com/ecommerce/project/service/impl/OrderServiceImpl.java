@@ -146,13 +146,20 @@ public class OrderServiceImpl implements OrderService {
         return orderResponse;
     }
 
+    private static final List<String> VALID_STATUSES = List.of(
+            "Accepted!", "Shipped", "Delivered", "Cancelled", "Processing"
+    );
     @Override
-    public OrderDTO updateOrder( Long orderId, String status) {
+    public OrderDTO updateOrder(Long orderId, String status) {
+        if (status == null || !VALID_STATUSES.contains(status)) {
+            throw new APIException("Invalid order status: " + status
+                    + ". Valid statuses: " + VALID_STATUSES);
+        }
         Order order = orderRepository.findById(orderId)
-        .orElseThrow(() -> new ResourceNotFoundException("Order","orderId",orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
         order.setOrderStatus(status);
         orderRepository.save(order);
-        return modelMapper.map(order,OrderDTO.class);
+        return modelMapper.map(order, OrderDTO.class);
     }
 
     @Override
