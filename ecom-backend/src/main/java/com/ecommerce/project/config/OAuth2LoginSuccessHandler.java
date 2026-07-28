@@ -15,7 +15,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-
+import org.springframework.http.ResponseCookie;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -103,8 +103,16 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         // GENERATE JWT
         String jwt = jwtUtils.generateTokenFromUsername(user.getUserName());
 
-        // REDIRECT TO FRONTEND
-        String redirectUrl = frontEndUrl + "/oauth2/redirect?token=" + jwt;
-        response.sendRedirect(redirectUrl);
+        // SET COOKIE instead of URL parameter
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwt)
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader("Set-Cookie", jwtCookie.toString());
+        response.sendRedirect(frontEndUrl + "/oauth2/redirect");
     }
 }
