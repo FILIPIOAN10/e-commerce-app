@@ -184,8 +184,9 @@ public class AuthController {
     }
 
     @PostMapping("/public/verify-2fa-login")
-    public ResponseEntity<?> verify2FALogin(@RequestParam int code,
-                                            @RequestParam String jwtToken) {
+    public ResponseEntity<?> verify2FALogin(@RequestBody Map<String, Object> requestBody) {
+        int code = (Integer) requestBody.get("code");
+        String jwtToken = (String) requestBody.get("jwtToken");
         boolean isValid = authService.verify2FALogin(jwtToken, code);
         if (isValid) {
             String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
