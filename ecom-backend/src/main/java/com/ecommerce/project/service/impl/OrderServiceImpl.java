@@ -44,14 +44,18 @@ public class OrderServiceImpl implements OrderService {
     @Transactional // everything in this method successfully finishes or nothing finish
     public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage) {
 
-        // Getting User Cart
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null) {
             throw new ResourceNotFoundException("Cart", "email", emailId);
         }
+
+        List<CartItem> cartItems = cart.getCartItems();
+        if (cartItems.isEmpty()) {
+            throw new APIException("Cart is Empty");
+        }
+
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-        // Create a new order with payment info
 
         Order order = new Order();
         order.setEmail(emailId);
@@ -61,24 +65,11 @@ public class OrderServiceImpl implements OrderService {
         order.setAddress(address);
 
 
-        //Creating payment object
         Payment payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
-        // setting the order in the payment object
         payment.setOrder(order);
-
-        // saving the payment
         payment = paymentRepository.save(payment);
-
-        //set the payment to that order
         order.setPayment(payment);
-
         Order savedOrder = orderRepository.save(order);
-
-        // Get Items from the cart into the order items
-        List<CartItem> cartItems = cart.getCartItems();
-        if (cartItems.isEmpty()) {
-            throw new APIException("Cart is Empty");
-        }
 
         List<OrderItem> orderItems = new ArrayList<>();
         // for every cart item you creat an order item
