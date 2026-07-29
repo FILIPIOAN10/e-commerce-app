@@ -9,6 +9,7 @@ import com.ecommerce.project.payload.UserResponse;
 import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
+import com.ecommerce.project.security.redis.LoginAttemptService;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
@@ -50,40 +51,61 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
 
     private final TotpService totpService;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+        String username = loginRequest.getUsername();
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-        // Verifică dacă userul are 2FA activat
-        User user = userRepository.findByUserName(loginRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (user.isTwoFactorEnabled()) {
-            String tempToken = jwtUtils.generateTwoFactorToken(userDetails);
-            return new AuthenticationResult(null, null, true, tempToken);
+        if (loginAttemptService.isLocked(username)) {
+            long minutesLeft = loginAttemptService.getLockTimeRemaining(username) / 60;
+            throw new RuntimeException("Account locked due to too many failed attempts. "
+                    + "Try again in " + minutesLeft + " minutes.");
         }
 
-        // Login normal fără 2FA
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-        String jwtToken = jwtUtils.generateJwtToken(userDetails);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+            loginAttemptService.resetAttempts(username);
 
-        UserInfoResponse response = new UserInfoResponse(
-                userDetails.getId(), userDetails.getUsername(), roles, userDetails.getEmail(), jwtToken
-        );
-        return new AuthenticationResult(response, jwtCookie, false, null);
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+            User user = userRepository.findByUserName(loginRequest.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (user.isTwoFactorEnabled()) {
+                String tempToken = jwtUtils.generateTwoFactorToken(userDetails);
+                return new AuthenticationResult(null, null, true, tempToken);
+            }
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+            String jwtToken = jwtUtils.generateJwtToken(userDetails);
+
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .toList();
+
+            UserInfoResponse response = new UserInfoResponse(
+                    userDetails.getId(), userDetails.getUsername(), roles, userDetails.getEmail(), jwtToken
+            );
+            return new AuthenticationResult(response, jwtCookie, false, null);
+
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            loginAttemptService.recordFailedAttempt(username);
+            int remaining = loginAttemptService.getRemainingAttempts(username);
+            if (remaining > 0) {
+                throw new RuntimeException("Invalid credentials. " + remaining + " attempts remaining.");
+            } else {
+                throw new RuntimeException("Account locked due to too many failed attempts. "
+                        + "Try again in 15 minutes.");
+            }
+        }
     }
 
     @Override
@@ -178,10 +200,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserResponse getAllSellers(Pageable pageable) {
-        Page<User> allUsers = userRepository.findByRoleName(AppRole.ROLE_SELLER,pageable);
+        Page<User> allUsers = userRepository.findByRoleName(AppRole.ROLE_SELLER, pageable);
         List<UserDTO> userDTOs = allUsers.getContent()
                 .stream()
-                .map(p-> modelMapper.map(p,UserDTO.class))
+                .map(p -> modelMapper.map(p, UserDTO.class))
                 .collect(Collectors.toList());
         UserResponse response = new UserResponse();
         response.setContent(userDTOs);
@@ -195,20 +217,20 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<?> getPasswordHint(String username) {
         Optional<User> userOpt = userRepository.findByUserName(username);
-        if(userOpt.isEmpty()){
+        if (userOpt.isEmpty()) {
             return ResponseEntity.badRequest().body(new MessageResponse("User not found"));
         }
         String hint = userOpt.get().getPasswordHint();
-        if(hint == null || hint.isEmpty()){
+        if (hint == null || hint.isEmpty()) {
             return ResponseEntity.ok(new MessageResponse("No hint available"));
         }
         return ResponseEntity.ok(new MessageResponse(hint));
     }
 
     @Override
-    public GoogleAuthenticatorKey generate2FASecret(Long userId){
+    public GoogleAuthenticatorKey generate2FASecret(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
         GoogleAuthenticatorKey key = totpService.generateSecret();
         user.setTwoFactorSecret(key.getKey());
         userRepository.save(user);
@@ -249,7 +271,6 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return validate2FACode(user.getUserId(), code);
     }
-
 
 
 }
