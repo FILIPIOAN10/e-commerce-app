@@ -65,18 +65,25 @@ public class AuthController {
     @Tag(name = "Authentication")
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        AuthenticationResult result = authService.login(loginRequest);
+        try {
+            AuthenticationResult result = authService.login(loginRequest);
 
-        if (result.isNeeds2FA()) {
-            Map<String, Object> body = new HashMap<>();
-            body.put("needs2FA", true);
-            body.put("temp2FAToken", result.getTemp2FAToken());
-            return ResponseEntity.ok(body);
+            if (result.isNeeds2FA()) {
+                Map<String, Object> body = new HashMap<>();
+                body.put("needs2FA", true);
+                body.put("temp2FAToken", result.getTemp2FAToken());
+                return ResponseEntity.ok(body);
+            }
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
+                    .body(result.getResponse());
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Account locked")) {
+                return ResponseEntity.status(429).body(Map.of("message", e.getMessage()));
+            }
+            return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
         }
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
-                .body(result.getResponse());
     }
 
 
