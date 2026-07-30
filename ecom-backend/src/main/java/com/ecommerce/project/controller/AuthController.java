@@ -26,6 +26,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import com.ecommerce.project.security.request.ForgotPasswordRequest;
+import com.ecommerce.project.security.request.ResetPasswordRequest;
 
 import org.springframework.data.domain.Pageable;
 
@@ -221,6 +223,27 @@ public class AuthController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid 2FA Code");
+        }
+    }
+    @Tag(name = "Authentication")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.initiatePasswordReset(request.getEmail());
+            return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent"));
+        }
+    }
+
+    @Tag(name = "Authentication")
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(Map.of("message", e.getMessage()));
         }
     }
 }

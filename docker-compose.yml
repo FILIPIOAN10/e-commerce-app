@@ -81,6 +81,8 @@ services:
       SPRING_CLOUD_VAULT_KV_VERSION: "2"
       SPRING_CLOUD_VAULT_KV_BACKEND: "secret"
       SPRING_CLOUD_VAULT_KV_APPLICATION_NAME: "sb-ecom"
+      SPRING_MAIL_USERNAME: filipioan100@gmail.com
+      SPRING_MAIL_PASSWORD: uleqohstdzrsxazz
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       APP_SEARCH_SEMANTIC_ENABLED: ${APP_SEARCH_SEMANTIC_ENABLED:-false}
