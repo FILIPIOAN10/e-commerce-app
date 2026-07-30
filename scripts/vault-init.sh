@@ -19,6 +19,8 @@ vault kv put secret/sb-ecom \
     stripe.secret.key="$STRIPE_SECRET_KEY" \
     spring.app.jwtSecret="$JWT_SECRET" \
     spring.ai.openai.api-key="$OPENAI_API_KEY" \
-    spring.datasource.password="$DB_PASSWORD"
+    spring.datasource.password="$DB_PASSWORD" \
+    spring.mail.username="$SPRING_MAIL_USERNAME" \
+    spring.mail.password="$SPRING_MAIL_PASSWORD"
 
 echo '!!! SECRETELE AU FOST SALVATE IN VAULT CU SUCCES !!!'

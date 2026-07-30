@@ -117,7 +117,7 @@ public class JwtUtils {
 
     }
 
-    private String generateToken(String username, String purpose, long expirationMs) {
+    public String generateToken(String username, String purpose, long expirationMs) {
         Date issuedAt = new Date();
         return Jwts.builder()
                 .subject(username)
@@ -143,7 +143,7 @@ public class JwtUtils {
         }
     }
 
-    private Claims parseClaims(String token) {
+    public Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) key())
                 .build().parseSignedClaims(token)

@@ -33,6 +33,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import com.ecommerce.project.security.redis.PasswordResetService;
+import com.ecommerce.project.service.EmailService;
+import io.jsonwebtoken.Claims;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,6 +55,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final TotpService totpService;
     private final LoginAttemptService loginAttemptService;
+    private final PasswordResetService passwordResetService;
+    private final EmailService emailService;
 
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {
@@ -270,6 +275,31 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return validate2FACode(user.getUserId(), code);
+    }
+    @Override
+    public void initiatePasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        String token = passwordResetService.generateResetToken(email);
+        emailService.sendPasswordResetEmail(email, token);
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        String email = passwordResetService.extractEmailFromToken(token);
+
+        if (!passwordResetService.validateResetToken(token, email)) {
+            throw new RuntimeException("Invalid or expired reset token");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(encoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetService.invalidateToken(email);
     }
 
 
