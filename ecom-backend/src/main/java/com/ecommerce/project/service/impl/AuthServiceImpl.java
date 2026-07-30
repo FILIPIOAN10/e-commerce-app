@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import com.ecommerce.project.security.redis.PasswordResetService;
 import com.ecommerce.project.service.EmailService;
 import io.jsonwebtoken.Claims;
+import com.ecommerce.project.security.redis.EmailVerificationService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
     private final LoginAttemptService loginAttemptService;
     private final PasswordResetService passwordResetService;
     private final EmailService emailService;
+    private final EmailVerificationService emailVerificationService;
 
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {
@@ -82,6 +84,9 @@ public class AuthServiceImpl implements AuthService {
 
             User user = userRepository.findByUserName(loginRequest.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
+            if (!user.isVerified()) {
+                throw new RuntimeException("Account not verified. Please check your email to verify your account.");
+            }
 
             if (user.isTwoFactorEnabled()) {
                 String tempToken = jwtUtils.generateTwoFactorToken(userDetails);
@@ -115,14 +120,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<MessageResponse> register(SignupRequest signupRequest) {
-
-
         if (userRepository.existsByUserName(signupRequest.getUsername())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
         }
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
-
         }
         User user = new User(
                 signupRequest.getUsername(),
@@ -133,8 +135,13 @@ public class AuthServiceImpl implements AuthService {
         Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
         user.setRoles(Set.of(userRole));
+        user.setVerified(false);
         userRepository.save(user);
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+
+        String token = emailVerificationService.generateVerificationToken(user.getEmail());
+        emailService.sendVerificationEmail(user.getEmail(), token);
+
+        return ResponseEntity.ok(new MessageResponse("User registered successfully! Please check your email to verify your account."));
     }
 
     // ACEASTA ESTE METODA MODIFICATĂ - Acum suportă și OAuth2 (GitHub)
@@ -301,6 +308,34 @@ public class AuthServiceImpl implements AuthService {
 
         passwordResetService.invalidateToken(email);
     }
+    @Override
+    public void verifyEmail(String token) {
+        String email = emailVerificationService.extractEmailFromToken(token);
 
+        if (!emailVerificationService.validateVerificationToken(token, email)) {
+            throw new RuntimeException("Invalid or expired verification token");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setVerified(true);
+        userRepository.save(user);
+
+        emailVerificationService.invalidateToken(email);
+    }
+
+    @Override
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        if (user.isVerified()) {
+            throw new RuntimeException("Account is already verified");
+        }
+
+        String token = emailVerificationService.generateVerificationToken(email);
+        emailService.sendVerificationEmail(email, token);
+    }
 
 }

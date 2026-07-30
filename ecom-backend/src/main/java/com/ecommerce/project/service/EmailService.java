@@ -30,4 +30,16 @@ public class EmailService {
 
         mailSender.send(message);
     }
+    public void sendVerificationEmail(String toEmail, String token) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Verify Your Email Address");
+        message.setText("Welcome! Please verify your email address to activate your account.\n\n"
+                + "Click the link below (valid for 60 minutes):\n"
+                + frontendUrl + "/verify-email?token=" + token + "\n\n"
+                + "If you did not create an account, please ignore this email.");
+
+        mailSender.send(message);
+    }
 }
