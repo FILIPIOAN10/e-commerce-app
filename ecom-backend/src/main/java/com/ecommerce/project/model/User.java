@@ -94,5 +94,6 @@ public class User {
     @Column(name = "two_factor_enabled", nullable = false, columnDefinition = "boolean default false")
     private boolean twoFactorEnabled = false;
 
-
+    @Column(name = "verified", nullable = false, columnDefinition = "boolean default false")
+    private boolean verified = false;
 }
