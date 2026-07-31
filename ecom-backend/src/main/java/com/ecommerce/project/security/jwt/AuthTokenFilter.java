@@ -1,5 +1,6 @@
 package com.ecommerce.project.security.jwt;
 
+import com.ecommerce.project.security.redis.TokenBlacklistService;
 import com.ecommerce.project.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,11 +24,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
     private JwtUtils jwtUtils;
     private UserDetailsServiceImpl userDetailsService;
+    private TokenBlacklistService tokenBlacklistService;
 
 
-    public AuthTokenFilter(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
+    public AuthTokenFilter(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
 
@@ -51,7 +54,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try {
             // extract the token
             String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+            if (jwt != null && jwtUtils.validateJwtToken(jwt) && !tokenBlacklistService.isBlacklisted(jwt)) {
                 // Extract username
                 String username = jwtUtils.getUserNameFromJWTToken(jwt);
                 // Load user from DB

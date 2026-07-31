@@ -28,7 +28,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.ecommerce.project.security.request.ForgotPasswordRequest;
 import com.ecommerce.project.security.request.ResetPasswordRequest;
-import com.ecommerce.project.security.request.ForgotPasswordRequest;
+import com.ecommerce.project.security.redis.TokenBlacklistService;
+import jakarta.servlet.http.HttpServletRequest;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 
 import org.springframework.data.domain.Pageable;
 
@@ -48,14 +51,16 @@ public class AuthController {
     private TotpService totpService;
     private JwtUtils jwtUtils;
     private UserRepository userRepository;
+    private TokenBlacklistService tokenBlacklistService;
 
-    public AuthController(AuthService authService,AuthUtil authUtil,TotpService totpService,UserRepository userRepository,JwtUtils jwtUtils) {
+    public AuthController(AuthService authService,AuthUtil authUtil,TotpService totpService,UserRepository userRepository,JwtUtils jwtUtils,TokenBlacklistService tokenBlacklistService) {
 
         this.authService=authService;
         this.authUtil = authUtil;
         this.totpService=totpService;
         this.userRepository=userRepository;
         this.jwtUtils=jwtUtils;
+        this.tokenBlacklistService=tokenBlacklistService;
     }
 
 
@@ -125,8 +130,10 @@ public class AuthController {
      */
     @Tag(name = "Authentication")
     @GetMapping("/user")
-    public ResponseEntity<UserInfoResponse> getUserDetails(Authentication authentication) {
-
+    public ResponseEntity<?> getUserDetails(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Not authenticated"));
+        }
         return ResponseEntity.ok().
                 body(authService.getCurrentUserDetails(authentication));
     }
@@ -135,10 +142,22 @@ public class AuthController {
      */
     @Tag(name = "Authentication")
     @PostMapping("/signout")
-    public ResponseEntity<?> signoutUser() {
+    public ResponseEntity<?> signoutUser(HttpServletRequest request) {
+        String jwt = jwtUtils.getJwtFromHeader(request);
+        if (jwt == null) {
+            jwt = jwtUtils.getJwtFromCookies(request);
+        }
+        if (jwt != null) {
+            try {
+                Claims claims = jwtUtils.parseClaims(jwt);
+                tokenBlacklistService.blacklistToken(jwt, claims);
+            } catch (ExpiredJwtException e) {
+                // Token already expired, no need to blacklist
+            }
+        }
         ResponseCookie cookie = authService.logoutUser();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new MessageResponse("Successfully logged out!"));
+                .body(new MessageResponse("Successfully logged out! Token revoked."));
     }
 
     @GetMapping("/sellers")
