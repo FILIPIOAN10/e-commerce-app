@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import ProductViewModal from "./ProductViewModal";
 import truncateText from "../../utils/truncateText";
 import { useDispatch, useSelector } from "react-redux"; // ✅ adaugă useSelector
 import toast from "react-hot-toast";
-import { addToCart } from "../../store/actions";
+import { addToCart, addToWishlist } from "../../store/actions";
 
 const ProductCard = ({
         productId,
@@ -26,6 +26,12 @@ const ProductCard = ({
     // ✅ verifică dacă e admin
     const { user } = useSelector((state) => state.auth);
     const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
+    const { wishlist } = useSelector((state) => state.wishlist);
+    const isInWishlist = wishlist?.some((w) => w.productId === productId);
+
+    const handleAddToWishlist = () => {
+        dispatch(addToWishlist(productId));
+    };
 
     const handleProductView = (product) => {
         if (!about) {
@@ -47,9 +53,19 @@ const ProductCard = ({
                     alt={productName}
                 />
             </div>
-            <div className="p-4">
+            <div className="p-4 relative">
+                {!about && user?.id && !isAdmin && (
+                    <button
+                        onClick={handleAddToWishlist}
+                        className={`absolute top-3 right-3 ${isInWishlist ? "text-red-500" : "text-gray-300 hover:text-red-400"} transition text-xl`}
+                        title={isInWishlist ? "Already in wishlist" : "Add to wishlist"}
+                        disabled={isInWishlist}
+                    >
+                        <FaHeart />
+                    </button>
+                )}
                 <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice })}
-                    className="text-lg font-semibold mb-2 cursor-pointer">
+                    className="text-lg font-semibold mb-2 cursor-pointer pr-8">
                     {truncateText(productName, 50)}
                 </h2>
                 <div className="min-h-20 max-h-20">

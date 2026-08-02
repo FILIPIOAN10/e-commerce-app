@@ -24,6 +24,7 @@ import Sellers from './components/admin/sellers/Sellers'
 import Orders from './components/admin/orders/Orders'
 import Profile from './components/profile/Profile'
 import ProfileOrders from './components/profile/ProfileOrders'
+import Wishlist from './components/wishlist/Wishlist'
 
 import OAuth2Redirect from './components/shared/OAuth2Redirect'
 
@@ -59,8 +60,9 @@ function App() {
           </Route>
         </Route>
 
-        <Route path='/' element ={<PrivateRoute />}>
+        <Route path='/' element={<PrivateRoute />}>
           <Route path='/profile/orders' element={<ProfileOrders />} />
+          <Route path='/wishlist' element={<Wishlist />} />
         </Route>
       </Routes>
     </Router>

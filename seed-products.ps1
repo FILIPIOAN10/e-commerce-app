@@ -2,10 +2,10 @@ $baseUrl = "http://localhost:8080"
 
 # 1. Login as admin
 Write-Host "=== Logging in as admin ===" -ForegroundColor Cyan
-$loginBody = @{ username = "admin"; password = "admin123" } | ConvertTo-Json
+$loginBody = @{ username = "admin"; password = "adminPass" } | ConvertTo-Json
 try {
     $loginResp = Invoke-RestMethod -Uri "$baseUrl/api/auth/signin" -Method Post -Body $loginBody -ContentType "application/json"
-    $token = $loginResp.accessToken
+    $token = $loginResp.jwtToken
     if (-not $token) { Write-Host "No token received. Check admin credentials." -ForegroundColor Red; exit 1 }
     Write-Host "Got token: $($token.Substring(0,20))..." -ForegroundColor Green
 } catch {
