@@ -1,7 +1,11 @@
 import React from 'react'
 import { formatPriceCalculation } from '../../utils/formatPrice'
+import { useSelector } from 'react-redux'
+import CouponInput from './CouponInput'
 
 const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
+  const { appliedCoupon, discountAmount, finalAmount } = useSelector((state) => state.coupon)
+  const displayTotal = appliedCoupon ? finalAmount : totalPrice
   return (
     <div className="container mx-auto px-4 mb-8">
         <div className="flex flex-wrap">
@@ -89,15 +93,23 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                         <span>Products</span>
                         <span>${formatPriceCalculation(totalPrice,1)}</span>
                     </div>
+                    {appliedCoupon && (
+                        <div className="flex justify-between text-green-600">
+                            <span>Discount ({appliedCoupon.discountPercent}%)</span>
+                            <span>-${formatPriceCalculation(discountAmount,1)}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between">
                         <span>Tax (0%)</span>
                         <span>$0.00</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                             <span>Subtotal</span>
-                            <span>${formatPriceCalculation(totalPrice,1)}</span>
+                            <span>${formatPriceCalculation(displayTotal,1)}</span>
                     </div>
                 </div>
+
+                <CouponInput orderAmount={totalPrice} />
             </div>
         </div>
         </div>

@@ -21,6 +21,7 @@ import Dashboard from './components/admin/dashboard/Dashboard'
 import AdminProducts from './components/admin/products/AdminProducts'
 import Category from './components/admin/categories/Category'
 import Sellers from './components/admin/sellers/Sellers'
+import Coupons from './components/admin/coupons/Coupons'
 import Orders from './components/admin/orders/Orders'
 import Profile from './components/profile/Profile'
 import ProfileOrders from './components/profile/ProfileOrders'
@@ -57,6 +58,7 @@ function App() {
             <Route path='sellers' element={<Sellers />}/>
             <Route path='orders' element={<Orders />}/>
             <Route path='categories' element={<Category />}/>
+            <Route path='coupons' element={<Coupons />}/>
           </Route>
         </Route>
 

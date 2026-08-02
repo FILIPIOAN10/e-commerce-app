@@ -9,6 +9,7 @@ import { orderReducer } from "./orderReducer";
 import { sellerReducer } from "./sellerReducer";
 import wishlistReducer from "./wishlistReducer";
 import reviewReducer from "./reviewReducer";
+import couponReducer from "./couponReducer";
 
 const user = localStorage.getItem("auth")
     ? JSON.parse(localStorage.getItem("auth"))
@@ -39,6 +40,7 @@ export const store = configureStore({
         seller: sellerReducer,
         wishlist: wishlistReducer,
         review: reviewReducer,
+        coupon: couponReducer,
     },
     preloadedState: initialState,
 });
