@@ -8,6 +8,7 @@ import com.ecommerce.project.payload.OrderItemDTO;
 import com.ecommerce.project.payload.OrderResponse;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
+import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final CartService cartService;
+    private final CouponService couponService;
     private final ModelMapper modelMapper;
 
     private final AuthUtil authUtil;
@@ -42,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional // everything in this method successfully finishes or nothing finish
-    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage) {
+    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, String couponCode) {
 
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null) {
@@ -60,7 +62,17 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setEmail(emailId);
         order.setOrderDate(LocalDate.now());
-        order.setTotalAmount(cart.getTotalPrice());
+        Double totalAmount = cart.getTotalPrice();
+
+        // Apply coupon if provided
+        if (couponCode != null && !couponCode.isBlank()) {
+            var coupon = couponService.applyCoupon(couponCode);
+            Double discount = totalAmount * coupon.getDiscountPercent() / 100.0;
+            totalAmount = totalAmount - discount;
+            if (totalAmount < 0) totalAmount = 0.0;
+        }
+
+        order.setTotalAmount(totalAmount);
         order.setOrderStatus("Accepted!");
         order.setAddress(address);
 

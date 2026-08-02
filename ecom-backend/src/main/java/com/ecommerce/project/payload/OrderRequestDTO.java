@@ -16,4 +16,5 @@ public class OrderRequestDTO {
     private String pgPaymentId;
     private String pgStatus;
     private String pgResponseMessage;
+    private String couponCode;
 }

@@ -342,13 +342,20 @@ export const createStripePaymentSecret
 export const stripePaymentConfirmation 
     = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
         try {
-            const response  = await api.post("/order/users/payments/online", sendData);
+            const couponCode = localStorage.getItem("appliedCouponCode");
+            const payload = { ...sendData };
+            if (couponCode) {
+                payload.couponCode = couponCode;
+            }
+            const response  = await api.post("/order/users/payments/online", payload);
             if (response.data) {
                 localStorage.removeItem("CHECKOUT_ADDRESS");
                 localStorage.removeItem("cartItems");
                 localStorage.removeItem("client-secret");
+                localStorage.removeItem("appliedCouponCode");
                 dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
                 dispatch({ type: "CLEAR_CART"});
+                dispatch({ type: "clearCoupon"});
                 toast.success("Order Accepted");
               } else {
                 setErrorMesssage("Payment Failed. Please try again.");
@@ -872,5 +879,79 @@ export const deleteReview = (productId, toast) => async (dispatch) => {
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to delete review";
         toast.error(msg);
+    }
+};
+
+export const validateCoupon = (code, orderAmount, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post("/coupons/validate", { code, orderAmount });
+        dispatch({ type: "couponValidateSuccess", payload: data });
+        localStorage.setItem("appliedCouponCode", data.coupon.code);
+        toast.success(`Coupon applied: ${data.discountAmount} discount`);
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Invalid coupon code";
+        dispatch({ type: "couponError", payload: msg });
+        toast.error(msg);
+    }
+};
+
+export const clearCoupon = () => (dispatch) => {
+    localStorage.removeItem("appliedCouponCode");
+    dispatch({ type: "clearCoupon" });
+};
+
+export const fetchAllCoupons = () => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        const { data } = await api.get("/admin/coupons");
+        dispatch({ type: "FETCH_COUPONS", payload: data });
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch coupons",
+        });
+    }
+};
+
+export const createCouponAction = (couponData, toast, setOpen) => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        await api.post("/admin/coupons", couponData);
+        toast.success("Coupon created successfully");
+        setOpen(false);
+        dispatch({ type: "IS_SUCCESS" });
+        await dispatch(fetchAllCoupons());
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to create coupon");
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
+    }
+};
+
+export const updateCouponAction = (couponId, couponData, toast, setOpen) => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        await api.put(`/admin/coupons/${couponId}`, couponData);
+        toast.success("Coupon updated successfully");
+        setOpen(false);
+        dispatch({ type: "IS_SUCCESS" });
+        await dispatch(fetchAllCoupons());
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to update coupon");
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
+    }
+};
+
+export const deleteCouponAction = (couponId, toast, setOpen) => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        await api.delete(`/admin/coupons/${couponId}`);
+        toast.success("Coupon deleted successfully");
+        setOpen(false);
+        dispatch({ type: "IS_SUCCESS" });
+        await dispatch(fetchAllCoupons());
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to delete coupon");
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
     }
 };

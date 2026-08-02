@@ -45,7 +45,8 @@ public class OrderController {
                 orderRequestDTO.getPgName(),
                 orderRequestDTO.getPgPaymentId(),
                 orderRequestDTO.getPgStatus(),
-                orderRequestDTO.getPgResponseMessage()
+                orderRequestDTO.getPgResponseMessage(),
+                orderRequestDTO.getCouponCode()
         );
         return new  ResponseEntity<OrderDTO>(order,HttpStatus.CREATED);
     }
