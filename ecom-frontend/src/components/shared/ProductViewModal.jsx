@@ -3,6 +3,7 @@ import { Divider } from '@mui/material';
 import { useState } from 'react'
 import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
+import ReviewsSection from './ReviewsSection';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
   
@@ -77,6 +78,8 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                 <p>{description}</p>
               </div>
                 </div>
+
+                {id && <ReviewsSection productId={id} />}
 
 
             <div className="px-6 py-4 flex justify-end gap-4">
