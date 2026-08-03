@@ -113,5 +113,13 @@ public class OrderController {
         OrderResponse orderResponse = orderService.getLoggedInUserOrders(email, pageNumber, pageSize, sortBy, sortOrder);
         return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
     }
+
+    @GetMapping("/orders/track/{orderId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderDTO> trackOrder(@PathVariable Long orderId) {
+        String email = authUtil.loggedInEmail();
+        OrderDTO order = orderService.getOrderById(orderId, email);
+        return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
+    }
 }
 

@@ -1,6 +1,6 @@
 import { Badge } from "@mui/material";
 import { useState } from "react";
-import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart } from "react-icons/fa";
+import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
@@ -51,6 +51,15 @@ const Navbar = () => {
                             Contact
                         </Link>
                     </li>
+
+                    {/* ✅ track order vizibil doar pentru non-admin logat */}
+                    {(user && user.id) && !isAdmin && (
+                        <li className="font-medium transition-all duration-150">
+                            <Link className={`${path === "/track-order" ? "text-white font-semibold" : "text-gray-200"}`} to="/track-order">
+                                <FaTruck size={22} />
+                            </Link>
+                        </li>
+                    )}
 
                     {/* ✅ wishlist vizibil doar pentru non-admin logat */}
                     {(user && user.id) && !isAdmin && (

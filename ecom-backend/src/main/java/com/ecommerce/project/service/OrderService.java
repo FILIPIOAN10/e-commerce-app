@@ -14,4 +14,6 @@ public interface OrderService {
 
     OrderResponse getAllSellerOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
     OrderResponse getLoggedInUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
+
+    OrderDTO getOrderById(Long orderId, String email);
 }

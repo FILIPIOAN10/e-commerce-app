@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import UpdateOrderForm from './UpdateOrderForm';
 import Modal from '../../shared/Modal';
+import OrderTrackingModal from '../../shared/OrderTrackingModal';
 import { useSelector } from 'react-redux';
 
 const OrderTable = ({adminOrder, pagination}) => {
 
   const [updateOpenModal, setUpdateOpenModal] = useState(false);
+  const [trackOpenModal, setTrackOpenModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState("");
+  const [trackOrderId, setTrackOrderId] = useState(null);
   const [loader, setLoader] = useState(false);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(
@@ -47,6 +50,11 @@ const OrderTable = ({adminOrder, pagination}) => {
     setUpdateOpenModal(true);
   }
 
+  const handleTrack = (order) => {
+    setTrackOrderId(order.id);
+    setTrackOpenModal(true);
+  }
+
   return (
     <div>
       <h1 className='text-slate-800 text-3xl text-center font-bold pb-6'>
@@ -57,7 +65,7 @@ const OrderTable = ({adminOrder, pagination}) => {
           className='w-full'
           rows={tableRecords}
           // ✅ coloana Edit apare pentru admin și seller
-          columns={adminOrderTableColumn(handleEdit, canEdit)}
+          columns={adminOrderTableColumn(handleEdit, canEdit, handleTrack)}
           paginationMode='server'
           rowCount={pagination?.totalElements || 0}
           initialState={{
@@ -91,6 +99,12 @@ const OrderTable = ({adminOrder, pagination}) => {
           />
         </Modal>
       )}
+
+      <OrderTrackingModal
+        open={trackOpenModal}
+        setOpen={setTrackOpenModal}
+        orderId={trackOrderId}
+      />
     </div>
   )
 }
