@@ -11,6 +11,8 @@ import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.model.Coupon;
+import com.ecommerce.project.repository.CouponRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -38,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartService cartService;
     private final CouponService couponService;
     private final ModelMapper modelMapper;
+    private final CouponRepository couponRepository;
 
     private final AuthUtil authUtil;
 
@@ -62,19 +65,33 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setEmail(emailId);
         order.setOrderDate(LocalDate.now());
-        Double totalAmount = cart.getTotalPrice();
+        order.setOrderStatus("Placed");
+        order.setAddress(address);
 
-        // Apply coupon if provided
-        if (couponCode != null && !couponCode.isBlank()) {
-            var coupon = couponService.applyCoupon(couponCode);
-            Double discount = totalAmount * coupon.getDiscountPercent() / 100.0;
-            totalAmount = totalAmount - discount;
-            if (totalAmount < 0) totalAmount = 0.0;
+        double totalAmount = cart.getTotalPrice();
+
+        if (couponCode != null && !couponCode.trim().isEmpty()) {
+            Coupon coupon = couponRepository.findByCode(couponCode.toUpperCase())
+                    .orElseThrow(() -> new APIException("Invalid coupon code: " + couponCode));
+
+            if (!coupon.getActive()) {
+                throw new APIException("Coupon is not active");
+            }
+            if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
+                throw new APIException("Coupon has expired");
+            }
+            if (coupon.getUsedCount() >= coupon.getMaxUses()) {
+                throw new APIException("Coupon usage limit reached");
+            }
+
+            double discountAmount = totalAmount * coupon.getDiscountPercent() / 100.0;
+            totalAmount = totalAmount - discountAmount;
+
+            coupon.setUsedCount(coupon.getUsedCount() + 1);
+            couponRepository.save(coupon);
         }
 
         order.setTotalAmount(totalAmount);
-        order.setOrderStatus("Accepted!");
-        order.setAddress(address);
 
 
         Payment payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
@@ -159,7 +176,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private static final List<String> VALID_STATUSES = List.of(
-            "Accepted!", "Shipped", "Delivered", "Cancelled", "Processing"
+            "Placed", "Packed", "Shipped", "Delivered", "Cancelled"
     );
     @Override
     public OrderDTO updateOrder(Long orderId, String status) {
@@ -226,5 +243,25 @@ public class OrderServiceImpl implements OrderService {
         orderResponse.setLastPage(pageOrders.isLast());
 
         return orderResponse;
+    }
+
+    @Override
+    public OrderDTO getOrderById(Long orderId, String email) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+
+        if (!order.getEmail().equals(email)) {
+            throw new APIException("You can only track your own orders");
+        }
+
+        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        orderDTO.setAddressId(order.getAddress().getAddressId());
+
+        List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
+                .map(item -> modelMapper.map(item, OrderItemDTO.class))
+                .toList();
+        orderDTO.setItems(itemDTOs);
+
+        return orderDTO;
     }
 }

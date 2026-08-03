@@ -8,17 +8,16 @@ import { updateOrderStatusFromDashboard } from '../../../store/actions';
 import toast from 'react-hot-toast';
 
 const ORDER_STATUSES=[
-    "Pending",
-    "Processing",
+    "Placed",
+    "Packed",
     "Shipped",
     "Delivered",
     "Cancelled",
-    "Accepted",
 ];
 
 const UpdateOrderForm = ({setOpen,selectedId,selectedItem,loader,setLoader}) => {
   
-  const [orderStatus,setOrderStatus] = useState(selectedItem?.status || 'Accepted');
+  const [orderStatus,setOrderStatus] = useState(selectedItem?.status || 'Placed');
   
   const [error,setError] = useState();
   const {user} = useSelector((state) => state.auth);

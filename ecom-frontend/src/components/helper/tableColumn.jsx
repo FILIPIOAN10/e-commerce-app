@@ -282,7 +282,7 @@ export const sellerTableColumns = [
 ];
 
 // table column for orders in admin panel
-export const adminOrderTableColumn = (handleEdit, isAdmin) => {
+export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack) => {
   const columns = [
     {
       disableColumnMenu: true,
@@ -336,13 +336,28 @@ export const adminOrderTableColumn = (handleEdit, isAdmin) => {
       disableColumnMenu: true,
       field: "status",
       headerName: "Status",
-      minWidth: 150,
+      minWidth: 160,
       headerAlign: "center",
       align: "center",
       editable: false,
       headerClassName: "text-black font-semibold border",
       cellClassName: "text-slate-700 font-normal border",
       renderHeader: (params) => <span className="text-center">Status</span>,
+      renderCell: (params) => {
+        const statusColors = {
+          "Placed": "bg-blue-100 text-blue-700",
+          "Packed": "bg-purple-100 text-purple-700",
+          "Shipped": "bg-orange-100 text-orange-700",
+          "Delivered": "bg-green-100 text-green-700",
+          "Cancelled": "bg-red-100 text-red-600",
+        };
+        const colorClass = statusColors[params.value] || "bg-gray-100 text-gray-600";
+        return (
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
+            {params.value}
+          </span>
+        );
+      },
     },
     {
       disableColumnMenu: true,
@@ -358,6 +373,32 @@ export const adminOrderTableColumn = (handleEdit, isAdmin) => {
       renderHeader: (params) => <span className="text-center">Order Date</span>,
     },
   ];
+
+  // Add track column for all users
+  columns.push({
+    field: "track",
+    headerName: "Track",
+    headerAlign: "center",
+    editable: false,
+    headerClassName: "text-black font-semibold text-center",
+    cellClassName: "text-slate-700 font-normal",
+    sortable: false,
+    width: 120,
+    renderHeader: (params) => <span>Track</span>,
+    renderCell: (params) => {
+      return (
+        <div className="flex justify-center items-center h-full">
+          <button
+            onClick={() => handleTrack(params.row)}
+            className="flex items-center bg-slate-700 hover:bg-slate-800 text-white px-3 h-8 rounded-md text-sm"
+          >
+            <FaEye className="mr-1 text-xs" />
+            Track
+          </button>
+        </div>
+      );
+    },
+  });
 
   // Add action column only if user is admin
   if (isAdmin) {
