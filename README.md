@@ -1,7 +1,7 @@
 # EcommerceHub: Enterprise Multi-Vendor Platform
  
 ## Full-Stack E-commerce Solution
-Developed a production-grade marketplace using Spring Boot 3.5, React, and Redux. Implemented separate portals for admin, customer, and seller roles with real-time inventory management, order processing, and dashboard analytics.
+Developed a production-grade marketplace using Spring Boot 3.5, React, and Redux. Implemented separate portals for admin, customer, and seller roles with real-time inventory management, order processing, and dashboard analytics. Added low stock threshold alerts with admin/seller notifications and product image gallery support with multiple images per product.
  
 ## Advanced Security & Authentication
 Integrated enterprise-level authentication using Spring Security with JWT tokens, role-based access control (RBAC), and stateless sessions. Implemented OAuth2 social login with GitHub and Google. Added TOTP-based two-factor authentication (2FA) with purpose-scoped challenge tokens to prevent token misuse. Secured secrets using HashiCorp Vault integration, separating credentials from application code.
@@ -55,6 +55,8 @@ Containerized the entire stack using Docker Compose with PostgreSQL + pgvector, 
 | Vault Integration | Centralized secrets management for JWT, OpenAI, Stripe, OAuth, and DB credentials |
 | Admin Dashboard | Analytics overview, product/category management, order tracking, seller management |
 | Audit Logging | Request-level audit trail tracking user activity across API endpoints |
+| Low Stock Alerts | Threshold-based stock monitoring with sidebar badge notifications for admin and seller roles |
+| Product Image Gallery | Multiple images per product with carousel UI, admin/seller multi-file upload, and thumbnail navigation |
  
 ## Getting Started
  
@@ -74,17 +76,3 @@ cp .env.example .env
  
 # Start all services
 docker compose up --build
-
-Frontend
-
-cd ecom-frontend
-npm install
-npm run dev
-
-Access Points
-Frontend: http://localhost:5173
-Backend API: http://localhost:8080
-Swagger UI: http://localhost:8080/swagger-ui.html
-PostgreSQL: localhost:5432
-Redis: localhost:6379
-Vault: http://localhost:8200
