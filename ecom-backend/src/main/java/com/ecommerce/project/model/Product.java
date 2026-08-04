@@ -48,4 +48,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<CartItem> products = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    private List<ProductImage> productImages = new ArrayList<>();
 }

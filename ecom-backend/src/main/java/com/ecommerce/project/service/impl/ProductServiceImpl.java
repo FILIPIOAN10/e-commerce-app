@@ -5,12 +5,14 @@ import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Cart;
 import com.ecommerce.project.model.Category;
 import com.ecommerce.project.model.Product;
+import com.ecommerce.project.model.ProductImage;
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.CartDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.CategoryRepository;
+import com.ecommerce.project.repository.ProductImageRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.FileService;
@@ -43,6 +45,7 @@ import java.util.stream.Stream;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
     private final FileService fileService;
@@ -142,11 +145,8 @@ public class ProductServiceImpl implements ProductService {
 
         // Transformation of the list of products into product response
         List<ProductDTO> productDTOs = products.stream()
-                .map(product -> {
-                  ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
-                  productDTO.setImage(constructImageUrl(product.getImage()));
-                  return productDTO;
-                        }).toList();
+                .map(this::mapProductToDTO)
+                .toList();
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOs);
         productResponse.setPageNumber(pageProducts.getNumber());
@@ -385,6 +385,56 @@ public class ProductServiceImpl implements ProductService {
         return modelMapper.map(updatedProduct, ProductDTO.class);
     }
 
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
+    public ProductDTO uploadProductGalleryImages(Long productId, MultipartFile[] images) throws IOException {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        if (product.getProductImages() == null) {
+            product.setProductImages(new ArrayList<>());
+        }
+
+        for (MultipartFile file : images) {
+            if (file != null && !file.isEmpty()) {
+                String fileName = fileService.uploadImage(path, file);
+                ProductImage productImage = new ProductImage();
+                productImage.setImageName(fileName);
+                productImage.setProduct(product);
+                product.getProductImages().add(productImage);
+            }
+        }
+
+        Product savedProduct = productRepository.save(product);
+        return mapProductToDTO(savedProduct);
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "publicProducts",allEntries = true),
+            @CacheEvict(value = "categoryProducts",allEntries = true),
+            @CacheEvict(value = "productSearch",allEntries = true)
+    })
+    public ProductDTO deleteProductGalleryImage(Long productId, Long imageId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        ProductImage imageToRemove = product.getProductImages().stream()
+                .filter(img -> img.getImageId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("ProductImage", "imageId", imageId));
+
+        product.getProductImages().remove(imageToRemove);
+        productImageRepository.delete(imageToRemove);
+
+        Product savedProduct = productRepository.save(product);
+        return mapProductToDTO(savedProduct);
+    }
+
     private List<String> parseSearchTerms(String query){
         if(query==null || query.isBlank()){
             return List.of();
@@ -425,6 +475,12 @@ public class ProductServiceImpl implements ProductService {
         ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
         productDTO.setImage(constructImageUrl(product.getImage()));
         productDTO.setTags(product.getTags());
+        List<String> imageUrls = product.getProductImages() != null
+                ? product.getProductImages().stream()
+                    .map(img -> constructImageUrl(img.getImageName()))
+                    .toList()
+                : List.of();
+        productDTO.setImages(imageUrls);
         return productDTO;
     }
 

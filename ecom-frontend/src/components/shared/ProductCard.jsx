@@ -15,6 +15,7 @@ const ProductCard = ({
         price,
         discount,
         specialPrice,
+        images,
         about = false,
 }) => {
     const [openProductViewModal, setOpenProductViewModal] = useState(false);
@@ -46,7 +47,7 @@ const ProductCard = ({
 
     return (
         <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300">
-            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice })}
+            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
                 className="w-full overflow-hidden aspect-3/2">
                 <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
                     src={image}
@@ -64,7 +65,7 @@ const ProductCard = ({
                         <FaHeart />
                     </button>
                 )}
-                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice })}
+                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8">
                     {truncateText(productName, 50)}
                 </h2>

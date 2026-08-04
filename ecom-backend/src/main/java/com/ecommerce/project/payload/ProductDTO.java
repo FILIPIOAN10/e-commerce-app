@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,6 +20,7 @@ public class ProductDTO {
     @Size(min = 3 ,message = "Product name must contain at least 3 characters")
     private String productName;
     private String image;
+    private List<String> images = new ArrayList<>();
     @NotBlank(message = "Product description is required")
     @Size(min = 3 ,message = "Product description must contain at least 3=6 characters")
     private String description;

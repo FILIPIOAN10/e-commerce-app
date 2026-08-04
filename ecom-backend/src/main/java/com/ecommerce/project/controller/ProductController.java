@@ -157,6 +157,24 @@ public class ProductController {
         return new ResponseEntity<>(updatedProduct,HttpStatus.OK);
     }
 
+    @Tag(name = "Product")
+    @PostMapping("/admin/products/{productId}/gallery")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> uploadGalleryImages(@PathVariable Long productId,
+                                                          @RequestParam("images") MultipartFile[] images) throws IOException {
+        ProductDTO updatedProduct = productService.uploadProductGalleryImages(productId, images);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @Tag(name = "Product")
+    @DeleteMapping("/admin/products/{productId}/gallery/{imageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> deleteGalleryImage(@PathVariable Long productId,
+                                                         @PathVariable Long imageId) {
+        ProductDTO updatedProduct = productService.deleteProductGalleryImage(productId, imageId);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
 
     @Tag(name = "Product")
     @GetMapping("/admin/products")
@@ -206,6 +224,22 @@ public class ProductController {
     public ResponseEntity<ProductDTO> updateProductImageSeller(@PathVariable Long productId,
                                                                @RequestParam("image")MultipartFile image) throws IOException {
         ProductDTO updatedProduct = productService.updateProductImage(productId, image);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @PostMapping("/seller/products/{productId}/gallery")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
+    public ResponseEntity<ProductDTO> uploadGalleryImagesSeller(@PathVariable Long productId,
+                                                                @RequestParam("images") MultipartFile[] images) throws IOException {
+        ProductDTO updatedProduct = productService.uploadProductGalleryImages(productId, images);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/seller/products/{productId}/gallery/{imageId}")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
+    public ResponseEntity<ProductDTO> deleteGalleryImageSeller(@PathVariable Long productId,
+                                                               @PathVariable Long imageId) {
+        ProductDTO updatedProduct = productService.deleteProductGalleryImage(productId, imageId);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 }
