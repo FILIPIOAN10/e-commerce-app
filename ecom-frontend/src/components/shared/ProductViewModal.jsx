@@ -3,14 +3,24 @@ import { Divider } from '@mui/material';
 import { useState } from 'react'
 import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ReviewsSection from './ReviewsSection';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
   
-  const {id, productName, image, description,tags,quantity, price, discount, specialPrice} = product;
-  const handleClickOpen = () => {
-    setOpen(true);
-  }
+  const {id, productName, image, description,tags,quantity, price, discount, specialPrice, images} = product;
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  const galleryImages = images && images.length > 0 ? images : (image ? [image] : []);
+  const hasGallery = galleryImages.length > 1;
+
+  const handlePrev = () => {
+    setSelectedImage((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setSelectedImage((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <>
@@ -22,14 +32,49 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
               transition
               className="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all md:max-w-155 md:min-w-155 w-full"
             >
-                {image && (
-                    <div className='flex justify-center aspect-3/2'>
+                {galleryImages.length > 0 && (
+                    <div className='relative flex justify-center aspect-3/2'>
                     <img 
-                    src={image}
-                    alt={productName} />
+                    src={galleryImages[selectedImage]}
+                    alt={productName} 
+                    className="w-full h-full object-contain"
+                    />
+                    {hasGallery && (
+                      <>
+                        <button
+                          onClick={handlePrev}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition"
+                        >
+                          <FaChevronLeft className="text-gray-700" />
+                        </button>
+                        <button
+                          onClick={handleNext}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition"
+                        >
+                          <FaChevronRight className="text-gray-700" />
+                        </button>
+                      </>
+                    )}
                     </div>
                 )}
 
+                {hasGallery && (
+                  <div className="flex justify-center gap-2 px-4 py-3 bg-gray-50">
+                    {galleryImages.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`${productName} ${index + 1}`}
+                        onClick={() => setSelectedImage(index)}
+                        className={`w-16 h-16 object-cover rounded-md cursor-pointer border-2 transition ${
+                          selectedImage === index
+                            ? 'border-blue-500 ring-1 ring-blue-300'
+                            : 'border-transparent opacity-60 hover:opacity-100'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
 
 
                 <div className='px-6 pt-10 pb-2'>

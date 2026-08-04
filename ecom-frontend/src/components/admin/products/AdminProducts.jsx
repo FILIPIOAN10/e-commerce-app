@@ -12,6 +12,7 @@ import DeleteModal from '../../shared/DeleteModal';
 import { deleteProduct } from '../../../store/actions';
 import toast from 'react-hot-toast';
 import ImageUploadForm from './ImageUploadForm';
+import GalleryUploadForm from './GalleryUploadForm';
 import ProductViewModal from '../../shared/ProductViewModal';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -39,6 +40,7 @@ const AdminProducts = () => {
   const [openProductViewModal,setOpenProductViewModal] = useState(false);
   const [loader,setLoader] = useState(false);
   const [openImageUploadModal, setOpenImageUploadModal] = useState(false);
+  const [openGalleryUploadModal, setOpenGalleryUploadModal] = useState(false);
   
   // for pagination
   const navigate = useNavigate();
@@ -59,6 +61,7 @@ const AdminProducts = () => {
     tags:item.tags || "",
     discount:item.discount,
     image:item.image,
+    images:item.images || [],
     price:item.price,
     quantity:item.quantity,
     specialPrice:item.specialPrice,
@@ -80,6 +83,12 @@ const AdminProducts = () => {
   const handleImageUpload = (product) =>{
   setSelectedProduct(product);
   setOpenImageUploadModal(true);
+
+ };
+
+ const handleGalleryUpload = (product) =>{
+  setSelectedProduct(product);
+  setOpenGalleryUploadModal(true);
 
  };
 
@@ -148,7 +157,7 @@ const handlePaginationChange = (paginationModel) =>{
                   <DataGrid
                   className='w-full'
                   rows={tableRecords}
-                  columns={adminProductTableColumn(handleEdit,handleDelete,handleImageUpload,handleProductView)}
+                  columns={adminProductTableColumn(handleEdit,handleDelete,handleImageUpload,handleProductView,handleGalleryUpload)}
                   paginationMode='server'
                   rowCount={pagination?.totalElements || 0}
                   initialState={{
@@ -198,6 +207,16 @@ const handlePaginationChange = (paginationModel) =>{
               product= {selectedProduct}
               update={openUpdateModal}
 
+            />
+    </Modal>
+
+    <Modal
+        open={openGalleryUploadModal}
+        setOpen={setOpenGalleryUploadModal}
+        title="Upload Gallery Images">
+            <GalleryUploadForm
+              setOpen={setOpenGalleryUploadModal}
+              product={selectedProduct}
             />
     </Modal>
 

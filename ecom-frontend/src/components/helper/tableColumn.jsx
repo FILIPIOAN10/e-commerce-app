@@ -1,11 +1,12 @@
-import { FaEdit, FaEye, FaImage, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaEye, FaImage, FaImages, FaTrashAlt } from "react-icons/fa";
 import { MdOutlineEmail } from "react-icons/md";
 
 export const adminProductTableColumn = (
   handleEdit,
   handleDelete,
   handleImageUpload,
-  handleProductView
+  handleProductView,
+  handleGalleryUpload
 ) => [
   {
     disableColumnMenu: true,
@@ -120,38 +121,45 @@ export const adminProductTableColumn = (
     headerClassName: "text-black font-semibold text-center",
     cellClassName: "text-slate-700 font-normal",
     sortable: false,
-    width: 400,
+    width: 560,
     renderHeader: (params) => <span>Action</span>,
     renderCell: (params) => {
       return (
-        <div className="flex justify-center items-center space-x-2 h-full pt-2">
+        <div className="flex flex-wrap justify-center items-center gap-1 h-full py-1">
           <button
             onClick={() => handleImageUpload(params.row)}
-            className="flex items-center bg-green-500 hover:bg-green-600 text-white px-4 h-9 rounded-md"
+            className="flex items-center bg-green-500 hover:bg-green-600 text-white px-2 h-8 rounded-md text-xs"
           >
-            <FaImage className="mr-2" />
+            <FaImage className="mr-1" />
             Image
           </button>
           <button
-            onClick={() => handleEdit(params.row)}
-            className="flex items-center bg-blue-500 text-white px-4 h-9 rounded-md "
+            onClick={() => handleGalleryUpload(params.row)}
+            className="flex items-center bg-teal-500 hover:bg-teal-600 text-white px-2 h-8 rounded-md text-xs"
           >
-            <FaEdit className="mr-2" />
+            <FaImages className="mr-1" />
+            Gallery
+          </button>
+          <button
+            onClick={() => handleEdit(params.row)}
+            className="flex items-center bg-blue-500 text-white px-2 h-8 rounded-md text-xs"
+          >
+            <FaEdit className="mr-1" />
             Edit
           </button>
 
           <button
             onClick={() => handleDelete(params.row)}
-            className="flex items-center bg-red-500 text-white px-4   h-9 rounded-md"
+            className="flex items-center bg-red-500 text-white px-2 h-8 rounded-md text-xs"
           >
-            <FaTrashAlt className="mr-2" />
+            <FaTrashAlt className="mr-1" />
             Delete
           </button>
           <button
             onClick={() => handleProductView(params.row)}
-            className="flex items-center bg-slate-800 text-white px-4   h-9 rounded-md"
+            className="flex items-center bg-slate-800 text-white px-2 h-8 rounded-md text-xs"
           >
-            <FaEye className="mr-2" />
+            <FaEye className="mr-1" />
             View
           </button>
         </div>
