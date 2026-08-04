@@ -3,7 +3,7 @@ import { bannerImageOne, bannerImageThree, bannerImageTwo } from "./constant";
 import api from "../api/api";
 import { href } from "react-router-dom";
 import { current } from "@reduxjs/toolkit";
-import { FaBoxOpen, FaHome, FaShoppingCart, FaStore, FaTag, FaThList } from "react-icons/fa";
+import { FaBoxOpen, FaExclamationTriangle, FaHome, FaShoppingCart, FaStore, FaTag, FaThList } from "react-icons/fa";
 
 export const bannerLists =[
 
@@ -61,6 +61,10 @@ export const adminNavigation = [
     { name: "Coupons", 
       href :"/admin/coupons",
       icon : FaTag
+    },
+    { name: "Low Stock", 
+      href :"/admin/low-stock",
+      icon : FaExclamationTriangle
     }
 ];
 
@@ -76,6 +80,10 @@ export const sellerNavigation = [
     { name: "Products", 
       href :"/admin/products",
       icon : FaBoxOpen
+    },
+    { name: "Low Stock", 
+      href :"/admin/low-stock",
+      icon : FaExclamationTriangle
     }
   
 ];

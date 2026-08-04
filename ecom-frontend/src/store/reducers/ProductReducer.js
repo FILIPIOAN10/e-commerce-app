@@ -1,6 +1,8 @@
 const initialState = {
     products: null,
     categories: null,
+    lowStockProducts: null,
+    lowStockCount: 0,
     pagination: {},
 };
 
@@ -60,6 +62,26 @@ export const productReducer = (state = initialState, action ) => {
                 },
             };
         }
+
+        case "FETCH_LOW_STOCK_PRODUCTS":
+            return {
+                ...state,
+                lowStockProducts: action.payload,
+                pagination: {
+                    ...state.pagination,
+                    pageNumber: action.pageNumber,
+                    pageSize: action.pageSize,
+                    totalElements: action.totalElements,
+                    totalPages: action.totalPages,
+                    lastPage: action.lastPage,
+                },
+            };
+
+        case "SET_LOW_STOCK_COUNT":
+            return {
+                ...state,
+                lowStockCount: action.payload,
+            };
 
         case "FETCH_CATEGORIES":
             return {

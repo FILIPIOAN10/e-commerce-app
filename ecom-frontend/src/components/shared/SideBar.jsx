@@ -1,19 +1,28 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FaTachometerAlt } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom'
 import { adminNavigation ,sellerNavigation} from '../../utils';
 import { ClassNames } from '@emotion/react';
 import classNames from 'classnames';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchLowStockCount } from '../../store/actions';
 
 const SideBar = ({isProfile = false}) => {
   
     const pathName = useLocation().pathname;
     const {user} = useSelector((state) => state.auth);
+    const { lowStockCount } = useSelector((state) => state.products);
+    const dispatch = useDispatch();
     
     const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
 
     const sideBarLayout = isAdmin ? adminNavigation : sellerNavigation;
+
+    useEffect(() => {
+        if (user && (isAdmin || user?.roles?.includes("ROLE_SELLER"))) {
+            dispatch(fetchLowStockCount());
+        }
+    }, [dispatch, user, isAdmin]);
 
     return (
     <div className='flex grow flex-col gap-y-7 overflow-y-auto bg-custom-gradient px-6 pb-4'>
@@ -40,6 +49,11 @@ const SideBar = ({isProfile = false}) => {
                                     )}>
                                         <item.icon className='text-2xl' />
                                         {item.name}
+                                        {item.name === "Low Stock" && lowStockCount > 0 && (
+                                            <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                                                {lowStockCount}
+                                            </span>
+                                        )}
                                     </Link>
                                 </li>
 
