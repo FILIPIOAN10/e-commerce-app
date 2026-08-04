@@ -955,3 +955,36 @@ export const deleteCouponAction = (couponId, toast, setOpen) => async (dispatch)
         dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
     }
 };
+
+export const fetchLowStockProducts = (pageNumber = 0, pageSize = 10) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        const user = getState().auth.user;
+        const isAdmin = user?.roles?.includes("ROLE_ADMIN");
+        const endpoint = isAdmin
+            ? `/admin/low-stock?pageNumber=${pageNumber}&pageSize=${pageSize}`
+            : `/seller/low-stock?pageNumber=${pageNumber}&pageSize=${pageSize}`;
+        const { data } = await api.get(endpoint);
+        dispatch({
+            type: "FETCH_LOW_STOCK_PRODUCTS",
+            payload: data.content,
+            pageNumber: data.pageNumber,
+            pageSize: data.pageSize,
+            totalElements: data.totalElements,
+            totalPages: data.totalPages,
+            lastPage: data.lastPage,
+        });
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
+    }
+};
+
+export const fetchLowStockCount = () => async (dispatch) => {
+    try {
+        const { data } = await api.get("/low-stock/count");
+        dispatch({ type: "SET_LOW_STOCK_COUNT", payload: data });
+    } catch (error) {
+        console.log("Failed to fetch low stock count");
+    }
+};

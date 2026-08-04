@@ -26,6 +26,8 @@ public class ProductDTO {
     @PositiveOrZero(message = "Quantity cannot be negative")
     private Integer quantity;
 
+    private Integer lowStockThreshold;
+
     @PositiveOrZero(message = "Price cannot be negative")
     private double price;
 

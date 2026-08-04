@@ -33,6 +33,7 @@ public class Product {
     private String description;
     private String tags;
     private Integer quantity;
+    private Integer lowStockThreshold = 10;
     private double price; // 100
     private double discount; // 25
     private double specialPrice; // 75
