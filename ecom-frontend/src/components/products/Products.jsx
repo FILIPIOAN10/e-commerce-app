@@ -26,14 +26,14 @@ const Products  = () => {
     }, [dispatch]);
   
     return (
-        <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
+        <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto dark:bg-gray-950 dark:text-white min-h-screen">
             <Filter categories = {categories ? categories : []}/>
             { isLoading ? (
                     <Loader />
             ) : errorMessage ? (
                 <div className="flex justify-center items-center h-50">
-                    <FaExclamationTriangle className="text-slate-800 text-3xl mr-2"/>
-                    <span className="text-slate-800 text-lg font-medium">
+                    <FaExclamationTriangle className="text-slate-800 text-3xl mr-2 dark:text-white"/>
+                    <span className="text-slate-800 text-lg font-medium dark:text-white">
                         {errorMessage}
                     </span>
                 </div>

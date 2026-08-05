@@ -46,7 +46,7 @@ const ProductCard = ({
     };
 
     return (
-        <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300">
+        <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 dark:bg-gray-800 dark:border-gray-700">
             <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
                 className="w-full overflow-hidden aspect-3/2">
                 <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
@@ -66,11 +66,11 @@ const ProductCard = ({
                     </button>
                 )}
                 <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
-                    className="text-lg font-semibold mb-2 cursor-pointer pr-8">
+                    className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
                     {truncateText(productName, 50)}
                 </h2>
                 <div className="min-h-20 max-h-20">
-                    <p className="text-gray-600 text-sm">{truncateText(description, 80)}</p>
+                    <p className="text-gray-600 text-sm dark:text-gray-300">{truncateText(description, 80)}</p>
                 </div>
 
                 {/* ✅ ascunde toată secțiunea de preț + cart pentru admin */}
@@ -81,13 +81,13 @@ const ProductCard = ({
                                 <span className="text-gray-400 line-through">
                                     ${Number(price).toFixed(2)}
                                 </span>
-                                <span className="text-xl font-bold text-slate-700">
+                                <span className="text-xl font-bold text-slate-700 dark:text-white">
                                     ${Number(specialPrice).toFixed(2)}
                                 </span>
                             </div>
                         ) : (
                             <div>
-                                <span className="text-xl font-bold text-slate-700">
+                                <span className="text-xl font-bold text-slate-700 dark:text-white">
                                     ${Number(price).toFixed(2)}
                                 </span>
                             </div>
@@ -111,12 +111,12 @@ const ProductCard = ({
                                 <span className="text-gray-400 line-through">
                                     ${Number(price).toFixed(2)}
                                 </span>
-                                <span className="text-xl font-bold text-slate-700">
+                                <span className="text-xl font-bold text-slate-700 dark:text-white">
                                     ${Number(specialPrice).toFixed(2)}
                                 </span>
                             </div>
                         ) : (
-                            <span className="text-xl font-bold text-slate-700">
+                            <span className="text-xl font-bold text-slate-700 dark:text-white">
                                 ${Number(price).toFixed(2)}
                             </span>
                         )}

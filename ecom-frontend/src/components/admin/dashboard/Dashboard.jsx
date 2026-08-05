@@ -32,7 +32,8 @@ const Dashboard = () => {
     <div>
         <div className='flex md:flex-row mt-8 flex-col lg:justify-between
                     border border-slate-400 rounded-lg bg-linear-to-r
-                    from-blue-50 to-blue-100 shadow-lg'>
+                    from-blue-50 to-blue-100 shadow-lg
+                    dark:from-gray-800 dark:to-gray-900 dark:border-gray-700'>
                         <DashboardOverview
                             title="Total Products"
                             amount={productCount}

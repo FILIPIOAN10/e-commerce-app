@@ -7,43 +7,43 @@ const Contact = () =>{
         className="flex flex-col items-center justify-center min-h-screen py-12 bg-cover bg-center"
         style={{backgroundImage: "url('https://images.pexels.com/photos/35564236/pexels-photo-35564236.jpeg?_gl=1*1pym54a*_ga*MTg4MjYxMjg4My4xNzY3OTAxNTk5*_ga_8JE65Q40S6*czE3Njc5MDE1OTkkbzEkZzEkdDE3Njc5MDE2NDYkajEzJGwwJGgw')"}}
         >
-            <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg">
-                <h1 className="text-4xl font-bold text-center mb-6">
+            <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg dark:bg-gray-800 dark:text-white">
+                <h1 className="text-4xl font-bold text-center mb-6 dark:text-white">
                   Contact us  
                 </h1>
-                <p className="text-gray-600 text-center mb-4">
+                <p className="text-gray-600 text-center mb-4 dark:text-gray-300">
                     We would love to hear from you! Please fill out the form below or contact us directly
                 </p>
                 <form className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Name
                         </label>
                         <input 
                             type="text"
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Email
                         </label>
                         <input 
                             type="email"
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Message
                         </label>
                         <textarea 
                             rows="4"
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                     </div>
                     <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">
@@ -57,16 +57,16 @@ const Contact = () =>{
                     <div className="flex flex-col items-center space-y-2 mt-4">
                         <div className="flex items-center">
                             <FaPhone className="text-blue-500 mr-2"/>
-                            <span className="text-gray-600">+40 743 301 377</span>
+                            <span className="text-gray-600 dark:text-gray-300">+40 743 301 377</span>
                         </div>
                         <div className="flex items-center">
                             <FaEnvelope className="text-blue-500 mr-2"/>
-                            <span className="text-gray-600">FilipOfficial@gmail.com</span>
+                            <span className="text-gray-600 dark:text-gray-300">FilipOfficial@gmail.com</span>
                         </div>
 
                         <div className="flex items-center">
                             <FaMapMarkedAlt className="text-blue-500 mr-2"/>
-                            <span className="text-gray-600">Strada Salcamilor Nr 1</span>
+                            <span className="text-gray-600 dark:text-gray-300">Strada Salcamilor Nr 1</span>
                         </div>
                     </div>
                     
