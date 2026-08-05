@@ -6,6 +6,7 @@ import com.ecommerce.project.payload.ApiResponse;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductService;
+import com.ecommerce.project.service.RecentlyViewedService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -24,9 +26,11 @@ import java.io.IOException;
 public class ProductController {
 
     private ProductService productService;
+    private RecentlyViewedService recentlyViewedService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, RecentlyViewedService recentlyViewedService) {
         this.productService = productService;
+        this.recentlyViewedService = recentlyViewedService;
     }
     /**
      * Adaugă un produs nou într-o anumită categorie (admin only).
@@ -241,5 +245,19 @@ public class ProductController {
                                                                @PathVariable Long imageId) {
         ProductDTO updatedProduct = productService.deleteProductGalleryImage(productId, imageId);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @Tag(name = "Product")
+    @PostMapping("/user/products/{productId}/view")
+    public ResponseEntity<ApiResponse> recordProductView(@PathVariable Long productId) {
+        recentlyViewedService.recordProductView(productId);
+        return new ResponseEntity<>(new ApiResponse("Product view recorded", true), HttpStatus.OK);
+    }
+
+    @Tag(name = "Product")
+    @GetMapping("/user/products/recently-viewed")
+    public ResponseEntity<List<ProductDTO>> getRecentlyViewedProducts() {
+        List<ProductDTO> products = recentlyViewedService.getRecentlyViewedProducts();
+        return new ResponseEntity<>(products, HttpStatus.OK);
     }
 }
