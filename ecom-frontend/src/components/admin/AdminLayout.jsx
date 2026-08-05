@@ -9,7 +9,7 @@ const AdminLayout = () => {
     let [sidebarOpen, setSidebarOpen] = useState(false);
     
   return (
-    <div>
+    <div className="dark:bg-gray-950 dark:min-h-screen">
         <Dialog 
             open={sidebarOpen} 
             onClose={() => setSidebarOpen(false)} 
@@ -50,12 +50,12 @@ const AdminLayout = () => {
             <button
                 type='button'
                 onClick={() => setSidebarOpen(true)}
-                className='-m-2.5 text-gray-700 xl:hidden p-4'>
+                className='-m-2.5 text-gray-700 xl:hidden p-4 dark:text-gray-300'>
                     <span className='sr-only'> Open Sidebar</span>
-                    <FaBars className='text-slate-800 text-2xl'/>
+                    <FaBars className='text-slate-800 text-2xl dark:text-gray-300'/>
             </button>
 
-            <main className=''>
+            <main className='dark:bg-gray-950 dark:min-h-screen'>
                 <div className='p-4 sm:p-6 xl:p-8'>
                     <Outlet />
                 </div>

@@ -19,14 +19,14 @@ const Home  = () => {
         dispatch(fetchProducts());
     },[dispatch]);
     return (
-        <div className="lg:px-14 sm:px-8 px-4">
+        <div className="lg:px-14 sm:px-8 px-4 dark:bg-gray-950 dark:text-white min-h-screen">
             <div className="py-6">
             <HeroBanner/>
             </div>
             <div className="py-5">
                 <div className="flex flex-col justify-center items-center space-y-2">
-                    <h1 className="text-slate-800 text-4xl font-bold">Products</h1>
-                        <span className="text-slate-700">
+                    <h1 className="text-slate-800 text-4xl font-bold dark:text-white">Products</h1>
+                        <span className="text-slate-700 dark:text-gray-300">
                             Discover our handpicked selection of top-rated items just for you!
                         </span>
                    
@@ -35,8 +35,8 @@ const Home  = () => {
                     <Loader/>
                 ) : errorMessage ?  (
                 <div className="flex justify-center items-center h-50">
-                    <FaExclamationTriangle className="text-slate-800 text-3xl mr-2"/>
-                    <span className="text-slate-800 text-lg font-medium">
+                    <FaExclamationTriangle className="text-slate-800 text-3xl mr-2 dark:text-white"/>
+                    <span className="text-slate-800 text-lg font-medium dark:text-white">
                         {errorMessage}
                     </span>
                 </div>

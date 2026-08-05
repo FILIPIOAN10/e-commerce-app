@@ -1,23 +1,25 @@
 import { Badge } from "@mui/material";
 import { useState } from "react";
-import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck } from "react-icons/fa";
+import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck, FaMoon, FaSun } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
 import UserMenu from "../UserMenu";
+import { useTheme } from "../../context/ThemeContext";
 
 const Navbar = () => {
     const path = useLocation().pathname;
     const [navbarOpen, setNavbarOpen] = useState(false);
     const { cart } = useSelector((state) => state.carts);
     const { user } = useSelector((state) => state.auth);
+    const { isDark, toggleTheme } = useTheme();
 
     // ✅ verifică rolul
     const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
 
     return (
-        <div className="h-17.5 bg-custom-gradient text-white z-50 flex items-center sticky top-0">
+        <div className="h-17.5 bg-custom-gradient text-white z-50 flex items-center sticky top-0 dark:bg-gray-900">
             <div className="lg:px-14 sm:px-8 px-4 w-full flex justify-between">
                 <Link to="/" className="flex items-center text-2xl font-bold">
                     <FaStore className="mr-2 text-3xl" />
@@ -105,15 +107,24 @@ const Navbar = () => {
                     )}
                 </ul>
 
-                <button
-                    onClick={() => setNavbarOpen(!navbarOpen)}
-                    className="sm:hidden flex items-center sm:mt-0 mt-2">
-                    {navbarOpen ? (
-                        <RxCross2 className="text-white text-3xl" />
-                    ) : (
-                        <IoIosMenu className="text-white text-3xl" />
-                    )}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={toggleTheme}
+                        className="text-white hover:text-yellow-300 transition-colors text-xl"
+                        title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                    >
+                        {isDark ? <FaSun /> : <FaMoon />}
+                    </button>
+                    <button
+                        onClick={() => setNavbarOpen(!navbarOpen)}
+                        className="sm:hidden flex items-center sm:mt-0 mt-2">
+                        {navbarOpen ? (
+                            <RxCross2 className="text-white text-3xl" />
+                        ) : (
+                            <IoIosMenu className="text-white text-3xl" />
+                        )}
+                    </button>
+                </div>
             </div>
         </div>
     );

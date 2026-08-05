@@ -50,7 +50,7 @@ const InputField = ({
             htmlFor={id}
             className={`${
                 className ? className : ""
-            } font-semibold text-sm text-slate-800}`}>
+            } font-semibold text-sm text-slate-800 dark:text-gray-200}`}>
                 {label}
             </label>
             <input
@@ -64,8 +64,8 @@ const InputField = ({
             placeholder={placeHolder}
             className={`${
                 className ? className : ""
-            } px-2 py-2 border outline-none ${readOnly ? "bg-slate-100":"bg-transparent"} text-slate-800 rounded-md ${
-                errors[id]?.message ? "border-red-500": "border-slate-700"
+            } px-2 py-2 border outline-none ${readOnly ? "bg-slate-100":"bg-transparent"} text-slate-800 dark:text-white dark:bg-gray-700 dark:border-gray-600 rounded-md ${
+                errors[id]?.message ? "border-red-500": "border-slate-700 dark:border-gray-600"
             }`}
 
             {...register(id,validationRules)}
