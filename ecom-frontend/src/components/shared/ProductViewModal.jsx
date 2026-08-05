@@ -1,18 +1,27 @@
 import { Button, Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { Divider } from '@mui/material';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ReviewsSection from './ReviewsSection';
+import { useDispatch } from 'react-redux';
+import { recordProductView } from '../../store/actions';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
   
   const {id, productName, image, description,tags,quantity, price, discount, specialPrice, images} = product;
   const [selectedImage, setSelectedImage] = useState(0);
+  const dispatch = useDispatch();
 
   const galleryImages = images && images.length > 0 ? images : (image ? [image] : []);
   const hasGallery = galleryImages.length > 1;
+
+  useEffect(() => {
+    if (open && id) {
+      dispatch(recordProductView(id));
+    }
+  }, [open, id, dispatch]);
 
   const handlePrev = () => {
     setSelectedImage((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));

@@ -988,3 +988,20 @@ export const fetchLowStockCount = () => async (dispatch) => {
         console.log("Failed to fetch low stock count");
     }
 };
+
+export const recordProductView = (productId) => async () => {
+    try {
+        await api.post(`/user/products/${productId}/view`);
+    } catch (error) {
+        console.log("Failed to record product view");
+    }
+};
+
+export const fetchRecentlyViewedProducts = () => async (dispatch) => {
+    try {
+        const { data } = await api.get("/user/products/recently-viewed");
+        dispatch({ type: "FETCH_RECENTLY_VIEWED", payload: data });
+    } catch (error) {
+        console.log("Failed to fetch recently viewed products");
+    }
+};

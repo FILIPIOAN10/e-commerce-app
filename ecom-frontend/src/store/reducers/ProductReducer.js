@@ -4,6 +4,7 @@ const initialState = {
     lowStockProducts: null,
     lowStockCount: 0,
     pagination: {},
+    recentlyViewed: [],
 };
 
 export const productReducer = (state = initialState, action ) => {
@@ -97,6 +98,12 @@ export const productReducer = (state = initialState, action ) => {
                 },
 
             };
+        case "FETCH_RECENTLY_VIEWED":
+            return {
+                ...state,
+                recentlyViewed: action.payload,
+            };
+
         default:
             return state;
     }
