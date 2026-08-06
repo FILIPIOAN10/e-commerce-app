@@ -9,6 +9,7 @@ import com.ecommerce.project.payload.OrderResponse;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.CouponService;
+import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.model.Coupon;
@@ -39,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final CartService cartService;
     private final CouponService couponService;
+    private final EmailService emailService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
@@ -144,6 +146,8 @@ public class OrderServiceImpl implements OrderService {
                         modelMapper.map(item, OrderItemDTO.class)));
         orderDTO.setAddressId(addressId);
 
+        emailService.sendOrderConfirmationEmail(emailId, orderDTO);
+
         return orderDTO;
     }
 
@@ -188,7 +192,9 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
         order.setOrderStatus(status);
         orderRepository.save(order);
-        return modelMapper.map(order, OrderDTO.class);
+        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        emailService.sendOrderStatusUpdateEmail(order.getEmail(), orderDTO);
+        return orderDTO;
     }
 
     @Override
