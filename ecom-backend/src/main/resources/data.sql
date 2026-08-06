@@ -10,21 +10,21 @@ INSERT INTO roles (role_id, role_name) VALUES (3, 'ROLE_ADMIN') ON CONFLICT DO N
 -- =========================
 
 -- admin (password: adminPass)
-INSERT INTO users (user_id, username, email, password, password_hint, two_factor_enabled, two_factor_secret)
+INSERT INTO users (user_id, username, email, password, password_hint, two_factor_enabled, two_factor_secret, verified)
 VALUES (1, 'admin', 'admin@example.com',
-'$2a$12$A.Gu/hG5ZPM8qSDl1/Q9aeSikYy.bHg/E.KMa8X91ubaJOPVBBGuK', 'adminXXXX', false , null)
+'$2a$12$A.Gu/hG5ZPM8qSDl1/Q9aeSikYy.bHg/E.KMa8X91ubaJOPVBBGuK', 'adminXXXX', false , null, true)
 ON CONFLICT DO NOTHING;
 
 -- user1 (password: password1)
-INSERT INTO users (user_id, username, email, password, password_hint, two_factor_enabled, two_factor_secret)
+INSERT INTO users (user_id, username, email, password, password_hint, two_factor_enabled, two_factor_secret, verified)
 VALUES (2, 'user1', 'user1@example.com',
-'$2a$12$Smyyd9c9bDpI69K27xh7Rutyes.ki7jxjcUN2Ok/2xd.AQ9E9IIcC', 'passwordx', false, null)
+'$2a$12$Smyyd9c9bDpI69K27xh7Rutyes.ki7jxjcUN2Ok/2xd.AQ9E9IIcC', 'passwordx', false, null, true)
 ON CONFLICT DO NOTHING;
 
 -- seller1 (password: password2)
-INSERT INTO users (user_id, username, email, password, password_hint, two_factor_enabled, two_factor_secret)
+INSERT INTO users (user_id, username, email, password, password_hint, two_factor_enabled, two_factor_secret, verified)
 VALUES (3, 'seller1', 'seller1@example.com',
-'$2a$12$bPLjTZ75BrBKJQz0gcDUZuO8czeDM21JIJYZYRtUK99xBkBX7WyUG', 'passwordx', false, null)
+'$2a$12$bPLjTZ75BrBKJQz0gcDUZuO8czeDM21JIJYZYRtUK99xBkBX7WyUG', 'passwordx', false, null, true)
 ON CONFLICT DO NOTHING;
 
 -- =========================

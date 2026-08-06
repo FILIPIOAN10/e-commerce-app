@@ -109,6 +109,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/images/avatars/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
                     .successHandler(oAuth2LoginSuccessHandler)

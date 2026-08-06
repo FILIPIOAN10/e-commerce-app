@@ -103,16 +103,16 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         // GENERATE JWT
         String jwt = jwtUtils.generateTokenFromUsername(user.getUserName());
 
-        // SET COOKIE instead of URL parameter
+        // SET COOKIE (for cookie-based auth) AND pass token as query param (for localStorage-based auth)
         ResponseCookie jwtCookie = ResponseCookie.from(jwtUtils.getJwtCookieName(), jwt)
-                .path("/api")
+                .path("/")
                 .maxAge(24 * 60 * 60)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .sameSite("Lax")
                 .build();
 
         response.addHeader("Set-Cookie", jwtCookie.toString());
-        response.sendRedirect(frontEndUrl + "/oauth2/redirect");
+        response.sendRedirect(frontEndUrl + "/oauth2/redirect?token=" + jwt);
     }
 }

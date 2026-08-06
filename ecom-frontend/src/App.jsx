@@ -26,6 +26,7 @@ import Coupons from './components/admin/coupons/Coupons'
 import LowStockAlerts from './components/admin/lowstock/LowStockAlerts'
 import Orders from './components/admin/orders/Orders'
 import Profile from './components/profile/Profile'
+import ProfileSettings from './components/profile/ProfileSettings'
 import ProfileOrders from './components/profile/ProfileOrders'
 import Wishlist from './components/wishlist/Wishlist'
 
@@ -46,6 +47,7 @@ function App() {
         <Route path='/verify-email' element={<VerifyEmail />} />
         <Route path='/' element={<PrivateRoute />}>
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/settings" element={<ProfileSettings />} />
           <Route path ="/checkout" element ={<Checkout/>}/>
           <Route path ="/checkout/order-confirm" element ={<PaymentConfirmation />}/>
         </Route>

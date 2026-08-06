@@ -2,8 +2,10 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.payload.UserResponse;
+import com.ecommerce.project.security.request.ChangePasswordRequest;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
+import com.ecommerce.project.security.request.UpdateProfileRequest;
 import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
@@ -38,4 +40,7 @@ public interface AuthService {
     void resetPassword(String token, String newPassword);
     void verifyEmail(String token);
     void resendVerificationEmail(String email);
+    UserInfoResponse updateProfile(UpdateProfileRequest request, Authentication authentication);
+    void changePassword(ChangePasswordRequest request, Authentication authentication);
+    String uploadAvatar(org.springframework.web.multipart.MultipartFile file, Authentication authentication);
 }
