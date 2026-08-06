@@ -382,6 +382,33 @@ export const analyticsAction = () => async (dispatch, getState) => {
         }
 };
 
+export const fetchSalesChartData = () => async (dispatch) => {
+    try {
+        const { data } = await api.get('/admin/app/analytics/sales');
+        dispatch({ type: "FETCH_SALES_CHART", payload: data.data });
+    } catch (error) {
+        console.log("Failed to fetch sales chart data");
+    }
+};
+
+export const fetchTopProductsChartData = () => async (dispatch) => {
+    try {
+        const { data } = await api.get('/admin/app/analytics/top-products');
+        dispatch({ type: "FETCH_TOP_PRODUCTS_CHART", payload: data.data });
+    } catch (error) {
+        console.log("Failed to fetch top products chart data");
+    }
+};
+
+export const fetchOrderStatusChartData = () => async (dispatch) => {
+    try {
+        const { data } = await api.get('/admin/app/analytics/order-status');
+        dispatch({ type: "FETCH_ORDER_STATUS_CHART", payload: data.data });
+    } catch (error) {
+        console.log("Failed to fetch order status chart data");
+    }
+};
+
 export const getOrdersForDashboard = (queryString= "", isAdmin) => async (dispatch, getState) => {
     try {
         dispatch({ type: "IS_FETCHING" });
