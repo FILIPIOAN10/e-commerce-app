@@ -14,6 +14,7 @@ import Cart from './components/cart/cart'
 import LogIn from './components/auth/Login'
 import PrivateRoute from './components/PrivateRoute'
 import Register from './components/auth/Register'
+import VerifyEmail from './components/auth/VerifyEmail'
 import Checkout from './components/checkout/Checkout'
 import PaymentConfirmation from './components/checkout/PaymentConfirmation'
 import AdminLayout from './components/admin/AdminLayout'
@@ -42,6 +43,7 @@ function App() {
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />
         <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
+        <Route path='/verify-email' element={<VerifyEmail />} />
         <Route path='/' element={<PrivateRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path ="/checkout" element ={<Checkout/>}/>
