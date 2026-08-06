@@ -32,4 +32,6 @@ public interface ProductService {
     ProductResponse searchProducts(String query, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, Boolean semantic);
 
     int reindexProductSearch();
+
+    java.util.List<String> searchAutocomplete(String query);
 }

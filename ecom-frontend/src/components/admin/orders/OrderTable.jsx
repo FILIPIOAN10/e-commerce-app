@@ -6,6 +6,9 @@ import UpdateOrderForm from './UpdateOrderForm';
 import Modal from '../../shared/Modal';
 import OrderTrackingModal from '../../shared/OrderTrackingModal';
 import { useSelector } from 'react-redux';
+import { FaFileCsv, FaFilePdf } from 'react-icons/fa';
+import api from '../../api/api';
+import toast from 'react-hot-toast';
 
 const OrderTable = ({adminOrder, pagination}) => {
 
@@ -14,6 +17,7 @@ const OrderTable = ({adminOrder, pagination}) => {
   const [selectedItem, setSelectedItem] = useState("");
   const [trackOrderId, setTrackOrderId] = useState(null);
   const [loader, setLoader] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(
     pagination?.pageNumber + 1 || 1
@@ -25,10 +29,30 @@ const OrderTable = ({adminOrder, pagination}) => {
 
   const { user } = useSelector((state) => state.auth);
   const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
-  // ✅ adaugă seller
   const isSeller = Boolean(user?.roles?.includes("ROLE_SELLER"));
-  // ✅ admin sau seller pot edita
   const canEdit = isAdmin || isSeller;
+
+  const handleExport = async (format) => {
+    setExporting(true);
+    try {
+      const response = await api.get(`/admin/orders/export/${format}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `orders.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Orders exported as ${format.toUpperCase()}`);
+    } catch (error) {
+      toast.error(`Failed to export ${format.toUpperCase()}`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const tableRecords = adminOrder?.map((item) => ({
     id: item.orderId,
@@ -57,9 +81,31 @@ const OrderTable = ({adminOrder, pagination}) => {
 
   return (
     <div>
-      <h1 className='text-slate-800 text-3xl text-center font-bold pb-6'>
-        All Orders
-      </h1>
+      <div className='flex justify-between items-center pb-6'>
+        <h1 className='text-slate-800 text-3xl font-bold dark:text-white'>
+          All Orders
+        </h1>
+        {isAdmin && (
+          <div className='flex gap-2'>
+            <button
+              onClick={() => handleExport('csv')}
+              disabled={exporting}
+              className='flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition disabled:opacity-50'
+            >
+              <FaFileCsv size={18} />
+              Export CSV
+            </button>
+            <button
+              onClick={() => handleExport('pdf')}
+              disabled={exporting}
+              className='flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition disabled:opacity-50'
+            >
+              <FaFilePdf size={18} />
+              Export PDF
+            </button>
+          </div>
+        )}
+      </div>
       <div>
         <DataGrid
           className='w-full'

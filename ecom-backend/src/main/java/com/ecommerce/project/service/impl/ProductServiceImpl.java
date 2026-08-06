@@ -582,5 +582,14 @@ public class ProductServiceImpl implements ProductService {
         return  price - ((discount *0.01)*price);
     }
 
+    @Override
+    public java.util.List<String> searchAutocomplete(String query) {
+        List<Product> products = productRepository.findByProductNameLikeIgnoreCase("%" + query + "%",
+                org.springframework.data.domain.PageRequest.of(0, 10));
+        return products.stream()
+                .map(Product::getProductName)
+                .distinct()
+                .toList();
+    }
 
 }

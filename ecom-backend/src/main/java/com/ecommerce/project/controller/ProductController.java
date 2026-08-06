@@ -260,4 +260,14 @@ public class ProductController {
         List<ProductDTO> products = recentlyViewedService.getRecentlyViewedProducts();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
+
+    @Tag(name = "Product")
+    @GetMapping("/public/products/autocomplete")
+    public ResponseEntity<List<String>> searchAutocomplete(@RequestParam("q") String query) {
+        if (query == null || query.trim().length() < 2) {
+            return new ResponseEntity<>(List.of(), HttpStatus.OK);
+        }
+        List<String> suggestions = productService.searchAutocomplete(query.trim());
+        return new ResponseEntity<>(suggestions, HttpStatus.OK);
+    }
 }

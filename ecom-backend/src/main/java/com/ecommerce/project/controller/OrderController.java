@@ -11,7 +11,9 @@ import com.ecommerce.project.util.AuthUtil;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -120,6 +122,28 @@ public class OrderController {
         String email = authUtil.loggedInEmail();
         OrderDTO order = orderService.getOrderById(orderId, email);
         return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
+    }
+
+    @Tag(name = "Order")
+    @GetMapping("/admin/orders/export/csv")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportOrdersCsv() {
+        byte[] csv = orderService.exportOrdersToCsv();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment", "orders.csv");
+        return new ResponseEntity<>(csv, headers, HttpStatus.OK);
+    }
+
+    @Tag(name = "Order")
+    @GetMapping("/admin/orders/export/pdf")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportOrdersPdf() {
+        byte[] pdf = orderService.exportOrdersToPdf();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "orders.pdf");
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 }
 
