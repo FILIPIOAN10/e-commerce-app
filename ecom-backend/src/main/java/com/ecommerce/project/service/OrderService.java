@@ -16,4 +16,8 @@ public interface OrderService {
     OrderResponse getLoggedInUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
     OrderDTO getOrderById(Long orderId, String email);
+
+    byte[] exportOrdersToCsv();
+
+    byte[] exportOrdersToPdf();
 }
