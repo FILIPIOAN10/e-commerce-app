@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.ecommerce.project.security.request.ForgotPasswordRequest;
 import com.ecommerce.project.security.request.ResetPasswordRequest;
+import com.ecommerce.project.security.request.UpdateProfileRequest;
+import com.ecommerce.project.security.request.ChangePasswordRequest;
 import com.ecommerce.project.security.redis.TokenBlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
 import io.jsonwebtoken.Claims;
@@ -285,6 +287,42 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("message", "If the email exists and is not verified, a verification link has been sent"));
         } catch (RuntimeException e) {
             return ResponseEntity.ok(Map.of("message", "If the email exists and is not verified, a verification link has been sent"));
+        }
+    }
+
+    @Tag(name = "Profile")
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequest request,
+                                           Authentication authentication) {
+        try {
+            UserInfoResponse response = authService.updateProfile(request, authentication);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @Tag(name = "Profile")
+    @PostMapping("/profile/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                            Authentication authentication) {
+        try {
+            authService.changePassword(request, authentication);
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @Tag(name = "Profile")
+    @PostMapping(value = "/profile/avatar", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+                                          Authentication authentication) {
+        try {
+            String avatarUrl = authService.uploadAvatar(file, authentication);
+            return ResponseEntity.ok(Map.of("avatarUrl", avatarUrl));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 }

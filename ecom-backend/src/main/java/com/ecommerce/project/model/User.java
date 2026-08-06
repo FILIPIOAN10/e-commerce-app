@@ -96,4 +96,12 @@ public class User {
 
     @Column(name = "verified", nullable = false, columnDefinition = "boolean default false")
     private boolean verified = false;
+
+    @Size(max = 20)
+    @Column(name = "phone")
+    private String phone;
+
+    @Size(max = 500)
+    @Column(name = "avatar_url")
+    private String avatarUrl;
 }

@@ -819,6 +819,8 @@ export const fetchUserDetails = (token) => async (dispatch) => {
             username: data.username,
             email: data.email,
             roles: data.roles,
+            phone: data.phone,
+            avatarUrl: data.avatarUrl,
         };
 
         dispatch({ type: "LOGIN_USER", payload: authData });
@@ -1030,5 +1032,63 @@ export const fetchRecentlyViewedProducts = () => async (dispatch) => {
         dispatch({ type: "FETCH_RECENTLY_VIEWED", payload: data });
     } catch (error) {
         console.log("Failed to fetch recently viewed products");
+    }
+};
+
+export const updateProfile = (sendData, toast, setLoader) => async (dispatch, getState) => {
+    try {
+        setLoader(true);
+        const { data } = await api.put("/auth/profile", sendData);
+        const currentAuth = getState().auth.user;
+        const updatedAuth = {
+            ...currentAuth,
+            email: data.email || currentAuth.email,
+            phone: data.phone,
+            avatarUrl: data.avatarUrl,
+        };
+        dispatch({ type: "LOGIN_USER", payload: updatedAuth });
+        localStorage.setItem("auth", JSON.stringify(updatedAuth));
+        toast.success("Profile updated successfully");
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to update profile");
+    } finally {
+        setLoader(false);
+    }
+};
+
+export const changePassword = (sendData, toast, setLoader, reset) => async (dispatch) => {
+    try {
+        setLoader(true);
+        const { data } = await api.post("/auth/profile/change-password", sendData);
+        toast.success(data.message || "Password changed successfully");
+        reset();
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to change password");
+    } finally {
+        setLoader(false);
+    }
+};
+
+export const uploadAvatar = (file, toast, setLoader) => async (dispatch, getState) => {
+    try {
+        setLoader(true);
+        const formData = new FormData();
+        formData.append("file", file);
+        const { data } = await api.post("/auth/profile/avatar", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+        const currentAuth = getState().auth.user;
+        const updatedAuth = {
+            ...currentAuth,
+            avatarUrl: data.avatarUrl,
+        };
+        dispatch({ type: "LOGIN_USER", payload: updatedAuth });
+        localStorage.setItem("auth", JSON.stringify(updatedAuth));
+        toast.success("Avatar uploaded successfully");
+        return data.avatarUrl;
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to upload avatar");
+    } finally {
+        setLoader(false);
     }
 };

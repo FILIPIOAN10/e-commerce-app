@@ -12,6 +12,8 @@ import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.redis.LoginAttemptService;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
+import com.ecommerce.project.security.request.UpdateProfileRequest;
+import com.ecommerce.project.security.request.ChangePasswordRequest;
 import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.security.services.UserDetailsImpl;
@@ -33,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import com.ecommerce.project.security.redis.PasswordResetService;
 import com.ecommerce.project.service.EmailService;
 import io.jsonwebtoken.Claims;
@@ -161,12 +164,17 @@ public class AuthServiceImpl implements AuthService {
                     .map(GrantedAuthority::getAuthority)
                     .toList();
 
+            User user = userRepository.findById(userDetails.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
             return new UserInfoResponse(
                     userDetails.getId(),
                     userDetails.getUsername(),
                     roles,
                     userDetails.getEmail(),
-                    null
+                    null,
+                    user.getPhone(),
+                    user.getAvatarUrl()
             );
         }
 
@@ -197,7 +205,9 @@ public class AuthServiceImpl implements AuthService {
                     user.getUserName(),
                     roles,
                     user.getEmail(),
-                    null
+                    null,
+                    user.getPhone(),
+                    user.getAvatarUrl()
             );
         }
 
@@ -336,6 +346,105 @@ public class AuthServiceImpl implements AuthService {
 
         String token = emailVerificationService.generateVerificationToken(email);
         emailService.sendVerificationEmail(email, token);
+    }
+
+    @Override
+    public UserInfoResponse updateProfile(UpdateProfileRequest request, Authentication authentication) {
+        User user = getLoggedInUser(authentication);
+
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            if (!request.getEmail().equals(user.getEmail())
+                    && userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email is already in use by another account");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+
+        userRepository.save(user);
+
+        List<String> roles = user.getRoles().stream()
+                .map(role -> role.getRoleName().name())
+                .collect(Collectors.toList());
+
+        return new UserInfoResponse(
+                user.getUserId(),
+                user.getUserName(),
+                roles,
+                user.getEmail(),
+                null,
+                user.getPhone(),
+                user.getAvatarUrl()
+        );
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request, Authentication authentication) {
+        User user = getLoggedInUser(authentication);
+
+        if (!encoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        user.setPassword(encoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public String uploadAvatar(MultipartFile file, Authentication authentication) {
+        User user = getLoggedInUser(authentication);
+
+        try {
+            String uploadDir = "images/avatars/";
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+
+            String fileName = "avatar_" + user.getUserId() + "_" + System.currentTimeMillis() + fileExtension;
+            java.nio.file.Path filePath = uploadPath.resolve(fileName);
+            java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            String avatarUrl = "http://localhost:8080/images/avatars/" + fileName;
+            user.setAvatarUrl(avatarUrl);
+            userRepository.save(user);
+
+            return avatarUrl;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload avatar: " + e.getMessage());
+        }
+    }
+
+    private User getLoggedInUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetailsImpl userDetails) {
+            return userRepository.findById(userDetails.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        }
+
+        if (principal instanceof OAuth2User oauth2User) {
+            String email = oauth2User.getAttribute("email");
+            if (email == null) {
+                throw new RuntimeException("Email not available from OAuth2 provider");
+            }
+            return userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        }
+
+        throw new RuntimeException("Unsupported authentication type");
     }
 
 }

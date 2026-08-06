@@ -7,7 +7,7 @@ import Modal from '../../shared/Modal';
 import OrderTrackingModal from '../../shared/OrderTrackingModal';
 import { useSelector } from 'react-redux';
 import { FaFileCsv, FaFilePdf } from 'react-icons/fa';
-import api from '../../api/api';
+import api from '../../../api/api';
 import toast from 'react-hot-toast';
 
 const OrderTable = ({adminOrder, pagination}) => {

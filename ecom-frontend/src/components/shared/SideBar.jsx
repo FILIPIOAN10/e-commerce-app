@@ -25,7 +25,7 @@ const SideBar = ({isProfile = false}) => {
     }, [dispatch, user, isAdmin]);
 
     return (
-    <div className='flex grow flex-col gap-y-7 overflow-y-auto bg-custom-gradient px-6 pb-4'>
+    <div className='flex grow flex-col gap-y-7 overflow-y-auto bg-custom-gradient px-6 pb-4 dark:bg-gray-900'>
         {/* Set Header */}
         <div className='flex h-16 shrink-0 gap-x-3 pt-2'>
             <FaTachometerAlt  className='h-8 w-8 text-indigo-500' />
