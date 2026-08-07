@@ -1068,3 +1068,24 @@ export const uploadAvatar = (file, toast, setLoader) => async (dispatch, getStat
         setLoader(false);
     }
 };
+
+export const fetchRecommendedProducts = (limit = 8) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/user/recommendations?limit=${limit}`);
+        dispatch({ type: "SET_RECOMMENDED_PRODUCTS", payload: data });
+        return data;
+    } catch (error) {
+        // Silently fail — recommendations are optional
+        dispatch({ type: "SET_RECOMMENDED_PRODUCTS", payload: [] });
+    }
+};
+
+export const fetchSimilarProducts = (productId, limit = 4) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/public/products/${productId}/similar?limit=${limit}`);
+        dispatch({ type: "SET_SIMILAR_PRODUCTS", payload: data });
+        return data;
+    } catch (error) {
+        dispatch({ type: "SET_SIMILAR_PRODUCTS", payload: [] });
+    }
+};
