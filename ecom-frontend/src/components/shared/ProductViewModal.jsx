@@ -5,6 +5,7 @@ import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ReviewsSection from './ReviewsSection';
+import SimilarProducts from './SimilarProducts';
 import { useDispatch } from 'react-redux';
 import { recordProductView } from '../../store/actions';
 
@@ -134,6 +135,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                 </div>
 
                 {id && <ReviewsSection productId={id} />}
+                {id && <SimilarProducts productId={id} />}
 
 
             <div className="px-6 py-4 flex justify-end gap-4">

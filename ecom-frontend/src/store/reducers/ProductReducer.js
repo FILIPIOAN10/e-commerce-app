@@ -5,6 +5,8 @@ const initialState = {
     lowStockCount: 0,
     pagination: {},
     recentlyViewed: [],
+    recommendedProducts: [],
+    similarProducts: [],
 };
 
 export const productReducer = (state = initialState, action ) => {
@@ -102,6 +104,18 @@ export const productReducer = (state = initialState, action ) => {
             return {
                 ...state,
                 recentlyViewed: action.payload,
+            };
+
+        case "SET_RECOMMENDED_PRODUCTS":
+            return {
+                ...state,
+                recommendedProducts: action.payload,
+            };
+
+        case "SET_SIMILAR_PRODUCTS":
+            return {
+                ...state,
+                similarProducts: action.payload,
             };
 
         default:

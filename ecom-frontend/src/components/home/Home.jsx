@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import HeroBanner from "./HeroBanner";
 import RecentlyViewed from "./RecentlyViewed";
+import RecommendedProducts from "./RecommendedProducts";
 import { useEffect } from "react";
 import { fetchProducts } from "../../store/actions";
 import ProductCard from "../shared/ProductCard";
@@ -25,6 +26,7 @@ const Home  = () => {
             <HeroBanner/>
             </div>
             <RecentlyViewed />
+            <RecommendedProducts />
             <div className="py-5">
                 <div className="flex flex-col justify-center items-center space-y-2">
                     <h1 className="text-slate-800 text-4xl font-bold dark:text-white">Products</h1>
