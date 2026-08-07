@@ -31,6 +31,9 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     @Value("${frontend.url}")
     private String frontEndUrl;
 
+    @Value("${spring.profiles.active:dev}")
+    private String activeProfile;
+
     public OAuth2LoginSuccessHandler(UserRepository userRepository,
                                      RoleRepository roleRepository,
                                      JwtUtils jwtUtils,
@@ -108,7 +111,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                 .path("/")
                 .maxAge(24 * 60 * 60)
                 .httpOnly(true)
-                .secure(false)
+                .secure(!"dev".equals(activeProfile))
                 .sameSite("Lax")
                 .build();
 

@@ -36,18 +36,9 @@ public class ProductController {
      * Adaugă un produs nou într-o anumită categorie (admin only).
      */
     @Tag(name = "Product")
-    @PostMapping("/admin/categories/{categoryId}/product")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO,
-                                                 @PathVariable Long categoryId) {
-        ProductDTO savedProductDto = productService.addProduct(categoryId, productDTO);
-        return new ResponseEntity<>(savedProductDto, HttpStatus.CREATED);
-    }
-
-    @Tag(name = "Product")
-    @PostMapping("/seller/categories/{categoryId}/product")
+    @PostMapping({"/admin/categories/{categoryId}/product", "/seller/categories/{categoryId}/product"})
     @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
-    public ResponseEntity<ProductDTO> addProductSeller(@Valid @RequestBody ProductDTO productDTO,
+    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO,
                                                  @PathVariable Long categoryId) {
         ProductDTO savedProductDto = productService.addProduct(categoryId, productDTO);
         return new ResponseEntity<>(savedProductDto, HttpStatus.CREATED);
@@ -129,8 +120,8 @@ public class ProductController {
      * Actualizează un produs existent.
      */
     @Tag(name = "Product")
-    @PutMapping("/admin/products/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping({"/admin/products/{productId}", "/seller/products/{productId}"})
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> updateProduct(@Valid @RequestBody ProductDTO productDTO,
                                                     @PathVariable Long productId) {
         ProductDTO updatedProductDTO = productService.updateProduct(productId,productDTO);
@@ -141,8 +132,8 @@ public class ProductController {
      * Șterge un produs după ID (admin only).
      */
     @Tag(name = "Product")
-    @DeleteMapping("/admin/products/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping({"/admin/products/{productId}", "/seller/products/{productId}"})
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public  ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long productId) {
         ProductDTO deletedProduct = productService.deleteProduct(productId);
         return new ResponseEntity<>(deletedProduct,HttpStatus.OK);
@@ -152,8 +143,8 @@ public class ProductController {
      * Actualizează imaginea unui produs.
      */
     @Tag(name = "Product")
-    @PutMapping("/admin/products/{productId}/image")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping({"/admin/products/{productId}/image", "/seller/products/{productId}/image"})
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> updateProductImage(@PathVariable Long productId,
                                                          @RequestParam("image") MultipartFile image) throws IOException {
 
@@ -162,8 +153,8 @@ public class ProductController {
     }
 
     @Tag(name = "Product")
-    @PostMapping("/admin/products/{productId}/gallery")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping({"/admin/products/{productId}/gallery", "/seller/products/{productId}/gallery"})
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> uploadGalleryImages(@PathVariable Long productId,
                                                           @RequestParam("images") MultipartFile[] images) throws IOException {
         ProductDTO updatedProduct = productService.uploadProductGalleryImages(productId, images);
@@ -171,8 +162,8 @@ public class ProductController {
     }
 
     @Tag(name = "Product")
-    @DeleteMapping("/admin/products/{productId}/gallery/{imageId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping({"/admin/products/{productId}/gallery/{imageId}", "/seller/products/{productId}/gallery/{imageId}"})
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<ProductDTO> deleteGalleryImage(@PathVariable Long productId,
                                                          @PathVariable Long imageId) {
         ProductDTO updatedProduct = productService.deleteProductGalleryImage(productId, imageId);
@@ -207,44 +198,6 @@ public class ProductController {
     ) {
         ProductResponse productResponse = productService.getAllProductsForSeller(pageNumber,pageSize,sortBy,sortOrder);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
-    }
-    @PutMapping("/seller/products/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public ResponseEntity<ProductDTO> updateProductSeller(@Valid @RequestBody ProductDTO productDTO,
-                                                          @PathVariable Long productId){
-        ProductDTO updatedProductDTO = productService.updateProduct(productId, productDTO);
-        return new ResponseEntity<>(updatedProductDTO, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/seller/products/{productId}")
-    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public ResponseEntity<ProductDTO> deleteProductSeller(@PathVariable Long productId){
-        ProductDTO deletedProduct = productService.deleteProduct(productId);
-        return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
-    }
-
-    @PutMapping("/seller/products/{productId}/image")
-    @PreAuthorize("hasRole('ADMIN','SELLER')")
-    public ResponseEntity<ProductDTO> updateProductImageSeller(@PathVariable Long productId,
-                                                               @RequestParam("image")MultipartFile image) throws IOException {
-        ProductDTO updatedProduct = productService.updateProductImage(productId, image);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
-    }
-
-    @PostMapping("/seller/products/{productId}/gallery")
-    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public ResponseEntity<ProductDTO> uploadGalleryImagesSeller(@PathVariable Long productId,
-                                                                @RequestParam("images") MultipartFile[] images) throws IOException {
-        ProductDTO updatedProduct = productService.uploadProductGalleryImages(productId, images);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/seller/products/{productId}/gallery/{imageId}")
-    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public ResponseEntity<ProductDTO> deleteGalleryImageSeller(@PathVariable Long productId,
-                                                               @PathVariable Long imageId) {
-        ProductDTO updatedProduct = productService.deleteProductGalleryImage(productId, imageId);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
     @Tag(name = "Product")
