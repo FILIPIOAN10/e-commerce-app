@@ -27,7 +27,7 @@ const OAuth2Redirect = () => {
                 toast.error("Could not load user data.");
                 navigate("/login");
             });
-    }, []);
+    }, [searchParams, navigate, dispatch]);
 
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">

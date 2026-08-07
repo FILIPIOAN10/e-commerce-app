@@ -37,7 +37,6 @@ api.interceptors.request.use((config) => {
         config.headers["X-XSRF-TOKEN"] = csrfToken;
     }
 
-    console.log("DEBUG API TOKEN TRIMIS:", config.headers.Authorization);
     return config;
 });
 

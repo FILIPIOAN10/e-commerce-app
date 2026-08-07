@@ -36,6 +36,7 @@ public interface AuthService {
     void disable2FA(Long userId);
 
     boolean verify2FALogin(String jwtToken, int code);
+    UserInfoResponse complete2FALogin(String jwtToken, int code);
     void initiatePasswordReset(String email);
     void resetPassword(String token, String newPassword);
     void verifyEmail(String token);

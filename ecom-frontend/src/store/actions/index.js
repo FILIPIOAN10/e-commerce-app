@@ -1,7 +1,5 @@
 import toast from "react-hot-toast";
 import api from "../../api/api"
-import { duration } from "@mui/material";
-import { get } from "react-hook-form";
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
@@ -28,7 +26,6 @@ export const fetchProducts = (queryString) => async (dispatch) => {
         });
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to fetch products",
@@ -52,7 +49,6 @@ export const fetchCategories = () => async (dispatch) => {
         });
         dispatch({ type: "CATEGORY_SUCCESS" });
     } catch (error) {
-        console.log(error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to fetch categories",
@@ -144,7 +140,6 @@ export const authenticateSignInUser = (
         };
 
         const { data } = await api.post("/auth/signin", loginData);
-        console.log("=== SIGNIN RESPONSE ===", data);
 
         // Dacă backend-ul cere 2FA
         if (data.needs2FA) {                        // <- fix: era mfaRequired
@@ -162,7 +157,6 @@ export const authenticateSignInUser = (
         navigate("/");
 
     } catch (error) {
-        console.log(error);
         toast.error(error?.response?.data?.message || "Internal Server Error");
         if (fetchHint) fetchHint(sendData.username);
     } finally {
@@ -185,7 +179,6 @@ export const registerNewUser
             toast.success(data?.message || "User Registered Successfully");
             navigate("/login");
         } catch (error) {
-            console.log(error);
             toast.error(error?.response?.data?.message || error?.response?.data?.password || "Internal Server Error");
         } finally {
             setLoader(false);
@@ -218,7 +211,6 @@ export const addUpdateUserAddress =
         toast.success("Address saved successfully");
         dispatch({ type:"IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
         toast.error(error?.response?.data?.message || "Internal Server Error");
         dispatch({ type:"IS_ERROR", payload: null });
     } finally {
@@ -237,7 +229,6 @@ export const deleteUserAddress =
         dispatch(clearCheckoutAddress());
         toast.success("Address deleted successfully");
     } catch (error) {
-        console.log(error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Some Error Occured",
@@ -260,11 +251,7 @@ export const getUserAddresses = () => async (dispatch, getState) => {
         dispatch({type: "USER_ADDRESS", payload: data});
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
-        dispatch({ 
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch user addresses",
-         });
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch user addresses" });
     }
 };
 
@@ -292,7 +279,6 @@ export const createUserCart = (sendCartItems) => async (dispatch, getState) => {
         await api.post('/cart/create', sendCartItems);
         await dispatch(getUserCart());
     } catch (error) {
-        console.log(error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to create cart items",
@@ -315,7 +301,6 @@ export const getUserCart = () => async (dispatch, getState) => {
         localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to fetch cart items",
@@ -333,7 +318,6 @@ export const createStripePaymentSecret
               localStorage.setItem("client-secret", JSON.stringify(data));
               dispatch({ type: "IS_SUCCESS" });
         } catch (error) {
-            console.log(error);
             toast.error(error?.response?.data?.message || "Failed to create client secret");
         }
 };
@@ -387,7 +371,10 @@ export const fetchSalesChartData = () => async (dispatch) => {
         const { data } = await api.get('/admin/app/analytics/sales');
         dispatch({ type: "FETCH_SALES_CHART", payload: data.data });
     } catch (error) {
-        console.log("Failed to fetch sales chart data");
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch sales chart data",
+        });
     }
 };
 
@@ -396,7 +383,10 @@ export const fetchTopProductsChartData = () => async (dispatch) => {
         const { data } = await api.get('/admin/app/analytics/top-products');
         dispatch({ type: "FETCH_TOP_PRODUCTS_CHART", payload: data.data });
     } catch (error) {
-        console.log("Failed to fetch top products chart data");
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch top products chart data",
+        });
     }
 };
 
@@ -405,7 +395,10 @@ export const fetchOrderStatusChartData = () => async (dispatch) => {
         const { data } = await api.get('/admin/app/analytics/order-status');
         dispatch({ type: "FETCH_ORDER_STATUS_CHART", payload: data.data });
     } catch (error) {
-        console.log("Failed to fetch order status chart data");
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch order status chart data",
+        });
     }
 };
 
@@ -428,8 +421,7 @@ export const getOrdersForDashboard = (queryString= "", isAdmin) => async (dispat
         });
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
-        dispatch({ 
+        dispatch({
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to fetch orders data",
          });
@@ -451,7 +443,6 @@ export const updateOrderStatusFromDashboard =
         toast.success(data.message || "Order updated successfully");
         await dispatch(getOrdersForDashboard("", adminRequest));
     } catch (error) {
-        console.log(error);
         toast.error(error?.response?.data?.message || "Internal Server Error");
     } finally {
         setLoader(false);
@@ -478,7 +469,6 @@ export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch
         });
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log(error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to fetch dashboard products",
@@ -504,7 +494,6 @@ export const getAllCategoriesDashboard = (queryString="") => async (dispatch) =>
 
     dispatch({ type: "CATEGORY_SUCCESS" });
   } catch (err) {
-    console.log(err);
 
     dispatch({
       type: "IS_ERROR",
@@ -530,7 +519,6 @@ export const updateCategoryDashboardAction =
       setOpen(false);
       await dispatch(getAllCategoriesDashboard());
     } catch (err) {
-      console.log(err);
       toast.error(
         err?.response?.data?.categoryName || "Failed to update category"
       );
@@ -554,7 +542,6 @@ export const createCategoryDashboardAction =
       setOpen(false);
       await dispatch(getAllCategoriesDashboard());
     } catch (err) {
-      console.log(err);
       toast.error(
         err?.response?.data?.categoryName || "Failed to create new category"
       );
@@ -581,7 +568,6 @@ export const updateProductFromDashboard =
             setOpen(false);
             reset();
         } catch (error) {
-            console.error("Product update failed", error?.response?.status, error?.config?.url, error);
             toast.error(error?.response?.data?.description || error?.response?.data?.message || "Product update failed");
         } finally {
             setLoader(false);
@@ -602,7 +588,6 @@ export const deleteProduct =
         await dispatch(dashboardProductsAction(queryString,isAdmin));
      
     } catch (error){    
-        console.log("Product delete failed",error?.response?.status, error?.config?.url,error);
         toast.error(error?.response?.data?.message || "Some Error Occured");
     } finally{
         setLoader(false);
@@ -622,7 +607,6 @@ export const addNewProductFromDashboard =
             setOpen(false);
             await dispatch(dashboardProductsAction("",isAdmin));
         } catch (error) {
-            console.error(error);
             toast.error(error?.response?.data?.description || "Product creation failed");
         } finally {
             setLoader(false);
@@ -658,7 +642,6 @@ export const deleteCategoryDashboardAction =
       toast.success("Category Delete Successful");
       setOpen(false);
     } catch (err) {
-      console.log(err);
       toast.error(err?.response?.data?.message || "Failed to delete category");
       dispatch({
         type: "IS_ERROR",
@@ -686,7 +669,6 @@ export const deleteCategoryDashboardAction =
 
       dispatch({ type: "IS_SUCCESS" });
     } catch (err) {
-      console.log(err);
       dispatch({
         type: "IS_ERROR",
         payload: err?.response?.data?.message || "Failed to fetch sellers data",
@@ -704,7 +686,6 @@ export const addNewDashboardSeller =
 
       await dispatch(getAllSellersDashboard());
     } catch (err) {
-      console.log(err);
       toast.error(
         err?.response?.data?.message ||
           err?.response?.data?.password ||
@@ -728,7 +709,6 @@ export const createCartWithFilteredItems =
         dispatch({ type: "IS_SUCCESS"});
         return data;
     }catch (error){
-        console.log(error);
         toast.error(error?.response?.data?.message || "Failed to create cart");
         dispatch({
             type: "IS_ERROR",
@@ -752,7 +732,6 @@ export const createCartWithFilteredItems =
         dispatch ({ type: "IS_SUCCESS"});
         return data;
     } catch (error){
-        console.log(error);
         dispatch({
             type: "IS_ERROR",
             payload:error?.response?.data?.message || "Failed to fetch orders",
@@ -771,7 +750,6 @@ export const createCartWithFilteredItems =
         dispatch({ type :"IS_SUCCESS"});
         return data; 
     }catch (error){
-        console.log(error);
         dispatch({
             type: "IS_ERROR",
             payload:error?.response?.data?.message || "Failed to fetch filtered products",
@@ -799,7 +777,6 @@ export const getUserOrders = (queryString = "") => async (dispatch) => {
         
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
-        console.log("Failed to fetch user orders:", error);
         dispatch({ 
             type: "IS_ERROR",
             payload: error?.response?.data?.message || "Failed to fetch your orders",
@@ -826,7 +803,6 @@ export const fetchUserDetails = (token) => async (dispatch) => {
         dispatch({ type: "LOGIN_USER", payload: authData });
         localStorage.setItem("auth", JSON.stringify(authData));
     } catch (error) {
-        console.log("Failed to fetch user details", error);
         throw error;
     }
 };
@@ -1014,7 +990,7 @@ export const fetchLowStockCount = () => async (dispatch) => {
         const { data } = await api.get("/low-stock/count");
         dispatch({ type: "SET_LOW_STOCK_COUNT", payload: data });
     } catch (error) {
-        console.log("Failed to fetch low stock count");
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch low stock count" });
     }
 };
 
@@ -1022,7 +998,7 @@ export const recordProductView = (productId) => async () => {
     try {
         await api.post(`/user/products/${productId}/view`);
     } catch (error) {
-        console.log("Failed to record product view");
+        // silently ignore - product view tracking is non-critical
     }
 };
 
@@ -1031,7 +1007,7 @@ export const fetchRecentlyViewedProducts = () => async (dispatch) => {
         const { data } = await api.get("/user/products/recently-viewed");
         dispatch({ type: "FETCH_RECENTLY_VIEWED", payload: data });
     } catch (error) {
-        console.log("Failed to fetch recently viewed products");
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch recently viewed" });
     }
 };
 

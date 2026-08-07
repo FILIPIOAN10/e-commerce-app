@@ -1,42 +1,43 @@
 
 
 import './App.css'
-import Products from './components/products/Products'
-
 import { BrowserRouter as Router,Routes,Route } from 'react-router-dom'
-import Home from './components/home/Home'
 import Navbar from './components/shared/Navbar'
-import About from './components/About'
-import Contact from './components/Contact'
 import { Toaster } from 'react-hot-toast'
-import React, {useState} from 'react'
-import Cart from './components/cart/cart'
-import LogIn from './components/auth/Login'
+import React, { Suspense, lazy } from 'react'
 import PrivateRoute from './components/PrivateRoute'
-import Register from './components/auth/Register'
-import VerifyEmail from './components/auth/VerifyEmail'
-import Checkout from './components/checkout/Checkout'
-import PaymentConfirmation from './components/checkout/PaymentConfirmation'
-import AdminLayout from './components/admin/AdminLayout'
-import Dashboard from './components/admin/dashboard/Dashboard'
-import AdminProducts from './components/admin/products/AdminProducts'
-import Category from './components/admin/categories/Category'
-import Sellers from './components/admin/sellers/Sellers'
-import Coupons from './components/admin/coupons/Coupons'
-import LowStockAlerts from './components/admin/lowstock/LowStockAlerts'
-import Orders from './components/admin/orders/Orders'
-import Profile from './components/profile/Profile'
-import ProfileSettings from './components/profile/ProfileSettings'
-import ProfileOrders from './components/profile/ProfileOrders'
-import Wishlist from './components/wishlist/Wishlist'
+import Loader from './components/shared/Loader'
 
-import OAuth2Redirect from './components/shared/OAuth2Redirect'
+const Home = lazy(() => import('./components/home/Home'))
+const Products = lazy(() => import('./components/products/Products'))
+const About = lazy(() => import('./components/About'))
+const Contact = lazy(() => import('./components/Contact'))
+const Cart = lazy(() => import('./components/cart/cart'))
+const LogIn = lazy(() => import('./components/auth/Login'))
+const Register = lazy(() => import('./components/auth/Register'))
+const VerifyEmail = lazy(() => import('./components/auth/VerifyEmail'))
+const Checkout = lazy(() => import('./components/checkout/Checkout'))
+const PaymentConfirmation = lazy(() => import('./components/checkout/PaymentConfirmation'))
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'))
+const Dashboard = lazy(() => import('./components/admin/dashboard/Dashboard'))
+const AdminProducts = lazy(() => import('./components/admin/products/AdminProducts'))
+const Category = lazy(() => import('./components/admin/categories/Category'))
+const Sellers = lazy(() => import('./components/admin/sellers/Sellers'))
+const Coupons = lazy(() => import('./components/admin/coupons/Coupons'))
+const LowStockAlerts = lazy(() => import('./components/admin/lowstock/LowStockAlerts'))
+const Orders = lazy(() => import('./components/admin/orders/Orders'))
+const Profile = lazy(() => import('./components/profile/Profile'))
+const ProfileSettings = lazy(() => import('./components/profile/ProfileSettings'))
+const ProfileOrders = lazy(() => import('./components/profile/ProfileOrders'))
+const Wishlist = lazy(() => import('./components/wishlist/Wishlist'))
+const OAuth2Redirect = lazy(() => import('./components/shared/OAuth2Redirect'))
 
 function App() {
   return (
     <React.Fragment>
     <Router>
       <Navbar/>
+      <Suspense fallback={<Loader />}>
       <Routes>
         <Route  path='/' element ={<Home/>} />
         <Route  path='/products' element ={<Products/>} />
@@ -73,6 +74,7 @@ function App() {
           <Route path='/wishlist' element={<Wishlist />} />
         </Route>
       </Routes>
+      </Suspense>
     </Router>
     <Toaster position='bottom-center'/>
     </React.Fragment>

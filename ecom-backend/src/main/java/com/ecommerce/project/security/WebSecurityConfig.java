@@ -26,6 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.ecommerce.project.security.filter.CsrfCookieFilter;
 
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
@@ -36,9 +37,9 @@ import org.springframework.context.annotation.Lazy;
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-    private UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsServiceImpl userDetailsService;
 
-    private AuthEntryPointJwt unauthorizedHandler;
+    private final AuthEntryPointJwt unauthorizedHandler;
 
     @Value("${frontend.url}")
     String frontEndUrl;
@@ -80,7 +81,7 @@ public class WebSecurityConfig {
     http.cors(corsConfig -> corsConfig.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
             config.setAllowedOrigins(
-                    List.of("http://localhost:3000", frontEndUrl)
+                    List.of(frontEndUrl)
             );
             config.setAllowedMethods(
                     List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
@@ -91,11 +92,10 @@ public class WebSecurityConfig {
 
             return config;
         }))
-//                .csrf(csrf -> csrf
-//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-//                        .csrfTokenRequestHandler(requestHandler)
-//                        .ignoringRequestMatchers("/api/auth/**"))
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(requestHandler)
+                        .ignoringRequestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -105,7 +105,6 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
                      .requestMatchers("/api/public/**").permitAll()
-//                      .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/images/**").permitAll()

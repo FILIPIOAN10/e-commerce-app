@@ -1,5 +1,10 @@
 package com.ecommerce.project.service.impl;
 
+import com.ecommerce.project.exception.AccountLockedException;
+import com.ecommerce.project.exception.AccountNotVerifiedException;
+import com.ecommerce.project.exception.EmailAlreadyExistsException;
+import com.ecommerce.project.exception.InvalidCredentialsException;
+import com.ecommerce.project.exception.UserNotFoundException;
 import com.ecommerce.project.model.AppRole;
 import com.ecommerce.project.model.Role;
 import com.ecommerce.project.model.User;
@@ -30,16 +35,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.ecommerce.project.security.redis.PasswordResetService;
 import com.ecommerce.project.service.EmailService;
 import io.jsonwebtoken.Claims;
 import com.ecommerce.project.security.redis.EmailVerificationService;
+import com.ecommerce.project.util.AuthUtil;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,6 +67,10 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetService passwordResetService;
     private final EmailService emailService;
     private final EmailVerificationService emailVerificationService;
+    private final AuthUtil authUtil;
+
+    @Value("${image.base.url}")
+    private String imageBaseUrl;
 
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {
@@ -69,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (loginAttemptService.isLocked(username)) {
             long minutesLeft = loginAttemptService.getLockTimeRemaining(username) / 60;
-            throw new RuntimeException("Account locked due to too many failed attempts. "
+            throw new AccountLockedException("Account locked due to too many failed attempts. "
                     + "Try again in " + minutesLeft + " minutes.");
         }
 
@@ -86,9 +95,9 @@ public class AuthServiceImpl implements AuthService {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
             User user = userRepository.findByUserName(loginRequest.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
             if (!user.isVerified()) {
-                throw new RuntimeException("Account not verified. Please check your email to verify your account.");
+                throw new AccountNotVerifiedException("Account not verified. Please check your email to verify your account.");
             }
 
             if (user.isTwoFactorEnabled()) {
@@ -100,22 +109,16 @@ public class AuthServiceImpl implements AuthService {
             ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
             String jwtToken = jwtUtils.generateJwtToken(userDetails);
 
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .toList();
-
-            UserInfoResponse response = new UserInfoResponse(
-                    userDetails.getId(), userDetails.getUsername(), roles, userDetails.getEmail(), jwtToken
-            );
+            UserInfoResponse response = buildUserInfoResponse(user, jwtToken);
             return new AuthenticationResult(response, jwtCookie, false, null);
 
         } catch (org.springframework.security.core.AuthenticationException e) {
             loginAttemptService.recordFailedAttempt(username);
             int remaining = loginAttemptService.getRemainingAttempts(username);
             if (remaining > 0) {
-                throw new RuntimeException("Invalid credentials. " + remaining + " attempts remaining.");
+                throw new InvalidCredentialsException("Invalid credentials. " + remaining + " attempts remaining.");
             } else {
-                throw new RuntimeException("Account locked due to too many failed attempts. "
+                throw new AccountLockedException("Account locked due to too many failed attempts. "
                         + "Try again in 15 minutes.");
             }
         }
@@ -147,72 +150,25 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.ok(new MessageResponse("User registered successfully! Please check your email to verify your account."));
     }
 
-    // ACEASTA ESTE METODA MODIFICATĂ - Acum suportă și OAuth2 (GitHub)
     @Override
     public UserInfoResponse getCurrentUserDetails(Authentication authentication) {
-        // Verificare dacă authentication e null
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User not authenticated");
-        }
+        User user = authUtil.loggedInUser();
+        return buildUserInfoResponse(user, null);
+    }
 
-        Object principal = authentication.getPrincipal();
-
-        // Cazul 1: Login normal cu username/password (JWT)
-        if (principal instanceof UserDetailsImpl) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) principal;
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .toList();
-
-            User user = userRepository.findById(userDetails.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            return new UserInfoResponse(
-                    userDetails.getId(),
-                    userDetails.getUsername(),
-                    roles,
-                    userDetails.getEmail(),
-                    null,
-                    user.getPhone(),
-                    user.getAvatarUrl()
-            );
-        }
-
-        // Cazul 2: Login cu OAuth2 (GitHub, Google, etc.)
-        if (principal instanceof OAuth2User) {
-            OAuth2User oauth2User = (OAuth2User) principal;
-
-            // Extrage email-ul din GitHub
-            String email = oauth2User.getAttribute("email");
-            String name = oauth2User.getAttribute("name");
-
-            if (email == null) {
-                // Dacă GitHub nu returnează email, încercați să-l obțineți din altă parte
-                throw new RuntimeException("Email not provided by GitHub. Please make sure your GitHub account has a public email.");
-            }
-
-            // Găsiți user-ul în baza de date
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-
-            // Obțineți rolurile
-            List<String> roles = user.getRoles().stream()
-                    .map(role -> role.getRoleName().name())
-                    .collect(Collectors.toList());
-
-            return new UserInfoResponse(
-                    user.getUserId(),
-                    user.getUserName(),
-                    roles,
-                    user.getEmail(),
-                    null,
-                    user.getPhone(),
-                    user.getAvatarUrl()
-            );
-        }
-
-        // Dacă niciun tip nu e recunoscut
-        throw new RuntimeException("Unsupported authentication type: " + principal.getClass().getName());
+    private UserInfoResponse buildUserInfoResponse(User user, String jwtToken) {
+        List<String> roles = user.getRoles().stream()
+                .map(role -> role.getRoleName().name())
+                .collect(Collectors.toList());
+        return new UserInfoResponse(
+                user.getUserId(),
+                user.getUserName(),
+                roles,
+                user.getEmail(),
+                jwtToken,
+                user.getPhone(),
+                user.getAvatarUrl()
+        );
     }
 
     @Override
@@ -290,8 +246,20 @@ public class AuthServiceImpl implements AuthService {
         }
         String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
         User user = userRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return validate2FACode(user.getUserId(), code);
+    }
+
+    @Override
+    public UserInfoResponse complete2FALogin(String jwtToken, int code) {
+        if (!verify2FALogin(jwtToken, code)) {
+            throw new InvalidCredentialsException("Invalid 2FA code");
+        }
+        String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        String newToken = jwtUtils.generateTokenFromUsername(username);
+        return buildUserInfoResponse(user, newToken);
     }
     @Override
     public void initiatePasswordReset(String email) {
@@ -350,12 +318,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserInfoResponse updateProfile(UpdateProfileRequest request, Authentication authentication) {
-        User user = getLoggedInUser(authentication);
+        User user = authUtil.loggedInUser();
 
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             if (!request.getEmail().equals(user.getEmail())
                     && userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email is already in use by another account");
+                throw new EmailAlreadyExistsException("Email is already in use by another account");
             }
             user.setEmail(request.getEmail());
         }
@@ -366,27 +334,15 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        List<String> roles = user.getRoles().stream()
-                .map(role -> role.getRoleName().name())
-                .collect(Collectors.toList());
-
-        return new UserInfoResponse(
-                user.getUserId(),
-                user.getUserName(),
-                roles,
-                user.getEmail(),
-                null,
-                user.getPhone(),
-                user.getAvatarUrl()
-        );
+        return buildUserInfoResponse(user, null);
     }
 
     @Override
     public void changePassword(ChangePasswordRequest request, Authentication authentication) {
-        User user = getLoggedInUser(authentication);
+        User user = authUtil.loggedInUser();
 
         if (!encoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+            throw new InvalidCredentialsException("Current password is incorrect");
         }
 
         user.setPassword(encoder.encode(request.getNewPassword()));
@@ -395,7 +351,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String uploadAvatar(MultipartFile file, Authentication authentication) {
-        User user = getLoggedInUser(authentication);
+        User user = authUtil.loggedInUser();
 
         try {
             String uploadDir = "images/avatars/";
@@ -407,14 +363,19 @@ public class AuthServiceImpl implements AuthService {
             String originalFilename = file.getOriginalFilename();
             String fileExtension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
-                fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+            }
+
+            List<String> allowedExtensions = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
+            if (!allowedExtensions.contains(fileExtension)) {
+                throw new RuntimeException("Invalid file type. Allowed: jpg, jpeg, png, gif, webp");
             }
 
             String fileName = "avatar_" + user.getUserId() + "_" + System.currentTimeMillis() + fileExtension;
             java.nio.file.Path filePath = uploadPath.resolve(fileName);
             java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-            String avatarUrl = "http://localhost:8080/images/avatars/" + fileName;
+            String avatarUrl = imageBaseUrl + "/avatars/" + fileName;
             user.setAvatarUrl(avatarUrl);
             userRepository.save(user);
 
@@ -422,29 +383,6 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload avatar: " + e.getMessage());
         }
-    }
-
-    private User getLoggedInUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User not authenticated");
-        }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetailsImpl userDetails) {
-            return userRepository.findById(userDetails.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        }
-
-        if (principal instanceof OAuth2User oauth2User) {
-            String email = oauth2User.getAttribute("email");
-            if (email == null) {
-                throw new RuntimeException("Email not available from OAuth2 provider");
-            }
-            return userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        }
-
-        throw new RuntimeException("Unsupported authentication type");
     }
 
 }

@@ -4,7 +4,6 @@ package com.ecommerce.project.controller;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.AuthenticationResult;
-import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
@@ -16,7 +15,6 @@ import com.ecommerce.project.util.AuthUtil;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
@@ -38,9 +36,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.data.domain.Pageable;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -52,15 +48,13 @@ public class AuthController {
 
     private TotpService totpService;
     private JwtUtils jwtUtils;
-    private UserRepository userRepository;
     private TokenBlacklistService tokenBlacklistService;
 
-    public AuthController(AuthService authService,AuthUtil authUtil,TotpService totpService,UserRepository userRepository,JwtUtils jwtUtils,TokenBlacklistService tokenBlacklistService) {
+    public AuthController(AuthService authService,AuthUtil authUtil,TotpService totpService,JwtUtils jwtUtils,TokenBlacklistService tokenBlacklistService) {
 
         this.authService=authService;
         this.authUtil = authUtil;
         this.totpService=totpService;
-        this.userRepository=userRepository;
         this.jwtUtils=jwtUtils;
         this.tokenBlacklistService=tokenBlacklistService;
     }
@@ -220,31 +214,12 @@ public class AuthController {
     public ResponseEntity<?> verify2FALogin(@RequestBody Map<String, Object> requestBody) {
         int code = (Integer) requestBody.get("code");
         String jwtToken = (String) requestBody.get("jwtToken");
-        boolean isValid = authService.verify2FALogin(jwtToken, code);
-        if (isValid) {
-            String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
-
-            User user = userRepository.findByUserName(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<String> roles = user.getRoles().stream()
-                    .map(role -> role.getRoleName().name())
-                    .collect(Collectors.toList());
-
-            String newToken = jwtUtils.generateTokenFromUsername(username);
-
-            UserInfoResponse response = new UserInfoResponse(
-                    user.getUserId(),
-                    user.getUserName(),
-                    roles,
-                    user.getEmail(),
-                    newToken
-            );
-
+        try {
+            UserInfoResponse response = authService.complete2FALogin(jwtToken, code);
             return ResponseEntity.ok(response);
-        } else {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid 2FA Code");
+                    .body(Map.of("message", e.getMessage()));
         }
     }
     @Tag(name = "Authentication")
