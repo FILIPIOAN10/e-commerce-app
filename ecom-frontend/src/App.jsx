@@ -31,6 +31,7 @@ const Profile = lazy(() => import('./components/profile/Profile'))
 const ProfileSettings = lazy(() => import('./components/profile/ProfileSettings'))
 const ProfileOrders = lazy(() => import('./components/profile/ProfileOrders'))
 const Wishlist = lazy(() => import('./components/wishlist/Wishlist'))
+const ComparePage = lazy(() => import('./components/compare/ComparePage'))
 const OAuth2Redirect = lazy(() => import('./components/shared/OAuth2Redirect'))
 
 function App() {
@@ -74,6 +75,7 @@ function App() {
         <Route path='/' element={<PrivateRoute />}>
           <Route path='/profile/orders' element={<ProfileOrders />} />
           <Route path='/wishlist' element={<Wishlist />} />
+          <Route path='/compare' element={<ComparePage />} />
         </Route>
       </Routes>
       </Suspense>

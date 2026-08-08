@@ -1147,3 +1147,18 @@ export const fetchOnSaleProducts = (limit = 8) => async (dispatch) => {
         dispatch({ type: "SET_ON_SALE", payload: [] });
     }
 };
+
+export const addToCompare = (product) => (dispatch, getState) => {
+    const { compareList } = getState().products;
+    if (compareList.length >= 3) return;
+    if (compareList.some((p) => p.productId === product.productId)) return;
+    dispatch({ type: "ADD_TO_COMPARE", payload: product });
+};
+
+export const removeFromCompare = (productId) => (dispatch) => {
+    dispatch({ type: "REMOVE_FROM_COMPARE", payload: productId });
+};
+
+export const clearCompare = () => (dispatch) => {
+    dispatch({ type: "CLEAR_COMPARE" });
+};

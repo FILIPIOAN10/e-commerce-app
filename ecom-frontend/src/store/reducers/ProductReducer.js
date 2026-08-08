@@ -10,6 +10,7 @@ const initialState = {
     bestSellers: [],
     newArrivals: [],
     onSaleProducts: [],
+    compareList: [],
 };
 
 export const productReducer = (state = initialState, action ) => {
@@ -137,6 +138,28 @@ export const productReducer = (state = initialState, action ) => {
             return {
                 ...state,
                 onSaleProducts: action.payload,
+            };
+
+        case "ADD_TO_COMPARE": {
+            const exists = state.compareList.some((p) => p.productId === action.payload.productId);
+            if (exists) return state;
+            if (state.compareList.length >= 3) return state;
+            return {
+                ...state,
+                compareList: [...state.compareList, action.payload],
+            };
+        }
+
+        case "REMOVE_FROM_COMPARE":
+            return {
+                ...state,
+                compareList: state.compareList.filter((p) => p.productId !== action.payload),
+            };
+
+        case "CLEAR_COMPARE":
+            return {
+                ...state,
+                compareList: [],
             };
 
         default:
