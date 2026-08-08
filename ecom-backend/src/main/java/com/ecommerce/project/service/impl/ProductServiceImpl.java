@@ -14,6 +14,7 @@ import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.repository.ProductImageRepository;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.repository.ReviewRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.FileService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
@@ -47,6 +48,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
+    private final ReviewRepository reviewRepository;
     private final ModelMapper modelMapper;
     private final FileService fileService;
     private final CartRepository cartRepository;
@@ -481,6 +483,12 @@ public class ProductServiceImpl implements ProductService {
                     .toList()
                 : List.of();
         productDTO.setImages(imageUrls);
+
+        Double avgRating = reviewRepository.getAverageRatingForProduct(product);
+        long reviewCount = reviewRepository.countByProduct(product);
+        productDTO.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
+        productDTO.setReviewCount(reviewCount);
+
         return productDTO;
     }
 

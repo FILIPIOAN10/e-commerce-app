@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaShoppingCart, FaHeart } from "react-icons/fa";
+import { FaShoppingCart, FaHeart, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import ProductViewModal from "./ProductViewModal";
 import truncateText from "../../utils/truncateText";
 import { useDispatch, useSelector } from "react-redux"; // ✅ adaugă useSelector
@@ -16,6 +16,8 @@ const ProductCard = ({
         discount,
         specialPrice,
         images,
+        averageRating,
+        reviewCount,
         about = false,
 }) => {
     const [openProductViewModal, setOpenProductViewModal] = useState(false);
@@ -69,6 +71,27 @@ const ProductCard = ({
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
                     {truncateText(productName, 50)}
                 </h2>
+
+                {reviewCount > 0 && (
+                    <div className="flex items-center gap-1 mb-2">
+                        <div className="flex items-center">
+                            {[1, 2, 3, 4, 5].map((star) => {
+                                const rating = averageRating || 0;
+                                if (rating >= star) {
+                                    return <FaStar key={star} className="text-amber-400 text-sm" />;
+                                } else if (rating >= star - 0.5) {
+                                    return <FaStarHalfAlt key={star} className="text-amber-400 text-sm" />;
+                                } else {
+                                    return <FaStar key={star} className="text-gray-300 text-sm" />;
+                                }
+                            })}
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                            {averageRating?.toFixed(1)} ({reviewCount})
+                        </span>
+                    </div>
+                )}
+
                 <div className="min-h-20 max-h-20">
                     <p className="text-gray-600 text-sm dark:text-gray-300">{truncateText(description, 80)}</p>
                 </div>
