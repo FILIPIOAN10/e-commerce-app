@@ -34,4 +34,10 @@ public interface ProductService {
     int reindexProductSearch();
 
     java.util.List<String> searchAutocomplete(String query);
+
+    java.util.List<ProductDTO> getBestSellers(int limit);
+
+    java.util.List<ProductDTO> getNewArrivals(int limit);
+
+    java.util.List<ProductDTO> getOnSaleProducts(int limit);
 }

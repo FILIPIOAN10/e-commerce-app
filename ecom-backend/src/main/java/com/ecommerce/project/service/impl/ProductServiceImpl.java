@@ -600,4 +600,25 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    @Override
+    public List<ProductDTO> getBestSellers(int limit) {
+        List<Product> products = productRepository.findBestSellingProducts(
+                PageRequest.of(0, limit));
+        return products.stream().map(this::mapProductToDTO).toList();
+    }
+
+    @Override
+    public List<ProductDTO> getNewArrivals(int limit) {
+        List<Product> products = productRepository.findAllByOrderByProductIdDesc(
+                PageRequest.of(0, limit));
+        return products.stream().map(this::mapProductToDTO).toList();
+    }
+
+    @Override
+    public List<ProductDTO> getOnSaleProducts(int limit) {
+        List<Product> products = productRepository.findOnSaleProducts(
+                PageRequest.of(0, limit));
+        return products.stream().map(this::mapProductToDTO).toList();
+    }
+
 }

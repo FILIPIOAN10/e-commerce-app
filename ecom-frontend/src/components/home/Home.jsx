@@ -2,23 +2,27 @@ import { useDispatch, useSelector } from "react-redux";
 import HeroBanner from "./HeroBanner";
 import RecentlyViewed from "./RecentlyViewed";
 import RecommendedProducts from "./RecommendedProducts";
+import HomeSection from "./HomeSection";
 import { useEffect } from "react";
-import { fetchProducts } from "../../store/actions";
+import { fetchProducts, fetchBestSellers, fetchNewArrivals, fetchOnSaleProducts } from "../../store/actions";
 import ProductCard from "../shared/ProductCard";
 import Loader from "../shared/Loader";
-import { FaExclamationTriangle } from "react-icons/fa";
+import { FaExclamationTriangle, FaFireAlt, FaTags, FaBoxOpen } from "react-icons/fa";
 
 
 
 const Home  = () => {
     const dispatch = useDispatch();
-    const {products} = useSelector( (state) => state.products);
+    const {products, bestSellers, newArrivals, onSaleProducts} = useSelector( (state) => state.products);
     const { isLoading, errorMessage} = useSelector(
     (state) => state.errors
     ); 
 
     useEffect( () => {
         dispatch(fetchProducts());
+        dispatch(fetchBestSellers(8));
+        dispatch(fetchNewArrivals(8));
+        dispatch(fetchOnSaleProducts(8));
     },[dispatch]);
     return (
         <div className="lg:px-14 sm:px-8 px-4 dark:bg-gray-950 dark:text-white min-h-screen">
@@ -27,6 +31,24 @@ const Home  = () => {
             </div>
             <RecentlyViewed />
             <RecommendedProducts />
+            <HomeSection
+                title="Best Sellers"
+                subtitle="Our most popular products based on sales"
+                icon={<FaFireAlt className="text-orange-500" />}
+                products={bestSellers}
+            />
+            <HomeSection
+                title="New Arrivals"
+                subtitle="Fresh products just added to our catalog"
+                icon={<FaBoxOpen className="text-blue-500" />}
+                products={newArrivals}
+            />
+            <HomeSection
+                title="On Sale"
+                subtitle="Limited time deals — save big on these products"
+                icon={<FaTags className="text-green-500" />}
+                products={onSaleProducts}
+            />
             <div className="py-5">
                 <div className="flex flex-col justify-center items-center space-y-2">
                     <h1 className="text-slate-800 text-4xl font-bold dark:text-white">Products</h1>
