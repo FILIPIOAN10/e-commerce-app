@@ -14,7 +14,9 @@ api.interceptors.request.use((config) => {
         requestUrl.includes("/auth/signin") || 
         requestUrl.includes("/auth/signup") ||
         requestUrl.includes("/auth/signout") ||
-        requestUrl.includes("/auth/public/");
+        requestUrl.includes("/auth/public/") ||
+        requestUrl.includes("/auth/forgot-password") ||
+        requestUrl.includes("/auth/reset-password");
 
     config.headers = config.headers || {};
 
@@ -49,7 +51,9 @@ api.interceptors.response.use(
             requestUrl.includes("/auth/signin") || 
             requestUrl.includes("/auth/signup") ||
             requestUrl.includes("/auth/signout") ||
-            requestUrl.includes("/auth/public/");
+            requestUrl.includes("/auth/public/") ||
+            requestUrl.includes("/auth/forgot-password") ||
+            requestUrl.includes("/auth/reset-password");
 
         if(status == 401 && !isPublicAuthRequest){
             localStorage.removeItem("auth");
