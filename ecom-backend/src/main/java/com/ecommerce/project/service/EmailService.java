@@ -3,18 +3,25 @@ package com.ecommerce.project.service;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderItemDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final InvoiceService invoiceService;
 
     @Value("${spring.mail.username:noreply.ecomapp@gmail.com}")
     private String fromEmail;
@@ -48,32 +55,42 @@ public class EmailService {
     }
 
     public void sendOrderConfirmationEmail(String toEmail, OrderDTO order) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject("Order Confirmation - #" + order.getOrderId());
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Order Confirmation - #" + order.getOrderId());
 
-        StringBuilder text = new StringBuilder();
-        text.append("Thank you for your order!\n\n");
-        text.append("Order ID: #").append(order.getOrderId()).append("\n");
-        text.append("Order Date: ").append(order.getOrderDate()).append("\n");
-        text.append("Total Amount: $").append(String.format("%.2f", order.getTotalAmount())).append("\n");
-        text.append("Payment Method: ").append(order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A").append("\n\n");
-        text.append("Items:\n");
-        if (order.getItems() != null) {
-            for (OrderItemDTO item : order.getItems()) {
-                text.append("  - ")
-                        .append(item.getProduct() != null ? item.getProduct().getProductName() : "Unknown Product")
-                        .append(" x").append(item.getQuantity())
-                        .append(" - $").append(String.format("%.2f", item.getOrderedProductPrice()))
-                        .append("\n");
+            StringBuilder text = new StringBuilder();
+            text.append("Thank you for your order!\n\n");
+            text.append("Order ID: #").append(order.getOrderId()).append("\n");
+            text.append("Order Date: ").append(order.getOrderDate()).append("\n");
+            text.append("Total Amount: $").append(String.format("%.2f", order.getTotalAmount())).append("\n");
+            text.append("Payment Method: ").append(order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A").append("\n\n");
+            text.append("Items:\n");
+            if (order.getItems() != null) {
+                for (OrderItemDTO item : order.getItems()) {
+                    text.append("  - ")
+                            .append(item.getProduct() != null ? item.getProduct().getProductName() : "Unknown Product")
+                            .append(" x").append(item.getQuantity())
+                            .append(" - $").append(String.format("%.2f", item.getOrderedProductPrice()))
+                            .append("\n");
+                }
             }
-        }
-        text.append("\nWe'll notify you when your order status changes.\n");
-        text.append("Track your order at: ").append(frontendUrl).append("/orders/").append(order.getOrderId()).append("\n");
+            text.append("\nWe'll notify you when your order status changes.\n");
+            text.append("Track your order at: ").append(frontendUrl).append("/orders/").append(order.getOrderId()).append("\n");
+            text.append("\nYour invoice is attached to this email.\n");
 
-        message.setText(text.toString());
-        mailSender.send(message);
+            helper.setText(text.toString());
+
+            byte[] invoicePdf = invoiceService.generateInvoicePdf(order.getOrderId());
+            helper.addAttachment("invoice-" + order.getOrderId() + ".pdf", new ByteArrayResource(invoicePdf));
+
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            log.error("Failed to send order confirmation email with invoice to {}: {}", toEmail, e.getMessage());
+        }
     }
 
     public void sendOrderStatusUpdateEmail(String toEmail, OrderDTO order) {

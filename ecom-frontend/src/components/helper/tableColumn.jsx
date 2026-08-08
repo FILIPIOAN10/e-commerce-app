@@ -1,4 +1,4 @@
-import { FaEdit, FaEye, FaImage, FaImages, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaEye, FaImage, FaImages, FaTrashAlt, FaFilePdf } from "react-icons/fa";
 import { MdOutlineEmail } from "react-icons/md";
 
 export const adminProductTableColumn = (
@@ -290,7 +290,7 @@ export const sellerTableColumns = [
 ];
 
 // table column for orders in admin panel
-export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack) => {
+export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleInvoice) => {
   const columns = [
     {
       disableColumnMenu: true,
@@ -407,6 +407,34 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack) => {
       );
     },
   });
+
+  // Add invoice column for all users
+  if (handleInvoice) {
+    columns.push({
+      field: "invoice",
+      headerName: "Invoice",
+      headerAlign: "center",
+      editable: false,
+      headerClassName: "text-black font-semibold text-center",
+      cellClassName: "text-slate-700 font-normal",
+      sortable: false,
+      width: 120,
+      renderHeader: (params) => <span>Invoice</span>,
+      renderCell: (params) => {
+        return (
+          <div className="flex justify-center items-center h-full">
+            <button
+              onClick={() => handleInvoice(params.row)}
+              className="flex items-center bg-red-500 hover:bg-red-600 text-white px-3 h-8 rounded-md text-sm"
+            >
+              <FaFilePdf className="mr-1 text-xs" />
+              PDF
+            </button>
+          </div>
+        );
+      },
+    });
+  }
 
   // Add action column only if user is admin
   if (isAdmin) {
