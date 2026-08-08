@@ -41,4 +41,7 @@ public class ProductDTO {
     private double discount;
     @PositiveOrZero(message = "Special price cannot be negative")
     private double specialPrice;
+
+    private Double averageRating;
+    private Long reviewCount;
 }
