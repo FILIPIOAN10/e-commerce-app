@@ -1120,3 +1120,30 @@ export const markNotificationsAsRead = () => async (dispatch) => {
 export const addNotification = (notification) => (dispatch) => {
     dispatch({ type: "ADD_NOTIFICATION", payload: notification });
 };
+
+export const fetchBestSellers = (limit = 8) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/public/products/best-sellers?limit=${limit}`);
+        dispatch({ type: "SET_BEST_SELLERS", payload: data });
+    } catch (error) {
+        dispatch({ type: "SET_BEST_SELLERS", payload: [] });
+    }
+};
+
+export const fetchNewArrivals = (limit = 8) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/public/products/new-arrivals?limit=${limit}`);
+        dispatch({ type: "SET_NEW_ARRIVALS", payload: data });
+    } catch (error) {
+        dispatch({ type: "SET_NEW_ARRIVALS", payload: [] });
+    }
+};
+
+export const fetchOnSaleProducts = (limit = 8) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/public/products/on-sale?limit=${limit}`);
+        dispatch({ type: "SET_ON_SALE", payload: data });
+    } catch (error) {
+        dispatch({ type: "SET_ON_SALE", payload: [] });
+    }
+};

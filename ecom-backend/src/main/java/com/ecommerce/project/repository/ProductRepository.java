@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpecificationExecutor<Product> {
@@ -26,4 +28,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
 
     @Query("SELECT p FROM Product p WHERE p.user = :user AND p.quantity <= COALESCE(p.lowStockThreshold, 10)")
     Page<Product> findLowStockProductsBySeller(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.discount > 0 ORDER BY p.discount DESC")
+    List<Product> findOnSaleProducts(Pageable pageable);
+
+    List<Product> findAllByOrderByProductIdDesc(Pageable pageable);
+
+    @Query("SELECT oi.product FROM OrderItem oi GROUP BY oi.product " +
+            "ORDER BY SUM(oi.quantity) DESC")
+    List<Product> findBestSellingProducts(Pageable pageable);
 }

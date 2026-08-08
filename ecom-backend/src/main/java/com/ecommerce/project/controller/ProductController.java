@@ -223,4 +223,28 @@ public class ProductController {
         List<String> suggestions = productService.searchAutocomplete(query.trim());
         return new ResponseEntity<>(suggestions, HttpStatus.OK);
     }
+
+    @Tag(name = "Product")
+    @GetMapping("/public/products/best-sellers")
+    public ResponseEntity<List<ProductDTO>> getBestSellers(
+            @RequestParam(name = "limit", defaultValue = "8", required = false) int limit) {
+        List<ProductDTO> products = productService.getBestSellers(limit);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @Tag(name = "Product")
+    @GetMapping("/public/products/new-arrivals")
+    public ResponseEntity<List<ProductDTO>> getNewArrivals(
+            @RequestParam(name = "limit", defaultValue = "8", required = false) int limit) {
+        List<ProductDTO> products = productService.getNewArrivals(limit);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @Tag(name = "Product")
+    @GetMapping("/public/products/on-sale")
+    public ResponseEntity<List<ProductDTO>> getOnSaleProducts(
+            @RequestParam(name = "limit", defaultValue = "8", required = false) int limit) {
+        List<ProductDTO> products = productService.getOnSaleProducts(limit);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
 }

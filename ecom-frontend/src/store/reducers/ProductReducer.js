@@ -7,6 +7,9 @@ const initialState = {
     recentlyViewed: [],
     recommendedProducts: [],
     similarProducts: [],
+    bestSellers: [],
+    newArrivals: [],
+    onSaleProducts: [],
 };
 
 export const productReducer = (state = initialState, action ) => {
@@ -116,6 +119,24 @@ export const productReducer = (state = initialState, action ) => {
             return {
                 ...state,
                 similarProducts: action.payload,
+            };
+
+        case "SET_BEST_SELLERS":
+            return {
+                ...state,
+                bestSellers: action.payload,
+            };
+
+        case "SET_NEW_ARRIVALS":
+            return {
+                ...state,
+                newArrivals: action.payload,
+            };
+
+        case "SET_ON_SALE":
+            return {
+                ...state,
+                onSaleProducts: action.payload,
             };
 
         default:
