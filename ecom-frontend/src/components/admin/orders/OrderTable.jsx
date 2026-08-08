@@ -79,6 +79,25 @@ const OrderTable = ({adminOrder, pagination}) => {
     setTrackOpenModal(true);
   }
 
+  const handleInvoice = async (order) => {
+    try {
+      const response = await api.get(`/orders/invoice/${order.id}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${order.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Invoice downloaded');
+    } catch (error) {
+      toast.error('Failed to download invoice');
+    }
+  };
+
   return (
     <div>
       <div className='flex justify-between items-center pb-6'>
@@ -111,7 +130,7 @@ const OrderTable = ({adminOrder, pagination}) => {
           className='w-full'
           rows={tableRecords}
           // ✅ coloana Edit apare pentru admin și seller
-          columns={adminOrderTableColumn(handleEdit, canEdit, handleTrack)}
+          columns={adminOrderTableColumn(handleEdit, canEdit, handleTrack, handleInvoice)}
           paginationMode='server'
           rowCount={pagination?.totalElements || 0}
           initialState={{

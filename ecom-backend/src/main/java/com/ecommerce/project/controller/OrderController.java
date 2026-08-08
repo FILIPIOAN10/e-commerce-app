@@ -5,6 +5,7 @@ import com.ecommerce.project.model.OrderItem;
 import com.ecommerce.project.payload.*;
 
 import com.ecommerce.project.security.services.UserDetailsImpl;
+import com.ecommerce.project.service.InvoiceService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.util.AuthUtil;
@@ -26,11 +27,13 @@ public class OrderController {
     private OrderService orderService;
     private AuthUtil authUtil;
     private StripeService stripeService;
+    private InvoiceService invoiceService;
 
-    public OrderController(OrderService orderService, AuthUtil authUtil,StripeService stripeService) {
+    public OrderController(OrderService orderService, AuthUtil authUtil, StripeService stripeService, InvoiceService invoiceService) {
         this.orderService = orderService;
         this.authUtil = authUtil;
         this.stripeService = stripeService;
+        this.invoiceService = invoiceService;
     }
 
 
@@ -143,6 +146,17 @@ public class OrderController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", "orders.pdf");
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+    }
+
+    @Tag(name = "Order")
+    @GetMapping("/orders/invoice/{orderId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long orderId) {
+        byte[] pdf = invoiceService.generateInvoicePdf(orderId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "invoice-" + orderId + ".pdf");
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 }
