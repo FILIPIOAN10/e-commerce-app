@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { FaShoppingCart, FaHeart, FaStar, FaStarHalfAlt } from "react-icons/fa";
+import { FaShoppingCart, FaHeart, FaStar, FaStarHalfAlt, FaBalanceScale, FaCheck } from "react-icons/fa";
 import ProductViewModal from "./ProductViewModal";
 import truncateText from "../../utils/truncateText";
-import { useDispatch, useSelector } from "react-redux"; // ✅ adaugă useSelector
+import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { addToCart, addToWishlist } from "../../store/actions";
+import { addToCart, addToWishlist, addToCompare } from "../../store/actions";
 
 const ProductCard = ({
         productId,
@@ -31,9 +31,20 @@ const ProductCard = ({
     const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
     const { wishlist } = useSelector((state) => state.wishlist);
     const isInWishlist = wishlist?.some((w) => w.productId === productId);
+    const { compareList } = useSelector((state) => state.products);
+    const isInCompare = compareList?.some((p) => p.productId === productId);
 
     const handleAddToWishlist = () => {
         dispatch(addToWishlist(productId));
+    };
+
+    const handleAddToCompare = () => {
+        if (compareList.length >= 3) {
+            toast.error("You can compare up to 3 products");
+            return;
+        }
+        dispatch(addToCompare({ productId, productName, image, description, quantity, price, discount, specialPrice, averageRating, reviewCount, categoryName }));
+        toast.success("Added to compare");
     };
 
     const handleProductView = (product) => {
@@ -57,15 +68,27 @@ const ProductCard = ({
                 />
             </div>
             <div className="p-4 relative">
-                {!about && user?.id && !isAdmin && (
-                    <button
-                        onClick={handleAddToWishlist}
-                        className={`absolute top-3 right-3 ${isInWishlist ? "text-red-500" : "text-gray-300 hover:text-red-400"} transition text-xl`}
-                        title={isInWishlist ? "Already in wishlist" : "Add to wishlist"}
-                        disabled={isInWishlist}
-                    >
-                        <FaHeart />
-                    </button>
+                {!about && (
+                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+                        {user?.id && !isAdmin && (
+                            <button
+                                onClick={handleAddToWishlist}
+                                className={`${isInWishlist ? "text-red-500" : "text-gray-300 hover:text-red-400"} transition text-xl`}
+                                title={isInWishlist ? "Already in wishlist" : "Add to wishlist"}
+                                disabled={isInWishlist}
+                            >
+                                <FaHeart />
+                            </button>
+                        )}
+                        <button
+                            onClick={handleAddToCompare}
+                            className={`${isInCompare ? "text-blue-500" : "text-gray-300 hover:text-blue-400"} transition text-xl`}
+                            title={isInCompare ? "In compare list" : "Add to compare"}
+                            disabled={isInCompare}
+                        >
+                            {isInCompare ? <FaCheck /> : <FaBalanceScale />}
+                        </button>
+                    </div>
                 )}
                 <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">

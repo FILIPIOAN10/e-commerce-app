@@ -488,6 +488,7 @@ public class ProductServiceImpl implements ProductService {
         long reviewCount = reviewRepository.countByProduct(product);
         productDTO.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
         productDTO.setReviewCount(reviewCount);
+        productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
 
         return productDTO;
     }

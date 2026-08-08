@@ -1,6 +1,6 @@
 import { Badge } from "@mui/material";
 import { useState } from "react";
-import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck, FaMoon, FaSun } from "react-icons/fa";
+import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck, FaMoon, FaSun, FaBalanceScale } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
@@ -14,6 +14,7 @@ const Navbar = () => {
     const [navbarOpen, setNavbarOpen] = useState(false);
     const { cart } = useSelector((state) => state.carts);
     const { user } = useSelector((state) => state.auth);
+    const { compareList } = useSelector((state) => state.products);
     const { isDark, toggleTheme } = useTheme();
 
     // ✅ verifică rolul
@@ -69,6 +70,21 @@ const Navbar = () => {
                         <li className="font-medium transition-all duration-150">
                             <Link className={`${path === "/wishlist" ? "text-white font-semibold" : "text-gray-200"}`} to="/wishlist">
                                 <FaHeart size={22} />
+                            </Link>
+                        </li>
+                    )}
+
+                    {/* ✅ compare vizibil doar pentru non-admin logat */}
+                    {(user && user.id) && !isAdmin && (
+                        <li className="font-medium transition-all duration-150">
+                            <Link className={`${path === "/compare" ? "text-white font-semibold" : "text-gray-200"}`} to="/compare">
+                                <Badge
+                                    badgeContent={compareList?.length || 0}
+                                    color="secondary"
+                                    overlap="circular"
+                                    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                                    <FaBalanceScale size={22} />
+                                </Badge>
                             </Link>
                         </li>
                     )}
