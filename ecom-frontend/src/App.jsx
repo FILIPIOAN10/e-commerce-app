@@ -16,6 +16,8 @@ const Cart = lazy(() => import('./components/cart/cart'))
 const LogIn = lazy(() => import('./components/auth/Login'))
 const Register = lazy(() => import('./components/auth/Register'))
 const VerifyEmail = lazy(() => import('./components/auth/VerifyEmail'))
+const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('./components/auth/ResetPassword'))
 const Checkout = lazy(() => import('./components/checkout/Checkout'))
 const PaymentConfirmation = lazy(() => import('./components/checkout/PaymentConfirmation'))
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'))
@@ -48,6 +50,8 @@ function App() {
         <Route  path='/cart' element ={<Cart/>} />
         <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
         <Route path='/verify-email' element={<VerifyEmail />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/' element={<PrivateRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/settings" element={<ProfileSettings />} />

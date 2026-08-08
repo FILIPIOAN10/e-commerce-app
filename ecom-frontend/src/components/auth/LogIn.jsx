@@ -133,6 +133,16 @@ const LogIn = () => {
                     )}
                 </button>
 
+                {/* FORGOT PASSWORD */}
+                <div className="text-right mt-1">
+                    <Link
+                        to="/forgot-password"
+                        className="text-sm text-blue-600 hover:underline font-medium"
+                    >
+                        Forgot Password?
+                    </Link>
+                </div>
+
                 {/* OAUTH SECTION */}
                 <div className="flex flex-col gap-2 mt-2">
 
