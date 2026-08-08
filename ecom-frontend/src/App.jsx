@@ -26,6 +26,7 @@ const Sellers = lazy(() => import('./components/admin/sellers/Sellers'))
 const Coupons = lazy(() => import('./components/admin/coupons/Coupons'))
 const LowStockAlerts = lazy(() => import('./components/admin/lowstock/LowStockAlerts'))
 const Orders = lazy(() => import('./components/admin/orders/Orders'))
+const AdminReturns = lazy(() => import('./components/admin/returns/AdminReturns'))
 const Profile = lazy(() => import('./components/profile/Profile'))
 const ProfileSettings = lazy(() => import('./components/profile/ProfileSettings'))
 const ProfileOrders = lazy(() => import('./components/profile/ProfileOrders'))
@@ -63,6 +64,7 @@ function App() {
             <Route path='products' element={<AdminProducts />}/>
             <Route path='sellers' element={<Sellers />}/>
             <Route path='orders' element={<Orders />}/>
+            <Route path='returns' element={<AdminReturns />}/>
             <Route path='categories' element={<Category />}/>
             <Route path='coupons' element={<Coupons />}/>
             <Route path='low-stock' element={<LowStockAlerts />}/>

@@ -14,10 +14,14 @@ const OrderTable = ({adminOrder, pagination}) => {
 
   const [updateOpenModal, setUpdateOpenModal] = useState(false);
   const [trackOpenModal, setTrackOpenModal] = useState(false);
+  const [returnOpenModal, setReturnOpenModal] = useState(false);
+  const [returnOrderId, setReturnOrderId] = useState(null);
+  const [returnReason, setReturnReason] = useState('');
   const [selectedItem, setSelectedItem] = useState("");
   const [trackOrderId, setTrackOrderId] = useState(null);
   const [loader, setLoader] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [submittingReturn, setSubmittingReturn] = useState(false);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(
     pagination?.pageNumber + 1 || 1
@@ -98,6 +102,33 @@ const OrderTable = ({adminOrder, pagination}) => {
     }
   };
 
+  const handleReturn = (order) => {
+    setReturnOrderId(order.id);
+    setReturnReason('');
+    setReturnOpenModal(true);
+  };
+
+  const submitReturn = async () => {
+    if (!returnReason.trim()) {
+      toast.error('Please provide a reason for the return');
+      return;
+    }
+    setSubmittingReturn(true);
+    try {
+      await api.post(`/orders/${returnOrderId}/return`, { reason: returnReason });
+      toast.success('Return request submitted');
+      setReturnOpenModal(false);
+      if (pathname.includes('my-orders') || pathname.includes('profile')) {
+        window.location.reload();
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.message || 'Failed to submit return request';
+      toast.error(msg);
+    } finally {
+      setSubmittingReturn(false);
+    }
+  };
+
   return (
     <div>
       <div className='flex justify-between items-center pb-6'>
@@ -130,7 +161,7 @@ const OrderTable = ({adminOrder, pagination}) => {
           className='w-full'
           rows={tableRecords}
           // ✅ coloana Edit apare pentru admin și seller
-          columns={adminOrderTableColumn(handleEdit, canEdit, handleTrack, handleInvoice)}
+          columns={adminOrderTableColumn(handleEdit, canEdit, handleTrack, handleInvoice, !canEdit ? handleReturn : null)}
           paginationMode='server'
           rowCount={pagination?.totalElements || 0}
           initialState={{
@@ -170,6 +201,40 @@ const OrderTable = ({adminOrder, pagination}) => {
         setOpen={setTrackOpenModal}
         orderId={trackOrderId}
       />
+
+      <Modal
+        open={returnOpenModal}
+        setOpen={setReturnOpenModal}
+        title='Request Return'
+      >
+        <div className='p-4'>
+          <p className='text-sm text-gray-600 mb-3'>
+            Order #{returnOrderId} — Please provide a reason for your return request.
+          </p>
+          <textarea
+            value={returnReason}
+            onChange={(e) => setReturnReason(e.target.value)}
+            placeholder='Describe the reason for return...'
+            className='w-full border border-gray-300 rounded-md p-3 text-sm min-h-24 focus:outline-none focus:ring-2 focus:ring-orange-500'
+            rows={4}
+          />
+          <div className='flex justify-end gap-2 mt-4'>
+            <button
+              onClick={() => setReturnOpenModal(false)}
+              className='px-4 py-2 text-gray-600 hover:text-gray-800 text-sm'
+            >
+              Cancel
+            </button>
+            <button
+              onClick={submitReturn}
+              disabled={submittingReturn}
+              className='px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm disabled:opacity-50'
+            >
+              {submittingReturn ? 'Submitting...' : 'Submit Return'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

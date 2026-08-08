@@ -193,7 +193,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private static final List<String> VALID_STATUSES = List.of(
-            "Placed", "Packed", "Shipped", "Delivered", "Cancelled"
+            "Placed", "Packed", "Shipped", "Delivered", "Cancelled",
+            "Return Requested", "Returned", "Refunded"
     );
     @Override
     public OrderDTO updateOrder(Long orderId, String status) {

@@ -1,4 +1,4 @@
-import { FaEdit, FaEye, FaImage, FaImages, FaTrashAlt, FaFilePdf } from "react-icons/fa";
+import { FaEdit, FaEye, FaImage, FaImages, FaTrashAlt, FaFilePdf, FaUndo } from "react-icons/fa";
 import { MdOutlineEmail } from "react-icons/md";
 
 export const adminProductTableColumn = (
@@ -290,7 +290,7 @@ export const sellerTableColumns = [
 ];
 
 // table column for orders in admin panel
-export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleInvoice) => {
+export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleInvoice, handleReturn) => {
   const columns = [
     {
       disableColumnMenu: true,
@@ -432,6 +432,43 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
             </button>
           </div>
         );
+      },
+    });
+  }
+
+  // Add return column for non-admin users (customers)
+  if (handleReturn) {
+    columns.push({
+      field: "return",
+      headerName: "Return",
+      headerAlign: "center",
+      editable: false,
+      headerClassName: "text-black font-semibold text-center",
+      cellClassName: "text-slate-700 font-normal",
+      sortable: false,
+      width: 120,
+      renderHeader: (params) => <span>Return</span>,
+      renderCell: (params) => {
+        const status = params.row.status;
+        if (status === "Delivered") {
+          return (
+            <div className="flex justify-center items-center h-full">
+              <button
+                onClick={() => handleReturn(params.row)}
+                className="flex items-center bg-orange-500 hover:bg-orange-600 text-white px-3 h-8 rounded-md text-sm"
+              >
+                <FaUndo className="mr-1 text-xs" />
+                Return
+              </button>
+            </div>
+          );
+        }
+        if (status === "Return Requested" || status === "Returned" || status === "Refunded") {
+          return (
+            <span className="text-xs text-gray-500">{status}</span>
+          );
+        }
+        return <span className="text-xs text-gray-300">—</span>;
       },
     });
   }
