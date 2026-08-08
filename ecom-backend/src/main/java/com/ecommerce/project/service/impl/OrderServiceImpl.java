@@ -10,6 +10,7 @@ import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.EmailService;
+import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.model.Coupon;
@@ -50,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartService cartService;
     private final CouponService couponService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
@@ -157,6 +159,8 @@ public class OrderServiceImpl implements OrderService {
 
         emailService.sendOrderConfirmationEmail(emailId, orderDTO);
 
+        notificationService.notifyAdminNewOrder(savedOrder.getId(), emailId, totalAmount);
+
         return orderDTO;
     }
 
@@ -203,6 +207,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
         emailService.sendOrderStatusUpdateEmail(order.getEmail(), orderDTO);
+        notificationService.notifyUserOrderStatusChanged(orderId, order.getEmail(), status);
         return orderDTO;
     }
 

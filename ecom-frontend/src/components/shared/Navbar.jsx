@@ -7,6 +7,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
 import UserMenu from "../UserMenu";
 import { useTheme } from "../../context/ThemeContext";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
     const path = useLocation().pathname;
@@ -108,6 +109,7 @@ const Navbar = () => {
                 </ul>
 
                 <div className="flex items-center gap-3">
+                    {user?.id && <NotificationBell />}
                     <button
                         onClick={toggleTheme}
                         className="text-white hover:text-yellow-300 transition-colors text-xl"
