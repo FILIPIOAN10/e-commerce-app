@@ -43,6 +43,7 @@ function App() {
   return (
     <React.Fragment>
     <Router>
+      <div className="min-h-screen dark:bg-gray-950">
       <Navbar/>
       <Suspense fallback={<Loader />}>
       <Routes>
