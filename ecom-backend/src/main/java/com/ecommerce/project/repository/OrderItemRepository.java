@@ -17,8 +17,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
             "ORDER BY totalSold DESC LIMIT 10")
     List<Object[]> getTop10BestSellingProducts();
 
-    @Query("SELECT DISTINCT oi.product FROM OrderItem oi " +
+    @Query("SELECT oi.product FROM OrderItem oi " +
             "WHERE oi.order.email = :email " +
-            "ORDER BY oi.order.orderDate DESC")
+            "GROUP BY oi.product " +
+            "ORDER BY MAX(oi.order.orderDate) DESC")
     List<Product> findOrderedProductsByEmail(@Param("email") String email);
 }

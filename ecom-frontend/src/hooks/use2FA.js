@@ -75,11 +75,12 @@ const verify2FALogin = async (code, jwtToken) => {
         setLoading(true);
         setError(null);
         const response = await api.post(
-            `/auth/public/verify-2fa-login?code=${code}&jwtToken=${jwtToken}` // <- fix
+            '/auth/public/verify-2fa-login',
+            { code: parseInt(code), jwtToken: jwtToken }
         );
         return response.data;
     } catch (err) {
-        const errorMsg = err.response?.data || 'Invalid 2FA code';
+        const errorMsg = err.response?.data?.message || 'Invalid 2FA code';
         setError(errorMsg);
         throw err;
     } finally {
