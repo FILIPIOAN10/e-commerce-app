@@ -44,4 +44,8 @@ public interface AuthService {
     UserInfoResponse updateProfile(UpdateProfileRequest request, Authentication authentication);
     void changePassword(ChangePasswordRequest request, Authentication authentication);
     String uploadAvatar(org.springframework.web.multipart.MultipartFile file, Authentication authentication);
+
+    UserResponse getAllUsers(Pageable pageDetails);
+
+    void deleteUser(Long userId);
 }

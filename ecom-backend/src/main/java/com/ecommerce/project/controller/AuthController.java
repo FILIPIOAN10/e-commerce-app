@@ -167,6 +167,32 @@ public class AuthController {
 
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "20", required = false) Integer pageSize
+    ) {
+        Sort sortByAndOrder = Sort.by(AppConstants.SORT_USERS_BY).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        return ResponseEntity.ok(authService.getAllUsers(pageDetails));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        try {
+            Long currentUserId = authUtil.loggedInUserId();
+            if (userId.equals(currentUserId)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "You cannot delete your own account"));
+            }
+            authService.deleteUser(userId);
+            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/hint/{username}")
     public ResponseEntity<?> getPasswordHint(@PathVariable String username){

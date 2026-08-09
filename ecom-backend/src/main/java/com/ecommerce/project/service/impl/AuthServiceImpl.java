@@ -350,6 +350,29 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public UserResponse getAllUsers(Pageable pageable) {
+        Page<User> allUsers = userRepository.findAll(pageable);
+        List<UserDTO> userDTOs = allUsers.getContent()
+                .stream()
+                .map(p -> modelMapper.map(p, UserDTO.class))
+                .collect(Collectors.toList());
+        UserResponse response = new UserResponse();
+        response.setContent(userDTOs);
+        response.setPageNumber(allUsers.getNumber());
+        response.setTotalElements(allUsers.getTotalElements());
+        response.setTotalPages(allUsers.getTotalPages());
+        response.setLastPage(allUsers.isLast());
+        return response;
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        userRepository.delete(user);
+    }
+
+    @Override
     public String uploadAvatar(MultipartFile file, Authentication authentication) {
         User user = authUtil.loggedInUser();
 

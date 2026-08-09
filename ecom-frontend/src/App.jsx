@@ -37,6 +37,7 @@ const ComparePage = lazy(() => import('./components/compare/ComparePage'))
 const TrackOrder = lazy(() => import('./components/track/TrackOrder'))
 const OAuth2Redirect = lazy(() => import('./components/shared/OAuth2Redirect'))
 const NotFound = lazy(() => import('./components/shared/NotFound'))
+const AdminUsers = lazy(() => import('./components/admin/users/AdminUsers'))
 
 function App() {
   return (
@@ -75,6 +76,7 @@ function App() {
             <Route path='categories' element={<Category />}/>
             <Route path='coupons' element={<Coupons />}/>
             <Route path='low-stock' element={<LowStockAlerts />}/>
+            <Route path='users' element={<AdminUsers />}/>
           </Route>
         </Route>
 
