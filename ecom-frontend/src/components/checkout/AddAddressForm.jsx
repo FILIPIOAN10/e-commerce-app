@@ -123,7 +123,7 @@ const AddAddressForm = ({address, setOpenAddressModal}) => {
     return (
         <div className="">
             <form onSubmit={handleSubmit(onSaveAddressHandler)} className="">
-                <div className="flex justify-center items-center mb-4 font-semibold text-2xl text-slate-800 py-2 px-4">
+                <div className="flex justify-center items-center mb-4 font-semibold text-2xl text-slate-800 dark:text-white py-2 px-4">
                     <FaAddressCard className="mr-2 text-2xl"/>
                     {!address?.addressId ? "Add Address" : "Update Address"}
                 </div>

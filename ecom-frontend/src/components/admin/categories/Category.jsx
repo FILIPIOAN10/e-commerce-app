@@ -81,7 +81,7 @@ const Category = () => {
         </button>
       </div>
       {!emptyCategories && (
-        <h1 className="text-slate-800 text-3xl text-center font-bold pb-6 uppercase">
+        <h1 className="text-slate-800 dark:text-white text-3xl text-center font-bold pb-6 uppercase">
           All Categories
         </h1>
       )}
@@ -91,7 +91,7 @@ const Category = () => {
       ) : (
         <>
           {emptyCategories ? (
-            <div className="flex flex-col items-center justify-center text-gray-600 py-10">
+            <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-10">
               <FaFolderOpen size={50} className="mb-3" />
               <h2 className="text-2xl font-semibold">
                 No Categories Created Yet

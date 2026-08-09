@@ -25,12 +25,12 @@ const ProfileOrders = () => {
   return (
     <div className='pb-6 pt-20 px-4 max-w-7xl mx-auto'>
       <div className='mb-6'>
-        <h1 className='text-3xl font-bold text-gray-800'>Istoricul Meu de Comenzi</h1>
-        <p className='text-gray-500 text-sm'>Aici poți urmări starea tuturor comenzilor tale plasate.</p>
+        <h1 className='text-3xl font-bold text-gray-800 dark:text-white'>Istoricul Meu de Comenzi</h1>
+        <p className='text-gray-500 dark:text-gray-400 text-sm'>Aici poți urmări starea tuturor comenzilor tale plasate.</p>
       </div>
 
       {emptyOrder ? (
-        <div className='flex flex-col items-center justify-center text-gray-600 py-20 bg-white rounded-lg shadow-sm border border-gray-100'>
+        <div className='flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-20 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700'>
           <FaShoppingCart size={50} className='mb-3 text-gray-400' />
           <h2 className='text-2xl font-semibold'>Nu ai plasat nicio comandă încă</h2>
           <p className='text-gray-400 text-sm mt-1'>Comenzile tale finalizate vor apărea în această listă.</p>

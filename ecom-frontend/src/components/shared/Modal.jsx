@@ -22,11 +22,11 @@ function Modal({ open, setOpen, children, title = ""}) {
                         className='pointer-events-auto relative w-screen max-w-[800px] transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700'>
                             
                             {/* Structura internă a modalului cu scroll pentru conținut lung */}
-                            <div className='flex h-full flex-col overflow-y-scroll bg-white shadow-xl'>
+                            <div className='flex h-full flex-col overflow-y-scroll bg-white dark:bg-gray-800 shadow-xl'>
                                 
                                 {/* Header-ul pentru accesibilitate (Title cerut de Headless UI) */}
                                 <div className='px-4 sm:px-6'>
-                                    <DialogTitle className='text-base font-semibold leading-6 text-gray-900'>
+                                    <DialogTitle className='text-base font-semibold leading-6 text-gray-900 dark:text-gray-100'>
                                         Panel Title
                                     </DialogTitle>
                                 </div>
@@ -35,10 +35,10 @@ function Modal({ open, setOpen, children, title = ""}) {
                                 <div className='relative mt-6 flex-1 p-8'>
                                     {/* Header vizual cu Titlu și Buton de Închidere */}
                                     <div className='border-b pb-8 flex justify-between'>
-                                        <h1 className='font-montserrat font-bold text-slate-800 text-2xl pt-4'>{title}</h1>
+                                        <h1 className='font-montserrat font-bold text-slate-800 dark:text-white text-2xl pt-4'>{title}</h1>
                                         {/* Buton care apelează setOpen(false) la click */}
                                         <button onClick={() => setOpen(false)}>
-                                            <RxCross1 className='text-slate-800 text-2xl'/>
+                                            <RxCross1 className='text-slate-800 dark:text-white text-2xl'/>
                                         </button>
                                     </div>    
                                     

@@ -28,14 +28,14 @@ const AddressList = ({ addresses, setSelectedAddress, setOpenAddressModal,setOpe
         <div
             key={address.addressId}
             onClick={() => handleAddressSelection(address)}
-            className={`p-4 border rounded-md cursor-pointer relative ${
+            className={`p-4 border dark:border-gray-700 rounded-md cursor-pointer relative ${
                 selectedUserCheckoutAddress?.addressId === address.addressId
-                ? "bg-green-100":"bg-white"
+                ? "bg-green-100 dark:bg-green-900/30":"bg-white dark:bg-gray-800"
             }`}>
                 <div className="flex items-start">
                     <div className="space-y-1">
                         <div className="flex items-center">
-                            <FaBuilding size={17} className='mr-2 text-gray-600'/> 
+                            <FaBuilding size={17} className='mr-2 text-gray-600 dark:text-gray-400'/> 
                             <p className='font-semibold'>{address.buildingName}</p>
 
                             {selectedUserCheckoutAddress?.addressId === address.addressId && (
@@ -45,23 +45,23 @@ const AddressList = ({ addresses, setSelectedAddress, setOpenAddressModal,setOpe
 
 
                         <div className="flex items-center">
-                            <FaStreetView size={17} className='mr-2 text-gray-600'/> 
+                            <FaStreetView size={17} className='mr-2 text-gray-600 dark:text-gray-400'/> 
                             <p>{address.street}</p>
                         </div>     
 
                         <div className="flex items-center">
-                            <MdLocationCity size={17} className='mr-2 text-gray-600'/> 
+                            <MdLocationCity size={17} className='mr-2 text-gray-600 dark:text-gray-400'/> 
                             <p>{address.city}, {address.state}</p>
                         </div>  
 
 
                         <div className="flex items-center">
-                            <MdPinDrop size={17} className='mr-2 text-gray-600'/> 
+                            <MdPinDrop size={17} className='mr-2 text-gray-600 dark:text-gray-400'/> 
                             <p>{address.pincode}</p>
                         </div>  
 
                         <div className="flex items-center">
-                            <MdPublic size={17} className='mr-2 text-gray-600'/> 
+                            <MdPublic size={17} className='mr-2 text-gray-600 dark:text-gray-400'/> 
                             <p>{address.country}</p>
                         </div>  
                      </div>   

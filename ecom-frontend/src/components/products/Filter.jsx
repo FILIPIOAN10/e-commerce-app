@@ -154,7 +154,7 @@ const Filter = ({categories}) => {
                   {/*Category Selection*/}
                   <div className="flex sm:flex-row  flex-col gap-4 items-center">
                     <FormControl
-                        className="text-slate-800 border-slate-700" 
+                        className="text-slate-800 dark:text-gray-200 border-slate-700 dark:border-gray-600" 
                         variant="outlined"
                         size="small">
                             <InputLabel id ="category-select-label">Category</InputLabel>
@@ -163,7 +163,7 @@ const Filter = ({categories}) => {
                                 value={category}
                                 onChange={handleCategoryChange}
                                 label ="Category"
-                                className="min-w-30 text-slate-800 border-slate-700"
+                                className="min-w-30 text-slate-800 dark:text-gray-200 border-slate-700 dark:border-gray-600"
                                 >
                                     <MenuItem value ="all">All</MenuItem>
                                     {categories.map ((item) => (

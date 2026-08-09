@@ -39,7 +39,7 @@ const ComparePage = () => {
     if (!compareList || compareList.length === 0) {
         return (
             <div className="lg:px-14 sm:px-8 px-4 py-20 dark:bg-gray-950 dark:text-white min-h-screen">
-                <div className="flex flex-col items-center justify-center text-gray-600 py-20">
+                <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-20">
                     <FaBalanceScale size={60} className="mb-4 text-gray-400" />
                     <h2 className="text-2xl font-semibold dark:text-white">No products to compare</h2>
                     <p className="text-gray-400 text-sm mt-2 mb-6">

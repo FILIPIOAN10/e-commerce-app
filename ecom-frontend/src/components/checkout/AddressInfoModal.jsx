@@ -11,7 +11,7 @@ const AddressInfoModal = ({open,setOpen,children}) => {
         {/* Full-screen container to center the panel */}
         <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
           {/* The actual dialog panel  */}
-          <DialogPanel className="relative w-full max-w-md mx-auto transform overflow-hidden bg-white rounded-lg shadow-xl transition-all">
+          <DialogPanel className="relative w-full max-w-md mx-auto transform overflow-hidden bg-white dark:bg-gray-800 rounded-lg shadow-xl transition-all">
 
            <div className='px-6 py-6'>
                 {children}
@@ -19,7 +19,7 @@ const AddressInfoModal = ({open,setOpen,children}) => {
             </div>
             <div className='flext justify-end gap-4 absolute right-4 top-2'>
                 <button onClick={() => setOpen(false)} type='button' >
-                    <FaTimes className='text-slate-700' size={25}/>
+                    <FaTimes className='text-slate-700 dark:text-gray-300' size={25}/>
                 </button>
             </div>
           </DialogPanel>

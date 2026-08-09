@@ -17,7 +17,7 @@ const Loader = ({text}) =>{
                     wrapperStyle={{}}
                     wrapperClass=""
                     />
-                    <p className="text-slate-800">
+                    <p className="text-slate-800 dark:text-white">
                         {text ? text : "Please wait...."}
                     </p>
             </div>

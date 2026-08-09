@@ -40,7 +40,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
           <div className="flex min-h-full items-center justify-center p-4">
             <DialogPanel
               transition
-              className="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all md:max-w-155 md:min-w-155 w-full"
+              className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl transition-all md:max-w-155 md:min-w-155 w-full"
             >
                 {galleryImages.length > 0 && (
                     <div className='relative flex justify-center aspect-3/2'>
@@ -53,15 +53,15 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                       <>
                         <button
                           onClick={handlePrev}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-700 p-2 rounded-full shadow-md transition"
                         >
-                          <FaChevronLeft className="text-gray-700" />
+                          <FaChevronLeft className="text-gray-700 dark:text-gray-200" />
                         </button>
                         <button
                           onClick={handleNext}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-700 p-2 rounded-full shadow-md transition"
                         >
-                          <FaChevronRight className="text-gray-700" />
+                          <FaChevronRight className="text-gray-700 dark:text-gray-200" />
                         </button>
                       </>
                     )}
@@ -69,7 +69,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                 )}
 
                 {hasGallery && (
-                  <div className="flex justify-center gap-2 px-4 py-3 bg-gray-50">
+                  <div className="flex justify-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-900">
                     {galleryImages.map((img, index) => (
                       <img
                         key={index}
@@ -88,19 +88,19 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
 
                 <div className='px-6 pt-10 pb-2'>
-                <DialogTitle as="h1" className="lg:text-3xl sm:text-2xl text-xl font-semibold leading-6 text-gray-800 mb-4">
+                <DialogTitle as="h1" className="lg:text-3xl sm:text-2xl text-xl font-semibold leading-6 text-gray-800 dark:text-gray-100 mb-4">
                 {productName}
               </DialogTitle>
 
 
-              <div className="space-y-2 text-gray-700 pb-4">
+              <div className="space-y-2 text-gray-700 dark:text-gray-300 pb-4">
                 <div className="flex items-center justify-between gap-2">
                   {specialPrice ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400 line-through">
+                      <span className="text-gray-400 dark:text-gray-500 line-through">
                         ${Number(price).toFixed(2)}
                       </span>
-                      <span className="sm:text-xl font-semibold text-slate-700">
+                      <span className="sm:text-xl font-semibold text-slate-700 dark:text-gray-200">
                         ${Number(specialPrice).toFixed(2)}
                       </span>
                     </div>
@@ -142,7 +142,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
               <button
                 onClick={() => setOpen(false)}
                 type="button"
-                className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-700 hover:text-slate-800 hover:border-slate-800 rounded-md "
+                className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-gray-200 border border-slate-700 dark:border-gray-600 hover:text-slate-800 dark:hover:text-white hover:border-slate-800 dark:hover:border-gray-400 rounded-md "
               >
                 Close
               </button>
