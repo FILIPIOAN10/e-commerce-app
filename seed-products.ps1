@@ -1,22 +1,74 @@
 $baseUrl = "http://localhost:8080"
+$session = $null
+$jwtToken = $null
 
-# 1. Login as admin
+# Helper: Get fresh CSRF token from session cookies
+function Get-CsrfToken {
+    $cookie = $script:session.Cookies.GetCookies($script:baseUrl) | Where-Object { $_.Name -eq "XSRF-TOKEN" }
+    if ($cookie) { return $cookie.Value }
+    # If no cookie yet, do a GET to trigger token generation
+    Invoke-RestMethod -Uri "$($script:baseUrl)/api/public/products" -Method Get -WebSession $script:session | Out-Null
+    $cookie = $script:session.Cookies.GetCookies($script:baseUrl) | Where-Object { $_.Name -eq "XSRF-TOKEN" }
+    if ($cookie) { return $cookie.Value }
+    return $null
+}
+
+# Helper: Build headers with fresh CSRF token
+function Get-AuthHeaders {
+    $csrf = Get-CsrfToken
+    return @{
+        Authorization = "Bearer $($script:jwtToken)"
+        "Content-Type" = "application/json"
+        "X-XSRF-TOKEN" = $csrf
+    }
+}
+
+# Helper: POST with automatic CSRF refresh + retry on 403
+function Invoke-PostWithCsrf {
+    param([string]$Uri, [string]$Body)
+    $maxRetries = 2
+    for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+        $h = Get-AuthHeaders
+        try {
+            return Invoke-RestMethod -Uri $Uri -Method Post -Body $Body -Headers $h -WebSession $script:session
+        } catch {
+            if ($_.Exception.Response.StatusCode -eq 403 -and $attempt -lt $maxRetries) {
+                # CSRF token stale — do a GET to refresh, then retry
+                Invoke-RestMethod -Uri "$($script:baseUrl)/api/public/products" -Method Get -WebSession $script:session | Out-Null
+                Start-Sleep -Milliseconds 100
+                continue
+            }
+            throw
+        }
+    }
+}
+
+# 1. Initialize session + get first CSRF token
+Write-Host "=== Getting CSRF token ===" -ForegroundColor Cyan
+try {
+    Invoke-RestMethod -Uri "$baseUrl/api/public/products" -Method Get -SessionVariable session | Out-Null
+    $csrfToken = Get-CsrfToken
+    Write-Host "Got CSRF token: $($csrfToken.Substring(0,10))..." -ForegroundColor Green
+} catch {
+    Write-Host "Failed to get CSRF token: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+# 2. Login as admin (auth endpoints are CSRF-exempt, but use session for cookies)
 Write-Host "=== Logging in as admin ===" -ForegroundColor Cyan
 $loginBody = @{ username = "admin"; password = "adminPass" } | ConvertTo-Json
 try {
-    $loginResp = Invoke-RestMethod -Uri "$baseUrl/api/auth/signin" -Method Post -Body $loginBody -ContentType "application/json"
-    $token = $loginResp.jwtToken
-    if (-not $token) { Write-Host "No token received. Check admin credentials." -ForegroundColor Red; exit 1 }
-    Write-Host "Got token: $($token.Substring(0,20))..." -ForegroundColor Green
+    $loginResp = Invoke-RestMethod -Uri "$baseUrl/api/auth/signin" -Method Post -Body $loginBody -ContentType "application/json" -WebSession $session
+    $jwtToken = $loginResp.jwtToken
+    if (-not $jwtToken) { Write-Host "No token received. Check admin credentials." -ForegroundColor Red; exit 1 }
+    Write-Host "Got token: $($jwtToken.Substring(0,20))..." -ForegroundColor Green
 } catch {
     Write-Host "Login failed: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host "Make sure you have an admin user. Sign up first, then manually set ROLE_ADMIN in DB." -ForegroundColor Yellow
     exit 1
 }
 
-$headers = @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" }
-
-# 2. Create 5 categories
+# 3. Create 5 categories
 Write-Host "`n=== Creating categories ===" -ForegroundColor Cyan
 $categories = @("Electronics", "Clothing", "Home & Garden", "Sports", "Books")
 $categoryIds = @{}
@@ -24,7 +76,7 @@ $categoryIds = @{}
 foreach ($cat in $categories) {
     $catBody = @{ categoryName = $cat } | ConvertTo-Json
     try {
-        $resp = Invoke-RestMethod -Uri "$baseUrl/api/admin/categories" -Method Post -Body $catBody -Headers $headers
+        $resp = Invoke-PostWithCsrf -Uri "$baseUrl/api/admin/categories" -Body $catBody
         $categoryIds[$cat] = $resp.categoryId
         Write-Host "  Created: $cat (ID=$($resp.categoryId))" -ForegroundColor Green
     } catch {
@@ -32,7 +84,7 @@ foreach ($cat in $categories) {
     }
 }
 
-# 3. Product data per category
+# 4. Product templates per category
 $productTemplates = @{
     "Electronics" = @(
         @{ name = "Wireless Headphones"; desc = "Premium noise-cancelling Bluetooth headphones with 30h battery life"; tags = "audio,bluetooth,wireless" },
@@ -146,42 +198,49 @@ $productTemplates = @{
     )
 }
 
-# 4. Create 100 products
-Write-Host "`n=== Creating 100 products ===" -ForegroundColor Cyan
+# 5. Create 1000 products (10 batches x 100 templates with suffix)
+Write-Host "`n=== Creating 1000 products ===" -ForegroundColor Cyan
 $count = 0
-foreach ($catName in $categoryIds.Keys) {
-    $catId = $categoryIds[$catName]
-    $products = $productTemplates[$catName]
+$batches = 10
 
-    for ($i = 0; $i -lt $products.Count; $i++) {
-        $p = $products[$i]
-        $count++
-        $seed = Get-Random -Minimum 1 -Maximum 10000
-        $imageUrl = "https://picsum.photos/seed/$seed/400/400"
+for ($batch = 1; $batch -le $batches; $batch++) {
+    $suffix = if ($batch -eq 1) { "" } else { " v$batch" }
 
-        $price = [math]::Round((Get-Random -Minimum 10 -Maximum 500) + (Get-Random -Minimum 0 -Maximum 99) / 100, 2)
-        $discount = Get-Random -Minimum 0 -Maximum 30
-        $specialPrice = [math]::Round($price - ($price * $discount / 100), 2)
-        $quantity = Get-Random -Minimum 5 -Maximum 200
+    foreach ($catName in $categoryIds.Keys) {
+        $catId = $categoryIds[$catName]
+        $products = $productTemplates[$catName]
 
-        $body = @{
-            productName  = $p.name
-            description  = $p.desc
-            tags         = $p.tags
-            image        = $imageUrl
-            quantity     = $quantity
-            price        = $price
-            discount     = $discount
-            specialPrice = $specialPrice
-        } | ConvertTo-Json
+        for ($i = 0; $i -lt $products.Count; $i++) {
+            $p = $products[$i]
+            $count++
+            $seed = Get-Random -Minimum 1 -Maximum 100000
+            $imageUrl = "https://picsum.photos/seed/$seed/400/400"
 
-        try {
-            $resp = Invoke-RestMethod -Uri "$baseUrl/api/admin/categories/$catId/product" -Method Post -Body $body -Headers $headers
-            Write-Host "  [$count] $($p.name) -> cat=$catName price=$price qty=$quantity" -ForegroundColor Green
-        } catch {
-            Write-Host "  [$count] FAILED: $($p.name) - $($_.Exception.Message)" -ForegroundColor Red
+            $price = [math]::Round((Get-Random -Minimum 10 -Maximum 500) + (Get-Random -Minimum 0 -Maximum 99) / 100, 2)
+            $discount = Get-Random -Minimum 0 -Maximum 30
+            $specialPrice = [math]::Round($price - ($price * $discount / 100), 2)
+            $quantity = Get-Random -Minimum 5 -Maximum 200
+
+            $body = @{
+                productName  = "$($p.name)$suffix"
+                description  = $p.desc
+                tags         = $p.tags
+                image        = $imageUrl
+                quantity     = $quantity
+                price        = $price
+                discount     = $discount
+                specialPrice = $specialPrice
+            } | ConvertTo-Json
+
+            try {
+                $resp = Invoke-PostWithCsrf -Uri "$baseUrl/api/admin/categories/$catId/product" -Body $body
+                if ($count % 50 -eq 0) { Write-Host "  [$count] $($p.name)$suffix -> cat=$catName" -ForegroundColor Green }
+            } catch {
+                Write-Host "  [$count] FAILED: $($p.name)$suffix - $($_.Exception.Message)" -ForegroundColor Red
+            }
         }
     }
+    Write-Host "  --- Batch $batch/$batches complete ($count products) ---" -ForegroundColor Yellow
 }
 
 Write-Host "`n=== Done! Created $count products across $($categoryIds.Count) categories ===" -ForegroundColor Cyan
