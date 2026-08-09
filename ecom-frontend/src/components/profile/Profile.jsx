@@ -5,7 +5,6 @@ import { FaUserCircle, FaCog } from 'react-icons/fa';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
-  console.log("User-ul curent din Redux în Profile:", user);
   const isAdmin = user?.roles?.includes("ROLE_ADMIN");
   const isSeller = user?.roles?.includes("ROLE_SELLER");
 
@@ -35,12 +34,11 @@ const Profile = () => {
             <p className="text-lg font-semibold dark:text-white">{user?.username}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
             {user?.phone && <p className="text-sm text-slate-500 dark:text-slate-400">{user?.phone}</p>}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <span className="font-medium">{isAdmin ? "Admin" : isSeller ? "Seller" : "User"}</span>
+            </p>
           </div>
         </div>
-        <p className="dark:text-white"><strong className="dark:text-white">Username:</strong> {user?.username}</p>
-        <p className="dark:text-white"><strong className="dark:text-white">Email:</strong> {user?.email}</p>
-        {user?.phone && <p className="dark:text-white"><strong className="dark:text-white">Phone:</strong> {user?.phone}</p>}
-        <p className="dark:text-white"><strong className="dark:text-white">Rol:</strong> {isAdmin ? "Admin" : isSeller ? "Seller" : "User"}</p>
       </div>
 
       {/* Two-Factor Authentication Settings */}

@@ -1,26 +1,50 @@
-import { FaEnvelope, FaMapMarkedAlt, FaPhone } from "react-icons/fa";
+import { useState } from "react";
+import { FaEnvelope, FaMapMarkedAlt, FaPhone, FaPaperPlane } from "react-icons/fa";
+import api from "../api/api";
+import toast from "react-hot-toast";
+import Spinners from "./shared/Spinners";
 
-const Contact = () =>{
-    return(
-        <div
-        
-        className="flex flex-col items-center justify-center min-h-screen py-12 bg-cover bg-center"
-        style={{backgroundImage: "url('https://images.pexels.com/photos/35564236/pexels-photo-35564236.jpeg?_gl=1*1pym54a*_ga*MTg4MjYxMjg4My4xNzY3OTAxNTk5*_ga_8JE65Q40S6*czE3Njc5MDE1OTkkbzEkZzEkdDE3Njc5MDE2NDYkajEzJGwwJGgw')"}}
-        >
+const Contact = () => {
+    const [loader, setLoader] = useState(false);
+    const [form, setForm] = useState({ name: "", email: "", message: "" });
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoader(true);
+        try {
+            const { data } = await api.post("/public/contact", form);
+            toast.success(data.message || "Message sent successfully!");
+            setForm({ name: "", email: "", message: "" });
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Failed to send message.");
+        } finally {
+            setLoader(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen py-12 bg-gradient-to-br from-slate-100 to-blue-50 dark:from-gray-950 dark:to-gray-900">
             <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg dark:bg-gray-800 dark:text-white">
                 <h1 className="text-4xl font-bold text-center mb-6 dark:text-white">
-                  Contact us  
+                    Contact us
                 </h1>
                 <p className="text-gray-600 text-center mb-4 dark:text-gray-300">
                     We would love to hear from you! Please fill out the form below or contact us directly
                 </p>
-                <form className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Name
                         </label>
-                        <input 
+                        <input
                             type="text"
+                            name="name"
+                            value={form.name}
+                            onChange={handleChange}
                             required
                             className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
@@ -30,8 +54,11 @@ const Contact = () =>{
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Email
                         </label>
-                        <input 
+                        <input
                             type="email"
+                            name="email"
+                            value={form.email}
+                            onChange={handleChange}
                             required
                             className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
@@ -40,18 +67,33 @@ const Contact = () =>{
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Message
                         </label>
-                        <textarea 
+                        <textarea
                             rows="4"
+                            name="message"
+                            value={form.message}
+                            onChange={handleChange}
                             required
                             className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                     </div>
-                    <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">
-                        Send Message
+                    <button
+                        type="submit"
+                        disabled={loader}
+                        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                        {loader ? (
+                            <>
+                                <Spinners /> Sending...
+                            </>
+                        ) : (
+                            <>
+                                <FaPaperPlane /> Send Message
+                            </>
+                        )}
                     </button>
                 </form>
                 <div className="mt-8 text-center">
-                    <h2 className="text-lg font font-semibold">
+                    <h2 className="text-lg font-semibold dark:text-white">
                         Contact Information
                     </h2>
                     <div className="flex flex-col items-center space-y-2 mt-4">
@@ -69,12 +111,12 @@ const Contact = () =>{
                             <span className="text-gray-600 dark:text-gray-300">Strada Salcamilor Nr 1</span>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
-         
+
         </div>
-    )
-}
+    );
+};
 
 export default Contact;

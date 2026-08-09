@@ -25,7 +25,7 @@ const Cart = () => {
                     <MdShoppingCart size={36} className="text-gray-700"/>
                    Your Cart 
                 </h1>
-                <p className="text-lg text-gray-600 mt-2">All your selectred items</p>
+                <p className="text-lg text-gray-600 mt-2">All your selected items</p>
             </div>
             <div className="grid md:grid-cols-5 grid-cols-4 gap-4 pb-2 font-semibold items-center">
                 <div className="md:col-span-2 justify-self-start text-lg text-slate-800 lg:ps-4">
@@ -47,7 +47,7 @@ const Cart = () => {
 
             <div className="flex flex-col">
                 {cart && cart.length > 0 &&
-                 cart.map((item,i) => <ItemContent key={i}  {...item}/>)}
+                 cart.map((item,i) => <ItemContent key={item.productId}  {...item}/>)}
             </div>
             <div className="border-t-[1.5px] border-slate-200 py-4 flex sm:flex-row sm:px-0 flex-col sm:justify-between gap-4">
                 <div></div>

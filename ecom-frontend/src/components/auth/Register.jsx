@@ -24,7 +24,6 @@ const Register = () => {
     });
 
     const registerHandler = async (data) => {
-        console.log("Register Click");
         dispatch(registerNewUser(data,toast,reset,navigate,setLoader));
 
     };

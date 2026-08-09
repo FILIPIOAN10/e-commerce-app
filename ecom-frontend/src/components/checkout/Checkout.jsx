@@ -1,4 +1,4 @@
-import { Button, checkboxClasses, Step, StepLabel, Stepper } from '@mui/material';
+import { Button, Step, StepLabel, Stepper } from '@mui/material';
 import React, { useEffect, useState } from 'react'
 import AddressInfo from './AddressInfo';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,8 +16,6 @@ const Checkout = () => {
     const [activeStep,setActiveStep] = useState(0);
     const {isLoading ,errorMessage} = useSelector((state)=> state.errors);
     const {cart ,totalPrice} = useSelector((state)=> state.carts);
-    console.log("DEBUG cart:", cart);
-    console.log("DEBUG totalPrice:", totalPrice);
     const dispatch = useDispatch();
 
     const {address,selectedUserCheckoutAddress} = useSelector(
