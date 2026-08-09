@@ -48,7 +48,6 @@ const LogIn = () => {
     };
 
     const loginHandler = async (data) => {
-        console.log("Login Click");
         dispatch(authenticateSignInUser(
             data, 
             toast, 

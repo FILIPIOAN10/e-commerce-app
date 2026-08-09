@@ -34,7 +34,9 @@ const ProfileSettings = lazy(() => import('./components/profile/ProfileSettings'
 const ProfileOrders = lazy(() => import('./components/profile/ProfileOrders'))
 const Wishlist = lazy(() => import('./components/wishlist/Wishlist'))
 const ComparePage = lazy(() => import('./components/compare/ComparePage'))
+const TrackOrder = lazy(() => import('./components/track/TrackOrder'))
 const OAuth2Redirect = lazy(() => import('./components/shared/OAuth2Redirect'))
+const NotFound = lazy(() => import('./components/shared/NotFound'))
 
 function App() {
   return (
@@ -80,7 +82,9 @@ function App() {
           <Route path='/profile/orders' element={<ProfileOrders />} />
           <Route path='/wishlist' element={<Wishlist />} />
           <Route path='/compare' element={<ComparePage />} />
+          <Route path='/track-order' element={<TrackOrder />} />
         </Route>
+        <Route path='*' element={<NotFound />} />
       </Routes>
       </Suspense>
     </Router>

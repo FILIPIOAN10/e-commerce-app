@@ -18,6 +18,7 @@ const ProductCard = ({
         images,
         averageRating,
         reviewCount,
+        categoryName,
         about = false,
 }) => {
     const [openProductViewModal, setOpenProductViewModal] = useState(false);

@@ -120,4 +120,13 @@ public class EmailService {
         message.setText(text.toString());
         mailSender.send(message);
     }
+
+    public void sendContactMessage(String name, String email, String userMessage) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(fromEmail);
+        message.setSubject("Contact Form Message from " + name);
+        message.setText("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + userMessage);
+        mailSender.send(message);
+    }
 }
