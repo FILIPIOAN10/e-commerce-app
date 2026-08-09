@@ -40,7 +40,7 @@ const Register = () => {
                         Register Here
                     </h1>
                 </div>
-                <hr className="mt-2 mb-5 text-black"/>
+                <hr className="mt-2 mb-5 text-black dark:border-gray-600"/>
                 <div className="flex flex-col gap-3">
                     <InputField
                     
@@ -92,10 +92,10 @@ const Register = () => {
                     />
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-slate-700 font-medium text-sm">Role</label>
+                        <label className="text-slate-700 dark:text-gray-300 font-medium text-sm">Role</label>
                         <select
                             {...register("role", { required: true })}
-                            className="border border-gray-300 rounded-sm px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-sm px-3 py-2 text-slate-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400"
                         >
                             <option value="">Select a role</option>
                             <option value="ROLE_USER">User</option>
@@ -126,10 +126,10 @@ const Register = () => {
                     )}
                   
                 </button>
-                <p className="text-center text-sm text-slate-700 mt-6">
+                <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Already have an account?
                     <Link 
-                    className="font-semibold underline hover:text-black"
+                    className="font-semibold underline hover:text-black dark:hover:text-white"
                     to="/login"
                     >
                     <span>Login</span>

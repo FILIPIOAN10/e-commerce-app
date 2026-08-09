@@ -313,3 +313,56 @@
     font-size: 13px;
   }
 }
+
+/* Dark mode */
+.dark .verify-2fa-login-card {
+  background: #1f2937;
+}
+
+.dark .verify-2fa-header {
+  border-bottom: 1px solid #374151;
+}
+
+.dark .email-info {
+  background-color: #111827;
+}
+
+.dark .email-label {
+  color: #9ca3af;
+}
+
+.dark .email-value {
+  color: #f3f4f6;
+}
+
+.dark .instruction-text {
+  color: #d1d5db;
+}
+
+.dark .form-label {
+  color: #f3f4f6;
+}
+
+.dark .form-control {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+.dark .form-control:disabled {
+  background-color: #1f2937;
+}
+
+.dark .code-hint {
+  color: #9ca3af;
+}
+
+.dark .btn-secondary {
+  background-color: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+.dark .btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
