@@ -90,6 +90,7 @@ function App() {
         <Route path='*' element={<NotFound />} />
       </Routes>
       </Suspense>
+      </div>
     </Router>
     <Toaster position='bottom-center'/>
     </React.Fragment>
