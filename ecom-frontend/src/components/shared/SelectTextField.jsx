@@ -12,21 +12,21 @@ const SelectTextField = ({
         <div className="flex flex-col gap-2 w-full">
             <label
                 htmlFor="id"
-                className="font-semibold text-sm text-slate-800">
+                className="font-semibold text-sm text-slate-800 dark:text-gray-200">
                 {label}
             </label>
         
             <div className="relative">
                 <ListboxButton 
-                className={`relative text-sm py-2 rounded-md border border-slate-700  w-full cursor-default  bg-white  text-left text-gray-600 sm:text-sm sm:leading-6`}>
+                className={`relative text-sm py-2 rounded-md border border-slate-700 dark:border-gray-600 w-full cursor-default bg-white dark:bg-gray-700 text-left text-gray-600 dark:text-gray-200 sm:text-sm sm:leading-6`}>
                     <span className="block truncate ps-2">{select?.categoryName}</span>
                 </ListboxButton>
                 <ListboxOptions
                     transition
-                    className="absolute z-10 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-opacity-5 ring-black focus:outline-hidden">
+                    className="absolute z-10 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-700 py-1 text-base shadow-lg ring-1 ring-opacity-5 ring-black focus:outline-hidden">
                     {lists?.map((category) => (
                     <ListboxOption key={category.categoryId} value={category} 
-                    className="group relative cursor-default py-2 pl-3 pr-9 text-gray-900 data-focus:bg-indigo-600 data-focus:text-white">
+                    className="group relative cursor-default py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 data-focus:bg-indigo-600 data-focus:text-white">
                         <span className="block truncate font-semibold group-data-selected:font-semibold">
                             {category.categoryName}
                         </span>

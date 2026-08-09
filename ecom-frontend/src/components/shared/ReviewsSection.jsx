@@ -51,7 +51,7 @@ const ReviewsSection = ({ productId }) => {
     const myReview = reviews.find((r) => r.username === user?.username);
 
     return (
-        <div className="mt-6 border-t pt-4">
+        <div className="mt-6 border-t pt-4 dark:text-gray-200">
             <h3 className="text-lg font-semibold mb-3">
                 Reviews {totalReviews > 0 && `(${totalReviews})`}
             </h3>
@@ -66,14 +66,14 @@ const ReviewsSection = ({ productId }) => {
                             />
                         ))}
                     </div>
-                    <span className="text-sm font-medium text-gray-600">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                         {Number(averageRating).toFixed(1)} / 5
                     </span>
                 </div>
             )}
 
             {user && !user.roles?.includes("ROLE_ADMIN") && (
-                <form onSubmit={handleSubmit} className="mb-6 bg-gray-50 p-4 rounded-lg">
+                <form onSubmit={handleSubmit} className="mb-6 bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-3">
                         <span className="text-sm font-medium">Your rating:</span>
                         <div className="flex">
@@ -96,7 +96,7 @@ const ReviewsSection = ({ productId }) => {
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Write your review..."
-                        className="w-full border rounded-lg p-2 text-sm mb-3 min-h-20"
+                        className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg p-2 text-sm mb-3 min-h-20"
                         maxLength={500}
                     />
                     <div className="flex gap-2">
@@ -114,7 +114,7 @@ const ReviewsSection = ({ productId }) => {
                                     setComment("");
                                     setRating(5);
                                 }}
-                                className="border px-4 py-2 rounded-lg text-sm font-medium"
+                                className="border dark:border-gray-600 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium"
                             >
                                 Cancel
                             </button>
@@ -124,7 +124,7 @@ const ReviewsSection = ({ productId }) => {
                                 <button
                                     type="button"
                                     onClick={() => handleEdit(myReview)}
-                                    className="border px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1"
+                                    className="border dark:border-gray-600 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1"
                                 >
                                     <FaEdit /> Edit
                                 </button>
@@ -142,14 +142,14 @@ const ReviewsSection = ({ productId }) => {
             )}
 
             {reviews.length === 0 ? (
-                <p className="text-gray-500 text-sm">No reviews yet. Be the first to review!</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No reviews yet. Be the first to review!</p>
             ) : (
                 <div className="space-y-4 max-h-80 overflow-y-auto">
                     {reviews.map((review) => (
-                        <div key={review.reviewId} className="border-b pb-3">
+                        <div key={review.reviewId} className="border-b dark:border-gray-700 pb-3">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="font-medium text-sm">{review.username}</span>
-                                <span className="text-xs text-gray-400">{review.createdAt}</span>
+                                <span className="text-xs text-gray-400 dark:text-gray-500">{review.createdAt}</span>
                             </div>
                             <div className="flex mb-1">
                                 {[1, 2, 3, 4, 5].map((star) => (
@@ -159,7 +159,7 @@ const ReviewsSection = ({ productId }) => {
                                     />
                                 ))}
                             </div>
-                            <p className="text-sm text-gray-600">{review.comment}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{review.comment}</p>
                         </div>
                     ))}
                 </div>

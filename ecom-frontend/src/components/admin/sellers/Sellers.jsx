@@ -36,7 +36,7 @@ const Sellers = () => {
       </div>
 
       {!emptySellers && (
-        <h1 className="text-slate-800 text-3xl text-center font-bold pb-6 uppercase">
+        <h1 className="text-slate-800 dark:text-white text-3xl text-center font-bold pb-6 uppercase">
           All Sellers
         </h1>
       )}
@@ -47,7 +47,7 @@ const Sellers = () => {
         <>
           {emptySellers ? (
             <>
-              <div className="flex flex-col items-center justify-center text-gray-600 py-10">
+              <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-10">
                 <h2 className="text-2xl font-semibold">
                   No Seller Created Yet
                 </h2>

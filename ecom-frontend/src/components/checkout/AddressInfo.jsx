@@ -38,11 +38,11 @@ const AddressInfo = ({address}) => {
       {noAddressExist ?(
         <div className='p-6 rounded-lg max-w-md mx-auto flex flex-col items-center justify-center'>
             <FaAddressBook size={50} className='text-gray-500 mb-4'/>
-            <h1 className= ' mb-2 text-slate-900 text-center font-semibold text-2xl'> 
+            <h1 className= ' mb-2 text-slate-900 dark:text-white text-center font-semibold text-2xl'> 
                 No Address Added Yet
             </h1>
 
-            <p className= 'mb-6 text-slate-800 text-center'> 
+            <p className= 'mb-6 text-slate-800 dark:text-gray-300 text-center'> 
                 Please add you address to complete purchase
             </p>
             <button
@@ -54,7 +54,7 @@ const AddressInfo = ({address}) => {
         </div>
       ) : (
         <div className='relative p-6 rounded-lg max-w-md mx-auto'>
-            <h1 className='text-slate-800 text-center font-bold text-2xl'> 
+            <h1 className='text-slate-800 dark:text-white text-center font-bold text-2xl'> 
                 Select Address
             </h1>
             {isLoading ?(

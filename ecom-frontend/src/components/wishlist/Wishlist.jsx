@@ -36,7 +36,7 @@ const Wishlist = () => {
 
     return (
         <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
-            <h1 className="text-2xl font-bold text-slate-800 mb-8 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-8 flex items-center gap-2">
                 <FaHeart className="text-red-500" />
                 My Wishlist
             </h1>
@@ -60,10 +60,10 @@ const Wishlist = () => {
             {wishlist.length > 0 && (
                 <div className="pb-6 pt-4 grid 2xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 gap-y-6 gap-x-6">
                     {wishlist.map((item, i) => (
-                        <div key={i} className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 relative">
+                        <div key={i} className="border dark:border-gray-700 dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 relative">
                             <button
                                 onClick={() => handleRemove(item.productId)}
-                                className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md hover:bg-red-50 transition z-10"
+                                className="absolute top-2 right-2 bg-white dark:bg-gray-700 rounded-full p-2 shadow-md hover:bg-red-50 dark:hover:bg-red-900/30 transition z-10"
                                 title="Remove from wishlist"
                             >
                                 <FaTrash className="text-red-500 text-sm" />
@@ -78,7 +78,7 @@ const Wishlist = () => {
                             <div className="p-4">
                                 <h2 className="text-lg font-semibold mb-2">{item.productName}</h2>
                                 <div className="min-h-20 max-h-20">
-                                    <p className="text-gray-600 text-sm">{item.description}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.description}</p>
                                 </div>
                                 <div className="flex items-center justify-between mt-3">
                                     {item.specialPrice ? (

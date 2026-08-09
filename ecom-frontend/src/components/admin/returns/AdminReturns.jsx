@@ -76,43 +76,43 @@ const AdminReturns = () => {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <span className="text-gray-500">Loading...</span>
+                    <span className="text-gray-500 dark:text-gray-400">Loading...</span>
                 </div>
             ) : returns.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-gray-600 py-20 bg-white rounded-lg shadow-sm border border-gray-100">
-                    <h2 className="text-2xl font-semibold">No return requests</h2>
-                    <p className="text-gray-400 text-sm mt-1">Return requests will appear here when customers submit them.</p>
+                <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-20 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h2 className="text-gray-700 dark:text-gray-300 font-semibold">No return requests</h2>
+                    <p className="text-gray-400 dark:text-gray-700 font-semibold">Return requests will appear here when customers submit them.</p>
                 </div>
             ) : (
                 <>
-                    <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">ID</th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Order ID</th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Customer</th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Reason</th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Refund</th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
-                                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Date</th>
-                                    <th className="px-4 py-3 text-center font-semibold text-gray-700">Actions</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">ID</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Order ID</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Customer</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Reason</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Refund</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {returns.map((r) => (
-                                    <tr key={r.id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 text-gray-600">#{r.id}</td>
-                                        <td className="px-4 py-3 text-gray-600">#{r.orderId}</td>
-                                        <td className="px-4 py-3 text-gray-600">{r.userEmail}</td>
-                                        <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{r.reason}</td>
-                                        <td className="px-4 py-3 text-gray-600">${r.refundAmount?.toFixed(2)}</td>
+                                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">#{r.id}</td>
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">#{r.orderId}</td>
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{r.userEmail}</td>
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate">{r.reason}</td>
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">${r.refundAmount?.toFixed(2)}</td>
                                         <td className="px-4 py-3">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[r.status] || "bg-gray-100 text-gray-600"}`}>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[r.status] || "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"}`}>
                                                 {r.status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-gray-500 text-xs">
+                                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                                             {r.requestedAt ? new Date(r.requestedAt).toLocaleDateString() : "—"}
                                         </td>
                                         <td className="px-4 py-3">
@@ -164,7 +164,7 @@ const AdminReturns = () => {
                             >
                                 Prev
                             </button>
-                            <span className="px-3 py-1 text-sm text-gray-600">
+                            <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
                                 Page {page + 1} of {totalPages}
                             </span>
                             <button
