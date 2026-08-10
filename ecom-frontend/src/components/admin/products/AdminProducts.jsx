@@ -138,7 +138,7 @@ const handlePaginationChange = (paginationModel) =>{
       </div>
 
       {!emptyProduct && (
-        <h1 className='text-slate-800 text-3xl text-center font-bold pb-6'>All products</h1>
+        <h1 className='text-slate-800 dark:text-white text-3xl text-center font-bold pb-6'>All products</h1>
       )}
       {isLoading ? (
 
@@ -146,9 +146,9 @@ const handlePaginationChange = (paginationModel) =>{
       ): (
         <>
         {emptyProduct ? (
-          <div className='flex flex-col items-center justify-center text-gray-600 py-10'>
+          <div className='flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-10'>
             <FaBoxOpen size={50} className='mb-3' />
-            <h2 className='text-2xl font-semibold'>
+            <h2 className='text-2xl font-semibold dark:text-white'>
               No products created</h2>
             
           </div>

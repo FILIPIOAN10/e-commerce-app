@@ -65,7 +65,7 @@ const LowStockAlerts = () => {
             headerName: "Threshold",
             width: 100,
             renderCell: (params) => (
-                <span className="text-slate-500">{params.value}</span>
+                <span className="text-slate-500 dark:text-gray-400">{params.value}</span>
             ),
         },
         {
@@ -90,7 +90,7 @@ const LowStockAlerts = () => {
         <div>
             <div className="pt-6 pb-6 flex items-center gap-3">
                 <FaExclamationTriangle className="text-orange-500 text-2xl" />
-                <h1 className="text-slate-800 text-3xl font-bold uppercase">
+                <h1 className="text-slate-800 dark:text-white text-3xl font-bold uppercase">
                     Low Stock Alerts
                 </h1>
             </div>
@@ -98,12 +98,12 @@ const LowStockAlerts = () => {
             {isLoading ? (
                 <Loader />
             ) : isEmpty ? (
-                <div className="flex flex-col items-center justify-center text-gray-600 py-10">
+                <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-10">
                     <FaBoxOpen size={50} className="mb-3 text-green-500" />
                     <h2 className="text-2xl font-semibold">
                         All Products Are Well Stocked
                     </h2>
-                    <p className="text-sm text-gray-400 mt-2">
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
                         No products below their low stock threshold.
                     </p>
                 </div>

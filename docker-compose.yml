@@ -11,9 +11,9 @@ services:
     image: pgvector/pgvector:0.8.2-pg16-trixie
     container_name: ecommerce-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-ecommerce}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cisco@123}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required - see .env.example}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required - see .env.example}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required - see .env.example}
     ports:
       - "5432:5432"
     volumes:
@@ -30,21 +30,27 @@ services:
     ports:
       - "8200:8200"
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: "root"
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN:?VAULT_TOKEN is required - see .env.example}
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     cap_add:
       - IPC_LOCK
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   vault-init:
     image: hashicorp/vault:latest
     container_name: vault-init
     depends_on:
-      - vault
+      vault:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       VAULT_ADDR: "http://vault:8200"
-      VAULT_TOKEN: "root"
+      VAULT_TOKEN: ${VAULT_TOKEN:?VAULT_TOKEN is required - see .env.example}
     volumes:
       - ./scripts/vault-init.sh:/vault-init.sh:ro
     entrypoint: ["/bin/sh", "/vault-init.sh"]
@@ -67,23 +73,25 @@ services:
       - ./ecom-backend:/workspace
       - backend-m2:/root/.m2
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ecommerce}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-cisco@123}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?POSTGRES_USER is required}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update # [MODIFICAT]: Schimbat din 'create' in 'update' pentru a nu sterge datele la restart
-      SQL_INIT_MODE: always # Ruleaza data.sql la fiecare pornire
+      # Flyway owns the schema. Hibernate only validates that entities match it.
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      # data.sql is replaced by Flyway migrations (V2__seed_roles_and_users.sql)
+      SQL_INIT_MODE: never
+      SPRING_FLYWAY_ENABLED: "true"
 
       SPRING_CLOUD_VAULT_URI: http://vault:8200
-      SPRING_CLOUD_VAULT_TOKEN: root
+      SPRING_CLOUD_VAULT_TOKEN: ${VAULT_TOKEN:?VAULT_TOKEN is required}
       SPRING_CLOUD_VAULT_KV_ENABLED: "true"
       SPRING_CLOUD_VAULT_KV_VERSION: "2"
       SPRING_CLOUD_VAULT_KV_BACKEND: "secret"
       SPRING_CLOUD_VAULT_KV_APPLICATION_NAME: "sb-ecom"
-      SPRING_MAIL_USERNAME: filipioan100@gmail.com
-      SPRING_MAIL_PASSWORD: uleqohstdzrsxazz
+      # Mail credentials are injected from Vault (see scripts/vault-init.sh)
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       APP_SEARCH_SEMANTIC_ENABLED: ${APP_SEARCH_SEMANTIC_ENABLED:-false}
