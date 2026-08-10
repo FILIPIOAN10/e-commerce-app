@@ -43,6 +43,7 @@ function App() {
   return (
     <React.Fragment>
     <Router>
+      <div className="min-h-screen dark:bg-gray-950">
       <Navbar/>
       <Suspense fallback={<Loader />}>
       <Routes>
@@ -89,6 +90,7 @@ function App() {
         <Route path='*' element={<NotFound />} />
       </Routes>
       </Suspense>
+      </div>
     </Router>
     <Toaster position='bottom-center'/>
     </React.Fragment>

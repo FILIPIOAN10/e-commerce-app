@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import api from "../../api/api"
 
-export const fetchProducts = (queryString) => async (dispatch) => {
+export const fetchProducts = (queryString = "") => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
         const searchParams = new URLSearchParams(queryString);
