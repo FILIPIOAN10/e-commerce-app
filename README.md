@@ -32,6 +32,7 @@ Containerized the entire stack using Docker Compose with PostgreSQL + pgvector, 
 ### Backend
 - Java 17, Spring Boot 3.5, Spring Security, Spring AI 1.1
 - Spring Data JPA / Hibernate, PostgreSQL 16 + pgvector
+- Flyway (versioned schema migrations)
 - Redis 7.4 (caching, rate limiting & recently viewed tracking)
 - HashiCorp Vault (secrets management)
 - JWT (jjwt 0.13), OAuth2 (GitHub + Google), TOTP 2FA (GoogleAuth)
@@ -63,7 +64,8 @@ Containerized the entire stack using Docker Compose with PostgreSQL + pgvector, 
 | Rate Limiting | Redis-based distributed rate limiting with configurable rules per endpoint |
 | Caching | Redis cache with TTL eviction for products, categories, and search results |
 | Stripe Payments | PaymentIntent flow with order and inventory management |
-| Vault Integration | Centralized secrets management for JWT, OpenAI, Stripe, OAuth, and DB credentials |
+| Vault Integration | Centralized secrets management for JWT, OpenAI, Stripe, OAuth, mail, and DB credentials — zero secrets in version control |
+| Flyway Migrations | Versioned, repeatable schema evolution with `ddl-auto=validate` drift detection |
 | CSRF Protection | CookieCsrfTokenRepository with SPA-friendly token handling |
 | Admin Dashboard | Analytics overview, product/category management, order tracking, seller management |
 | Audit Logging | Request-level audit trail tracking user activity across API endpoints |
@@ -101,3 +103,63 @@ cd ecom-backend && ./mvnw test
 # target/site/jacoco/index.html
 # The verify phase enforces >= 60% line coverage on the service layer:
 ./mvnw verify
+```
+
+`docker-compose.yml` contains **no secrets**. Every credential is read from the
+git-ignored `.env`, forwarded into HashiCorp Vault by `scripts/vault-init.sh`, and
+resolved by Spring Cloud Vault at startup. Required variables have no fallback
+defaults, so Compose fails fast with a clear message if one is missing.
+
+### Database migrations
+
+The schema is owned by **Flyway**, not by Hibernate. Migrations live in
+`ecom-backend/src/main/resources/db/migration` and run automatically on startup:
+
+| Migration | Purpose |
+|---|---|
+| `V1__baseline_schema.sql` | Full schema: 17 tables, FKs, unique constraints, indexes |
+| `V2__seed_roles_and_users.sql` | Roles and demo users (replaces the old `data.sql`) |
+
+Hibernate runs with `ddl-auto=validate`, so the application refuses to start if an
+entity ever drifts out of sync with the schema.
+
+To add a change, create a new file — never edit an applied one:
+
+```bash
+# ecom-backend/src/main/resources/db/migration/V3__add_product_sku.sql
+ALTER TABLE products ADD COLUMN sku VARCHAR(64);
+```
+
+An existing database created by the previous `ddl-auto=update` setup is adopted
+automatically: `baseline-on-migrate` stamps it at version 1 and continues from V2,
+so no data is lost. To rebuild from scratch:
+
+```bash
+docker compose down -v && docker compose up --build
+```
+
+Inspect applied migrations at any time:
+
+```bash
+docker exec -it ecommerce-postgres psql -U postgres -d ecommerce \
+  -c "SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+```
+
+### Frontend
+
+```bash
+cd ecom-frontend
+npm install
+npm run dev
+```
+
+The app is served at `http://localhost:5173`, the API at `http://localhost:8080`,
+and Swagger UI at `http://localhost:8080/swagger-ui.html`.
+
+### Demo accounts
+
+| Username | Password | Roles |
+|---|---|---|
+| `admin` | `adminPass` | USER, SELLER, ADMIN |
+| `user1` | `password1` | USER |
+| `seller1` | `password2` | SELLER |

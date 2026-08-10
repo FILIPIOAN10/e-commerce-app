@@ -56,7 +56,7 @@ const Coupons = () => {
             headerName: "Code",
             width: 160,
             renderCell: (params) => (
-                <span className="font-mono font-semibold text-slate-800 bg-slate-100 px-2 py-1 rounded">
+                <span className="font-mono font-semibold text-slate-800 dark:text-gray-200 bg-slate-100 dark:bg-gray-700 px-2 py-1 rounded">
                     {params.value}
                 </span>
             ),
@@ -82,7 +82,7 @@ const Coupons = () => {
             headerName: "Used",
             width: 100,
             renderCell: (params) => (
-                <span className="text-slate-600">
+                <span className="text-slate-600 dark:text-gray-400">
                     {params.value} / {params.row.maxUses}
                 </span>
             ),
@@ -145,7 +145,7 @@ const Coupons = () => {
                 </button>
             </div>
             {!emptyCoupons && (
-                <h1 className="text-slate-800 text-3xl text-center font-bold pb-6 uppercase">
+                <h1 className="text-slate-800 dark:text-white text-3xl text-center font-bold pb-6 uppercase">
                     All Coupons
                 </h1>
             )}
@@ -155,7 +155,7 @@ const Coupons = () => {
             ) : (
                 <>
                     {emptyCoupons ? (
-                        <div className="flex flex-col items-center justify-center text-gray-600 py-10">
+                        <div className="flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-10">
                             <FaFolderOpen size={50} className="mb-3" />
                             <h2 className="text-2xl font-semibold">
                                 No Coupons Created Yet

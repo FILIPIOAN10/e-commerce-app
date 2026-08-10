@@ -39,12 +39,12 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
             <DialogBackdrop className="fixed inset-0 bg-gray-500/75 transition-opacity" />
             <div className="fixed inset-0 overflow-y-auto">
                 <div className="flex min-h-full items-center justify-center p-4">
-                    <DialogPanel className="w-full max-w-2xl rounded-2xl bg-white shadow-xl transition-all">
+                    <DialogPanel className="w-full max-w-2xl rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all">
                         <div className="flex items-center justify-between px-6 py-4 border-b">
-                            <DialogTitle className="text-lg font-bold text-slate-800">
+                            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white">
                                 Order Tracking #{orderId}
                             </DialogTitle>
-                            <button onClick={() => setOpen(false)} className="text-slate-500 hover:text-slate-700">
+                            <button onClick={() => setOpen(false)} className="text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200">
                                 <RxCross1 className="text-xl" />
                             </button>
                         </div>
@@ -59,8 +59,8 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
                                     {/* Status badge */}
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
-                                            <p className="text-sm text-gray-500">Order Date</p>
-                                            <p className="font-semibold text-slate-800">{order.orderDate}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Order Date</p>
+                                            <p className="font-semibold text-slate-800 dark:text-white">{order.orderDate}</p>
                                         </div>
                                         <span
                                             className={`px-4 py-2 rounded-full text-sm font-semibold ${
@@ -89,14 +89,14 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
                                                                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
                                                                     isCompleted
                                                                         ? `${step.color} text-white shadow-lg`
-                                                                        : "bg-gray-100 text-gray-400"
+                                                                        : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500"
                                                                 } ${isCurrent ? "ring-4 ring-offset-2 ring-blue-200 scale-110" : ""}`}
                                                             >
                                                                 <Icon className="text-lg" />
                                                             </div>
                                                             <span
                                                                 className={`mt-2 text-xs font-medium text-center ${
-                                                                    isCompleted ? "text-slate-800" : "text-gray-400"
+                                                                    isCompleted ? "text-slate-800 dark:text-white" : "text-gray-400 dark:text-gray-500"
                                                                 }`}
                                                             >
                                                                 {step.label}
@@ -106,7 +106,7 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
                                                 })}
                                             </div>
                                             {/* Progress line */}
-                                            <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 -z-0 mx-12">
+                                            <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 -z-0 mx-12">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 transition-all duration-700"
                                                     style={{
@@ -124,7 +124,7 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
 
                                     {/* Order items */}
                                     <div className="border-t pt-4 mt-4">
-                                        <h3 className="font-semibold text-slate-800 mb-3">Items</h3>
+                                        <h3 className="font-semibold text-slate-800 dark:text-white mb-3">Items</h3>
                                         <div className="space-y-2">
                                             {order.items?.map((item) => (
                                                 <div key={item.orderItemId} className="flex items-center gap-3">
@@ -134,10 +134,10 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
                                                         className="w-12 h-12 rounded object-cover"
                                                     />
                                                     <div className="flex-1">
-                                                        <p className="text-sm font-medium text-slate-700">
+                                                        <p className="text-sm font-medium text-slate-700 dark:text-gray-200">
                                                             {item.product?.productName}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">
                                                             Qty: {item.quantity} x ${item.orderedProductPrice}
                                                         </p>
                                                     </div>
@@ -148,8 +148,8 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
 
                                     {/* Total */}
                                     <div className="border-t pt-4 mt-4 flex justify-between items-center">
-                                        <span className="font-semibold text-slate-800">Total Amount</span>
-                                        <span className="text-xl font-bold text-slate-900">
+                                        <span className="font-semibold text-slate-800 dark:text-white">Total Amount</span>
+                                        <span className="text-xl font-bold text-slate-900 dark:text-white">
                                             {formatPrice(order.totalAmount)}
                                         </span>
                                     </div>

@@ -27,7 +27,7 @@ const PaymentMethod = () => {
       dispatch(addPaymentMethod(method));
     }
   return (
-    <div className='max-w-md mx-auto p-5 bg-white shadow-md rounded-lg mt-16 border'>
+    <div className='max-w-md mx-auto p-5 bg-white dark:bg-gray-800 shadow-md rounded-lg mt-16 border dark:border-gray-700'>
         <h1 className='text-2xl  font-semibold mb-4'>Select Payment Method</h1>
         
             <FormControl>

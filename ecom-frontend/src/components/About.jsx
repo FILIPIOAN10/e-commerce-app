@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ProductCard from "./shared/ProductCard";
 import { fetchBestSellers } from "../store/actions";
@@ -7,12 +7,15 @@ import Loader from "./shared/Loader";
 const About = () => {
     const dispatch = useDispatch();
     const { bestSellers } = useSelector((state) => state.products);
+    const hasFetched = useRef(false);
+    const [fetchDone, setFetchDone] = useState(false);
 
     useEffect(() => {
-        if (!bestSellers || bestSellers.length === 0) {
-            dispatch(fetchBestSellers(3));
+        if (!hasFetched.current) {
+            hasFetched.current = true;
+            dispatch(fetchBestSellers(3)).finally(() => setFetchDone(true));
         }
-    }, [dispatch, bestSellers]);
+    }, [dispatch]);
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 dark:bg-gray-950 dark:text-white min-h-screen">
@@ -47,6 +50,8 @@ const About = () => {
                             />
                         ))}
                     </div>
+                ) : fetchDone ? (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-10">No products available at the moment.</p>
                 ) : (
                     <div className="flex justify-center py-10">
                         <Loader />

@@ -90,7 +90,7 @@ const LogIn = () => {
                     </h1>
                 </div>
 
-                <hr className="mt-2 mb-5 text-black" />
+                <hr className="mt-2 mb-5 text-black dark:border-gray-600" />
 
                 {/* INPUTS */}
                 <div className="flex flex-col gap-3">
@@ -168,16 +168,16 @@ const LogIn = () => {
 
                 {/* HINT */}
                 {hint && (
-                    <p className="text-amber-600 text-sm text-center mt-3 p-2 bg-amber-50 rounded">
+                    <p className="text-amber-600 dark:text-amber-400 text-sm text-center mt-3 p-2 bg-amber-50 dark:bg-amber-900/30 rounded">
                         Hint: {hint}
                     </p>
                 )}
 
                 {/* REGISTER */}
-                <p className="text-center text-sm text-slate-700 mt-6">
+                <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Don't have an account?{" "}
                     <Link
-                        className="font-semibold underline hover:text-black"
+                        className="font-semibold underline hover:text-black dark:hover:text-white"
                         to="/register"
                     >
                         SignUp

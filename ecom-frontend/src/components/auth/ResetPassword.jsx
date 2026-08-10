@@ -141,7 +141,7 @@ const ResetPassword = () => {
                     </p>
                 </div>
 
-                <hr className="mt-2 mb-5 text-black" />
+                <hr className="mt-2 mb-5 text-black dark:border-gray-600" />
 
                 <div className="flex flex-col gap-3">
                     <InputField
@@ -185,10 +185,10 @@ const ResetPassword = () => {
                     )}
                 </button>
 
-                <p className="text-center text-sm text-slate-700 mt-6">
+                <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Remember your password?{" "}
                     <Link
-                        className="font-semibold underline hover:text-black"
+                        className="font-semibold underline hover:text-black dark:hover:text-white"
                         to="/login"
                     >
                         Back to Login
