@@ -30,28 +30,36 @@ public class EmailService {
     private String frontendUrl;
 
     public void sendPasswordResetEmail(String toEmail, String token) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject("Password Reset Request");
-        message.setText("You requested a password reset.\n\n"
-                + "Click the link below to reset your password (valid for 15 minutes):\n"
-                + frontendUrl + "/reset-password?token=" + token + "\n\n"
-                + "If you did not request this, please ignore this email.");
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Password Reset Request");
+            message.setText("You requested a password reset.\n\n"
+                    + "Click the link below to reset your password (valid for 15 minutes):\n"
+                    + frontendUrl + "/reset-password?token=" + token + "\n\n"
+                    + "If you did not request this, please ignore this email.");
 
-        mailSender.send(message);
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+        }
     }
     public void sendVerificationEmail(String toEmail, String token) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject("Verify Your Email Address");
-        message.setText("Welcome! Please verify your email address to activate your account.\n\n"
-                + "Click the link below (valid for 60 minutes):\n"
-                + frontendUrl + "/verify-email?token=" + token + "\n\n"
-                + "If you did not create an account, please ignore this email.");
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Verify Your Email Address");
+            message.setText("Welcome! Please verify your email address to activate your account.\n\n"
+                    + "Click the link below (valid for 60 minutes):\n"
+                    + frontendUrl + "/verify-email?token=" + token + "\n\n"
+                    + "If you did not create an account, please ignore this email.");
 
-        mailSender.send(message);
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
+        }
     }
 
     public void sendOrderConfirmationEmail(String toEmail, OrderDTO order) {
