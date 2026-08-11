@@ -167,3 +167,5 @@ cd ecom-backend && ./mvnw test
 # The verify phase enforces >= 60% line coverage on the service layer:
 ./mvnw verify
 ```
+
+<!-- CI trigger test -->
