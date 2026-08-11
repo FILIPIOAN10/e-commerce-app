@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { data, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineLogin } from "react-icons/ai";
 import InputField from "../shared/InputField";
 import { useDispatch } from "react-redux";

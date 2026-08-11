@@ -23,7 +23,7 @@ const AdminProducts = () => {
   
 
   const {products,pagination} = useSelector((state) => state.products);
-  const {isLoading,errorMessage} = useSelector((state) => state.errors);
+  const {isLoading} = useSelector((state) => state.errors);
   // check if order exist or not
   const emptyProduct= !products || products?.length === 0;
     const [currentPage,setCurrentPage] = useState(

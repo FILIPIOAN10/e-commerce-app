@@ -1,4 +1,3 @@
-import { Icon } from '@mui/material';
 import React from 'react'
 import { formatRevenue } from '../../../utils/formatPrice';
 

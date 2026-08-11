@@ -5,9 +5,6 @@ import com.atlassian.oai.validator.model.SimpleRequest;
 import com.atlassian.oai.validator.model.SimpleResponse;
 import com.atlassian.oai.validator.report.ValidationReport;
 import com.ecommerce.project.config.TestcontainersConfiguration;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,7 +13,11 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import static io.restassured.RestAssured.given;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,20 +31,35 @@ class OpenApiContractTest {
     int port;
 
     private OpenApiInteractionValidator validator;
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    private String baseUrl() {
+        return "http://localhost:" + port;
+    }
+
+    private HttpResponse<String> get(String path) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + path))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> post(String path, String body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + path))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
 
     @BeforeAll
-    void setUp() {
-        RestAssured.baseURI = "http://localhost:" + port;
-
-        // Fetch the OpenAPI spec from the running app (springdoc generates it at runtime)
-        String openApiSpec = given()
-                .accept(ContentType.JSON)
-                .when()
-                .get("/v3/api-docs")
-                .then()
-                .statusCode(200)
-                .extract()
-                .asString();
+    void setUp() throws Exception {
+        HttpResponse<String> response = get("/v3/api-docs");
+        assertEquals(200, response.statusCode(), "Failed to fetch OpenAPI spec");
+        String openApiSpec = response.body();
 
         validator = OpenApiInteractionValidator
                 .createForInlineApiSpecification(openApiSpec)
@@ -51,20 +67,13 @@ class OpenApiContractTest {
     }
 
     @Test
-    void publicProductsEndpointMatchesOpenApiSchema() {
-        Response response = given()
-                .queryParam("pageNumber", "0")
-                .queryParam("pageSize", "10")
-                .when()
-                .get("/api/public/products")
-                .then()
-                .statusCode(200)
-                .extract()
-                .response();
+    void publicProductsEndpointMatchesOpenApiSchema() throws Exception {
+        HttpResponse<String> response = get("/api/public/products?pageNumber=0&pageSize=10");
+        assertEquals(200, response.statusCode());
 
         SimpleResponse apiResponse = SimpleResponse.Builder
                 .ok()
-                .withBody(response.asString())
+                .withBody(response.body())
                 .withContentType("application/json")
                 .build();
 
@@ -83,7 +92,7 @@ class OpenApiContractTest {
     }
 
     @Test
-    void signinEndpointMatchesOpenApiSchema() {
+    void signinEndpointMatchesOpenApiSchema() throws Exception {
         String requestBody = """
                 {
                     "username": "admin",
@@ -91,18 +100,11 @@ class OpenApiContractTest {
                 }
                 """;
 
-        Response response = given()
-                .contentType(ContentType.JSON)
-                .body(requestBody)
-                .when()
-                .post("/api/auth/signin")
-                .then()
-                .extract()
-                .response();
+        HttpResponse<String> response = post("/api/auth/signin", requestBody);
 
         SimpleResponse apiResponse = SimpleResponse.Builder
                 .status(response.statusCode())
-                .withBody(response.asString())
+                .withBody(response.body())
                 .withContentType("application/json")
                 .build();
 
@@ -121,7 +123,7 @@ class OpenApiContractTest {
     }
 
     @Test
-    void signinWithWrongPasswordReturns401MatchingSchema() {
+    void signinWithWrongPasswordReturns401MatchingSchema() throws Exception {
         String requestBody = """
                 {
                     "username": "admin",
@@ -129,19 +131,12 @@ class OpenApiContractTest {
                 }
                 """;
 
-        Response response = given()
-                .contentType(ContentType.JSON)
-                .body(requestBody)
-                .when()
-                .post("/api/auth/signin")
-                .then()
-                .statusCode(401)
-                .extract()
-                .response();
+        HttpResponse<String> response = post("/api/auth/signin", requestBody);
+        assertEquals(401, response.statusCode());
 
         SimpleResponse apiResponse = SimpleResponse.Builder
                 .status(401)
-                .withBody(response.asString())
+                .withBody(response.body())
                 .withContentType("application/json")
                 .build();
 
@@ -160,18 +155,13 @@ class OpenApiContractTest {
     }
 
     @Test
-    void publicCategoriesEndpointMatchesOpenApiSchema() {
-        Response response = given()
-                .when()
-                .get("/api/public/categories")
-                .then()
-                .statusCode(200)
-                .extract()
-                .response();
+    void publicCategoriesEndpointMatchesOpenApiSchema() throws Exception {
+        HttpResponse<String> response = get("/api/public/categories");
+        assertEquals(200, response.statusCode());
 
         SimpleResponse apiResponse = SimpleResponse.Builder
                 .ok()
-                .withBody(response.asString())
+                .withBody(response.body())
                 .withContentType("application/json")
                 .build();
 

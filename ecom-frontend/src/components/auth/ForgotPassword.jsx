@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FaKey, FaPaperPlane } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import InputField from "../shared/InputField";
@@ -8,7 +8,6 @@ import api from "../../api/api";
 import toast from "react-hot-toast";
 
 const ForgotPassword = () => {
-    const navigate = useNavigate();
     const [loader, setLoader] = useState(false);
     const [sent, setSent] = useState(false);
 

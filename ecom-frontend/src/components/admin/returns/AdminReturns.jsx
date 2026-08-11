@@ -16,7 +16,7 @@ const AdminReturns = () => {
             setReturns(data.content);
             setTotalPages(data.totalPages);
             setPage(p);
-        } catch (error) {
+        } catch {
             toast.error("Failed to load return requests");
         } finally {
             setLoading(false);

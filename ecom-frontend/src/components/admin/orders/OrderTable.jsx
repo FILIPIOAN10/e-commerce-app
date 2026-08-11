@@ -97,7 +97,7 @@ const OrderTable = ({adminOrder, pagination}) => {
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success('Invoice downloaded');
-    } catch (error) {
+    } catch {
       toast.error('Failed to download invoice');
     }
   };

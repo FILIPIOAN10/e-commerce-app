@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { createCouponAction, updateCouponAction } from "../../../store/actions";

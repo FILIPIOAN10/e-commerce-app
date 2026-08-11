@@ -3,7 +3,7 @@ import { FaCloudUploadAlt, FaTrashAlt } from 'react-icons/fa'
 import Spinners from '../../shared/Spinners';
 import { Button } from '@mui/material';
 import toast from 'react-hot-toast';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import api from '../../../api/api';
 
 const GalleryUploadForm = ({setOpen, product}) => {
@@ -12,8 +12,6 @@ const GalleryUploadForm = ({setOpen, product}) => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
     const [loader, setLoader] = useState(false);
-    const dispatch = useDispatch();
-
     const { user } = useSelector((state) => state.auth);
     const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
 
@@ -28,13 +26,12 @@ const GalleryUploadForm = ({setOpen, product}) => {
             return;
         }
 
-        const newPreviews = validFiles.map(file => {
+        validFiles.forEach(file => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewImages(prev => [...prev, reader.result]);
             };
             reader.readAsDataURL(file);
-            return file;
         });
 
         setSelectedFiles(prev => [...prev, ...validFiles]);
