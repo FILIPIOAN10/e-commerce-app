@@ -29,6 +29,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Make mvnw executable
+        working-directory: ecom-backend
+        run: chmod +x mvnw
+
       - name: Run tests with Testcontainers
         working-directory: ecom-backend
         run: ./mvnw test -B -Dspring.profiles.active=test
@@ -129,6 +133,7 @@ jobs:
       - name: Start backend
         working-directory: ecom-backend
         run: |
+          chmod +x mvnw
           ./mvnw spring-boot:run -B -Dspring-boot.run.arguments="--spring.profiles.active=dev --spring.config.import= --spring.cloud.vault.enabled=false --spring.ai.model.embedding=none --spring.ai.vectorstore.type=none --spring.jpa.hibernate.ddl-auto=validate --spring.flyway.enabled=true --spring.flyway.locations=classpath:db/migration" &
           sleep 30
 
