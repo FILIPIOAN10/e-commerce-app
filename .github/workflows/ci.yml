@@ -152,8 +152,9 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: postgres
           SPRING_DATA_REDIS_HOST: localhost
           JWT_SECRET: ci-test-secret-key-for-jwt-signing-at-least-32-chars
+          SPRING_PROFILES_ACTIVE: ci
         run: |
-          bash mvnw spring-boot:run -B -Dspring-boot.run.arguments="--spring.profiles.active=dev --spring.config.import= --spring.cloud.vault.enabled=false --spring.ai.model.embedding=none --spring.ai.vectorstore.type=none --spring.jpa.hibernate.ddl-auto=validate --spring.flyway.enabled=true --spring.flyway.locations=classpath:db/migration" &
+          bash mvnw spring-boot:run -B > backend.log 2>&1 &
           sleep 60
 
       - name: Wait for backend to be ready
@@ -169,7 +170,17 @@ jobs:
             sleep 5
           done
           echo "Backend failed to start"
+          echo "=== Last 100 lines of backend log ==="
+          tail -100 ecom-backend/backend.log
           exit 1
+
+      - name: Upload backend logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-logs
+          path: ecom-backend/backend.log
+          retention-days: 7
 
       - name: Start frontend
         working-directory: ecom-frontend
