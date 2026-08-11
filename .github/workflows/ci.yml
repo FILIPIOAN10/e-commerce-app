@@ -144,6 +144,11 @@ jobs:
           docker compose up -d postgres redis
           sleep 10
 
+      - name: Start fake SMTP server
+        run: |
+          python3 -m smtpd -n -c DebuggingServer localhost:1025 > smtp.log 2>&1 &
+          sleep 2
+
       - name: Start backend
         working-directory: ecom-backend
         env:
@@ -180,6 +185,14 @@ jobs:
           curl -i -s -X POST http://localhost:8080/api/auth/signin \
             -H "Content-Type: application/json" \
             -d '{"username":"admin","password":"adminPass"}'
+          echo ""
+
+      - name: Smoke test signup endpoint
+        run: |
+          echo "=== POST /api/auth/signup ==="
+          curl -i -s -X POST http://localhost:8080/api/auth/signup \
+            -H "Content-Type: application/json" \
+            -d '{"username":"smokeuser_ci","email":"smokeuser_ci@test.com","password":"testpass123","passwordHint":"my hint","roles":["ROLE_USER"]}'
           echo ""
           echo "=== Backend log (last 40 lines) ==="
           tail -40 ecom-backend/backend.log
