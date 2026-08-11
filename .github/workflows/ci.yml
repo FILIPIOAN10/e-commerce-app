@@ -146,8 +146,9 @@ jobs:
 
       - name: Start fake SMTP server
         run: |
-          python3 -m smtpd -n -c DebuggingServer localhost:1025 > smtp.log 2>&1 &
-          sleep 2
+          python3 -m pip install aiosmtpd
+          python3 -m aiosmtpd -n -d -l localhost:1025 > smtp.log 2>&1 &
+          sleep 3
 
       - name: Start backend
         working-directory: ecom-backend
