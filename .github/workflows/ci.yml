@@ -120,6 +120,13 @@ jobs:
           npm install
           npx playwright install --with-deps chromium
 
+      - name: Create .env for Docker Compose
+        run: |
+          echo "POSTGRES_DB=ecommerce" > .env
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=postgres" >> .env
+          echo "VAULT_TOKEN=root" >> .env
+
       - name: Start infrastructure (Postgres + Redis)
         run: |
           docker compose up -d postgres redis
