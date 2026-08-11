@@ -151,7 +151,7 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
           SPRING_DATA_REDIS_HOST: localhost
-          JWT_SECRET: ci-test-secret-key-for-jwt-signing-at-least-32-chars
+          JWT_SECRET: Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=
           SPRING_PROFILES_ACTIVE: ci
         run: |
           bash mvnw spring-boot:run -B > backend.log 2>&1 &
@@ -173,6 +173,16 @@ jobs:
           echo "=== Last 100 lines of backend log ==="
           tail -100 ecom-backend/backend.log
           exit 1
+
+      - name: Smoke test login endpoint
+        run: |
+          echo "=== POST /api/auth/signin ==="
+          curl -i -s -X POST http://localhost:8080/api/auth/signin \
+            -H "Content-Type: application/json" \
+            -d '{"username":"admin","password":"adminPass"}'
+          echo ""
+          echo "=== Backend log (last 40 lines) ==="
+          tail -40 ecom-backend/backend.log
 
       - name: Upload backend logs
         if: failure()
