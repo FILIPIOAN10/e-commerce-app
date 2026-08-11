@@ -6,14 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,10 +27,9 @@ class AuthIntegrationTest {
     int port;
 
     @Autowired
-    TestRestTemplate restTemplate;
-
-    @Autowired
     ObjectMapper objectMapper;
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private String baseUrl() {
         return "http://localhost:" + port;
@@ -42,16 +41,16 @@ class AuthIntegrationTest {
                 .setUsername("admin")
                 .setPassword("adminPass");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + "/api/auth/signin"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(req)))
+                .build();
 
-        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(req), headers);
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl() + "/api/auth/signin", entity, String.class);
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
+        assertEquals(200, response.statusCode());
+        assertNotNull(response.body());
     }
 
     @Test
@@ -60,15 +59,15 @@ class AuthIntegrationTest {
                 .setUsername("admin")
                 .setPassword("wrong");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + "/api/auth/signin"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(req)))
+                .build();
 
-        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(req), headers);
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl() + "/api/auth/signin", entity, String.class);
-
-        assertEquals(401, response.getStatusCode().value());
+        assertEquals(401, response.statusCode());
     }
 
     @Test
@@ -77,14 +76,14 @@ class AuthIntegrationTest {
                 .setUsername("nobody")
                 .setPassword("whatever");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl() + "/api/auth/signin"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(req)))
+                .build();
 
-        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(req), headers);
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl() + "/api/auth/signin", entity, String.class);
-
-        assertEquals(401, response.getStatusCode().value());
+        assertEquals(401, response.statusCode());
     }
 }
