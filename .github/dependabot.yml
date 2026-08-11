@@ -1,0 +1,35 @@
+version: 2
+
+updates:
+  # Maven dependencies
+  - package-ecosystem: "maven"
+    directory: "/ecom-backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/ecom-frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ci"
