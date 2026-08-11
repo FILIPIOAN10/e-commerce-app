@@ -13,6 +13,10 @@ import com.ecommerce.project.service.AuthService;
 import com.ecommerce.project.service.TotpService;
 import com.ecommerce.project.util.AuthUtil;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -67,6 +71,15 @@ public class AuthController {
      * Dacă credentialele sunt valide, generează un JWT și îl trimite în cookie.
      */
     @Tag(name = "Authentication")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Authenticated, or a 2FA challenge is required"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "429", description = "Account locked after too many failed attempts",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = MessageResponse.class)))
+    })
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
