@@ -1,6 +1,7 @@
 # EcommerceHub: Enterprise Multi-Vendor Platform
 
 ![JaCoCo Coverage](https://img.shields.io/badge/coverage-JaCoCo%20report-blue)
+![CI](https://github.com/FILIPIOAN10/e-commerce-app/actions/workflows/ci.yml/badge.svg)
  
 ## Full-Stack E-commerce Solution
 Built a production-grade marketplace using Spring Boot 3.5, React, and Redux. Implemented separate portals for admin, customer, and seller roles with real-time inventory management, order processing, and dashboard analytics. Added low stock threshold alerts with admin/seller notifications and product image gallery support with multiple images per product.
