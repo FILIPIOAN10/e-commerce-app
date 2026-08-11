@@ -134,12 +134,25 @@ jobs:
 
       - name: Start backend
         working-directory: ecom-backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ecommerce
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_DATA_REDIS_HOST: localhost
+          JWT_SECRET: ci-test-secret-key-for-jwt-signing-at-least-32-chars
         run: |
           bash mvnw spring-boot:run -B -Dspring-boot.run.arguments="--spring.profiles.active=dev --spring.config.import= --spring.cloud.vault.enabled=false --spring.ai.model.embedding=none --spring.ai.vectorstore.type=none --spring.jpa.hibernate.ddl-auto=validate --spring.flyway.enabled=true --spring.flyway.locations=classpath:db/migration" &
-          sleep 30
+          sleep 45
+
+      - name: Verify backend is up
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/public/products || true
+          echo ""
 
       - name: Start frontend
         working-directory: ecom-frontend
+        env:
+          VITE_BACK_END_URL: http://localhost:8080
         run: |
           npm install
           npm run dev &

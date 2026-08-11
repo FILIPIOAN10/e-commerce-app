@@ -7,7 +7,7 @@ test.describe('Full purchase flow', () => {
     await page.fill('#username', 'admin')
     await page.fill('#password', 'adminPass')
     await page.click('button[type="submit"]')
-    await expect(page).toHaveURL(/\/$|\/$/, { timeout: 10000 })
+    await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
   })
 
   test('home page loads and shows product sections', async ({ page }) => {

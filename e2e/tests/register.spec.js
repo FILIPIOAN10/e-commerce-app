@@ -16,8 +16,15 @@ test.describe('Registration flow', () => {
     await page.goto('/Register')
 
     const roleSelect = page.locator('select')
-    await expect(roleSelect.locator('option[value="ROLE_USER"]')).toBeVisible()
-    await expect(roleSelect.locator('option[value="ROLE_SELLER"]')).toBeVisible()
+    await expect(roleSelect).toBeVisible()
+
+    // <option> elements inside <select> are not "visible" in CSS sense,
+    // so we check their values via evaluate
+    const optionValues = await roleSelect.evaluate((sel) =>
+      Array.from(sel.options).map((opt) => opt.value)
+    )
+    expect(optionValues).toContain('ROLE_USER')
+    expect(optionValues).toContain('ROLE_SELLER')
   })
 
   test('form validation prevents empty submission', async ({ page }) => {
