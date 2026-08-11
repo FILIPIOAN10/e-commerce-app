@@ -72,12 +72,10 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: ecom-frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ecom-frontend
-        run: npm ci
+        run: npm install
 
       - name: Lint
         working-directory: ecom-frontend
