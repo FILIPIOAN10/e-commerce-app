@@ -3,34 +3,45 @@ package com.ecommerce.project.controller;
 import com.ecommerce.project.config.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class ProductIntegrationTest {
 
-    @Autowired
-    MockMvc mockMvc;
+    @LocalServerPort
+    int port;
 
-    @Test
-    void publicProductsEndpointReturnsPaginatedResponse() throws Exception {
-        mockMvc.perform(get("/api/public/products?pageNumber=0&pageSize=10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists());
+    @Autowired
+    TestRestTemplate restTemplate;
+
+    private String baseUrl() {
+        return "http://localhost:" + port;
     }
 
     @Test
-    void publicProductsEndpointReturns200EvenWithNoProducts() throws Exception {
-        mockMvc.perform(get("/api/public/products"))
-                .andExpect(status().isOk());
+    void publicProductsEndpointReturnsPaginatedResponse() {
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl() + "/api/public/products?pageNumber=0&pageSize=10", String.class);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertTrue(response.getBody().contains("\"content\""));
+    }
+
+    @Test
+    void publicProductsEndpointReturns200EvenWithNoProducts() {
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl() + "/api/public/products", String.class);
+
+        assertEquals(200, response.getStatusCode().value());
     }
 }

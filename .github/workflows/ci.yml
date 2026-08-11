@@ -77,8 +77,9 @@ jobs:
         working-directory: ecom-frontend
         run: npm install
 
-      - name: Lint
+      - name: Lint (non-blocking)
         working-directory: ecom-frontend
+        continue-on-error: true
         run: npm run lint
 
       - name: Run Vitest

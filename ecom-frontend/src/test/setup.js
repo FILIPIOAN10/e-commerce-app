@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { beforeEach } from 'vitest'
 
 // Polyfill matchMedia for components that use it
 if (!window.matchMedia) {

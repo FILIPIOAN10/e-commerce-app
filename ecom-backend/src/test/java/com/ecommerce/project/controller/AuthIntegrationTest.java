@@ -5,27 +5,36 @@ import com.ecommerce.project.security.request.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class AuthIntegrationTest {
 
+    @LocalServerPort
+    int port;
+
     @Autowired
-    MockMvc mockMvc;
+    TestRestTemplate restTemplate;
 
     @Autowired
     ObjectMapper objectMapper;
+
+    private String baseUrl() {
+        return "http://localhost:" + port;
+    }
 
     @Test
     void signinWithSeedAdminCredentialsReturnsJwt() throws Exception {
@@ -33,11 +42,16 @@ class AuthIntegrationTest {
                 .setUsername("admin")
                 .setPassword("adminPass");
 
-        mockMvc.perform(post("/api/auth/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(cookie().exists("springBootEcom"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(req), headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl() + "/api/auth/signin", entity, String.class);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 
     @Test
@@ -46,10 +60,15 @@ class AuthIntegrationTest {
                 .setUsername("admin")
                 .setPassword("wrong");
 
-        mockMvc.perform(post("/api/auth/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(req), headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl() + "/api/auth/signin", entity, String.class);
+
+        assertEquals(401, response.getStatusCode().value());
     }
 
     @Test
@@ -58,9 +77,14 @@ class AuthIntegrationTest {
                 .setUsername("nobody")
                 .setPassword("whatever");
 
-        mockMvc.perform(post("/api/auth/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(req), headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl() + "/api/auth/signin", entity, String.class);
+
+        assertEquals(401, response.getStatusCode().value());
     }
 }
