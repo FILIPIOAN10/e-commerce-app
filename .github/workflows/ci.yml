@@ -120,12 +120,24 @@ jobs:
           npm install
           npx playwright install --with-deps chromium
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
       - name: Create .env for Docker Compose
         run: |
           echo "POSTGRES_DB=ecommerce" > .env
           echo "POSTGRES_USER=postgres" >> .env
           echo "POSTGRES_PASSWORD=postgres" >> .env
           echo "VAULT_TOKEN=root" >> .env
+
+      - name: Create .env for frontend
+        working-directory: ecom-frontend
+        run: |
+          echo "VITE_BACK_END_URL=http://localhost:8080" > .env
 
       - name: Start infrastructure (Postgres + Redis)
         run: |
@@ -142,17 +154,25 @@ jobs:
           JWT_SECRET: ci-test-secret-key-for-jwt-signing-at-least-32-chars
         run: |
           bash mvnw spring-boot:run -B -Dspring-boot.run.arguments="--spring.profiles.active=dev --spring.config.import= --spring.cloud.vault.enabled=false --spring.ai.model.embedding=none --spring.ai.vectorstore.type=none --spring.jpa.hibernate.ddl-auto=validate --spring.flyway.enabled=true --spring.flyway.locations=classpath:db/migration" &
-          sleep 45
+          sleep 60
 
-      - name: Verify backend is up
+      - name: Wait for backend to be ready
         run: |
-          curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/public/products || true
-          echo ""
+          echo "Waiting for backend..."
+          for i in $(seq 1 30); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/public/products || echo "000")
+            if [ "$CODE" = "200" ]; then
+              echo "Backend is up (HTTP $CODE)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $CODE, retrying..."
+            sleep 5
+          done
+          echo "Backend failed to start"
+          exit 1
 
       - name: Start frontend
         working-directory: ecom-frontend
-        env:
-          VITE_BACK_END_URL: http://localhost:8080
         run: |
           npm install
           npm run dev &
