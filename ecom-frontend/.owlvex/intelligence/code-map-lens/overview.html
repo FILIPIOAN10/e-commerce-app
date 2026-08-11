@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owlvex Code Map Lens - Overview</title>
+  <style>
+    :root { color-scheme: dark; --text:#eef4ff; --muted:#aab7c8; --line:#30363d; --panel:#1f242c; --soft:#263241; --brand:#2f81f7; --ok:#3fb950; --warn:#d29922; --risk:#f85149; --surface:#151b23; --graph:#f7f9fc; }
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+    body { margin:0; background:#0d1117; color:var(--text); font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; overflow:hidden; }
+    main { max-width:none; margin:0; padding:0; min-height:100vh; display:flex; flex-direction:column; }
+    h1 { margin:0; font-size:14px; letter-spacing:0; font-weight:650; }
+    h2 { margin:24px 0 12px; font-size:18px; }
+    h3 { margin:0 0 6px; font-size:15px; }
+    p { color:var(--muted); margin:4px 0 0; }
+    code { background:#263241; border-radius:4px; padding:1px 4px; color:#dbeafe; }
+    .muted { color:var(--muted); }
+    .lens-titlebar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 12px; border-bottom:1px solid #252c35; background:#11161d; }
+    .lens-titlebar p { margin:2px 0 0; color:var(--muted); font-size:12px; }
+    .lens-title-actions { display:flex; align-items:center; gap:8px; }
+    .title-action { border:1px solid #30363d; border-radius:6px; background:#161b22; color:#e6edf3; padding:6px 10px; font:inherit; cursor:pointer; }
+    .title-action.primary { border-color:#1f6feb; background:#1f6feb; color:#fff; }
+    .title-action:hover { filter:brightness(1.08); }
+    .lens-commandbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:8px 12px; border-bottom:1px solid #252c35; background:#151b23; margin:0; }
+    .lens-commandbar span { color:var(--muted); font-size:12px; }
+    .lens-commandbar strong { font-size:12px; border:1px solid #30363d; border-radius:6px; padding:3px 8px; background:#0d1117; }
+    .lens-commandbar .focus-chip { border-color:#1f6feb; background:#1f6feb; color:#fff; }
+    .lens-commandbar .focus-basis { border-color:#334155; color:#dbeafe; }
+    .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; margin:10px 0 12px; }
+    .summary div { border:1px solid var(--line); border-radius:8px; background:var(--panel); padding:10px 12px; }
+    .summary span { display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .summary strong { display:block; margin-top:3px; overflow-wrap:anywhere; }
+    .notice { border-left:4px solid var(--warn); background:#fff8ec; padding:7px 12px; margin:0; color:#5d3b00; font-size:12px; }
+    .lens-stage { min-height:0; flex:1; display:flex; flex-direction:column; gap:0; }
+    .workspace-context { display:grid; grid-template-columns:minmax(240px,.82fr) minmax(380px,1.6fr) minmax(260px,.85fr); gap:8px; padding:6px 10px; border-bottom:1px solid #252c35; background:#101820; }
+    .workspace-context h2 { margin:0 0 3px; font-size:11px; color:#c9d1d9; text-transform:uppercase; letter-spacing:.04em; }
+    .workspace-context p { margin:0; color:#93a4b8; font-size:12px; }
+    .workspace-context strong { overflow-wrap:anywhere; }
+    .workspace-panel { min-width:0; border:1px solid #263241; border-radius:6px; background:#151b23; padding:6px 8px; }
+    .workspace-path { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-top:4px; max-height:26px; overflow:hidden; }
+    .workspace-path span { display:inline-flex; align-items:center; min-height:20px; border:1px solid #334155; border-radius:999px; padding:1px 6px; color:#dbeafe; background:#0d1117; font-size:11px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .workspace-chips { display:flex; flex-wrap:wrap; gap:5px; max-height:44px; overflow:auto; }
+    .workspace-chip { border:1px solid #334155; border-radius:999px; background:#0d1117; color:#dbeafe; padding:3px 7px; font:inherit; font-size:11px; cursor:pointer; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .workspace-chip.active { border-color:#1f6feb; background:#1f6feb; color:#fff; }
+    .workspace-chip:hover { border-color:#58a6ff; background:#13233a; }
+    .workspace-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin-bottom:4px; }
+    .workspace-stats div { border:1px solid #334155; border-radius:6px; background:#0d1117; padding:4px 6px; }
+    .workspace-stats span { display:block; color:#93a4b8; font-size:10px; }
+    .workspace-stats strong { display:block; color:#eef4ff; font-size:13px; line-height:1.1; }
+    .overview-shell { border:1px solid var(--line); border-radius:9px; background:var(--panel); padding:16px; overflow:auto; }
+    .overview-svg { width:100%; min-width:860px; height:560px; display:block; background:#fff; border:1px solid var(--line); border-radius:8px; }
+    .slice-map-shell { position:relative; border:0; background:var(--graph); margin:0; overflow:auto; min-height:0; height:100%; display:flex; flex-direction:column; }
+    .slice-map { width:100%; min-width:720px; height:auto; flex:1 1 auto; min-height:440px; display:block; background:linear-gradient(180deg,#fff 0,#f9fbff 64%,#eef2f7 100%); }
+    .slice-map.zoomable { transform-origin:center center; transition:transform .12s ease; }
+    .explorer-shell { --source-pane-width:320px; --detail-pane-width:320px; flex:1; display:grid; grid-template-columns:minmax(240px,var(--source-pane-width)) 8px minmax(520px,1fr) 8px minmax(260px,var(--detail-pane-width)); gap:0; align-items:stretch; min-height:0; border-top:1px solid #252c35; border-bottom:1px solid #252c35; }
+    .explorer-shell.source-hidden { grid-template-columns:minmax(720px,1fr) 8px minmax(260px,var(--detail-pane-width)); }
+    .explorer-shell.source-hidden .source-pane { display:none; }
+    .explorer-shell.source-hidden .source-resizer { display:none; }
+    .explorer-shell.detail-hidden { grid-template-columns:minmax(240px,var(--source-pane-width)) 8px minmax(760px,1fr); }
+    .explorer-shell.detail-hidden .detail-pane { display:none; }
+    .explorer-shell.detail-hidden .detail-resizer { display:none; }
+    .explorer-shell.graph-wide, .explorer-shell.full-graph { grid-template-columns:minmax(0,1fr); }
+    .explorer-shell.graph-wide .source-pane, .explorer-shell.graph-wide .detail-pane, .explorer-shell.graph-wide .pane-resizer, .explorer-shell.full-graph .source-pane, .explorer-shell.full-graph .detail-pane, .explorer-shell.full-graph .pane-resizer { display:none; }
+    .explorer-shell.code-graph { grid-template-columns:minmax(280px,var(--source-pane-width)) 8px minmax(680px,1fr); }
+    .explorer-shell.code-graph .detail-pane, .explorer-shell.code-graph .detail-resizer { display:none; }
+    .explorer-shell.graph-details { grid-template-columns:minmax(720px,1fr) 8px minmax(280px,var(--detail-pane-width)); }
+    .explorer-shell.graph-details .source-pane, .explorer-shell.graph-details .source-resizer { display:none; }
+    .explorer-shell.graph-focus { position:fixed; inset:0; z-index:20; grid-template-columns:minmax(0,1fr); border:0; background:#0d1117; }
+    .explorer-shell.graph-focus .source-pane, .explorer-shell.graph-focus .detail-pane, .explorer-shell.graph-focus .pane-resizer, .explorer-shell.graph-focus + .map-bottom { display:none; }
+    .explorer-pane { border:0; border-right:1px solid #252c35; border-radius:0; background:var(--surface); min-width:0; overflow:hidden; }
+    .explorer-pane:last-child { border-right:0; }
+    .pane-resizer { width:8px; min-width:8px; cursor:col-resize; background:#111827; border-right:1px solid #252c35; border-left:1px solid #252c35; position:relative; }
+    .pane-resizer::after { content:''; position:absolute; left:3px; top:50%; width:2px; height:42px; transform:translateY(-50%); border-radius:999px; background:#3b4656; }
+    .pane-resizer:hover, .pane-resizer.dragging { background:#1f2937; }
+    .pane-resizer:hover::after, .pane-resizer.dragging::after { background:#58a6ff; }
+    .explorer-pane header { padding:10px 12px; border-bottom:1px solid var(--line); background:#161b22; min-height:51px; }
+    .explorer-pane header span { display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .source-pane pre { margin:0; border-radius:0; height:calc(100% - 52px); min-height:360px; max-height:none; white-space:pre; background:#061120; color:#d7e2ef; font:12px/1.65 Consolas,"SFMono-Regular",monospace; border:0; }
+    .source-pane code { display:block; background:transparent; color:inherit; padding:14px 0 18px 0; }
+    .source-line { display:block; min-height:19px; padding:0 12px 0 0; }
+    .source-line.selected { background:rgba(47,129,247,.32); box-shadow:inset 4px 0 0 #58a6ff; color:#fff; }
+    .source-line .gutter { display:inline-block; width:58px; padding-right:12px; color:#7da0c8; text-align:right; user-select:none; }
+    .source-line .code-text { white-space:pre; }
+    .source-pane .source-placeholder { padding:14px; color:var(--muted); }
+    .graph-pane { background:var(--graph); position:relative; display:flex; flex-direction:column; min-width:0; }
+    .graph-pane .slice-map-shell { border:0; border-radius:0; background:transparent; margin:0; }
+    .graph-toolbar { display:grid; grid-template-columns:minmax(220px,1fr) auto auto; gap:8px; align-items:center; padding:7px 10px; border-bottom:1px solid #d8e0ea; background:#fff; color:#17202a; min-height:44px; box-shadow:0 1px 0 rgba(15,23,42,.04); }
+    .graph-toolbar .toolbar-label { color:#667085; font-size:12px; font-weight:650; text-transform:uppercase; letter-spacing:.04em; }
+    .graph-toolbar button { border:1px solid #d8e0ea; border-radius:999px; background:#fff; color:#17202a; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer; }
+    .graph-toolbar button:hover, .graph-toolbar button.active { border-color:var(--brand); background:#eef6ff; color:#1f4ea3; }
+    .graph-toolbar input { min-width:0; width:100%; border:1px solid #c7d2e0; border-radius:999px; padding:6px 10px; font:inherit; font-size:12px; color:#17202a; background:#fff; }
+    .toolbar-search { min-width:0; }
+    .toolbar-status { display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:0; max-width:420px; }
+    .toolbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:6px; }
+    .graph-toolbar .count-chip { border:1px solid #d8e0ea; border-radius:999px; background:#f8fafc; color:#475467; padding:5px 9px; font-size:12px; white-space:nowrap; }
+    .graph-toolbar .focus-state { border:1px solid #bfdbfe; border-radius:999px; background:#eff6ff; color:#1e40af; padding:5px 9px; font-size:12px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .graph-toolbar .clear-focus { border-style:dashed; }
+    .toolbar-menu { position:relative; }
+    .toolbar-menu summary { list-style:none; border:1px solid #d8e0ea; border-radius:999px; background:#fff; color:#17202a; padding:5px 10px; font-size:12px; cursor:pointer; }
+    .toolbar-menu summary::-webkit-details-marker { display:none; }
+    .toolbar-menu[open] summary { border-color:var(--brand); background:#eef6ff; color:#1f4ea3; }
+    .toolbar-menu-body { position:absolute; right:0; top:calc(100% + 6px); z-index:5; display:flex; flex-wrap:wrap; gap:7px; min-width:260px; max-width:420px; padding:10px; border:1px solid #c7d2e0; border-radius:8px; background:#fff; box-shadow:0 12px 32px rgba(15,23,42,.18); }
+    .toolbar-menu-label { flex:0 0 100%; color:#667085; font-size:11px; font-weight:750; text-transform:uppercase; letter-spacing:.04em; }
+    .toolbar-menu-body .legend-item { display:inline-flex; align-items:center; gap:6px; color:#475467; font-size:12px; white-space:nowrap; }
+    .toolbar-menu-body .legend-line { width:22px; height:4px; border-radius:999px; background:#94a3b8; }
+    .toolbar-menu-body .legend-line.direct { background:#1f6feb; }
+    .toolbar-menu-body .legend-line.failure { background:#b42318; }
+    .toolbar-menu-body .legend-line.inferred { background:#a15c00; }
+    .ui-zoom-label { min-width:42px; text-align:center; color:#475467; font-size:12px; }
+    @media (max-width: 1180px) {
+      .graph-toolbar { grid-template-columns:minmax(220px,1fr) auto; }
+      .toolbar-status { grid-column:1 / -1; justify-content:flex-start; max-width:none; }
+    }
+    .graph-depth-rail, .graph-search-results { border-bottom:1px solid #d8e0ea; background:#f8fafc; color:#17202a; }
+    .graph-depth-track { display:flex; align-items:center; flex-wrap:wrap; gap:4px 0; padding:6px 10px; overflow-x:visible; min-height:38px; }
+    .depth-title { flex:0 0 auto; margin-right:10px; color:#475467; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+    .depth-step { flex:0 0 auto; display:flex; align-items:center; gap:6px; min-width:0; max-width:148px; border:1px solid #d8e0ea; border-radius:999px; background:#fff; color:#17202a; padding:4px 8px; text-align:left; text-decoration:none; font:inherit; cursor:default; }
+    button.depth-step { cursor:pointer; }
+    button.depth-step:hover { border-color:#1f6feb; background:#eef6ff; }
+    .depth-step span { color:#667085; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+    .depth-step strong { font-size:12px; line-height:1.15; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .depth-step em { display:none; }
+    .depth-step.incoming { border-color:#bbf7d0; background:#f0fdf4; }
+    .depth-step.selected { border-color:#1f6feb; background:#eff6ff; box-shadow:0 0 0 2px rgba(31,111,235,.12); }
+    .depth-step.outgoing { border-color:#fed7aa; background:#fff7ed; }
+    .depth-step.context { border-color:#cbd5e1; background:#f8fafc; }
+    .depth-connector { flex:0 0 16px; height:2px; background:#cbd5e1; position:relative; }
+    .depth-connector::after { content:''; position:absolute; right:0; top:-3px; width:0; height:0; border-left:6px solid #94a3b8; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+    .graph-jump-rail { flex:0 0 auto; position:relative; margin-left:10px; }
+    .graph-jump-rail summary { list-style:none; cursor:pointer; border:1px solid #d8e0ea; border-radius:999px; background:#fff; color:#475467; padding:4px 9px; font-size:11px; font-weight:750; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+    .graph-jump-rail summary::-webkit-details-marker { display:none; }
+    .graph-jump-rail[open] summary { border-color:#1f6feb; background:#eef6ff; color:#1f4ea3; }
+    .graph-jump-items { position:absolute; right:0; top:calc(100% + 6px); z-index:7; display:flex; flex-wrap:wrap; gap:7px; align-items:center; min-width:280px; max-width:460px; padding:9px; border:1px solid #c7d2e0; border-radius:8px; background:#fff; box-shadow:0 12px 32px rgba(15,23,42,.18); }
+    .graph-search-results { display:flex; flex-wrap:wrap; gap:7px; align-items:center; padding-top:7px; }
+    .graph-search-results { padding:8px 10px; }
+    .graph-search-results strong { font-size:12px; color:#475467; text-transform:uppercase; letter-spacing:.04em; }
+    .graph-jump-rail button, .graph-search-results button { max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid #c7d2e0; border-radius:999px; background:#fff; color:#17202a; padding:5px 9px; font:inherit; font-size:12px; cursor:pointer; }
+    .graph-jump-rail button:hover, .graph-search-results button:hover { border-color:#1f6feb; color:#1f4ea3; background:#eef6ff; }
+    .graph-search-results[hidden] { display:none; }
+    .graph-controls { position:absolute; top:62px; left:12px; display:flex; gap:6px; z-index:2; }
+    .graph-controls button { width:30px; height:30px; border:1px solid #d8e0ea; border-radius:7px; background:#fff; color:#17202a; font-weight:700; cursor:pointer; }
+    .graph-controls button:hover { border-color:#2f81f7; color:#1f4ea3; }
+    .graph-overview { position:absolute; top:72px; right:12px; width:166px; height:122px; border:1px solid #d8e0ea; border-radius:7px; background:rgba(255,255,255,.9); box-shadow:0 8px 20px rgba(15,23,42,.12); }
+    .graph-overview .mini-edge { stroke:#cbd5e1; stroke-width:1; fill:none; }
+    .graph-overview .mini-edge.failure { stroke:#b42318; stroke-width:1.8; }
+    .graph-overview .mini-node { fill:#e2e8f0; stroke:#94a3b8; stroke-width:1; }
+    .graph-overview .mini-node[data-lens-select-node] { cursor:pointer; }
+    .graph-overview .mini-node[data-lens-select-node]:hover { fill:#bfdbfe; stroke:#1f6feb; stroke-width:2; }
+    .graph-overview .mini-node.selected { fill:#dbeafe; stroke:#1f6feb; stroke-width:1.8; }
+    .graph-overview .mini-node.failure { fill:#fee2e2; stroke:#b42318; stroke-width:1.8; }
+    .graph-overview .viewport { fill:rgba(47,129,247,.08); stroke:#2f81f7; stroke-width:1.5; }
+    .slice-map.application-map .app-map-lane { fill:#f8fafc; stroke:#d8e0ea; cursor:pointer; transition:fill .12s ease, stroke-width .12s ease, filter .12s ease; }
+    .slice-map.application-map .app-map-lane:hover, .slice-map.application-map .app-map-lane.selected-lane { fill:#eef6ff; stroke:#1f6feb; stroke-width:2.4; filter:drop-shadow(0 8px 16px rgba(31,111,235,.12)); }
+    .slice-map.application-map .app-map-lane-title { font-size:11px; font-weight:800; fill:#475467; text-transform:uppercase; letter-spacing:.04em; }
+    .slice-map.application-map .app-map-lane-count { font-size:11px; font-weight:750; fill:#667085; pointer-events:none; }
+    .slice-map.application-map .app-map-node rect { filter:drop-shadow(0 5px 9px rgba(15,23,42,.08)); }
+    .slice-map.application-map .app-map-node.selected rect { stroke:#1f6feb; stroke-width:3; }
+    .slice-map.application-map .app-map-node:hover rect { stroke:#1f6feb; }
+    .slice-map.application-map .app-map-edge { stroke:#94a3b8; stroke-width:1.7; fill:none; opacity:.72; }
+    .slice-map.application-map .app-map-edge.direct { stroke:#1f6feb; opacity:.9; }
+    .slice-map.application-map .app-map-edge.failure { stroke:#dc2626; stroke-width:2.6; opacity:1; }
+    .slice-map.application-map .app-map-edge.inferred { stroke:#f59e0b; stroke-dasharray:5 5; }
+    .graph-mini-map { display:flex; gap:12px; align-items:center; justify-content:center; padding:8px 10px; border-top:1px solid #d8e0ea; background:#fff; color:#475467; font-size:12px; }
+    .graph-mini-map span { display:inline-flex; align-items:center; gap:5px; }
+    .graph-mini-map b { display:inline-block; width:18px; height:4px; border-radius:999px; background:#94a3b8; }
+    .graph-mini-map .foreground b { background:#1f6feb; }
+    .graph-mini-map .failure b { background:#b42318; }
+    .graph-mini-map .inferred b { background:#a15c00; }
+    .graph-status-bar { display:flex; gap:14px; align-items:center; justify-content:space-between; padding:8px 12px; border-top:1px solid #d8e0ea; background:#fff; color:#475467; font-size:12px; }
+    .graph-status-bar span { white-space:nowrap; }
+    .graph-status-bar button { border:1px solid #d8e0ea; border-radius:6px; background:#fff; color:#17202a; padding:5px 10px; font:inherit; cursor:pointer; }
+    .empty-lens { display:grid; place-items:center; min-height:580px; padding:24px; background:#fff; color:#17202a; }
+    .empty-lens article { max-width:520px; border:1px solid #d8e0ea; border-radius:8px; padding:18px; background:#f8fafc; }
+    .empty-lens h2 { margin:0 0 8px; font-size:18px; color:#17202a; }
+    .empty-lens p { color:#475467; }
+    .slice-edge { opacity:.85; cursor:pointer; }
+    .slice-edge { transition:opacity .12s ease, stroke-width .12s ease, filter .12s ease; }
+    .slice-edge.selected-edge { opacity:1; stroke-width:4.6; filter:drop-shadow(0 3px 8px rgba(31,111,235,.26)); }
+    .slice-edge.background-context { opacity:.48; stroke:#94a3b8; }
+    .slice-edge.graph-background-edge { opacity:.38; }
+    .slice-edge.foreground, .slice-edge.focused-path { opacity:1; stroke:#1f6feb; stroke-width:3; }
+    .slice-edge.failure-point { opacity:1; stroke:#b42318; stroke-width:3.4; }
+    .slice-node { cursor:pointer; outline:none; }
+    .slice-node rect { transition:stroke-width .12s ease, filter .12s ease, opacity .12s ease; }
+    .slice-node.background-context { opacity:.82; }
+    .slice-node.graph-background-node { opacity:.52; }
+    .slice-node.graph-background-node:hover { opacity:.86; }
+    .slice-node.foreground, .slice-node.focused-path, .slice-node.failure-point, .slice-node.repair-target { opacity:1; }
+    .slice-node:hover rect, .slice-node.selected rect, .slice-node:focus rect { stroke-width:3.6; filter:drop-shadow(0 8px 16px rgba(31,111,235,.24)); }
+    .slice-node.failure-point rect { stroke:#b42318; fill:#fff1f0; }
+    .slice-node.focused-path rect { stroke:#1f6feb; fill:#eef6ff; }
+    .slice-node.repair-target rect { stroke:#c2410c; fill:#fff7ed; }
+    .slice-node.data-operation-write rect, .slice-card.data-operation-write { stroke:#c2410c; fill:#fff7ed; }
+    .slice-node.data-operation-write rect { filter:drop-shadow(0 8px 16px rgba(194,65,12,.16)); }
+    .slice-node.data-operation-read rect, .slice-card.data-operation-read { stroke:#168a61; fill:#ecfdf5; }
+    .slice-node.provider-auth rect { stroke:#7c3aed; }
+    .slice-node.provider-storage rect { stroke:#0f766e; }
+    .slice-node.provider-rpc rect, .slice-node.provider-edge-function rect { stroke:#a15c00; }
+    .slice-node.lens-hidden, .slice-edge.lens-hidden, .slice-card.lens-hidden, .edge-card.lens-hidden { display:none; }
+    .lens-focus-dim { opacity:.46 !important; }
+    .slice-card.lens-focus-dim, .edge-card.lens-focus-dim { opacity:.58 !important; }
+    .detail-pane .detail-body { padding:12px; display:grid; gap:10px; height:calc(100% - 52px); min-height:360px; overflow:auto; }
+    .detail-pane h3 { overflow-wrap:anywhere; font-size:12px; color:#c9d1d9; margin:0 0 6px; text-transform:uppercase; letter-spacing:.04em; }
+    .selected-summary strong { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; font-size:18px; line-height:1.16; margin-bottom:4px; overflow:hidden; overflow-wrap:anywhere; }
+    .selected-summary span { display:block; color:var(--muted); }
+    .detail-section { border:1px solid var(--line); border-radius:7px; padding:10px; background:#111827; }
+    .detail-section h3 { margin:0 0 8px; }
+    .detail-section p { margin:0; color:#c8d3df; }
+    .detail-grid { display:grid; grid-template-columns:1fr; gap:8px; }
+    .detail-grid div { border:1px solid var(--line); border-radius:6px; padding:8px; background:var(--panel); }
+    .detail-grid span { display:block; color:var(--muted); font-size:12px; }
+    .detail-grid strong { overflow-wrap:anywhere; }
+    .node-signal { display:grid; gap:6px; border:1px solid var(--line); border-radius:7px; padding:10px; background:#161b22; }
+    .node-signal span { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .node-signal strong { font-size:14px; overflow-wrap:anywhere; }
+    .provenance-badges { display:flex; flex-wrap:wrap; gap:6px; }
+    .provenance-badges span { border:1px solid #405167; border-radius:999px; padding:3px 8px; font-size:12px; background:#1f2937; color:#dbeafe; }
+    .provenance-badges .ai_reviewed { border-color:#bfdbfe; background:#eff6ff; color:#1e40af; }
+    .provenance-badges .ai_planned_failed, .provenance-badges .failure_point, .provenance-badges .finding { border-color:#fecaca; background:#fef2f2; color:#991b1b; }
+    .provenance-badges .static_scanned { border-color:#cbd5e1; background:#f8fafc; color:#334155; }
+    .provenance-badges .graph_context_only { border-color:#ddd6fe; background:#f5f3ff; color:#5b21b6; }
+    .provenance-badges .cached { border-color:#bbf7d0; background:#f0fdf4; color:#166534; }
+    .provenance-badges .repair, .provenance-badges .repair_target { border-color:#fed7aa; background:#fff7ed; color:#9a3412; }
+    .provenance-badges .manual_provider_required { border-color:#fecaca; background:#fef2f2; color:#991b1b; }
+    .provenance-badges .data_write { border-color:#fed7aa; background:#fff7ed; color:#9a3412; }
+    .provenance-badges .data_read { border-color:#bbf7d0; background:#ecfdf5; color:#166534; }
+    .provenance-badges .provider_auth, .provenance-badges .provider_storage, .provenance-badges .provider_rpc { border-color:#d8b4fe; background:#faf5ff; color:#6b21a8; }
+    .connection-list { display:grid; gap:6px; max-height:190px; overflow:auto; }
+    .connection-list button { text-align:left; border:1px solid var(--line); border-radius:6px; background:#161b22; padding:7px; cursor:pointer; color:var(--text); font:inherit; }
+    .connection-list button:hover { border-color:var(--brand); background:#1f2937; }
+    .repair-card { border:1px solid #fed7aa; border-left:5px solid #c2410c; border-radius:8px; padding:10px; background:#fff7ed; color:#7c2d12; }
+    .repair-card strong { display:block; }
+    .finding-card { border:1px solid #7f1d1d; border-radius:7px; background:linear-gradient(180deg,#2a1417,#1f1517); padding:10px; color:#ffd8d5; }
+    .finding-card strong { display:block; color:#fff; }
+    .relation-group { border:1px solid var(--line); border-radius:6px; background:#161b22; overflow:hidden; margin-bottom:6px; }
+    .relation-group summary { cursor:pointer; padding:8px 9px; color:#c9d1d9; font-weight:650; }
+    .relation-group .connection-list { border-top:1px solid var(--line); padding:8px; }
+    .relationship-card { border:1px solid #334155; border-radius:7px; padding:10px; background:#111827; color:#dbeafe; }
+    .relationship-card strong { display:block; color:#fff; margin-bottom:4px; }
+    .relationship-card span { display:block; color:#9aa4b2; font-size:12px; margin-top:3px; }
+    .detail-action-row { display:grid; gap:8px; border-top:1px solid var(--line); padding-top:10px; }
+    .map-bottom { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:8px; padding:8px 12px 10px; background:#0d1117; border-top:1px solid #252c35; }
+    .map-journey, .map-summary { border:1px solid var(--line); border-radius:7px; background:var(--surface); margin:0; padding:10px 12px; }
+    .map-journey h2, .map-summary h2 { margin:0 0 8px; font-size:14px; }
+    .journey-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+    .journey-step { position:relative; border:1px solid var(--line); border-radius:7px; padding:8px 9px 8px 28px; background:#161b22; min-height:70px; }
+    .journey-step::before { content:''; position:absolute; left:9px; top:12px; width:10px; height:10px; border-radius:999px; background:#58a6ff; }
+    .journey-step.complete::before { background:#3fb950; }
+    .journey-step.partial::before { background:#58a6ff; }
+    .journey-step.failed::before { background:#f85149; }
+    .journey-step.skipped::before { background:#8b949e; }
+    .journey-step span { display:block; color:var(--muted); font-size:12px; }
+    .map-summary dl { display:grid; grid-template-columns:1fr auto; gap:4px 10px; margin:0; }
+    .map-summary dt { color:var(--muted); }
+    .map-summary dd { margin:0; font-weight:700; }
+    .area-card { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:14px; }
+    .area-card article, .slice-card, .edge-card { border:1px solid var(--line); border-radius:7px; background:var(--surface); padding:12px; }
+    .slice-card { cursor:pointer; }
+    .slice-card:hover, .slice-card.selected { border-color:var(--brand); background:#eef6ff; }
+    .area-card dl { display:grid; grid-template-columns:1fr auto; gap:4px 10px; margin:10px 0 0; }
+    .area-card dt { color:var(--muted); }
+    .area-card dd { margin:0; font-weight:650; }
+    .area-link { display:inline-block; margin-top:10px; color:#fff; background:var(--brand); border:0; border-radius:6px; padding:6px 9px; text-decoration:none; font:inherit; font-weight:650; cursor:pointer; }
+    .area-link:hover { filter:brightness(.95); }
+    .overview-area-link { cursor:pointer; text-decoration:none; }
+    .overview-area-link:hover rect { stroke:#1f6feb; stroke-width:3; filter:drop-shadow(0 8px 16px rgba(31,111,235,.22)); }
+    .lens-nav-rail { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:8px 14px; background:#f8fafc; border-bottom:1px solid var(--line); }
+    .lens-nav-rail span { color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; }
+    .lens-nav-rail a, .lens-nav-rail button { border:1px solid #bfdbfe; border-radius:999px; background:#eff6ff; color:#1f6feb; padding:5px 10px; font:inherit; font-weight:650; text-decoration:none; cursor:pointer; }
+    .lens-nav-rail a:hover, .lens-nav-rail button:hover { background:#dbeafe; }
+    .lens-nav-segment { border:1px solid #d8e0ea; border-radius:999px; background:#fff; color:#475467; padding:5px 10px; font-weight:650; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lens-nav-segment.current { border-color:#1f6feb; color:#1e40af; background:#eff6ff; }
+    .lens-nav-arrow { color:#94a3b8; font-size:13px; }
+    .lens-secondary { margin-top:10px; }
+    .lens-secondary summary { cursor:pointer; color:var(--muted); font-weight:650; }
+    .slice-grid { display:grid; grid-template-columns:minmax(220px,1fr) minmax(260px,1.2fr) minmax(220px,1fr); gap:14px; align-items:start; margin-top:10px; }
+    .slice-column { border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:12px; min-height:160px; }
+    .slice-column h2 { margin-top:0; }
+    .slice-card { margin:8px 0; }
+    .source-button { display:inline-block; margin-top:0; color:#fff; background:#1f6feb; border:0; border-radius:6px; padding:8px 10px; font:inherit; font-weight:650; cursor:pointer; }
+    .source-button[hidden] { display:none; }
+    .source-button:hover { filter:brightness(.95); }
+    .node-type, .confidence, .authority { display:inline-block; border-radius:999px; padding:2px 7px; font-size:12px; margin:0 4px 4px 0; background:var(--soft); color:#344054; }
+    .confidence.direct { background:#e8f5ee; color:var(--ok); }
+    .confidence.inferred { background:#fff3df; color:var(--warn); }
+    .confidence.unresolved, .confidence.manual_provider_required { background:#fdecec; color:var(--risk); }
+    .edge-list { margin-top:16px; display:grid; gap:10px; }
+    .edge-card strong { overflow-wrap:anywhere; }
+    .edge-card .path { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .arrow { color:var(--muted); }
+    .metadata-panel { margin-top:10px; }
+    .metadata-panel summary { cursor:pointer; color:var(--muted); font-weight:650; }
+    pre { overflow:auto; background:#0b1220; color:#dbeafe; border-radius:7px; padding:12px; }
+    @media (max-width: 1400px) { .explorer-shell { --source-pane-width:280px; --detail-pane-width:280px; } .slice-map { min-width:680px; } }
+    @media (max-width: 1260px) { .workspace-context { grid-template-columns:minmax(200px,.75fr) minmax(300px,1.4fr) minmax(220px,.85fr); } .explorer-shell { --source-pane-width:230px; --detail-pane-width:230px; } .slice-map { min-width:560px; } }
+    @media (max-width: 980px) { body { overflow:auto; } .workspace-context { grid-template-columns:1fr; } .explorer-shell, .explorer-shell.source-hidden, .explorer-shell.detail-hidden, .explorer-shell.graph-wide, .explorer-shell.code-graph, .explorer-shell.graph-details, .explorer-shell.full-graph { grid-template-columns:1fr; } .pane-resizer { display:none; } .graph-pane { order:-1; } .source-pane pre, .detail-pane .detail-body { height:auto; min-height:300px; } .map-bottom { grid-template-columns:1fr; } }
+    @media (max-width: 840px) { .slice-grid { grid-template-columns:1fr; } .overview-svg, .slice-map { min-width:780px; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="lens-titlebar">
+    <div>
+      <h1>Owlvex Code Map Lens - Overview</h1>
+      <p>High-level app areas and repository-visible relationships. Select an area later to expand into section detail.</p>
+    </div>
+    <div class="lens-title-actions">
+      
+      <button class="title-action" type="button" data-lens-filter="failure">Focus risk</button>
+    </div>
+  </div>
+  <nav class="lens-commandbar" aria-label="Code Map Lens command bar">
+      <span>Mode:</span><strong>App Atlas</strong>
+      <span>File:</span><strong>repository</strong>
+      <span>Focus:</span><strong class="focus-chip">overview</strong>
+      <span>Basis:</span><strong class="focus-basis">High level</strong>
+      
+      <span>Depth:</span><strong>1</strong>
+      <span>Coverage:</span><strong>partial, truncated_by_depth</strong>
+    </nav>
+  
+  <div class="notice">Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos.<br>Code Map Lens reused a short-lived in-memory repository map and refreshed the active editor file before rendering this view.</div>
+  <section class="summary"><div><span>Graph kind</span><strong>overviewGraph</strong></div><div><span>Nodes</span><strong>9</strong></div><div><span>Edges</span><strong>23</strong></div><div><span>Sources</span><strong>repository_graph, inferred_static</strong></div><div><span>Coverage</span><strong>partial, truncated_by_depth</strong></div></section>
+  <section class="overview-shell">
+      <svg class="overview-svg" viewBox="0 0 1080 560" role="img" aria-label="Code Map Lens overview graph">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#475467" />
+          </marker>
+        </defs>
+        <line x1="130" y1="300" x2="570" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="350" y="204" text-anchor="middle" font-size="11" fill="#475467">4</text><line x1="350" y1="120" x2="350" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="350" y="204" text-anchor="middle" font-size="11" fill="#475467">3</text><line x1="130" y1="120" x2="350" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="240" y="204" text-anchor="middle" font-size="11" fill="#475467">37</text><line x1="790" y1="120" x2="350" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="570" y="204" text-anchor="middle" font-size="11" fill="#475467">19</text><line x1="130" y1="300" x2="790" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="460" y="294" text-anchor="middle" font-size="11" fill="#475467">3</text><line x1="350" y1="120" x2="790" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="570" y="204" text-anchor="middle" font-size="11" fill="#475467">3</text><line x1="130" y1="120" x2="790" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="460" y="204" text-anchor="middle" font-size="11" fill="#475467">22</text><line x1="790" y1="120" x2="790" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="790" y="204" text-anchor="middle" font-size="11" fill="#475467">16</text><line x1="350" y1="120" x2="570" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="460" y="204" text-anchor="middle" font-size="11" fill="#475467">1</text><line x1="130" y1="120" x2="570" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="350" y="204" text-anchor="middle" font-size="11" fill="#475467">22</text><line x1="790" y1="120" x2="570" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="680" y="204" text-anchor="middle" font-size="11" fill="#475467">29</text><line x1="350" y1="300" x2="130" y2="120" stroke="#a15c00" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)" />
+              <text x="240" y="204" text-anchor="middle" font-size="11" fill="#475467">0</text><line x1="350" y1="300" x2="790" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="570" y="204" text-anchor="middle" font-size="11" fill="#475467">1</text><line x1="130" y1="120" x2="790" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="460" y="114" text-anchor="middle" font-size="11" fill="#475467">60</text><line x1="130" y1="120" x2="570" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="350" y="114" text-anchor="middle" font-size="11" fill="#475467">1</text><line x1="130" y1="120" x2="350" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="240" y="114" text-anchor="middle" font-size="11" fill="#475467">2</text><line x1="130" y1="120" x2="130" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="130" y="204" text-anchor="middle" font-size="11" fill="#475467">8</text><line x1="790" y1="120" x2="350" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="570" y="114" text-anchor="middle" font-size="11" fill="#475467">1</text><line x1="130" y1="300" x2="1010" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="570" y="294" text-anchor="middle" font-size="11" fill="#475467">15</text><line x1="350" y1="120" x2="1010" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="680" y="204" text-anchor="middle" font-size="11" fill="#475467">1</text><line x1="130" y1="120" x2="1010" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="570" y="204" text-anchor="middle" font-size="11" fill="#475467">239</text><line x1="790" y1="120" x2="1010" y2="300" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="900" y="204" text-anchor="middle" font-size="11" fill="#475467">4</text><line x1="130" y1="300" x2="350" y2="120" stroke="#1f6feb" stroke-width="2" marker-end="url(#arrow)" />
+              <text x="240" y="204" text-anchor="middle" font-size="11" fill="#475467">1</text>
+        <a class="overview-area-link" href="section-frontend.html" aria-label="Open Frontend / UI" data-lens-area-id="frontend"><g>
+              <rect x="36" y="78" width="188" height="84" rx="8" fill="#f8fafc" stroke="#98a2b3" />
+              <text x="130" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Frontend / UI</text>
+              <text x="130" y="130" text-anchor="middle" font-size="12" fill="#5f6b7a">70 file(s)</text>
+              <text x="130" y="148" text-anchor="middle" font-size="11" fill="#5f6b7a">202 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-routes_api.html" aria-label="Open Routes / API" data-lens-area-id="routes_api"><g>
+              <rect x="256" y="78" width="188" height="84" rx="8" fill="#f8fafc" stroke="#98a2b3" />
+              <text x="350" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Routes / API</text>
+              <text x="350" y="130" text-anchor="middle" font-size="12" fill="#5f6b7a">1 file(s)</text>
+              <text x="350" y="148" text-anchor="middle" font-size="11" fill="#5f6b7a">1 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-services.html" aria-label="Open Services" data-lens-area-id="services"><g>
+              <rect x="476" y="78" width="188" height="84" rx="8" fill="#f8fafc" stroke="#98a2b3" />
+              <text x="570" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Services</text>
+              <text x="570" y="130" text-anchor="middle" font-size="12" fill="#5f6b7a">0 file(s)</text>
+              <text x="570" y="148" text-anchor="middle" font-size="11" fill="#5f6b7a">4 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-auth_policy.html" aria-label="Open Auth / Policy" data-lens-area-id="auth_policy"><g>
+              <rect x="256" y="258" width="188" height="84" rx="8" fill="#eef6ff" stroke="#98a2b3" />
+              <text x="350" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Auth / Policy</text>
+              <text x="350" y="310" text-anchor="middle" font-size="12" fill="#5f6b7a">58 guard(s)</text>
+              <text x="350" y="328" text-anchor="middle" font-size="11" fill="#5f6b7a">60 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-data_layer.html" aria-label="Open Data Layer" data-lens-area-id="data_layer"><g>
+              <rect x="696" y="78" width="188" height="84" rx="8" fill="#f8fafc" stroke="#98a2b3" />
+              <text x="790" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Data Layer</text>
+              <text x="790" y="130" text-anchor="middle" font-size="12" fill="#5f6b7a">9 file(s)</text>
+              <text x="790" y="148" text-anchor="middle" font-size="11" fill="#5f6b7a">54 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-providers.html" aria-label="Open Providers / Integrations" data-lens-area-id="providers"><g>
+              <rect x="696" y="258" width="188" height="84" rx="8" fill="#eef6ff" stroke="#98a2b3" />
+              <text x="790" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Providers / Integrations</text>
+              <text x="790" y="310" text-anchor="middle" font-size="12" fill="#5f6b7a">44 provider(s)</text>
+              <text x="790" y="328" text-anchor="middle" font-size="11" fill="#5f6b7a">44 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-security_sensitive_ops.html" aria-label="Open Sensitive Operations" data-lens-area-id="security_sensitive_ops"><g>
+              <rect x="476" y="258" width="188" height="84" rx="8" fill="#eef6ff" stroke="#98a2b3" />
+              <text x="570" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Sensitive Operations</text>
+              <text x="570" y="310" text-anchor="middle" font-size="12" fill="#5f6b7a">52 sink(s)</text>
+              <text x="570" y="328" text-anchor="middle" font-size="11" fill="#5f6b7a">52 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-external_dependencies.html" aria-label="Open External Dependencies" data-lens-area-id="external_dependencies"><g>
+              <rect x="916" y="258" width="188" height="84" rx="8" fill="#eef6ff" stroke="#98a2b3" />
+              <text x="1010" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">External Dependencies</text>
+              <text x="1010" y="310" text-anchor="middle" font-size="12" fill="#5f6b7a">55 provider(s)</text>
+              <text x="1010" y="328" text-anchor="middle" font-size="11" fill="#5f6b7a">55 node(s)</text>
+            </g></a><a class="overview-area-link" href="section-other_code.html" aria-label="Open Other Code" data-lens-area-id="other_code"><g>
+              <rect x="36" y="258" width="188" height="84" rx="8" fill="#f8fafc" stroke="#98a2b3" />
+              <text x="130" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#17202a">Other Code</text>
+              <text x="130" y="310" text-anchor="middle" font-size="12" fill="#5f6b7a">7 file(s)</text>
+              <text x="130" y="328" text-anchor="middle" font-size="11" fill="#5f6b7a">7 node(s)</text>
+            </g></a>
+      </svg>
+      <div class="area-card"><article>
+          <h3>Frontend / UI</h3>
+          <p>UI, pages, components, hooks, and browser-side code.</p>
+          <dl>
+            <dt>Files</dt><dd>70</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-frontend.html">Open section</a>
+        </article><article>
+          <h3>Routes / API</h3>
+          <p>Request entry points, route handlers, controllers, and middleware signals.</p>
+          <dl>
+            <dt>Files</dt><dd>1</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-routes_api.html">Open section</a>
+        </article><article>
+          <h3>Services</h3>
+          <p>Application services, domain logic, helpers, and use-case code.</p>
+          <dl>
+            <dt>Files</dt><dd>0</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-services.html">Open section</a>
+        </article><article>
+          <h3>Auth / Policy</h3>
+          <p>Authentication, authorization, validation, rate-limit, and policy signals.</p>
+          <dl>
+            <dt>Files</dt><dd>1</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>58</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-auth_policy.html">Open section</a>
+        </article><article>
+          <h3>Data Layer</h3>
+          <p>Database, repository, model, cache, queue, and storage signals.</p>
+          <dl>
+            <dt>Files</dt><dd>9</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-data_layer.html">Open section</a>
+        </article><article>
+          <h3>Providers / Integrations</h3>
+          <p>External SDK, HTTP client, AI provider, cloud, and integration calls.</p>
+          <dl>
+            <dt>Files</dt><dd>0</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>44</dd>
+          </dl>
+          <a class="area-link" href="section-providers.html">Open section</a>
+        </article><article>
+          <h3>Sensitive Operations</h3>
+          <p>Sensitive sinks such as filesystem, command, network, redirect, template, SQL, and crypto operations.</p>
+          <dl>
+            <dt>Files</dt><dd>0</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>52</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-security_sensitive_ops.html">Open section</a>
+        </article><article>
+          <h3>External Dependencies</h3>
+          <p>External imports and dependencies referenced from local code.</p>
+          <dl>
+            <dt>Files</dt><dd>0</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>55</dd>
+          </dl>
+          <a class="area-link" href="section-external_dependencies.html">Open section</a>
+        </article><article>
+          <h3>Other Code</h3>
+          <p>Repository-visible code that did not fit a stronger area classification.</p>
+          <dl>
+            <dt>Files</dt><dd>7</dd>
+            <dt>Routes</dt><dd>0</dd>
+            <dt>Guards</dt><dd>0</dd>
+            <dt>Sinks</dt><dd>0</dd>
+            <dt>Data</dt><dd>0</dd>
+            <dt>Providers</dt><dd>0</dd>
+          </dl>
+          <a class="area-link" href="section-other_code.html">Open section</a>
+        </article></div>
+    </section>
+  <details class="metadata-panel">
+    <summary>Evidence metadata</summary>
+    <pre><code>{
+  &quot;sourceAuthorities&quot;: [
+    &quot;repository_graph&quot;,
+    &quot;inferred_static&quot;
+  ],
+  &quot;indexStatus&quot;: [
+    &quot;partial&quot;,
+    &quot;truncated_by_depth&quot;
+  ],
+  &quot;generatedFrom&quot;: [
+    &quot;repository_graph&quot;,
+    &quot;code_map_lens_overview_aggregation&quot;
+  ],
+  &quot;conclusionFree&quot;: true,
+  &quot;navigation&quot;: {
+    &quot;mode&quot;: &quot;application&quot;,
+    &quot;focusBasis&quot;: &quot;high_level&quot;,
+    &quot;path&quot;: [
+      {
+        &quot;mode&quot;: &quot;application&quot;,
+        &quot;label&quot;: &quot;High level&quot;
+      }
+    ]
+  },
+  &quot;applicationSummary&quot;: {
+    &quot;totalNodes&quot;: 479,
+    &quot;totalEdges&quot;: 1059,
+    &quot;areas&quot;: [
+      {
+        &quot;id&quot;: &quot;frontend&quot;,
+        &quot;label&quot;: &quot;Frontend / UI&quot;,
+        &quot;repositoryNodeCount&quot;: 202,
+        &quot;fileCount&quot;: 70,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;handler:src/App.jsx:App&quot;,
+        &quot;focusLabel&quot;: &quot;App&quot;,
+        &quot;focusFile&quot;: &quot;src/App.jsx&quot;
+      },
+      {
+        &quot;id&quot;: &quot;routes_api&quot;,
+        &quot;label&quot;: &quot;Routes / API&quot;,
+        &quot;repositoryNodeCount&quot;: 1,
+        &quot;fileCount&quot;: 1,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;file:src/api/api.js&quot;,
+        &quot;focusLabel&quot;: &quot;src/api/api.js&quot;,
+        &quot;focusFile&quot;: &quot;src/api/api.js&quot;
+      },
+      {
+        &quot;id&quot;: &quot;services&quot;,
+        &quot;label&quot;: &quot;Services&quot;,
+        &quot;repositoryNodeCount&quot;: 4,
+        &quot;fileCount&quot;: 0,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;handler:src/utils/formatPrice.js:formatPrice&quot;,
+        &quot;focusLabel&quot;: &quot;formatPrice&quot;,
+        &quot;focusFile&quot;: &quot;src/utils/formatPrice.js&quot;
+      },
+      {
+        &quot;id&quot;: &quot;auth_policy&quot;,
+        &quot;label&quot;: &quot;Auth / Policy&quot;,
+        &quot;repositoryNodeCount&quot;: 60,
+        &quot;fileCount&quot;: 1,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 58,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;guard:src/api/api.js:csrf:27&quot;,
+        &quot;focusLabel&quot;: &quot;csrf: const csrfToken = document.cookie&quot;,
+        &quot;focusFile&quot;: &quot;src/api/api.js&quot;
+      },
+      {
+        &quot;id&quot;: &quot;data_layer&quot;,
+        &quot;label&quot;: &quot;Data Layer&quot;,
+        &quot;repositoryNodeCount&quot;: 54,
+        &quot;fileCount&quot;: 9,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;handler:src/store/actions/index.js:addNewDashboardSeller&quot;,
+        &quot;focusLabel&quot;: &quot;addNewDashboardSeller&quot;,
+        &quot;focusFile&quot;: &quot;src/store/actions/index.js&quot;
+      },
+      {
+        &quot;id&quot;: &quot;providers&quot;,
+        &quot;label&quot;: &quot;Providers / Integrations&quot;,
+        &quot;repositoryNodeCount&quot;: 44,
+        &quot;fileCount&quot;: 0,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 44,
+        &quot;focusNodeId&quot;: &quot;integration:package.json:http-client:21&quot;,
+        &quot;focusLabel&quot;: &quot;http-client: \&quot;axios\&quot;: \&quot;^1.13.2\&quot;,&quot;,
+        &quot;focusFile&quot;: &quot;package.json&quot;
+      },
+      {
+        &quot;id&quot;: &quot;security_sensitive_ops&quot;,
+        &quot;label&quot;: &quot;Sensitive Operations&quot;,
+        &quot;repositoryNodeCount&quot;: 52,
+        &quot;fileCount&quot;: 0,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 52,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;sink:src/api/api.js:network:2&quot;,
+        &quot;focusLabel&quot;: &quot;network: const api = axios.create({&quot;,
+        &quot;focusFile&quot;: &quot;src/api/api.js&quot;
+      },
+      {
+        &quot;id&quot;: &quot;external_dependencies&quot;,
+        &quot;label&quot;: &quot;External Dependencies&quot;,
+        &quot;repositoryNodeCount&quot;: 55,
+        &quot;fileCount&quot;: 0,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 55,
+        &quot;focusNodeId&quot;: &quot;external:../assets/sliders/s_1.jpg&quot;,
+        &quot;focusLabel&quot;: &quot;../assets/sliders/s_1.jpg&quot;
+      },
+      {
+        &quot;id&quot;: &quot;other_code&quot;,
+        &quot;label&quot;: &quot;Other Code&quot;,
+        &quot;repositoryNodeCount&quot;: 7,
+        &quot;fileCount&quot;: 7,
+        &quot;routeCount&quot;: 0,
+        &quot;guardCount&quot;: 0,
+        &quot;sinkCount&quot;: 0,
+        &quot;dataStoreCount&quot;: 0,
+        &quot;integrationCount&quot;: 0,
+        &quot;focusNodeId&quot;: &quot;file:eslint.config.js&quot;,
+        &quot;focusLabel&quot;: &quot;eslint.config.js&quot;,
+        &quot;focusFile&quot;: &quot;eslint.config.js&quot;
+      }
+    ]
+  },
+  &quot;unsupported&quot;: [
+    &quot;Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos.&quot;,
+    &quot;Code Map Lens reused a short-lived in-memory repository map and refreshed the active editor file before rendering this view.&quot;
+  ],
+  &quot;relatedArtifacts&quot;: [
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;External Dependencies&quot;,
+      &quot;area&quot;: &quot;external_dependencies&quot;,
+      &quot;path&quot;: &quot;section-external_dependencies.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Other Code&quot;,
+      &quot;area&quot;: &quot;other_code&quot;,
+      &quot;path&quot;: &quot;section-other_code.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Routes / API&quot;,
+      &quot;area&quot;: &quot;routes_api&quot;,
+      &quot;path&quot;: &quot;section-routes_api.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Frontend / UI&quot;,
+      &quot;area&quot;: &quot;frontend&quot;,
+      &quot;path&quot;: &quot;section-frontend.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Data Layer&quot;,
+      &quot;area&quot;: &quot;data_layer&quot;,
+      &quot;path&quot;: &quot;section-data_layer.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Auth / Policy&quot;,
+      &quot;area&quot;: &quot;auth_policy&quot;,
+      &quot;path&quot;: &quot;section-auth_policy.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Services&quot;,
+      &quot;area&quot;: &quot;services&quot;,
+      &quot;path&quot;: &quot;section-services.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Providers / Integrations&quot;,
+      &quot;area&quot;: &quot;providers&quot;,
+      &quot;path&quot;: &quot;section-providers.html&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;sectionGraph&quot;,
+      &quot;label&quot;: &quot;Sensitive Operations&quot;,
+      &quot;area&quot;: &quot;security_sensitive_ops&quot;,
+      &quot;path&quot;: &quot;section-security_sensitive_ops.html&quot;
+    }
+  ]
+}</code></pre>
+  </details>
+</main>
+
+</body>
+</html>

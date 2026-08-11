@@ -1,0 +1,549 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "symbolGraph",
+  "nodes": [
+    {
+      "id": "external:react",
+      "type": "external_import",
+      "label": "react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react"
+      }
+    },
+    {
+      "id": "external:react-hook-form",
+      "type": "external_import",
+      "label": "react-hook-form",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-hook-form"
+      }
+    },
+    {
+      "id": "external:react-hot-toast",
+      "type": "external_import",
+      "label": "react-hot-toast",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-hot-toast"
+      }
+    },
+    {
+      "id": "external:react-redux",
+      "type": "external_import",
+      "label": "react-redux",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-redux"
+      }
+    },
+    {
+      "id": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "type": "file",
+      "label": "src/components/admin/categories/AddCategoryForm.jsx",
+      "file": "src/components/admin/categories/AddCategoryForm.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/categories/Category.jsx",
+      "type": "file",
+      "label": "src/components/admin/categories/Category.jsx",
+      "file": "src/components/admin/categories/Category.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/InputField.jsx",
+      "type": "file",
+      "label": "src/components/shared/InputField.jsx",
+      "file": "src/components/shared/InputField.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "handler:src/components/admin/categories/AddCategoryForm.jsx:AddCategoryForm",
+      "type": "function",
+      "label": "AddCategoryForm",
+      "file": "src/components/admin/categories/AddCategoryForm.jsx",
+      "line": 10,
+      "column": 51,
+      "symbol": "AddCategoryForm",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function AddCategoryForm({ setOpen, open, category, update)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler",
+      "type": "function",
+      "label": "addNewCategoryHandler",
+      "file": "src/components/admin/categories/AddCategoryForm.jsx",
+      "line": 23,
+      "column": 7,
+      "symbol": "addNewCategoryHandler",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function addNewCategoryHandler(data)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/Category.jsx:Category",
+      "type": "function",
+      "label": "Category",
+      "file": "src/components/admin/categories/Category.jsx",
+      "line": 15,
+      "column": 66,
+      "symbol": "Category",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Category()"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->handler:src/components/admin/categories/AddCategoryForm.jsx:AddCategoryForm:declares",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "handler:src/components/admin/categories/AddCategoryForm.jsx:AddCategoryForm",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 10,
+        "column": 51
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler:declares",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 23,
+        "column": 7
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:Category:declares",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "handler:src/components/admin/categories/Category.jsx:Category",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 15,
+        "column": 66
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/admin/categories/AddCategoryForm.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 137,
+        "column": 9
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<AddCategoryForm"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-hook-form:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react-hook-form",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 1,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hook-form",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 3,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 2,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->file:src/components/shared/InputField.jsx:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "file:src/components/shared/InputField.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 9,
+        "column": 34
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../shared/InputField",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 5,
+        "column": 58
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 1,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/admin/categories/AddCategoryForm.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 8,
+        "column": 41
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./AddCategoryForm",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/components/admin/categories/AddCategoryForm.jsx"
+    ],
+    "downstreamNodeIds": [],
+    "focusedNodeIds": [
+      "handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler",
+      "file:src/components/admin/categories/AddCategoryForm.jsx"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->handler:src/components/admin/categories/AddCategoryForm.jsx:AddCategoryForm:declares",
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler:declares",
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-hook-form:imports",
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-hot-toast:imports",
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-redux:imports",
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react:imports",
+      "edge:file:src/components/admin/categories/AddCategoryForm.jsx->file:src/components/shared/InputField.jsx:imports"
+    ],
+    "selectedNodeId": "handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "symbol",
+      "focusBasis": "symbol",
+      "selectedNodeId": "handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler",
+      "focusFile": "src/components/admin/categories/AddCategoryForm.jsx",
+      "focusSymbol": "addNewCategoryHandler",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/components/admin/categories/AddCategoryForm.jsx",
+          "nodeId": "file:src/components/admin/categories/AddCategoryForm.jsx",
+          "artifactPath": "detail-frontend-src-components-admin-categories-AddCategoryForm.jsx.html"
+        },
+        {
+          "mode": "symbol",
+          "label": "addNewCategoryHandler",
+          "nodeId": "handler:src/components/admin/categories/AddCategoryForm.jsx:addNewCategoryHandler"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "fileGraph",
+        "label": "src/components/admin/categories/AddCategoryForm.jsx",
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "path": "detail-frontend-src-components-admin-categories-AddCategoryForm.jsx.html"
+      }
+    ]
+  }
+}

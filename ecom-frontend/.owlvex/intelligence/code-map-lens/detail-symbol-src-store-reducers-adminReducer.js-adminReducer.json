@@ -1,0 +1,323 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "symbolGraph",
+  "nodes": [
+    {
+      "id": "file:src/store/reducers/adminReducer.js",
+      "type": "file",
+      "label": "src/store/reducers/adminReducer.js",
+      "file": "src/store/reducers/adminReducer.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/store/reducers/store.js",
+      "type": "file",
+      "label": "src/store/reducers/store.js",
+      "file": "src/store/reducers/store.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "handler:src/store/reducers/adminReducer.js:adminReducer",
+      "type": "function",
+      "label": "adminReducer",
+      "file": "src/store/reducers/adminReducer.js",
+      "line": 4,
+      "column": 3,
+      "symbol": "adminReducer",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": true,
+        "expression": "function adminReducer(state, action)"
+      }
+    },
+    {
+      "id": "sink:src/store/reducers/adminReducer.js:network:8",
+      "type": "sink",
+      "label": "network: case \"FETCH_ANALYTICS\":",
+      "file": "src/store/reducers/adminReducer.js",
+      "line": 8,
+      "column": 2,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "sinkKind": "network",
+        "expression": "case \"FETCH_ANALYTICS\":"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/store/reducers/adminReducer.js->handler:src/store/reducers/adminReducer.js:adminReducer:declares",
+      "from": "file:src/store/reducers/adminReducer.js",
+      "to": "handler:src/store/reducers/adminReducer.js:adminReducer",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/reducers/adminReducer.js",
+        "line": 4,
+        "column": 3
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/store/reducers/adminReducer.js->sink:src/store/reducers/adminReducer.js:network:8:reaches_sink",
+      "from": "file:src/store/reducers/adminReducer.js",
+      "to": "sink:src/store/reducers/adminReducer.js:network:8",
+      "type": "reaches_sink",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/reducers/adminReducer.js",
+        "line": 8,
+        "column": 2
+      },
+      "explanation": "Repository graph found a file-has-sink relationship from file facts."
+    },
+    {
+      "id": "edge:handler:src/store/reducers/adminReducer.js:adminReducer->sink:src/store/reducers/adminReducer.js:network:8:reaches_sink",
+      "from": "handler:src/store/reducers/adminReducer.js:adminReducer",
+      "to": "sink:src/store/reducers/adminReducer.js:network:8",
+      "type": "reaches_sink",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/store/reducers/adminReducer.js",
+        "line": 8,
+        "column": 2
+      },
+      "explanation": "Repository graph inferred a handler-reaches-sink relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "sink appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:file:src/store/reducers/store.js->file:src/store/reducers/adminReducer.js:imports",
+      "from": "file:src/store/reducers/store.js",
+      "to": "file:src/store/reducers/adminReducer.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/reducers/store.js",
+        "line": 6,
+        "column": 64
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./adminReducer",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/store/reducers/adminReducer.js"
+    ],
+    "downstreamNodeIds": [
+      "sink:src/store/reducers/adminReducer.js:network:8"
+    ],
+    "focusedNodeIds": [
+      "handler:src/store/reducers/adminReducer.js:adminReducer",
+      "file:src/store/reducers/adminReducer.js",
+      "sink:src/store/reducers/adminReducer.js:network:8"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/store/reducers/adminReducer.js->handler:src/store/reducers/adminReducer.js:adminReducer:declares",
+      "edge:file:src/store/reducers/adminReducer.js->sink:src/store/reducers/adminReducer.js:network:8:reaches_sink",
+      "edge:handler:src/store/reducers/adminReducer.js:adminReducer->sink:src/store/reducers/adminReducer.js:network:8:reaches_sink"
+    ],
+    "selectedNodeId": "handler:src/store/reducers/adminReducer.js:adminReducer",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "repository_graph",
+      "inferred_static"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "symbol",
+      "focusBasis": "symbol",
+      "selectedNodeId": "handler:src/store/reducers/adminReducer.js:adminReducer",
+      "focusFile": "src/store/reducers/adminReducer.js",
+      "focusSymbol": "adminReducer",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/store/reducers/adminReducer.js",
+          "nodeId": "file:src/store/reducers/adminReducer.js",
+          "artifactPath": "detail-data_layer-src-store-reducers-adminReducer.js.html"
+        },
+        {
+          "mode": "symbol",
+          "label": "adminReducer",
+          "nodeId": "handler:src/store/reducers/adminReducer.js:adminReducer"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "fileGraph",
+        "label": "src/store/reducers/adminReducer.js",
+        "file": "src/store/reducers/adminReducer.js",
+        "path": "detail-data_layer-src-store-reducers-adminReducer.js.html"
+      }
+    ]
+  }
+}

@@ -1,0 +1,623 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "fileGraph",
+  "nodes": [
+    {
+      "id": "external:../assets/sliders/s_1.jpg",
+      "type": "external_import",
+      "label": "../assets/sliders/s_1.jpg",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "../assets/sliders/s_1.jpg"
+      }
+    },
+    {
+      "id": "external:../assets/sliders/s_2.jpg",
+      "type": "external_import",
+      "label": "../assets/sliders/s_2.jpg",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "../assets/sliders/s_2.jpg"
+      }
+    },
+    {
+      "id": "external:../assets/sliders/s_3.jpg",
+      "type": "external_import",
+      "label": "../assets/sliders/s_3.jpg",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "../assets/sliders/s_3.jpg"
+      }
+    },
+    {
+      "id": "external:@reduxjs/toolkit",
+      "type": "external_import",
+      "label": "@reduxjs/toolkit",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "@reduxjs/toolkit"
+      }
+    },
+    {
+      "id": "external:react-hot-toast",
+      "type": "external_import",
+      "label": "react-hot-toast",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-hot-toast"
+      }
+    },
+    {
+      "id": "external:react-icons/fa",
+      "type": "external_import",
+      "label": "react-icons/fa",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/fa"
+      }
+    },
+    {
+      "id": "external:react-router-dom",
+      "type": "external_import",
+      "label": "react-router-dom",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-router-dom"
+      }
+    },
+    {
+      "id": "file:src/api/api.js",
+      "type": "file",
+      "label": "src/api/api.js",
+      "file": "src/api/api.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/home/HeroBanner.jsx",
+      "type": "file",
+      "label": "src/components/home/HeroBanner.jsx",
+      "file": "src/components/home/HeroBanner.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/SideBar.jsx",
+      "type": "file",
+      "label": "src/components/shared/SideBar.jsx",
+      "file": "src/components/shared/SideBar.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/utils/constant.js",
+      "type": "file",
+      "label": "src/utils/constant.js",
+      "file": "src/utils/constant.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/utils/index.js",
+      "type": "file",
+      "label": "src/utils/index.js",
+      "file": "src/utils/index.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "handler:src/components/home/HeroBanner.jsx:HeroBanner",
+      "type": "function",
+      "label": "HeroBanner",
+      "file": "src/components/home/HeroBanner.jsx",
+      "line": 19,
+      "column": 76,
+      "symbol": "HeroBanner",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function HeroBanner()"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/components/home/HeroBanner.jsx->handler:src/components/home/HeroBanner.jsx:HeroBanner:declares",
+      "from": "file:src/components/home/HeroBanner.jsx",
+      "to": "handler:src/components/home/HeroBanner.jsx:HeroBanner",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/HeroBanner.jsx",
+        "line": 19,
+        "column": 76
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:handler:src/components/home/HeroBanner.jsx:HeroBanner->file:src/utils/index.js:uses",
+      "from": "handler:src/components/home/HeroBanner.jsx:HeroBanner",
+      "to": "file:src/utils/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/home/HeroBanner.jsx",
+        "line": 38,
+        "column": 22
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "bannerLists.map(",
+        "memberPath": "bannerLists.map",
+        "receiver": "bannerLists"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/HeroBanner.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/home/HeroBanner.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/HeroBanner.jsx",
+        "line": 15,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/HeroBanner.jsx->file:src/utils/index.js:imports",
+      "from": "file:src/components/home/HeroBanner.jsx",
+      "to": "file:src/utils/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/HeroBanner.jsx",
+        "line": 12,
+        "column": 80
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/SideBar.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/shared/SideBar.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/SideBar.jsx",
+        "line": 1,
+        "column": 27
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/SideBar.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/shared/SideBar.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/SideBar.jsx",
+        "line": 2,
+        "column": 51
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/SideBar.jsx->file:src/utils/index.js:imports",
+      "from": "file:src/components/shared/SideBar.jsx",
+      "to": "file:src/utils/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/SideBar.jsx",
+        "line": 3,
+        "column": 54
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/constant.js->external:../assets/sliders/s_1.jpg:imports",
+      "from": "file:src/utils/constant.js",
+      "to": "external:../assets/sliders/s_1.jpg",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/constant.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../assets/sliders/s_1.jpg",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/constant.js->external:../assets/sliders/s_2.jpg:imports",
+      "from": "file:src/utils/constant.js",
+      "to": "external:../assets/sliders/s_2.jpg",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/constant.js",
+        "line": 1,
+        "column": 56
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../assets/sliders/s_2.jpg",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/constant.js->external:../assets/sliders/s_3.jpg:imports",
+      "from": "file:src/utils/constant.js",
+      "to": "external:../assets/sliders/s_3.jpg",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/constant.js",
+        "line": 2,
+        "column": 56
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../assets/sliders/s_3.jpg",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/index.js->external:@reduxjs/toolkit:imports",
+      "from": "file:src/utils/index.js",
+      "to": "external:@reduxjs/toolkit",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/index.js",
+        "line": 4,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@reduxjs/toolkit",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/index.js->external:react-hot-toast:imports",
+      "from": "file:src/utils/index.js",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/index.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/index.js->external:react-icons/fa:imports",
+      "from": "file:src/utils/index.js",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/index.js",
+        "line": 5,
+        "column": 45
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/index.js->external:react-router-dom:imports",
+      "from": "file:src/utils/index.js",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/index.js",
+        "line": 3,
+        "column": 31
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/index.js->file:src/api/api.js:imports",
+      "from": "file:src/utils/index.js",
+      "to": "file:src/api/api.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/index.js",
+        "line": 2,
+        "column": 80
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../api/api",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/utils/index.js->file:src/utils/constant.js:imports",
+      "from": "file:src/utils/index.js",
+      "to": "file:src/utils/constant.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/index.js",
+        "line": 1,
+        "column": 38
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./constant",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/utils/index.js"
+    ],
+    "downstreamNodeIds": [
+      "external:../assets/sliders/s_1.jpg",
+      "external:../assets/sliders/s_2.jpg",
+      "external:../assets/sliders/s_3.jpg"
+    ],
+    "focusedNodeIds": [
+      "file:src/utils/constant.js",
+      "file:src/utils/index.js",
+      "external:../assets/sliders/s_1.jpg",
+      "external:../assets/sliders/s_2.jpg",
+      "external:../assets/sliders/s_3.jpg"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/utils/constant.js->external:../assets/sliders/s_1.jpg:imports",
+      "edge:file:src/utils/constant.js->external:../assets/sliders/s_2.jpg:imports",
+      "edge:file:src/utils/constant.js->external:../assets/sliders/s_3.jpg:imports",
+      "edge:file:src/utils/index.js->external:@reduxjs/toolkit:imports",
+      "edge:file:src/utils/index.js->external:react-hot-toast:imports",
+      "edge:file:src/utils/index.js->external:react-icons/fa:imports",
+      "edge:file:src/utils/index.js->external:react-router-dom:imports",
+      "edge:file:src/utils/index.js->file:src/api/api.js:imports",
+      "edge:file:src/utils/index.js->file:src/utils/constant.js:imports"
+    ],
+    "selectedNodeId": "file:src/utils/constant.js",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "file",
+      "focusBasis": "file_fallback",
+      "selectedNodeId": "file:src/utils/constant.js",
+      "focusFile": "src/utils/constant.js",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/utils/constant.js",
+          "nodeId": "file:src/utils/constant.js"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      }
+    ]
+  }
+}

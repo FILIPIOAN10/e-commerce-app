@@ -1,0 +1,1355 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "symbolGraph",
+  "nodes": [
+    {
+      "id": "external:react",
+      "type": "external_import",
+      "label": "react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react"
+      }
+    },
+    {
+      "id": "external:react-hot-toast",
+      "type": "external_import",
+      "label": "react-hot-toast",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-hot-toast"
+      }
+    },
+    {
+      "id": "external:react-icons/fa",
+      "type": "external_import",
+      "label": "react-icons/fa",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/fa"
+      }
+    },
+    {
+      "id": "external:react-redux",
+      "type": "external_import",
+      "label": "react-redux",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-redux"
+      }
+    },
+    {
+      "id": "file:src/App.jsx",
+      "type": "file",
+      "label": "src/App.jsx",
+      "file": "src/App.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/About.jsx",
+      "type": "file",
+      "label": "src/components/About.jsx",
+      "file": "src/components/About.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/home/Home.jsx",
+      "type": "file",
+      "label": "src/components/home/Home.jsx",
+      "file": "src/components/home/Home.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/products/Products.jsx",
+      "type": "file",
+      "label": "src/components/products/Products.jsx",
+      "file": "src/components/products/Products.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/ProductCard.jsx",
+      "type": "file",
+      "label": "src/components/shared/ProductCard.jsx",
+      "file": "src/components/shared/ProductCard.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/ProductViewModal.jsx",
+      "type": "file",
+      "label": "src/components/shared/ProductViewModal.jsx",
+      "file": "src/components/shared/ProductViewModal.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/store/actions/index.js",
+      "type": "file",
+      "label": "src/store/actions/index.js",
+      "file": "src/store/actions/index.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/utils/truncateText.js",
+      "type": "file",
+      "label": "src/utils/truncateText.js",
+      "file": "src/utils/truncateText.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "guard:src/components/shared/ProductCard.jsx:authorization:27",
+      "type": "guard",
+      "label": "authorization: const isAdmin = Boolean(user?.roles?.includes(\"ROLE_ADMIN\"));",
+      "file": "src/components/shared/ProductCard.jsx",
+      "line": 27,
+      "column": 36,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "const isAdmin = Boolean(user?.roles?.includes(\"ROLE_ADMIN\"));"
+      }
+    },
+    {
+      "id": "guard:src/components/shared/ProductCard.jsx:authorization:59",
+      "type": "guard",
+      "label": "authorization: {!about && !isAdmin && (",
+      "file": "src/components/shared/ProductCard.jsx",
+      "line": 59,
+      "column": 37,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "{!about && !isAdmin && ("
+      }
+    },
+    {
+      "id": "guard:src/components/shared/ProductCard.jsx:authorization:87",
+      "type": "guard",
+      "label": "authorization: {!about && isAdmin && (",
+      "file": "src/components/shared/ProductCard.jsx",
+      "line": 87,
+      "column": 11,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "{!about && isAdmin && ("
+      }
+    },
+    {
+      "id": "handler:src/App.jsx:App",
+      "type": "function",
+      "label": "App",
+      "file": "src/App.jsx",
+      "line": 28,
+      "column": 65,
+      "symbol": "App",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function App()"
+      }
+    },
+    {
+      "id": "handler:src/components/About.jsx:About",
+      "type": "function",
+      "label": "About",
+      "file": "src/components/About.jsx",
+      "line": 28,
+      "column": 3,
+      "symbol": "About",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function About()"
+      }
+    },
+    {
+      "id": "handler:src/components/home/Home.jsx:Home",
+      "type": "function",
+      "label": "Home",
+      "file": "src/components/home/Home.jsx",
+      "line": 7,
+      "column": 57,
+      "symbol": "Home",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Home()"
+      }
+    },
+    {
+      "id": "handler:src/components/products/Products.jsx:Products",
+      "type": "function",
+      "label": "Products",
+      "file": "src/components/products/Products.jsx",
+      "line": 9,
+      "column": 50,
+      "symbol": "Products",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Products()"
+      }
+    },
+    {
+      "id": "handler:src/components/shared/ProductCard.jsx:addToCartHandler",
+      "type": "function",
+      "label": "addToCartHandler",
+      "file": "src/components/shared/ProductCard.jsx",
+      "line": 35,
+      "column": 8,
+      "symbol": "addToCartHandler",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function addToCartHandler(cartItems)"
+      }
+    },
+    {
+      "id": "handler:src/components/shared/ProductCard.jsx:handleProductView",
+      "type": "function",
+      "label": "handleProductView",
+      "file": "src/components/shared/ProductCard.jsx",
+      "line": 28,
+      "column": 67,
+      "symbol": "handleProductView",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handleProductView(product)"
+      }
+    },
+    {
+      "id": "handler:src/components/shared/ProductCard.jsx:ProductCard",
+      "type": "function",
+      "label": "ProductCard",
+      "file": "src/components/shared/ProductCard.jsx",
+      "line": 7,
+      "column": 50,
+      "symbol": "ProductCard",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function ProductCard({\r\n        productId, productName, image, description, quantity, price, discount, specialPrice, about, })"
+      }
+    },
+    {
+      "id": "integration:src/components/About.jsx:sdk:21",
+      "type": "integration",
+      "label": "sdk: productName: \"Google Pixel 7\",",
+      "file": "src/components/About.jsx",
+      "line": 21,
+      "column": 50,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "integrationKind": "sdk",
+        "expression": "productName: \"Google Pixel 7\","
+      }
+    },
+    {
+      "id": "integration:src/components/About.jsx:sdk:23",
+      "type": "integration",
+      "label": "sdk: \"The Google Pixel 6 boasts cutting-edge AI features, exceptional photo quality, and a stunning display, making it a perfect choice for Android enthuzsiasts\",",
+      "file": "src/components/About.jsx",
+      "line": 23,
+      "column": 9,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "integrationKind": "sdk",
+        "expression": "\"The Google Pixel 6 boasts cutting-edge AI features, exceptional photo quality, and a stunning display, making it a perfect choice for Android enthuzsiasts\","
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/App.jsx->handler:src/App.jsx:App:declares",
+      "from": "file:src/App.jsx",
+      "to": "handler:src/App.jsx:App",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 28,
+        "column": 65
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/About.jsx->handler:src/components/About.jsx:About:declares",
+      "from": "file:src/components/About.jsx",
+      "to": "handler:src/components/About.jsx:About",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/About.jsx",
+        "line": 28,
+        "column": 3
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/home/Home.jsx->handler:src/components/home/Home.jsx:Home:declares",
+      "from": "file:src/components/home/Home.jsx",
+      "to": "handler:src/components/home/Home.jsx:Home",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 7,
+        "column": 57
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/products/Products.jsx->handler:src/components/products/Products.jsx:Products:declares",
+      "from": "file:src/components/products/Products.jsx",
+      "to": "handler:src/components/products/Products.jsx:Products",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 9,
+        "column": 50
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->handler:src/components/shared/ProductCard.jsx:addToCartHandler:declares",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "handler:src/components/shared/ProductCard.jsx:addToCartHandler",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 35,
+        "column": 8
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->handler:src/components/shared/ProductCard.jsx:handleProductView:declares",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "handler:src/components/shared/ProductCard.jsx:handleProductView",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 28,
+        "column": 67
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->handler:src/components/shared/ProductCard.jsx:ProductCard:declares",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "handler:src/components/shared/ProductCard.jsx:ProductCard",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 7,
+        "column": 50
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->guard:src/components/shared/ProductCard.jsx:authorization:27:protects",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "guard:src/components/shared/ProductCard.jsx:authorization:27",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 27,
+        "column": 36
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->guard:src/components/shared/ProductCard.jsx:authorization:59:protects",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "guard:src/components/shared/ProductCard.jsx:authorization:59",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 59,
+        "column": 37
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->guard:src/components/shared/ProductCard.jsx:authorization:87:protects",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "guard:src/components/shared/ProductCard.jsx:authorization:87",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 87,
+        "column": 11
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/About.jsx->integration:src/components/About.jsx:sdk:21:calls_provider",
+      "from": "file:src/components/About.jsx",
+      "to": "integration:src/components/About.jsx:sdk:21",
+      "type": "calls_provider",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/About.jsx",
+        "line": 21,
+        "column": 50
+      },
+      "explanation": "Repository graph found a file-has-integration relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/About.jsx->integration:src/components/About.jsx:sdk:23:calls_provider",
+      "from": "file:src/components/About.jsx",
+      "to": "integration:src/components/About.jsx:sdk:23",
+      "type": "calls_provider",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/About.jsx",
+        "line": 23,
+        "column": 9
+      },
+      "explanation": "Repository graph found a file-has-integration relationship from file facts."
+    },
+    {
+      "id": "edge:guard:src/components/shared/ProductCard.jsx:authorization:27->handler:src/components/shared/ProductCard.jsx:ProductCard:protects",
+      "from": "guard:src/components/shared/ProductCard.jsx:authorization:27",
+      "to": "handler:src/components/shared/ProductCard.jsx:ProductCard",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 27,
+        "column": 36
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/components/shared/ProductCard.jsx:authorization:59->handler:src/components/shared/ProductCard.jsx:addToCartHandler:protects",
+      "from": "guard:src/components/shared/ProductCard.jsx:authorization:59",
+      "to": "handler:src/components/shared/ProductCard.jsx:addToCartHandler",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 59,
+        "column": 37
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/components/shared/ProductCard.jsx:authorization:87->handler:src/components/shared/ProductCard.jsx:addToCartHandler:protects",
+      "from": "guard:src/components/shared/ProductCard.jsx:authorization:87",
+      "to": "handler:src/components/shared/ProductCard.jsx:addToCartHandler",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 87,
+        "column": 11
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->handler:src/App.jsx:App:calls",
+      "from": "handler:src/App.jsx:App",
+      "to": "handler:src/App.jsx:App",
+      "type": "calls",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 30,
+        "column": 10
+      },
+      "explanation": "Repository graph found a handler-calls-handler relationship from file facts.",
+      "metadata": {
+        "call": "App(",
+        "targetKind": "local_function"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/About.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/About.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 38,
+        "column": 41
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<About"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/home/Home.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/home/Home.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 36,
+        "column": 36
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<Home"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/products/Products.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/products/Products.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 37,
+        "column": 44
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<Products"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/About.jsx:About->file:src/components/shared/ProductCard.jsx:uses",
+      "from": "handler:src/components/About.jsx:About",
+      "to": "file:src/components/shared/ProductCard.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/About.jsx",
+        "line": 59,
+        "column": 25
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<ProductCard"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/home/Home.jsx:Home->file:src/components/shared/ProductCard.jsx:uses",
+      "from": "handler:src/components/home/Home.jsx:Home",
+      "to": "file:src/components/shared/ProductCard.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 47,
+        "column": 62
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<ProductCard"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/home/Home.jsx:Home->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/home/Home.jsx:Home",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 19,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "fetchProducts("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/products/Products.jsx:Products->file:src/components/shared/ProductCard.jsx:uses",
+      "from": "handler:src/components/products/Products.jsx:Products",
+      "to": "file:src/components/shared/ProductCard.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 44,
+        "column": 50
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<ProductCard"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/products/Products.jsx:Products->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/products/Products.jsx:Products",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 25,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "fetchCategories("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/shared/ProductCard.jsx:addToCartHandler->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/shared/ProductCard.jsx:addToCartHandler",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 38,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "addToCart("
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react-hot-toast:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 10,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 11,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/About.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/About.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 8,
+        "column": 49
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/About",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/home/Home.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/home/Home.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 6,
+        "column": 73
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/home/Home",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/products/Products.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/products/Products.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 3,
+        "column": 20
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/products/Products",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/About.jsx->file:src/components/shared/ProductCard.jsx:imports",
+      "from": "file:src/components/About.jsx",
+      "to": "file:src/components/shared/ProductCard.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/About.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./shared/ProductCard",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/Home.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/home/Home.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 6,
+        "column": 40
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/Home.jsx->external:react-redux:imports",
+      "from": "file:src/components/home/Home.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/Home.jsx->external:react:imports",
+      "from": "file:src/components/home/Home.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 2,
+        "column": 40
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/Home.jsx->file:src/components/shared/ProductCard.jsx:imports",
+      "from": "file:src/components/home/Home.jsx",
+      "to": "file:src/components/shared/ProductCard.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 4,
+        "column": 54
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../shared/ProductCard",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/home/Home.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/home/Home.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/home/Home.jsx",
+        "line": 3,
+        "column": 36
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/products/Products.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/products/Products.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/products/Products.jsx->external:react-redux:imports",
+      "from": "file:src/components/products/Products.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 2,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/products/Products.jsx->external:react:imports",
+      "from": "file:src/components/products/Products.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 3,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/products/Products.jsx->file:src/components/shared/ProductCard.jsx:imports",
+      "from": "file:src/components/products/Products.jsx",
+      "to": "file:src/components/shared/ProductCard.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 1,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../shared/ProductCard",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/products/Products.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/products/Products.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/products/Products.jsx",
+        "line": 4,
+        "column": 36
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 5,
+        "column": 81
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 1,
+        "column": 35
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->external:react-redux:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 4,
+        "column": 54
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->external:react:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->file:src/components/shared/ProductViewModal.jsx:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "file:src/components/shared/ProductViewModal.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 2,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./ProductViewModal",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 6,
+        "column": 38
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductCard.jsx->file:src/utils/truncateText.js:imports",
+      "from": "file:src/components/shared/ProductCard.jsx",
+      "to": "file:src/utils/truncateText.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductCard.jsx",
+        "line": 3,
+        "column": 52
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils/truncateText",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ProductViewModal.jsx->external:react:imports",
+      "from": "file:src/components/shared/ProductViewModal.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ProductViewModal.jsx",
+        "line": 2,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/store/actions/index.js->external:react-hot-toast:imports",
+      "from": "file:src/store/actions/index.js",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/actions/index.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/components/About.jsx"
+    ],
+    "downstreamNodeIds": [
+      "file:src/components/shared/ProductCard.jsx"
+    ],
+    "focusedNodeIds": [
+      "handler:src/components/About.jsx:About",
+      "file:src/components/About.jsx",
+      "file:src/components/shared/ProductCard.jsx"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/components/About.jsx->handler:src/components/About.jsx:About:declares",
+      "edge:file:src/components/About.jsx->integration:src/components/About.jsx:sdk:21:calls_provider",
+      "edge:file:src/components/About.jsx->integration:src/components/About.jsx:sdk:23:calls_provider",
+      "edge:handler:src/components/About.jsx:About->file:src/components/shared/ProductCard.jsx:uses",
+      "edge:handler:src/components/home/Home.jsx:Home->file:src/components/shared/ProductCard.jsx:uses",
+      "edge:handler:src/components/products/Products.jsx:Products->file:src/components/shared/ProductCard.jsx:uses",
+      "edge:file:src/components/About.jsx->file:src/components/shared/ProductCard.jsx:imports",
+      "edge:file:src/components/home/Home.jsx->file:src/components/shared/ProductCard.jsx:imports",
+      "edge:file:src/components/products/Products.jsx->file:src/components/shared/ProductCard.jsx:imports"
+    ],
+    "selectedNodeId": "handler:src/components/About.jsx:About",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "symbol",
+      "focusBasis": "symbol",
+      "selectedNodeId": "handler:src/components/About.jsx:About",
+      "focusFile": "src/components/About.jsx",
+      "focusSymbol": "About",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/components/About.jsx",
+          "nodeId": "file:src/components/About.jsx",
+          "artifactPath": "detail-frontend-src-components-About.jsx.html"
+        },
+        {
+          "mode": "symbol",
+          "label": "About",
+          "nodeId": "handler:src/components/About.jsx:About"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "fileGraph",
+        "label": "src/components/About.jsx",
+        "file": "src/components/About.jsx",
+        "path": "detail-frontend-src-components-About.jsx.html"
+      }
+    ]
+  }
+}

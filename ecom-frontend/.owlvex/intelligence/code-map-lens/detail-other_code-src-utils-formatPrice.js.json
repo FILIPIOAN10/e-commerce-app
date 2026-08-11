@@ -1,0 +1,1591 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "fileGraph",
+  "nodes": [
+    {
+      "id": "external:@mui/material",
+      "type": "external_import",
+      "label": "@mui/material",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "@mui/material"
+      }
+    },
+    {
+      "id": "external:react",
+      "type": "external_import",
+      "label": "react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react"
+      }
+    },
+    {
+      "id": "external:react-hot-toast",
+      "type": "external_import",
+      "label": "react-hot-toast",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-hot-toast"
+      }
+    },
+    {
+      "id": "external:react-icons/hi",
+      "type": "external_import",
+      "label": "react-icons/hi",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/hi"
+      }
+    },
+    {
+      "id": "external:react-icons/md",
+      "type": "external_import",
+      "label": "react-icons/md",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/md"
+      }
+    },
+    {
+      "id": "external:react-redux",
+      "type": "external_import",
+      "label": "react-redux",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-redux"
+      }
+    },
+    {
+      "id": "external:react-router-dom",
+      "type": "external_import",
+      "label": "react-router-dom",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-router-dom"
+      }
+    },
+    {
+      "id": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "type": "file",
+      "label": "src/components/admin/dashboard/Dashboard.jsx",
+      "file": "src/components/admin/dashboard/Dashboard.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "type": "file",
+      "label": "src/components/admin/dashboard/DashboardOverview.jsx",
+      "file": "src/components/admin/dashboard/DashboardOverview.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/cart/Cart.jsx",
+      "type": "file",
+      "label": "src/components/cart/Cart.jsx",
+      "file": "src/components/cart/Cart.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/cart/CartEmpty.jsx",
+      "type": "file",
+      "label": "src/components/cart/CartEmpty.jsx",
+      "file": "src/components/cart/CartEmpty.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/cart/ItemContent.jsx",
+      "type": "file",
+      "label": "src/components/cart/ItemContent.jsx",
+      "file": "src/components/cart/ItemContent.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/cart/SetQuantity.jsx",
+      "type": "file",
+      "label": "src/components/cart/SetQuantity.jsx",
+      "file": "src/components/cart/SetQuantity.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/checkout/Checkout.jsx",
+      "type": "file",
+      "label": "src/components/checkout/Checkout.jsx",
+      "file": "src/components/checkout/Checkout.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/checkout/OrderSummary.jsx",
+      "type": "file",
+      "label": "src/components/checkout/OrderSummary.jsx",
+      "file": "src/components/checkout/OrderSummary.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/store/actions/index.js",
+      "type": "file",
+      "label": "src/store/actions/index.js",
+      "file": "src/store/actions/index.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/utils/formatPrice.js",
+      "type": "file",
+      "label": "src/utils/formatPrice.js",
+      "file": "src/utils/formatPrice.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/utils/truncateText.js",
+      "type": "file",
+      "label": "src/utils/truncateText.js",
+      "file": "src/utils/truncateText.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard",
+      "type": "function",
+      "label": "Dashboard",
+      "file": "src/components/admin/dashboard/Dashboard.jsx",
+      "line": 8,
+      "column": 49,
+      "symbol": "Dashboard",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Dashboard()"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/dashboard/DashboardOverview.jsx:DashboardOverview",
+      "type": "function",
+      "label": "DashboardOverview",
+      "file": "src/components/admin/dashboard/DashboardOverview.jsx",
+      "line": 3,
+      "column": 61,
+      "symbol": "DashboardOverview",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function DashboardOverview({title, amount, Icon, revenue)"
+      }
+    },
+    {
+      "id": "handler:src/components/cart/Cart.jsx:Cart",
+      "type": "function",
+      "label": "Cart",
+      "file": "src/components/cart/Cart.jsx",
+      "line": 6,
+      "column": 56,
+      "symbol": "Cart",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Cart()"
+      }
+    },
+    {
+      "id": "handler:src/components/cart/ItemContent.jsx:handleQtyDecrease",
+      "type": "function",
+      "label": "handleQtyDecrease",
+      "file": "src/components/cart/ItemContent.jsx",
+      "line": 32,
+      "column": 8,
+      "symbol": "handleQtyDecrease",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handleQtyDecrease(cartItems)"
+      }
+    },
+    {
+      "id": "handler:src/components/cart/ItemContent.jsx:handleQtyIncrease",
+      "type": "function",
+      "label": "handleQtyIncrease",
+      "file": "src/components/cart/ItemContent.jsx",
+      "line": 22,
+      "column": 37,
+      "symbol": "handleQtyIncrease",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handleQtyIncrease(cartItems)"
+      }
+    },
+    {
+      "id": "handler:src/components/cart/ItemContent.jsx:ItemContent",
+      "type": "function",
+      "label": "ItemContent",
+      "file": "src/components/cart/ItemContent.jsx",
+      "line": 8,
+      "column": 54,
+      "symbol": "ItemContent",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function ItemContent({\r\n    productId, productName, image, description, quantity, price, discount, specialPrice, cartId, })"
+      }
+    },
+    {
+      "id": "handler:src/components/cart/ItemContent.jsx:removeItemFromCart",
+      "type": "function",
+      "label": "removeItemFromCart",
+      "file": "src/components/cart/ItemContent.jsx",
+      "line": 40,
+      "column": 8,
+      "symbol": "removeItemFromCart",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function removeItemFromCart(cartItems)"
+      }
+    },
+    {
+      "id": "handler:src/components/checkout/Checkout.jsx:Checkout",
+      "type": "function",
+      "label": "Checkout",
+      "file": "src/components/checkout/Checkout.jsx",
+      "line": 12,
+      "column": 46,
+      "symbol": "Checkout",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Checkout()"
+      }
+    },
+    {
+      "id": "handler:src/components/checkout/OrderSummary.jsx:OrderSummary",
+      "type": "function",
+      "label": "OrderSummary",
+      "file": "src/components/checkout/OrderSummary.jsx",
+      "line": 2,
+      "column": 66,
+      "symbol": "OrderSummary",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function OrderSummary({totalPrice, cart, address, paymentMethod})"
+      }
+    },
+    {
+      "id": "handler:src/utils/formatPrice.js:formatPrice",
+      "type": "function",
+      "label": "formatPrice",
+      "file": "src/utils/formatPrice.js",
+      "symbol": "formatPrice",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "importedCallTarget": true,
+        "localCallName": "formatPrice"
+      }
+    },
+    {
+      "id": "handler:src/utils/formatPrice.js:formatPriceCalculation",
+      "type": "function",
+      "label": "formatPriceCalculation",
+      "file": "src/utils/formatPrice.js",
+      "line": 6,
+      "column": 3,
+      "symbol": "formatPriceCalculation",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": true,
+        "expression": "function formatPriceCalculation(quantity, price)"
+      }
+    },
+    {
+      "id": "handler:src/utils/formatPrice.js:formatRevenue",
+      "type": "function",
+      "label": "formatRevenue",
+      "file": "src/utils/formatPrice.js",
+      "line": 12,
+      "column": 3,
+      "symbol": "formatRevenue",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": true,
+        "expression": "function formatRevenue(value)"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/components/admin/dashboard/Dashboard.jsx->handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard:declares",
+      "from": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "to": "handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 8,
+        "column": 49
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->handler:src/components/admin/dashboard/DashboardOverview.jsx:DashboardOverview:declares",
+      "from": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "to": "handler:src/components/admin/dashboard/DashboardOverview.jsx:DashboardOverview",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/DashboardOverview.jsx",
+        "line": 3,
+        "column": 61
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->handler:src/components/cart/Cart.jsx:Cart:declares",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "handler:src/components/cart/Cart.jsx:Cart",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 6,
+        "column": 56
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:handleQtyDecrease:declares",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "handler:src/components/cart/ItemContent.jsx:handleQtyDecrease",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 32,
+        "column": 8
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:handleQtyIncrease:declares",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "handler:src/components/cart/ItemContent.jsx:handleQtyIncrease",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 22,
+        "column": 37
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:ItemContent:declares",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "handler:src/components/cart/ItemContent.jsx:ItemContent",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 8,
+        "column": 54
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:removeItemFromCart:declares",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "handler:src/components/cart/ItemContent.jsx:removeItemFromCart",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 40,
+        "column": 8
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->handler:src/components/checkout/Checkout.jsx:Checkout:declares",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "handler:src/components/checkout/Checkout.jsx:Checkout",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 12,
+        "column": 46
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/checkout/OrderSummary.jsx->handler:src/components/checkout/OrderSummary.jsx:OrderSummary:declares",
+      "from": "file:src/components/checkout/OrderSummary.jsx",
+      "to": "handler:src/components/checkout/OrderSummary.jsx:OrderSummary",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/OrderSummary.jsx",
+        "line": 2,
+        "column": 66
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/utils/formatPrice.js->handler:src/utils/formatPrice.js:formatPrice:declares",
+      "from": "file:src/utils/formatPrice.js",
+      "to": "handler:src/utils/formatPrice.js:formatPrice",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/formatPrice.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/utils/formatPrice.js->handler:src/utils/formatPrice.js:formatPriceCalculation:declares",
+      "from": "file:src/utils/formatPrice.js",
+      "to": "handler:src/utils/formatPrice.js:formatPriceCalculation",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/formatPrice.js",
+        "line": 6,
+        "column": 3
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/utils/formatPrice.js->handler:src/utils/formatPrice.js:formatRevenue:declares",
+      "from": "file:src/utils/formatPrice.js",
+      "to": "handler:src/utils/formatPrice.js:formatRevenue",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/utils/formatPrice.js",
+        "line": 12,
+        "column": 3
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:handler:src/components/cart/Cart.jsx:Cart->handler:src/utils/formatPrice.js:formatPrice:calls",
+      "from": "handler:src/components/cart/Cart.jsx:Cart",
+      "to": "handler:src/utils/formatPrice.js:formatPrice",
+      "type": "calls",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 57,
+        "column": 32
+      },
+      "explanation": "Repository graph found a handler-calls-handler relationship from file facts.",
+      "metadata": {
+        "call": "formatPrice(",
+        "targetKind": "imported_function",
+        "targetPath": "src/utils/formatPrice.js",
+        "exportedName": "formatPrice"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard->file:src/components/admin/dashboard/DashboardOverview.jsx:uses",
+      "from": "handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard",
+      "to": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 36,
+        "column": 25
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<DashboardOverview"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/admin/dashboard/Dashboard.jsx:Dashboard",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 21,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "analyticsAction("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/cart/Cart.jsx:Cart->file:src/components/cart/CartEmpty.jsx:uses",
+      "from": "handler:src/components/cart/Cart.jsx:Cart",
+      "to": "file:src/components/cart/CartEmpty.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 18,
+        "column": 16
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<CartEmpty"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/cart/Cart.jsx:Cart->file:src/components/cart/ItemContent.jsx:uses",
+      "from": "handler:src/components/cart/Cart.jsx:Cart",
+      "to": "file:src/components/cart/ItemContent.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 50,
+        "column": 39
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<ItemContent"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/cart/Cart.jsx:Cart->file:src/utils/formatPrice.js:uses",
+      "from": "handler:src/components/cart/Cart.jsx:Cart",
+      "to": "file:src/utils/formatPrice.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 57,
+        "column": 32
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "formatPrice("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/cart/ItemContent.jsx:handleQtyDecrease->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/cart/ItemContent.jsx:handleQtyDecrease",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 38,
+        "column": 22
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "decreaseCartQuantity("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/cart/ItemContent.jsx:handleQtyIncrease->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/cart/ItemContent.jsx:handleQtyIncrease",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 26,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "increaseCartQuantity("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/cart/ItemContent.jsx:removeItemFromCart->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/cart/ItemContent.jsx:removeItemFromCart",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 44,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "removeFromCart("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/checkout/Checkout.jsx:Checkout->file:src/components/checkout/OrderSummary.jsx:uses",
+      "from": "handler:src/components/checkout/Checkout.jsx:Checkout",
+      "to": "file:src/components/checkout/OrderSummary.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 74,
+        "column": 34
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<OrderSummary"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/checkout/Checkout.jsx:Checkout->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/checkout/Checkout.jsx:Checkout",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 52,
+        "column": 16
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "getUserAddresses("
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/Dashboard.jsx->external:react-icons/md:imports",
+      "from": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "to": "external:react-icons/md",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 3,
+        "column": 75
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/md",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/Dashboard.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 4,
+        "column": 49
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/Dashboard.jsx->external:react:imports",
+      "from": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/Dashboard.jsx->file:src/components/admin/dashboard/DashboardOverview.jsx:imports",
+      "from": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "to": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 1,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./DashboardOverview",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/Dashboard.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/admin/dashboard/Dashboard.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/Dashboard.jsx",
+        "line": 5,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->external:@mui/material:imports",
+      "from": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "to": "external:@mui/material",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/DashboardOverview.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@mui/material",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->external:react:imports",
+      "from": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/DashboardOverview.jsx",
+        "line": 1,
+        "column": 39
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->file:src/utils/formatPrice.js:imports",
+      "from": "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "to": "file:src/utils/formatPrice.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/dashboard/DashboardOverview.jsx",
+        "line": 2,
+        "column": 27
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../utils/formatPrice",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->external:react-icons/md:imports",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "external:react-icons/md",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/md",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->external:react-redux:imports",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 1,
+        "column": 63
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 2,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->file:src/components/cart/CartEmpty.jsx:imports",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "file:src/components/cart/CartEmpty.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 4,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./CartEmpty",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->file:src/components/cart/ItemContent.jsx:imports",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "file:src/components/cart/ItemContent.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 3,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./ItemContent",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/Cart.jsx->file:src/utils/formatPrice.js:imports",
+      "from": "file:src/components/cart/Cart.jsx",
+      "to": "file:src/utils/formatPrice.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/Cart.jsx",
+        "line": 5,
+        "column": 38
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils/formatPrice",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/CartEmpty.jsx->external:react-icons/md:imports",
+      "from": "file:src/components/cart/CartEmpty.jsx",
+      "to": "external:react-icons/md",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/CartEmpty.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/md",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/CartEmpty.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/cart/CartEmpty.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/CartEmpty.jsx",
+        "line": 1,
+        "column": 63
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 5,
+        "column": 99
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->external:react-icons/hi:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "external:react-icons/hi",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 1,
+        "column": 35
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/hi",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->external:react-redux:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 3,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->external:react:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->file:src/components/cart/SetQuantity.jsx:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "file:src/components/cart/SetQuantity.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 2,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./SetQuantity",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 4,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->file:src/utils/formatPrice.js:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "file:src/utils/formatPrice.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 6,
+        "column": 38
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils/formatPrice",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/cart/ItemContent.jsx->file:src/utils/truncateText.js:imports",
+      "from": "file:src/components/cart/ItemContent.jsx",
+      "to": "file:src/utils/truncateText.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/cart/ItemContent.jsx",
+        "line": 7,
+        "column": 56
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils/truncateText",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->external:@mui/material:imports",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "external:@mui/material",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@mui/material",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 5,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->external:react-redux:imports",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 3,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->external:react:imports",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 1,
+        "column": 84
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->file:src/components/checkout/OrderSummary.jsx:imports",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "file:src/components/checkout/OrderSummary.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 9,
+        "column": 46
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./OrderSummary",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/Checkout.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/checkout/Checkout.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/Checkout.jsx",
+        "line": 4,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/OrderSummary.jsx->external:react:imports",
+      "from": "file:src/components/checkout/OrderSummary.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/OrderSummary.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/checkout/OrderSummary.jsx->file:src/utils/formatPrice.js:imports",
+      "from": "file:src/components/checkout/OrderSummary.jsx",
+      "to": "file:src/utils/formatPrice.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/checkout/OrderSummary.jsx",
+        "line": 1,
+        "column": 27
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../utils/formatPrice",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/store/actions/index.js->external:@mui/material:imports",
+      "from": "file:src/store/actions/index.js",
+      "to": "external:@mui/material",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/actions/index.js",
+        "line": 2,
+        "column": 33
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@mui/material",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/store/actions/index.js->external:react-hot-toast:imports",
+      "from": "file:src/store/actions/index.js",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/actions/index.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "handler:src/components/cart/Cart.jsx:Cart",
+      "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "file:src/components/cart/Cart.jsx",
+      "file:src/components/cart/ItemContent.jsx",
+      "file:src/components/checkout/OrderSummary.jsx"
+    ],
+    "downstreamNodeIds": [
+      "handler:src/utils/formatPrice.js:formatPrice",
+      "handler:src/utils/formatPrice.js:formatPriceCalculation",
+      "handler:src/utils/formatPrice.js:formatRevenue"
+    ],
+    "focusedNodeIds": [
+      "file:src/utils/formatPrice.js",
+      "handler:src/components/cart/Cart.jsx:Cart",
+      "file:src/components/admin/dashboard/DashboardOverview.jsx",
+      "file:src/components/cart/Cart.jsx",
+      "file:src/components/cart/ItemContent.jsx",
+      "file:src/components/checkout/OrderSummary.jsx",
+      "handler:src/utils/formatPrice.js:formatPrice",
+      "handler:src/utils/formatPrice.js:formatPriceCalculation",
+      "handler:src/utils/formatPrice.js:formatRevenue"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->handler:src/components/admin/dashboard/DashboardOverview.jsx:DashboardOverview:declares",
+      "edge:file:src/components/cart/Cart.jsx->handler:src/components/cart/Cart.jsx:Cart:declares",
+      "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:handleQtyDecrease:declares",
+      "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:handleQtyIncrease:declares",
+      "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:ItemContent:declares",
+      "edge:file:src/components/cart/ItemContent.jsx->handler:src/components/cart/ItemContent.jsx:removeItemFromCart:declares",
+      "edge:file:src/components/checkout/OrderSummary.jsx->handler:src/components/checkout/OrderSummary.jsx:OrderSummary:declares",
+      "edge:file:src/utils/formatPrice.js->handler:src/utils/formatPrice.js:formatPrice:declares",
+      "edge:file:src/utils/formatPrice.js->handler:src/utils/formatPrice.js:formatPriceCalculation:declares",
+      "edge:file:src/utils/formatPrice.js->handler:src/utils/formatPrice.js:formatRevenue:declares",
+      "edge:handler:src/components/cart/Cart.jsx:Cart->handler:src/utils/formatPrice.js:formatPrice:calls",
+      "edge:handler:src/components/cart/Cart.jsx:Cart->file:src/components/cart/CartEmpty.jsx:uses",
+      "edge:handler:src/components/cart/Cart.jsx:Cart->file:src/components/cart/ItemContent.jsx:uses",
+      "edge:handler:src/components/cart/Cart.jsx:Cart->file:src/utils/formatPrice.js:uses",
+      "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->external:@mui/material:imports",
+      "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->external:react:imports",
+      "edge:file:src/components/admin/dashboard/DashboardOverview.jsx->file:src/utils/formatPrice.js:imports",
+      "edge:file:src/components/cart/Cart.jsx->external:react-icons/md:imports",
+      "edge:file:src/components/cart/Cart.jsx->external:react-redux:imports",
+      "edge:file:src/components/cart/Cart.jsx->external:react-router-dom:imports",
+      "edge:file:src/components/cart/Cart.jsx->file:src/components/cart/CartEmpty.jsx:imports",
+      "edge:file:src/components/cart/Cart.jsx->file:src/components/cart/ItemContent.jsx:imports",
+      "edge:file:src/components/cart/Cart.jsx->file:src/utils/formatPrice.js:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->external:react-hot-toast:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->external:react-icons/hi:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->external:react-redux:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->external:react:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->file:src/components/cart/SetQuantity.jsx:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->file:src/store/actions/index.js:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->file:src/utils/formatPrice.js:imports",
+      "edge:file:src/components/cart/ItemContent.jsx->file:src/utils/truncateText.js:imports",
+      "edge:file:src/components/checkout/OrderSummary.jsx->external:react:imports",
+      "edge:file:src/components/checkout/OrderSummary.jsx->file:src/utils/formatPrice.js:imports"
+    ],
+    "selectedNodeId": "file:src/utils/formatPrice.js",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "file",
+      "focusBasis": "file_fallback",
+      "selectedNodeId": "file:src/utils/formatPrice.js",
+      "focusFile": "src/utils/formatPrice.js",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/utils/formatPrice.js",
+          "nodeId": "file:src/utils/formatPrice.js"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "symbolGraph",
+        "label": "src/utils/formatPrice.js :: formatPrice",
+        "file": "src/utils/formatPrice.js",
+        "symbol": "formatPrice",
+        "path": "detail-symbol-src-utils-formatPrice.js-formatPrice.html"
+      },
+      {
+        "kind": "symbolGraph",
+        "label": "src/utils/formatPrice.js :: formatPriceCalculation",
+        "file": "src/utils/formatPrice.js",
+        "symbol": "formatPriceCalculation",
+        "path": "detail-symbol-src-utils-formatPrice.js-formatPriceCalculation.html"
+      },
+      {
+        "kind": "symbolGraph",
+        "label": "src/utils/formatPrice.js :: formatRevenue",
+        "file": "src/utils/formatPrice.js",
+        "symbol": "formatRevenue",
+        "path": "detail-symbol-src-utils-formatPrice.js-formatRevenue.html"
+      }
+    ]
+  }
+}

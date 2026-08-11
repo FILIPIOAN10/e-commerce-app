@@ -1,0 +1,707 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "overviewGraph",
+  "nodes": [
+    {
+      "id": "area:external_dependencies",
+      "type": "app_area",
+      "label": "External Dependencies",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "external_dependencies",
+        "repositoryNodeCount": 55,
+        "fileCount": 0,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 55
+      }
+    },
+    {
+      "id": "area:other_code",
+      "type": "app_area",
+      "label": "Other Code",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "other_code",
+        "repositoryNodeCount": 7,
+        "fileCount": 7,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    },
+    {
+      "id": "area:routes_api",
+      "type": "app_area",
+      "label": "Routes / API",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "routes_api",
+        "repositoryNodeCount": 1,
+        "fileCount": 1,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    },
+    {
+      "id": "area:frontend",
+      "type": "app_area",
+      "label": "Frontend / UI",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "frontend",
+        "repositoryNodeCount": 202,
+        "fileCount": 70,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    },
+    {
+      "id": "area:data_layer",
+      "type": "app_area",
+      "label": "Data Layer",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "data_layer",
+        "repositoryNodeCount": 54,
+        "fileCount": 9,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    },
+    {
+      "id": "area:auth_policy",
+      "type": "app_area",
+      "label": "Auth / Policy",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "auth_policy",
+        "repositoryNodeCount": 60,
+        "fileCount": 1,
+        "routeCount": 0,
+        "guardCount": 58,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    },
+    {
+      "id": "area:services",
+      "type": "app_area",
+      "label": "Services",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "services",
+        "repositoryNodeCount": 4,
+        "fileCount": 0,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    },
+    {
+      "id": "area:providers",
+      "type": "app_area",
+      "label": "Providers / Integrations",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "providers",
+        "repositoryNodeCount": 44,
+        "fileCount": 0,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 0,
+        "dataStoreCount": 0,
+        "integrationCount": 44
+      }
+    },
+    {
+      "id": "area:security_sensitive_ops",
+      "type": "app_area",
+      "label": "Sensitive Operations",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "area": "security_sensitive_ops",
+        "repositoryNodeCount": 52,
+        "fileCount": 0,
+        "routeCount": 0,
+        "guardCount": 0,
+        "sinkCount": 52,
+        "dataStoreCount": 0,
+        "integrationCount": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:area:other_code->area:services:uses",
+      "from": "area:other_code",
+      "to": "area:services",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 4 relationship(s) from Other Code to Services.",
+      "metadata": {
+        "directCount": 4,
+        "inferredCount": 0,
+        "relationshipKinds": "declares-handler"
+      }
+    },
+    {
+      "id": "edge:area:routes_api->area:auth_policy:uses",
+      "from": "area:routes_api",
+      "to": "area:auth_policy",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 3 relationship(s) from Routes / API to Auth / Policy.",
+      "metadata": {
+        "directCount": 3,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-guard"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:auth_policy:uses",
+      "from": "area:frontend",
+      "to": "area:auth_policy",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 37 relationship(s) from Frontend / UI to Auth / Policy.",
+      "metadata": {
+        "directCount": 37,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-guard"
+      }
+    },
+    {
+      "id": "edge:area:data_layer->area:auth_policy:uses",
+      "from": "area:data_layer",
+      "to": "area:auth_policy",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 19 relationship(s) from Data Layer to Auth / Policy.",
+      "metadata": {
+        "directCount": 19,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-guard, imports"
+      }
+    },
+    {
+      "id": "edge:area:other_code->area:providers:uses",
+      "from": "area:other_code",
+      "to": "area:providers",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 3 relationship(s) from Other Code to Providers / Integrations.",
+      "metadata": {
+        "directCount": 3,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-integration"
+      }
+    },
+    {
+      "id": "edge:area:routes_api->area:providers:uses",
+      "from": "area:routes_api",
+      "to": "area:providers",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 3 relationship(s) from Routes / API to Providers / Integrations.",
+      "metadata": {
+        "directCount": 3,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-integration"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:providers:uses",
+      "from": "area:frontend",
+      "to": "area:providers",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 22 relationship(s) from Frontend / UI to Providers / Integrations.",
+      "metadata": {
+        "directCount": 22,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-integration"
+      }
+    },
+    {
+      "id": "edge:area:data_layer->area:providers:uses",
+      "from": "area:data_layer",
+      "to": "area:providers",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 16 relationship(s) from Data Layer to Providers / Integrations.",
+      "metadata": {
+        "directCount": 16,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-integration"
+      }
+    },
+    {
+      "id": "edge:area:routes_api->area:security_sensitive_ops:uses",
+      "from": "area:routes_api",
+      "to": "area:security_sensitive_ops",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 1 relationship(s) from Routes / API to Sensitive Operations.",
+      "metadata": {
+        "directCount": 1,
+        "inferredCount": 0,
+        "relationshipKinds": "file-has-sink"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:security_sensitive_ops:uses",
+      "from": "area:frontend",
+      "to": "area:security_sensitive_ops",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 37 relationship(s) from Frontend / UI to Sensitive Operations.",
+      "metadata": {
+        "directCount": 22,
+        "inferredCount": 15,
+        "relationshipKinds": "file-has-sink, handler-reaches-sink"
+      }
+    },
+    {
+      "id": "edge:area:data_layer->area:security_sensitive_ops:uses",
+      "from": "area:data_layer",
+      "to": "area:security_sensitive_ops",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 58 relationship(s) from Data Layer to Sensitive Operations.",
+      "metadata": {
+        "directCount": 29,
+        "inferredCount": 29,
+        "relationshipKinds": "file-has-sink, handler-reaches-sink"
+      }
+    },
+    {
+      "id": "edge:area:auth_policy->area:frontend:uses",
+      "from": "area:auth_policy",
+      "to": "area:frontend",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "explanation": "Repository graph found 37 relationship(s) from Auth / Policy to Frontend / UI.",
+      "metadata": {
+        "directCount": 0,
+        "inferredCount": 37,
+        "relationshipKinds": "guard-applies-to-handler"
+      }
+    },
+    {
+      "id": "edge:area:auth_policy->area:data_layer:uses",
+      "from": "area:auth_policy",
+      "to": "area:data_layer",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 19 relationship(s) from Auth / Policy to Data Layer.",
+      "metadata": {
+        "directCount": 1,
+        "inferredCount": 18,
+        "relationshipKinds": "guard-applies-to-handler, imports"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:data_layer:uses",
+      "from": "area:frontend",
+      "to": "area:data_layer",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 92 relationship(s) from Frontend / UI to Data Layer.",
+      "metadata": {
+        "directCount": 60,
+        "inferredCount": 32,
+        "relationshipKinds": "handler-calls-handler, handler-uses-import, imports"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:services:uses",
+      "from": "area:frontend",
+      "to": "area:services",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 1 relationship(s) from Frontend / UI to Services.",
+      "metadata": {
+        "directCount": 1,
+        "inferredCount": 0,
+        "relationshipKinds": "handler-calls-handler"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:routes_api:uses",
+      "from": "area:frontend",
+      "to": "area:routes_api",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 8 relationship(s) from Frontend / UI to Routes / API.",
+      "metadata": {
+        "directCount": 2,
+        "inferredCount": 6,
+        "relationshipKinds": "handler-uses-import, imports"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:other_code:uses",
+      "from": "area:frontend",
+      "to": "area:other_code",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 10 relationship(s) from Frontend / UI to Other Code.",
+      "metadata": {
+        "directCount": 8,
+        "inferredCount": 2,
+        "relationshipKinds": "handler-uses-import, imports"
+      }
+    },
+    {
+      "id": "edge:area:data_layer->area:routes_api:uses",
+      "from": "area:data_layer",
+      "to": "area:routes_api",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 32 relationship(s) from Data Layer to Routes / API.",
+      "metadata": {
+        "directCount": 1,
+        "inferredCount": 31,
+        "relationshipKinds": "handler-uses-import, imports"
+      }
+    },
+    {
+      "id": "edge:area:other_code->area:external_dependencies:uses",
+      "from": "area:other_code",
+      "to": "area:external_dependencies",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 15 relationship(s) from Other Code to External Dependencies.",
+      "metadata": {
+        "directCount": 15,
+        "inferredCount": 0,
+        "relationshipKinds": "imports"
+      }
+    },
+    {
+      "id": "edge:area:routes_api->area:external_dependencies:uses",
+      "from": "area:routes_api",
+      "to": "area:external_dependencies",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 1 relationship(s) from Routes / API to External Dependencies.",
+      "metadata": {
+        "directCount": 1,
+        "inferredCount": 0,
+        "relationshipKinds": "imports"
+      }
+    },
+    {
+      "id": "edge:area:frontend->area:external_dependencies:uses",
+      "from": "area:frontend",
+      "to": "area:external_dependencies",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 239 relationship(s) from Frontend / UI to External Dependencies.",
+      "metadata": {
+        "directCount": 239,
+        "inferredCount": 0,
+        "relationshipKinds": "imports"
+      }
+    },
+    {
+      "id": "edge:area:data_layer->area:external_dependencies:uses",
+      "from": "area:data_layer",
+      "to": "area:external_dependencies",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 4 relationship(s) from Data Layer to External Dependencies.",
+      "metadata": {
+        "directCount": 4,
+        "inferredCount": 0,
+        "relationshipKinds": "imports"
+      }
+    },
+    {
+      "id": "edge:area:other_code->area:routes_api:uses",
+      "from": "area:other_code",
+      "to": "area:routes_api",
+      "type": "uses",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "explanation": "Repository graph found 1 relationship(s) from Other Code to Routes / API.",
+      "metadata": {
+        "directCount": 1,
+        "inferredCount": 0,
+        "relationshipKinds": "imports"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [],
+    "downstreamNodeIds": [],
+    "focusedNodeIds": [],
+    "focusedEdgeIds": [],
+    "depth": 1,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "repository_graph",
+      "inferred_static"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph",
+      "code_map_lens_overview_aggregation"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "application",
+      "focusBasis": "high_level",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos.",
+      "Code Map Lens reused a short-lived in-memory repository map and refreshed the active editor file before rendering this view."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "sectionGraph",
+        "label": "External Dependencies",
+        "area": "external_dependencies",
+        "path": "section-external_dependencies.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Other Code",
+        "area": "other_code",
+        "path": "section-other_code.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Routes / API",
+        "area": "routes_api",
+        "path": "section-routes_api.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Frontend / UI",
+        "area": "frontend",
+        "path": "section-frontend.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Data Layer",
+        "area": "data_layer",
+        "path": "section-data_layer.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Auth / Policy",
+        "area": "auth_policy",
+        "path": "section-auth_policy.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Services",
+        "area": "services",
+        "path": "section-services.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Providers / Integrations",
+        "area": "providers",
+        "path": "section-providers.html"
+      },
+      {
+        "kind": "sectionGraph",
+        "label": "Sensitive Operations",
+        "area": "security_sensitive_ops",
+        "path": "section-security_sensitive_ops.html"
+      }
+    ]
+  }
+}

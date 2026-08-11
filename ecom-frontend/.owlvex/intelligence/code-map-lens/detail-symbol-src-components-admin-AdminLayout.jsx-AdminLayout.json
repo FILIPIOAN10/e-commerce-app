@@ -1,0 +1,549 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "symbolGraph",
+  "nodes": [
+    {
+      "id": "external:../shared/Sidebar",
+      "type": "external_import",
+      "label": "../shared/Sidebar",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "../shared/Sidebar"
+      }
+    },
+    {
+      "id": "external:@headlessui/react",
+      "type": "external_import",
+      "label": "@headlessui/react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "@headlessui/react"
+      }
+    },
+    {
+      "id": "external:react",
+      "type": "external_import",
+      "label": "react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react"
+      }
+    },
+    {
+      "id": "external:react-icons/fa",
+      "type": "external_import",
+      "label": "react-icons/fa",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/fa"
+      }
+    },
+    {
+      "id": "external:react-icons/rx",
+      "type": "external_import",
+      "label": "react-icons/rx",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/rx"
+      }
+    },
+    {
+      "id": "external:react-router-dom",
+      "type": "external_import",
+      "label": "react-router-dom",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-router-dom"
+      }
+    },
+    {
+      "id": "file:src/App.jsx",
+      "type": "file",
+      "label": "src/App.jsx",
+      "file": "src/App.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/AdminLayout.jsx",
+      "type": "file",
+      "label": "src/components/admin/AdminLayout.jsx",
+      "file": "src/components/admin/AdminLayout.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "handler:src/App.jsx:App",
+      "type": "function",
+      "label": "App",
+      "file": "src/App.jsx",
+      "line": 28,
+      "column": 65,
+      "symbol": "App",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function App()"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/AdminLayout.jsx:AdminLayout",
+      "type": "function",
+      "label": "AdminLayout",
+      "file": "src/components/admin/AdminLayout.jsx",
+      "line": 6,
+      "column": 42,
+      "symbol": "AdminLayout",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function AdminLayout()"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/App.jsx->handler:src/App.jsx:App:declares",
+      "from": "file:src/App.jsx",
+      "to": "handler:src/App.jsx:App",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 28,
+        "column": 65
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->handler:src/components/admin/AdminLayout.jsx:AdminLayout:declares",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "handler:src/components/admin/AdminLayout.jsx:AdminLayout",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 6,
+        "column": 42
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->handler:src/App.jsx:App:calls",
+      "from": "handler:src/App.jsx:App",
+      "to": "handler:src/App.jsx:App",
+      "type": "calls",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 30,
+        "column": 10
+      },
+      "explanation": "Repository graph found a handler-calls-handler relationship from file facts.",
+      "metadata": {
+        "call": "App(",
+        "targetKind": "local_function"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/admin/AdminLayout.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/admin/AdminLayout.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 53,
+        "column": 41
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<AdminLayout"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react-router-dom:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 4,
+        "column": 55
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 11,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/admin/AdminLayout.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/admin/AdminLayout.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 18,
+        "column": 77
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/admin/AdminLayout",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->external:../shared/Sidebar:imports",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "external:../shared/Sidebar",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 1,
+        "column": 41
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../shared/Sidebar",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->external:@headlessui/react:imports",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "external:@headlessui/react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 3,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@headlessui/react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 5,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->external:react-icons/rx:imports",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "external:react-icons/rx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 4,
+        "column": 117
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/rx",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 2,
+        "column": 41
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/AdminLayout.jsx->external:react:imports",
+      "from": "file:src/components/admin/AdminLayout.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/AdminLayout.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/components/admin/AdminLayout.jsx"
+    ],
+    "downstreamNodeIds": [],
+    "focusedNodeIds": [
+      "handler:src/components/admin/AdminLayout.jsx:AdminLayout",
+      "file:src/components/admin/AdminLayout.jsx"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/components/admin/AdminLayout.jsx->handler:src/components/admin/AdminLayout.jsx:AdminLayout:declares",
+      "edge:file:src/components/admin/AdminLayout.jsx->external:../shared/Sidebar:imports",
+      "edge:file:src/components/admin/AdminLayout.jsx->external:@headlessui/react:imports",
+      "edge:file:src/components/admin/AdminLayout.jsx->external:react-icons/fa:imports",
+      "edge:file:src/components/admin/AdminLayout.jsx->external:react-icons/rx:imports",
+      "edge:file:src/components/admin/AdminLayout.jsx->external:react-router-dom:imports",
+      "edge:file:src/components/admin/AdminLayout.jsx->external:react:imports"
+    ],
+    "selectedNodeId": "handler:src/components/admin/AdminLayout.jsx:AdminLayout",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "symbol",
+      "focusBasis": "symbol",
+      "selectedNodeId": "handler:src/components/admin/AdminLayout.jsx:AdminLayout",
+      "focusFile": "src/components/admin/AdminLayout.jsx",
+      "focusSymbol": "AdminLayout",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/components/admin/AdminLayout.jsx",
+          "nodeId": "file:src/components/admin/AdminLayout.jsx",
+          "artifactPath": "detail-frontend-src-components-admin-AdminLayout.jsx.html"
+        },
+        {
+          "mode": "symbol",
+          "label": "AdminLayout",
+          "nodeId": "handler:src/components/admin/AdminLayout.jsx:AdminLayout"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "fileGraph",
+        "label": "src/components/admin/AdminLayout.jsx",
+        "file": "src/components/admin/AdminLayout.jsx",
+        "path": "detail-frontend-src-components-admin-AdminLayout.jsx.html"
+      }
+    ]
+  }
+}

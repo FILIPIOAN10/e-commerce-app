@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "fileGraph",
+  "nodes": [
+    {
+      "id": "file:package.json",
+      "type": "file",
+      "label": "package.json",
+      "file": "package.json",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "integration:package.json:http-client:21",
+      "type": "integration",
+      "label": "http-client: \"axios\": \"^1.13.2\",",
+      "file": "package.json",
+      "line": 21,
+      "column": 21,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "integrationKind": "http-client",
+        "expression": "\"axios\": \"^1.13.2\","
+      }
+    },
+    {
+      "id": "integration:package.json:sdk:18",
+      "type": "integration",
+      "label": "sdk: \"@stripe/react-stripe-js\": \"^5.5.0\",",
+      "file": "package.json",
+      "line": 18,
+      "column": 23,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "integrationKind": "sdk",
+        "expression": "\"@stripe/react-stripe-js\": \"^5.5.0\","
+      }
+    },
+    {
+      "id": "integration:package.json:sdk:19",
+      "type": "integration",
+      "label": "sdk: \"@stripe/stripe-js\": \"^8.6.4\",",
+      "file": "package.json",
+      "line": 19,
+      "column": 28,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "integrationKind": "sdk",
+        "expression": "\"@stripe/stripe-js\": \"^8.6.4\","
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:package.json->integration:package.json:http-client:21:calls_provider",
+      "from": "file:package.json",
+      "to": "integration:package.json:http-client:21",
+      "type": "calls_provider",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "package.json",
+        "line": 21,
+        "column": 21
+      },
+      "explanation": "Repository graph found a file-has-integration relationship from file facts."
+    },
+    {
+      "id": "edge:file:package.json->integration:package.json:sdk:18:calls_provider",
+      "from": "file:package.json",
+      "to": "integration:package.json:sdk:18",
+      "type": "calls_provider",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "package.json",
+        "line": 18,
+        "column": 23
+      },
+      "explanation": "Repository graph found a file-has-integration relationship from file facts."
+    },
+    {
+      "id": "edge:file:package.json->integration:package.json:sdk:19:calls_provider",
+      "from": "file:package.json",
+      "to": "integration:package.json:sdk:19",
+      "type": "calls_provider",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "package.json",
+        "line": 19,
+        "column": 28
+      },
+      "explanation": "Repository graph found a file-has-integration relationship from file facts."
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [],
+    "downstreamNodeIds": [
+      "integration:package.json:http-client:21",
+      "integration:package.json:sdk:18",
+      "integration:package.json:sdk:19"
+    ],
+    "focusedNodeIds": [
+      "file:package.json",
+      "integration:package.json:http-client:21",
+      "integration:package.json:sdk:18",
+      "integration:package.json:sdk:19"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:package.json->integration:package.json:http-client:21:calls_provider",
+      "edge:file:package.json->integration:package.json:sdk:18:calls_provider",
+      "edge:file:package.json->integration:package.json:sdk:19:calls_provider"
+    ],
+    "selectedNodeId": "file:package.json",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "file",
+      "focusBasis": "file_fallback",
+      "selectedNodeId": "file:package.json",
+      "focusFile": "package.json",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "package.json",
+          "nodeId": "file:package.json"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1287 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "symbolGraph",
+  "nodes": [
+    {
+      "id": "external:@mui/x-data-grid",
+      "type": "external_import",
+      "label": "@mui/x-data-grid",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "@mui/x-data-grid"
+      }
+    },
+    {
+      "id": "external:react",
+      "type": "external_import",
+      "label": "react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react"
+      }
+    },
+    {
+      "id": "external:react-hot-toast",
+      "type": "external_import",
+      "label": "react-hot-toast",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-hot-toast"
+      }
+    },
+    {
+      "id": "external:react-icons/fa",
+      "type": "external_import",
+      "label": "react-icons/fa",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/fa"
+      }
+    },
+    {
+      "id": "external:react-redux",
+      "type": "external_import",
+      "label": "react-redux",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-redux"
+      }
+    },
+    {
+      "id": "external:react-router-dom",
+      "type": "external_import",
+      "label": "react-router-dom",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-router-dom"
+      }
+    },
+    {
+      "id": "file:src/App.jsx",
+      "type": "file",
+      "label": "src/App.jsx",
+      "file": "src/App.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "type": "file",
+      "label": "src/components/admin/categories/AddCategoryForm.jsx",
+      "file": "src/components/admin/categories/AddCategoryForm.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/categories/Category.jsx",
+      "type": "file",
+      "label": "src/components/admin/categories/Category.jsx",
+      "file": "src/components/admin/categories/Category.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/helper/tableColumn.jsx",
+      "type": "file",
+      "label": "src/components/helper/tableColumn.jsx",
+      "file": "src/components/helper/tableColumn.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/DeleteModal.jsx",
+      "type": "file",
+      "label": "src/components/shared/DeleteModal.jsx",
+      "file": "src/components/shared/DeleteModal.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/ErrorPage.jsx",
+      "type": "file",
+      "label": "src/components/shared/ErrorPage.jsx",
+      "file": "src/components/shared/ErrorPage.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/Loader.jsx",
+      "type": "file",
+      "label": "src/components/shared/Loader.jsx",
+      "file": "src/components/shared/Loader.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/Modal.jsx",
+      "type": "file",
+      "label": "src/components/shared/Modal.jsx",
+      "file": "src/components/shared/Modal.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/hooks/useCategoryFilter.js",
+      "type": "file",
+      "label": "src/hooks/useCategoryFilter.js",
+      "file": "src/hooks/useCategoryFilter.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/store/actions/index.js",
+      "type": "file",
+      "label": "src/store/actions/index.js",
+      "file": "src/store/actions/index.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "handler:src/App.jsx:App",
+      "type": "function",
+      "label": "App",
+      "file": "src/App.jsx",
+      "line": 28,
+      "column": 65,
+      "symbol": "App",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function App()"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/Category.jsx:Category",
+      "type": "function",
+      "label": "Category",
+      "file": "src/components/admin/categories/Category.jsx",
+      "line": 15,
+      "column": 66,
+      "symbol": "Category",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Category()"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/Category.jsx:handleDelete",
+      "type": "function",
+      "label": "handleDelete",
+      "file": "src/components/admin/categories/Category.jsx",
+      "line": 47,
+      "column": 6,
+      "symbol": "handleDelete",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handleDelete(category)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/Category.jsx:handleEdit",
+      "type": "function",
+      "label": "handleEdit",
+      "file": "src/components/admin/categories/Category.jsx",
+      "line": 43,
+      "column": 8,
+      "symbol": "handleEdit",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handleEdit(category)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/Category.jsx:handlePaginationChange",
+      "type": "function",
+      "label": "handlePaginationChange",
+      "file": "src/components/admin/categories/Category.jsx",
+      "line": 58,
+      "column": 6,
+      "symbol": "handlePaginationChange",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handlePaginationChange(paginationModel)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/categories/Category.jsx:onDeleteHandler",
+      "type": "function",
+      "label": "onDeleteHandler",
+      "file": "src/components/admin/categories/Category.jsx",
+      "line": 52,
+      "column": 6,
+      "symbol": "onDeleteHandler",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function onDeleteHandler()"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/App.jsx->handler:src/App.jsx:App:declares",
+      "from": "file:src/App.jsx",
+      "to": "handler:src/App.jsx:App",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 28,
+        "column": 65
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:Category:declares",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "handler:src/components/admin/categories/Category.jsx:Category",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 15,
+        "column": 66
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:handleDelete:declares",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "handler:src/components/admin/categories/Category.jsx:handleDelete",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 47,
+        "column": 6
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:handleEdit:declares",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "handler:src/components/admin/categories/Category.jsx:handleEdit",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 43,
+        "column": 8
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:handlePaginationChange:declares",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "handler:src/components/admin/categories/Category.jsx:handlePaginationChange",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 58,
+        "column": 6
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:onDeleteHandler:declares",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "handler:src/components/admin/categories/Category.jsx:onDeleteHandler",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 52,
+        "column": 6
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->handler:src/App.jsx:App:calls",
+      "from": "handler:src/App.jsx:App",
+      "to": "handler:src/App.jsx:App",
+      "type": "calls",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 30,
+        "column": 10
+      },
+      "explanation": "Repository graph found a handler-calls-handler relationship from file facts.",
+      "metadata": {
+        "call": "App(",
+        "targetKind": "local_function"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/admin/categories/Category.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/admin/categories/Category.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 58,
+        "column": 47
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<Category"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/admin/categories/AddCategoryForm.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 137,
+        "column": 9
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<AddCategoryForm"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/helper/tableColumn.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/helper/tableColumn.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 105,
+        "column": 26
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "categoryTableColumns("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/shared/DeleteModal.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/shared/DeleteModal.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 145,
+        "column": 7
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<DeleteModal"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/shared/ErrorPage.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/shared/ErrorPage.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 70,
+        "column": 28
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<ErrorPage"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/shared/Loader.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/shared/Loader.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 90,
+        "column": 9
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<Loader"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/components/shared/Modal.jsx:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/components/shared/Modal.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 132,
+        "column": 7
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<Modal"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:Category->file:src/hooks/useCategoryFilter.js:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:Category",
+      "to": "file:src/hooks/useCategoryFilter.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 35,
+        "column": 118
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "parameters.useCategoryFilter(",
+        "memberPath": "parameters.useCategoryFilter",
+        "receiver": "parameters"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/categories/Category.jsx:onDeleteHandler->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/admin/categories/Category.jsx:onDeleteHandler",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 56,
+        "column": 7
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "deleteCategoryDashboardAction("
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react-hot-toast:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 10,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react-router-dom:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 4,
+        "column": 55
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 11,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/admin/categories/Category.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/admin/categories/Category.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 21,
+        "column": 71
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/admin/categories/Category",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 3,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 2,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/AddCategoryForm.jsx->external:react:imports",
+      "from": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/AddCategoryForm.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:@mui/x-data-grid:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:@mui/x-data-grid",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 3,
+        "column": 79
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@mui/x-data-grid",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react-hot-toast:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 5,
+        "column": 58
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 4,
+        "column": 46
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 1,
+        "column": 42
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 2,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->external:react:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/admin/categories/AddCategoryForm.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/admin/categories/AddCategoryForm.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 8,
+        "column": 41
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./AddCategoryForm",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/helper/tableColumn.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/helper/tableColumn.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 14,
+        "column": 73
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../helper/tableColumn",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/DeleteModal.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/shared/DeleteModal.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 10,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../components/shared/DeleteModal",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/ErrorPage.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/shared/ErrorPage.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 12,
+        "column": 67
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../shared/ErrorPage",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/Loader.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/shared/Loader.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 9,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../shared/Loader",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/Modal.jsx:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/components/shared/Modal.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 6,
+        "column": 38
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../shared/Modal",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/hooks/useCategoryFilter.js:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/hooks/useCategoryFilter.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 11,
+        "column": 71
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../hooks/useCategoryFilter",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/categories/Category.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/admin/categories/Category.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/categories/Category.jsx",
+        "line": 13,
+        "column": 49
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/helper/tableColumn.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/helper/tableColumn.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/helper/tableColumn.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/DeleteModal.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/shared/DeleteModal.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/DeleteModal.jsx",
+        "line": 1,
+        "column": 28
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/DeleteModal.jsx->external:react:imports",
+      "from": "file:src/components/shared/DeleteModal.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/DeleteModal.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ErrorPage.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/shared/ErrorPage.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ErrorPage.jsx",
+        "line": 1,
+        "column": 27
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/shared/ErrorPage.jsx->external:react:imports",
+      "from": "file:src/components/shared/ErrorPage.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/shared/ErrorPage.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useCategoryFilter.js->external:react-redux:imports",
+      "from": "file:src/hooks/useCategoryFilter.js",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useCategoryFilter.js",
+        "line": 2,
+        "column": 53
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useCategoryFilter.js->external:react-router-dom:imports",
+      "from": "file:src/hooks/useCategoryFilter.js",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useCategoryFilter.js",
+        "line": 1,
+        "column": 36
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useCategoryFilter.js->external:react:imports",
+      "from": "file:src/hooks/useCategoryFilter.js",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useCategoryFilter.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useCategoryFilter.js->file:src/store/actions/index.js:imports",
+      "from": "file:src/hooks/useCategoryFilter.js",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useCategoryFilter.js",
+        "line": 3,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/store/actions/index.js->external:react-hot-toast:imports",
+      "from": "file:src/store/actions/index.js",
+      "to": "external:react-hot-toast",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/store/actions/index.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-hot-toast",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/components/admin/categories/Category.jsx"
+    ],
+    "downstreamNodeIds": [],
+    "focusedNodeIds": [
+      "handler:src/components/admin/categories/Category.jsx:handlePaginationChange",
+      "file:src/components/admin/categories/Category.jsx"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:Category:declares",
+      "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:handleDelete:declares",
+      "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:handleEdit:declares",
+      "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:handlePaginationChange:declares",
+      "edge:file:src/components/admin/categories/Category.jsx->handler:src/components/admin/categories/Category.jsx:onDeleteHandler:declares",
+      "edge:file:src/components/admin/categories/Category.jsx->external:@mui/x-data-grid:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->external:react-hot-toast:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->external:react-icons/fa:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->external:react-redux:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->external:react-router-dom:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->external:react:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/components/admin/categories/AddCategoryForm.jsx:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/components/helper/tableColumn.jsx:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/DeleteModal.jsx:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/ErrorPage.jsx:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/Loader.jsx:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/components/shared/Modal.jsx:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/hooks/useCategoryFilter.js:imports",
+      "edge:file:src/components/admin/categories/Category.jsx->file:src/store/actions/index.js:imports"
+    ],
+    "selectedNodeId": "handler:src/components/admin/categories/Category.jsx:handlePaginationChange",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "symbol",
+      "focusBasis": "symbol",
+      "selectedNodeId": "handler:src/components/admin/categories/Category.jsx:handlePaginationChange",
+      "focusFile": "src/components/admin/categories/Category.jsx",
+      "focusSymbol": "handlePaginationChange",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/components/admin/categories/Category.jsx",
+          "nodeId": "file:src/components/admin/categories/Category.jsx",
+          "artifactPath": "detail-frontend-src-components-admin-categories-Category.jsx.html"
+        },
+        {
+          "mode": "symbol",
+          "label": "handlePaginationChange",
+          "nodeId": "handler:src/components/admin/categories/Category.jsx:handlePaginationChange"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "fileGraph",
+        "label": "src/components/admin/categories/Category.jsx",
+        "file": "src/components/admin/categories/Category.jsx",
+        "path": "detail-frontend-src-components-admin-categories-Category.jsx.html"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1527 @@
+{
+  "schemaVersion": "owlvex.code-map-lens.v1",
+  "graphKind": "symbolGraph",
+  "nodes": [
+    {
+      "id": "external:@mui/x-data-grid",
+      "type": "external_import",
+      "label": "@mui/x-data-grid",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "@mui/x-data-grid"
+      }
+    },
+    {
+      "id": "external:react",
+      "type": "external_import",
+      "label": "react",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react"
+      }
+    },
+    {
+      "id": "external:react-icons/fa",
+      "type": "external_import",
+      "label": "react-icons/fa",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-icons/fa"
+      }
+    },
+    {
+      "id": "external:react-redux",
+      "type": "external_import",
+      "label": "react-redux",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-redux"
+      }
+    },
+    {
+      "id": "external:react-router-dom",
+      "type": "external_import",
+      "label": "react-router-dom",
+      "sourceAuthority": "inferred_static",
+      "confidence": "direct",
+      "metadata": {
+        "specifier": "react-router-dom"
+      }
+    },
+    {
+      "id": "file:src/App.jsx",
+      "type": "file",
+      "label": "src/App.jsx",
+      "file": "src/App.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/orders/Orders.jsx",
+      "type": "file",
+      "label": "src/components/admin/orders/Orders.jsx",
+      "file": "src/components/admin/orders/Orders.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/orders/OrderTable.jsx",
+      "type": "file",
+      "label": "src/components/admin/orders/OrderTable.jsx",
+      "file": "src/components/admin/orders/OrderTable.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/admin/orders/UpdateOrderForm.jsx",
+      "type": "file",
+      "label": "src/components/admin/orders/UpdateOrderForm.jsx",
+      "file": "src/components/admin/orders/UpdateOrderForm.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/helper/tableColumn.jsx",
+      "type": "file",
+      "label": "src/components/helper/tableColumn.jsx",
+      "file": "src/components/helper/tableColumn.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/profile/ProfileOrders.jsx",
+      "type": "file",
+      "label": "src/components/profile/ProfileOrders.jsx",
+      "file": "src/components/profile/ProfileOrders.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/components/shared/Modal.jsx",
+      "type": "file",
+      "label": "src/components/shared/Modal.jsx",
+      "file": "src/components/shared/Modal.jsx",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/hooks/useOrderFilter.js",
+      "type": "file",
+      "label": "src/hooks/useOrderFilter.js",
+      "file": "src/hooks/useOrderFilter.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "file:src/store/actions/index.js",
+      "type": "file",
+      "label": "src/store/actions/index.js",
+      "file": "src/store/actions/index.js",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct"
+    },
+    {
+      "id": "guard:src/components/admin/orders/OrderTable.jsx:authorization:23",
+      "type": "guard",
+      "label": "authorization: const isAdmin = Boolean(user?.roles?.includes(\"ROLE_ADMIN\"));",
+      "file": "src/components/admin/orders/OrderTable.jsx",
+      "line": 23,
+      "column": 36,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "const isAdmin = Boolean(user?.roles?.includes(\"ROLE_ADMIN\"));"
+      }
+    },
+    {
+      "id": "guard:src/components/admin/orders/OrderTable.jsx:authorization:27",
+      "type": "guard",
+      "label": "authorization: const canEdit = isAdmin || isSeller;",
+      "file": "src/components/admin/orders/OrderTable.jsx",
+      "line": 27,
+      "column": 11,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "const canEdit = isAdmin || isSeller;"
+      }
+    },
+    {
+      "id": "guard:src/hooks/useOrderFilter.js:authorization:10",
+      "type": "guard",
+      "label": "authorization: const isAdmin = Boolean(user?.roles?.includes(\"ROLE_ADMIN\"));",
+      "file": "src/hooks/useOrderFilter.js",
+      "line": 10,
+      "column": 53,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "const isAdmin = Boolean(user?.roles?.includes(\"ROLE_ADMIN\"));"
+      }
+    },
+    {
+      "id": "guard:src/hooks/useOrderFilter.js:authorization:17",
+      "type": "guard",
+      "label": "authorization: if (!isAdmin && !isSeller) return;",
+      "file": "src/hooks/useOrderFilter.js",
+      "line": 17,
+      "column": 64,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "if (!isAdmin && !isSeller) return;"
+      }
+    },
+    {
+      "id": "guard:src/hooks/useOrderFilter.js:authorization:25",
+      "type": "guard",
+      "label": "authorization: dispatch(getOrdersForDashboard(queryString, isAdmin));",
+      "file": "src/hooks/useOrderFilter.js",
+      "line": 25,
+      "column": 32,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "dispatch(getOrdersForDashboard(queryString, isAdmin));"
+      }
+    },
+    {
+      "id": "guard:src/hooks/useOrderFilter.js:authorization:26",
+      "type": "guard",
+      "label": "authorization: }, [dispatch, searchParams, user, isAdmin, isSeller]);",
+      "file": "src/hooks/useOrderFilter.js",
+      "line": 26,
+      "column": 44,
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "guardKind": "authorization",
+        "expression": "}, [dispatch, searchParams, user, isAdmin, isSeller]);"
+      }
+    },
+    {
+      "id": "handler:src/App.jsx:App",
+      "type": "function",
+      "label": "App",
+      "file": "src/App.jsx",
+      "line": 28,
+      "column": 65,
+      "symbol": "App",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function App()"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/orders/Orders.jsx:Orders",
+      "type": "function",
+      "label": "Orders",
+      "file": "src/components/admin/orders/Orders.jsx",
+      "line": 5,
+      "column": 61,
+      "symbol": "Orders",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function Orders()"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/orders/OrderTable.jsx:handleEdit",
+      "type": "function",
+      "label": "handleEdit",
+      "file": "src/components/admin/orders/OrderTable.jsx",
+      "line": 43,
+      "column": 5,
+      "symbol": "handleEdit",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handleEdit(order)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/orders/OrderTable.jsx:handlePaginationChange",
+      "type": "function",
+      "label": "handlePaginationChange",
+      "file": "src/components/admin/orders/OrderTable.jsx",
+      "line": 36,
+      "column": 8,
+      "symbol": "handlePaginationChange",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function handlePaginationChange(paginationModel)"
+      }
+    },
+    {
+      "id": "handler:src/components/admin/orders/OrderTable.jsx:OrderTable",
+      "type": "function",
+      "label": "OrderTable",
+      "file": "src/components/admin/orders/OrderTable.jsx",
+      "line": 7,
+      "column": 44,
+      "symbol": "OrderTable",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function OrderTable({adminOrder, pagination})"
+      }
+    },
+    {
+      "id": "handler:src/components/profile/ProfileOrders.jsx:ProfileOrders",
+      "type": "function",
+      "label": "ProfileOrders",
+      "file": "src/components/profile/ProfileOrders.jsx",
+      "line": 7,
+      "column": 54,
+      "symbol": "ProfileOrders",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function ProfileOrders()"
+      }
+    },
+    {
+      "id": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "type": "function",
+      "label": "useOrderFilter",
+      "file": "src/hooks/useOrderFilter.js",
+      "line": 4,
+      "column": 59,
+      "symbol": "useOrderFilter",
+      "sourceAuthority": "repository_graph",
+      "confidence": "direct",
+      "metadata": {
+        "async": false,
+        "exported": false,
+        "expression": "function useOrderFilter()"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:file:src/App.jsx->handler:src/App.jsx:App:declares",
+      "from": "file:src/App.jsx",
+      "to": "handler:src/App.jsx:App",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 28,
+        "column": 65
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/Orders.jsx->handler:src/components/admin/orders/Orders.jsx:Orders:declares",
+      "from": "file:src/components/admin/orders/Orders.jsx",
+      "to": "handler:src/components/admin/orders/Orders.jsx:Orders",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 5,
+        "column": 61
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->handler:src/components/admin/orders/OrderTable.jsx:handleEdit:declares",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "handler:src/components/admin/orders/OrderTable.jsx:handleEdit",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 43,
+        "column": 5
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->handler:src/components/admin/orders/OrderTable.jsx:handlePaginationChange:declares",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "handler:src/components/admin/orders/OrderTable.jsx:handlePaginationChange",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 36,
+        "column": 8
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->handler:src/components/admin/orders/OrderTable.jsx:OrderTable:declares",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "handler:src/components/admin/orders/OrderTable.jsx:OrderTable",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 7,
+        "column": 44
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->handler:src/components/profile/ProfileOrders.jsx:ProfileOrders:declares",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "handler:src/components/profile/ProfileOrders.jsx:ProfileOrders",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 7,
+        "column": 54
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->handler:src/hooks/useOrderFilter.js:useOrderFilter:declares",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "type": "declares",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 4,
+        "column": 59
+      },
+      "explanation": "Repository graph found a declares-handler relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->guard:src/components/admin/orders/OrderTable.jsx:authorization:23:protects",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "guard:src/components/admin/orders/OrderTable.jsx:authorization:23",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 23,
+        "column": 36
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->guard:src/components/admin/orders/OrderTable.jsx:authorization:27:protects",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "guard:src/components/admin/orders/OrderTable.jsx:authorization:27",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 27,
+        "column": 11
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->guard:src/hooks/useOrderFilter.js:authorization:10:protects",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "guard:src/hooks/useOrderFilter.js:authorization:10",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 10,
+        "column": 53
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->guard:src/hooks/useOrderFilter.js:authorization:17:protects",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "guard:src/hooks/useOrderFilter.js:authorization:17",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 17,
+        "column": 64
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->guard:src/hooks/useOrderFilter.js:authorization:25:protects",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "guard:src/hooks/useOrderFilter.js:authorization:25",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 25,
+        "column": 32
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->guard:src/hooks/useOrderFilter.js:authorization:26:protects",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "guard:src/hooks/useOrderFilter.js:authorization:26",
+      "type": "protects",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 26,
+        "column": 44
+      },
+      "explanation": "Repository graph found a file-has-guard relationship from file facts."
+    },
+    {
+      "id": "edge:guard:src/components/admin/orders/OrderTable.jsx:authorization:23->handler:src/components/admin/orders/OrderTable.jsx:OrderTable:protects",
+      "from": "guard:src/components/admin/orders/OrderTable.jsx:authorization:23",
+      "to": "handler:src/components/admin/orders/OrderTable.jsx:OrderTable",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 23,
+        "column": 36
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/components/admin/orders/OrderTable.jsx:authorization:27->handler:src/components/admin/orders/OrderTable.jsx:OrderTable:protects",
+      "from": "guard:src/components/admin/orders/OrderTable.jsx:authorization:27",
+      "to": "handler:src/components/admin/orders/OrderTable.jsx:OrderTable",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 27,
+        "column": 11
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/hooks/useOrderFilter.js:authorization:10->handler:src/hooks/useOrderFilter.js:useOrderFilter:protects",
+      "from": "guard:src/hooks/useOrderFilter.js:authorization:10",
+      "to": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 10,
+        "column": 53
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/hooks/useOrderFilter.js:authorization:17->handler:src/hooks/useOrderFilter.js:useOrderFilter:protects",
+      "from": "guard:src/hooks/useOrderFilter.js:authorization:17",
+      "to": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 17,
+        "column": 64
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/hooks/useOrderFilter.js:authorization:25->handler:src/hooks/useOrderFilter.js:useOrderFilter:protects",
+      "from": "guard:src/hooks/useOrderFilter.js:authorization:25",
+      "to": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 25,
+        "column": 32
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:guard:src/hooks/useOrderFilter.js:authorization:26->handler:src/hooks/useOrderFilter.js:useOrderFilter:protects",
+      "from": "guard:src/hooks/useOrderFilter.js:authorization:26",
+      "to": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "type": "protects",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 26,
+        "column": 44
+      },
+      "explanation": "Repository graph inferred a guard-applies-to-handler relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "guard appears inside or nearest to this function scope"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->handler:src/App.jsx:App:calls",
+      "from": "handler:src/App.jsx:App",
+      "to": "handler:src/App.jsx:App",
+      "type": "calls",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 30,
+        "column": 10
+      },
+      "explanation": "Repository graph found a handler-calls-handler relationship from file facts.",
+      "metadata": {
+        "call": "App(",
+        "targetKind": "local_function"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/admin/orders/Orders.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/admin/orders/Orders.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 57,
+        "column": 43
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<Orders"
+      }
+    },
+    {
+      "id": "edge:handler:src/App.jsx:App->file:src/components/profile/ProfileOrders.jsx:uses",
+      "from": "handler:src/App.jsx:App",
+      "to": "file:src/components/profile/ProfileOrders.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 63,
+        "column": 50
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<ProfileOrders"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/orders/Orders.jsx:Orders->file:src/components/admin/orders/OrderTable.jsx:uses",
+      "from": "handler:src/components/admin/orders/Orders.jsx:Orders",
+      "to": "file:src/components/admin/orders/OrderTable.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 26,
+        "column": 9
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<OrderTable"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/admin/orders/Orders.jsx:Orders->file:src/hooks/useOrderFilter.js:uses",
+      "from": "handler:src/components/admin/orders/Orders.jsx:Orders",
+      "to": "file:src/hooks/useOrderFilter.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 14,
+        "column": 3
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "useOrderFilter("
+      }
+    },
+    {
+      "id": "edge:handler:src/components/profile/ProfileOrders.jsx:ProfileOrders->file:src/components/admin/orders/OrderTable.jsx:uses",
+      "from": "handler:src/components/profile/ProfileOrders.jsx:ProfileOrders",
+      "to": "file:src/components/admin/orders/OrderTable.jsx",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 43,
+        "column": 9
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "<OrderTable"
+      }
+    },
+    {
+      "id": "edge:handler:src/components/profile/ProfileOrders.jsx:ProfileOrders->file:src/store/actions/index.js:uses",
+      "from": "handler:src/components/profile/ProfileOrders.jsx:ProfileOrders",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 20,
+        "column": 14
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "getUserOrders("
+      }
+    },
+    {
+      "id": "edge:handler:src/hooks/useOrderFilter.js:useOrderFilter->file:src/store/actions/index.js:uses",
+      "from": "handler:src/hooks/useOrderFilter.js:useOrderFilter",
+      "to": "file:src/store/actions/index.js",
+      "type": "uses",
+      "confidence": "inferred",
+      "sourceAuthority": "inferred_static",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 26,
+        "column": 18
+      },
+      "explanation": "Repository graph inferred a handler-uses-import relationship from nearby static evidence.",
+      "metadata": {
+        "reason": "handler calls a symbol imported from target module",
+        "call": "getOrdersForDashboard("
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react-router-dom:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 4,
+        "column": 55
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->external:react:imports",
+      "from": "file:src/App.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 11,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/admin/orders/Orders.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/admin/orders/Orders.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 23,
+        "column": 58
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/admin/orders/Orders",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/App.jsx->file:src/components/profile/ProfileOrders.jsx:imports",
+      "from": "file:src/App.jsx",
+      "to": "file:src/components/profile/ProfileOrders.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/App.jsx",
+        "line": 25,
+        "column": 52
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./components/profile/ProfileOrders",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/Orders.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/admin/orders/Orders.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 1,
+        "column": 27
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/Orders.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/orders/Orders.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 3,
+        "column": 40
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/Orders.jsx->external:react:imports",
+      "from": "file:src/components/admin/orders/Orders.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/Orders.jsx->file:src/components/admin/orders/OrderTable.jsx:imports",
+      "from": "file:src/components/admin/orders/Orders.jsx",
+      "to": "file:src/components/admin/orders/OrderTable.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 2,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./OrderTable",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/Orders.jsx->file:src/hooks/useOrderFilter.js:imports",
+      "from": "file:src/components/admin/orders/Orders.jsx",
+      "to": "file:src/hooks/useOrderFilter.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/Orders.jsx",
+        "line": 4,
+        "column": 44
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../hooks/useOrderFilter",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->external:@mui/x-data-grid:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "external:@mui/x-data-grid",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "@mui/x-data-grid",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 6,
+        "column": 41
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 3,
+        "column": 35
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->external:react:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 2,
+        "column": 67
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->file:src/components/admin/orders/UpdateOrderForm.jsx:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "file:src/components/admin/orders/UpdateOrderForm.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 4,
+        "column": 79
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "./UpdateOrderForm",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->file:src/components/helper/tableColumn.jsx:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "file:src/components/helper/tableColumn.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 1,
+        "column": 45
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../helper/tableColumn",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/OrderTable.jsx->file:src/components/shared/Modal.jsx:imports",
+      "from": "file:src/components/admin/orders/OrderTable.jsx",
+      "to": "file:src/components/shared/Modal.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/OrderTable.jsx",
+        "line": 5,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../shared/Modal",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/UpdateOrderForm.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/admin/orders/UpdateOrderForm.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/UpdateOrderForm.jsx",
+        "line": 3,
+        "column": 41
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/UpdateOrderForm.jsx->external:react-redux:imports",
+      "from": "file:src/components/admin/orders/UpdateOrderForm.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/UpdateOrderForm.jsx",
+        "line": 5,
+        "column": 47
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/UpdateOrderForm.jsx->external:react:imports",
+      "from": "file:src/components/admin/orders/UpdateOrderForm.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/UpdateOrderForm.jsx",
+        "line": 2,
+        "column": 99
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/admin/orders/UpdateOrderForm.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/admin/orders/UpdateOrderForm.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/admin/orders/UpdateOrderForm.jsx",
+        "line": 6,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/helper/tableColumn.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/helper/tableColumn.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/helper/tableColumn.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->external:react-icons/fa:imports",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "external:react-icons/fa",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 1,
+        "column": 43
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-icons/fa",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->external:react-redux:imports",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 2,
+        "column": 50
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->external:react-router-dom:imports",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 3,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->external:react:imports",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->file:src/components/admin/orders/OrderTable.jsx:imports",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "file:src/components/admin/orders/OrderTable.jsx",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 6,
+        "column": 54
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../admin/orders/OrderTable",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/components/profile/ProfileOrders.jsx->file:src/store/actions/index.js:imports",
+      "from": "file:src/components/profile/ProfileOrders.jsx",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/components/profile/ProfileOrders.jsx",
+        "line": 4,
+        "column": 49
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../../store/actions",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->external:react-redux:imports",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "external:react-redux",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 1,
+        "column": 36
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-redux",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->external:react-router-dom:imports",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "external:react-router-dom",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 2,
+        "column": 57
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react-router-dom",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->external:react:imports",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "external:react",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 1,
+        "column": 1
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "react",
+        "importKind": "static"
+      }
+    },
+    {
+      "id": "edge:file:src/hooks/useOrderFilter.js->file:src/store/actions/index.js:imports",
+      "from": "file:src/hooks/useOrderFilter.js",
+      "to": "file:src/store/actions/index.js",
+      "type": "imports",
+      "confidence": "direct",
+      "sourceAuthority": "repository_graph",
+      "location": {
+        "file": "src/hooks/useOrderFilter.js",
+        "line": 3,
+        "column": 53
+      },
+      "explanation": "Repository graph found a imports relationship from file facts.",
+      "metadata": {
+        "specifier": "../store/actions",
+        "importKind": "static"
+      }
+    }
+  ],
+  "traversal": {
+    "upstreamNodeIds": [
+      "file:src/components/admin/orders/Orders.jsx"
+    ],
+    "downstreamNodeIds": [
+      "file:src/components/admin/orders/OrderTable.jsx",
+      "file:src/hooks/useOrderFilter.js"
+    ],
+    "focusedNodeIds": [
+      "handler:src/components/admin/orders/Orders.jsx:Orders",
+      "file:src/components/admin/orders/Orders.jsx",
+      "file:src/components/admin/orders/OrderTable.jsx",
+      "file:src/hooks/useOrderFilter.js"
+    ],
+    "focusedEdgeIds": [
+      "edge:file:src/components/admin/orders/Orders.jsx->handler:src/components/admin/orders/Orders.jsx:Orders:declares",
+      "edge:handler:src/components/admin/orders/Orders.jsx:Orders->file:src/components/admin/orders/OrderTable.jsx:uses",
+      "edge:handler:src/components/admin/orders/Orders.jsx:Orders->file:src/hooks/useOrderFilter.js:uses",
+      "edge:handler:src/components/profile/ProfileOrders.jsx:ProfileOrders->file:src/components/admin/orders/OrderTable.jsx:uses",
+      "edge:file:src/components/admin/orders/Orders.jsx->external:react-icons/fa:imports",
+      "edge:file:src/components/admin/orders/Orders.jsx->external:react-redux:imports",
+      "edge:file:src/components/admin/orders/Orders.jsx->external:react:imports",
+      "edge:file:src/components/admin/orders/Orders.jsx->file:src/components/admin/orders/OrderTable.jsx:imports",
+      "edge:file:src/components/admin/orders/Orders.jsx->file:src/hooks/useOrderFilter.js:imports",
+      "edge:file:src/components/profile/ProfileOrders.jsx->file:src/components/admin/orders/OrderTable.jsx:imports"
+    ],
+    "selectedNodeId": "handler:src/components/admin/orders/Orders.jsx:Orders",
+    "depth": 2,
+    "truncated": false
+  },
+  "metadata": {
+    "sourceAuthorities": [
+      "inferred_static",
+      "repository_graph"
+    ],
+    "indexStatus": [
+      "partial",
+      "truncated_by_depth"
+    ],
+    "generatedFrom": [
+      "repository_graph"
+    ],
+    "conclusionFree": true,
+    "navigation": {
+      "mode": "symbol",
+      "focusBasis": "symbol",
+      "selectedNodeId": "handler:src/components/admin/orders/Orders.jsx:Orders",
+      "focusFile": "src/components/admin/orders/Orders.jsx",
+      "focusSymbol": "Orders",
+      "path": [
+        {
+          "mode": "application",
+          "label": "High level"
+        },
+        {
+          "mode": "file",
+          "label": "src/components/admin/orders/Orders.jsx",
+          "nodeId": "file:src/components/admin/orders/Orders.jsx",
+          "artifactPath": "detail-frontend-src-components-admin-orders-Orders.jsx.html"
+        },
+        {
+          "mode": "symbol",
+          "label": "Orders",
+          "nodeId": "handler:src/components/admin/orders/Orders.jsx:Orders"
+        }
+      ]
+    },
+    "applicationSummary": {
+      "totalNodes": 479,
+      "totalEdges": 1059,
+      "areas": [
+        {
+          "id": "frontend",
+          "label": "Frontend / UI",
+          "repositoryNodeCount": 202,
+          "fileCount": 70,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/App.jsx:App",
+          "focusLabel": "App",
+          "focusFile": "src/App.jsx"
+        },
+        {
+          "id": "routes_api",
+          "label": "Routes / API",
+          "repositoryNodeCount": 1,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:src/api/api.js",
+          "focusLabel": "src/api/api.js",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "repositoryNodeCount": 4,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/utils/formatPrice.js:formatPrice",
+          "focusLabel": "formatPrice",
+          "focusFile": "src/utils/formatPrice.js"
+        },
+        {
+          "id": "auth_policy",
+          "label": "Auth / Policy",
+          "repositoryNodeCount": 60,
+          "fileCount": 1,
+          "routeCount": 0,
+          "guardCount": 58,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "guard:src/api/api.js:csrf:27",
+          "focusLabel": "csrf: const csrfToken = document.cookie",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "data_layer",
+          "label": "Data Layer",
+          "repositoryNodeCount": 54,
+          "fileCount": 9,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "handler:src/store/actions/index.js:addNewDashboardSeller",
+          "focusLabel": "addNewDashboardSeller",
+          "focusFile": "src/store/actions/index.js"
+        },
+        {
+          "id": "providers",
+          "label": "Providers / Integrations",
+          "repositoryNodeCount": 44,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 44,
+          "focusNodeId": "integration:package.json:http-client:21",
+          "focusLabel": "http-client: \"axios\": \"^1.13.2\",",
+          "focusFile": "package.json"
+        },
+        {
+          "id": "security_sensitive_ops",
+          "label": "Sensitive Operations",
+          "repositoryNodeCount": 52,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 52,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "sink:src/api/api.js:network:2",
+          "focusLabel": "network: const api = axios.create({",
+          "focusFile": "src/api/api.js"
+        },
+        {
+          "id": "external_dependencies",
+          "label": "External Dependencies",
+          "repositoryNodeCount": 55,
+          "fileCount": 0,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 55,
+          "focusNodeId": "external:../assets/sliders/s_1.jpg",
+          "focusLabel": "../assets/sliders/s_1.jpg"
+        },
+        {
+          "id": "other_code",
+          "label": "Other Code",
+          "repositoryNodeCount": 7,
+          "fileCount": 7,
+          "routeCount": 0,
+          "guardCount": 0,
+          "sinkCount": 0,
+          "dataStoreCount": 0,
+          "integrationCount": 0,
+          "focusNodeId": "file:eslint.config.js",
+          "focusLabel": "eslint.config.js",
+          "focusFile": "eslint.config.js"
+        }
+      ]
+    },
+    "unsupported": [
+      "Interactive Code Map Lens generation indexed at most 120 file(s). Use a background/full map for full repository coverage on large repos."
+    ],
+    "relatedArtifacts": [
+      {
+        "kind": "overviewGraph",
+        "label": "High level",
+        "path": "overview.html"
+      },
+      {
+        "kind": "fileGraph",
+        "label": "src/components/admin/orders/Orders.jsx",
+        "file": "src/components/admin/orders/Orders.jsx",
+        "path": "detail-frontend-src-components-admin-orders-Orders.jsx.html"
+      }
+    ]
+  }
+}

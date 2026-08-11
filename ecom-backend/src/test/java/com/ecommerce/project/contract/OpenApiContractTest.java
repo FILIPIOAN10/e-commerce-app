@@ -1,7 +1,6 @@
 package com.ecommerce.project.contract;
 
 import com.atlassian.oai.validator.OpenApiInteractionValidator;
-import com.atlassian.oai.validator.interaction.ApiOperationResolver;
 import com.atlassian.oai.validator.model.SimpleRequest;
 import com.atlassian.oai.validator.model.SimpleResponse;
 import com.atlassian.oai.validator.report.ValidationReport;
@@ -48,7 +47,6 @@ class OpenApiContractTest {
 
         validator = OpenApiInteractionValidator
                 .createForInlineApiSpecification(openApiSpec)
-                .withApiOperationResolver(new ApiOperationResolver("/api", null))
                 .build();
     }
 
@@ -103,7 +101,7 @@ class OpenApiContractTest {
                 .response();
 
         SimpleResponse apiResponse = SimpleResponse.Builder
-                .create(response.statusCode())
+                .status(response.statusCode())
                 .withBody(response.asString())
                 .withContentType("application/json")
                 .build();
@@ -142,7 +140,7 @@ class OpenApiContractTest {
                 .response();
 
         SimpleResponse apiResponse = SimpleResponse.Builder
-                .create(401)
+                .status(401)
                 .withBody(response.asString())
                 .withContentType("application/json")
                 .build();
