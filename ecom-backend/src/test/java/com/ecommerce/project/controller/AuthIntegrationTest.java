@@ -4,7 +4,6 @@ import com.ecommerce.project.config.TestcontainersConfiguration;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
@@ -26,9 +25,7 @@ class AuthIntegrationTest {
     @LocalServerPort
     int port;
 
-    @Autowired
-    ObjectMapper objectMapper;
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private String baseUrl() {
