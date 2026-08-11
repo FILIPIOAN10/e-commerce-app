@@ -26,7 +26,7 @@ public class SwaggerConfig {
                 .description("JWT Bearer Token");
 
         SecurityRequirement bearerRequirement = new SecurityRequirement()
-                .addList("Bearer Authentication");
+                .addList("bearerAuth");
 
         return new OpenAPI()
                 .info(new Info()
@@ -42,7 +42,7 @@ public class SwaggerConfig {
                         .url("https://github.com/FILIPIOAN10"))
 
                 .components(new Components()
-                        .addSecuritySchemes("Bearer Authentication", bearerScheme))
+                        .addSecuritySchemes("bearerAuth", bearerScheme))
                 .addSecurityItem(bearerRequirement);
     }
 }
