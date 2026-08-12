@@ -37,7 +37,7 @@ test.describe('Registration flow', () => {
   })
 
   test('successful registration redirects to login', async ({ page }) => {
-    const uniqueUser = `testuser_${Date.now()}`
+    const uniqueUser = `u_${Date.now()}`
     await page.goto('/Register')
 
     await page.fill('#username', uniqueUser)
@@ -45,15 +45,7 @@ test.describe('Registration flow', () => {
     await page.fill('#password', 'testpass123')
     await page.fill('#passwordHint', 'my hint')
     await page.selectOption('select', 'ROLE_USER')
-
-    const [response] = await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/auth/signup') && resp.request().method() === 'POST'),
-      page.click('button[type="submit"]')
-    ])
-
-    console.log('SIGNUP RESPONSE STATUS:', response.status())
-    const body = await response.text().catch(() => '')
-    console.log('SIGNUP RESPONSE BODY:', body)
+    await page.click('button[type="submit"]')
 
     // Should redirect to login page after successful registration
     await expect(page).toHaveURL(/\/login/, { timeout: 15000 })
