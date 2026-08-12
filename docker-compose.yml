@@ -97,11 +97,12 @@ services:
       # Mail credentials are injected from Vault (see scripts/vault-init.sh)
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      APP_SEARCH_SEMANTIC_ENABLED: ${APP_SEARCH_SEMANTIC_ENABLED:-false}
+      # Semantic search and AI are disabled in local ci profile to avoid version incompatibilities
+      APP_SEARCH_SEMANTIC_ENABLED: "false"
       APP_SEARCH_SEMANTIC_TOP_K: ${APP_SEARCH_SEMANTIC_TOP_K:-20}
       APP_SEARCH_SEMANTIC_SIMILARITY_THRESHOLD: ${APP_SEARCH_SEMANTIC_SIMILARITY_THRESHOLD:-0.50}
-      SPRING_AI_MODEL_EMBEDDING: ${SPRING_AI_MODEL_EMBEDDING:-none}
-      SPRING_AI_VECTORSTORE_TYPE: ${SPRING_AI_VECTORSTORE_TYPE:-none}
+      SPRING_AI_MODEL_EMBEDDING: none
+      SPRING_AI_VECTORSTORE_TYPE: none
       SPRING_AI_MODEL_CHAT: ${SPRING_AI_MODEL_CHAT:-none}
       SPRING_AI_MODEL_IMAGE: ${SPRING_AI_MODEL_IMAGE:-none}
       SPRING_AI_MODEL_MODERATION: ${SPRING_AI_MODEL_MODERATION:-none}
