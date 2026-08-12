@@ -168,4 +168,4 @@ cd ecom-backend && ./mvnw test
 ./mvnw verify
 ```
 
-<!-- CI trigger test -->
+<!-- CI trigger test - 2026-08-12 -->
