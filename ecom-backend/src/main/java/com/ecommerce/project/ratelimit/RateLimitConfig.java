@@ -1,15 +1,25 @@
 package com.ecommerce.project.ratelimit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 
 @Configuration
 public class RateLimitConfig {
+
+    @Value("${rate.limit.enabled:true}")
+    private boolean rateLimitEnabled;
+
     @Bean
     public List<RateLimitRule> rateLimitRules() {
+        if (!rateLimitEnabled) {
+            return Collections.emptyList();
+        }
+
         Duration oneMinute = Duration.ofMinutes(1);
 
         return List.of(

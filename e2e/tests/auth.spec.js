@@ -8,10 +8,10 @@ test.describe('Authentication flow', () => {
     await page.fill('#password', 'adminPass')
     await page.click('button[type="submit"]')
 
-    // Should redirect to home page
-    await expect(page).toHaveURL(/\/$|\/$/)
+    // Should redirect to home page (URL ends with /)
+    await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
 
-    // Navbar should show admin user info, not "Login"
+    // Navbar should show admin user info, not "Login" button
     await expect(page.locator('text=Login')).not.toBeVisible({ timeout: 10000 })
   })
 

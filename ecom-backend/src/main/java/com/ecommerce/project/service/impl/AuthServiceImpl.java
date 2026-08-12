@@ -72,6 +72,9 @@ public class AuthServiceImpl implements AuthService {
     @Value("${image.base.url}")
     private String imageBaseUrl;
 
+    @Value("${app.skip-verification-email:false}")
+    private boolean skipVerificationEmail;
+
     @Override
     public AuthenticationResult login(LoginRequest loginRequest) {
         String username = loginRequest.getUsername();
@@ -143,6 +146,10 @@ public class AuthServiceImpl implements AuthService {
         user.setRoles(Set.of(userRole));
         user.setVerified(false);
         userRepository.save(user);
+
+        if (skipVerificationEmail) {
+            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        }
 
         String token = emailVerificationService.generateVerificationToken(user.getEmail());
         emailService.sendVerificationEmail(user.getEmail(), token);
