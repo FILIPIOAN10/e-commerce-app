@@ -150,7 +150,7 @@ jobs:
           python3 -m aiosmtpd -n -d -l localhost:1025 > smtp.log 2>&1 &
           sleep 3
 
-      - name: Start backend
+      - name: Build and start backend
         working-directory: ecom-backend
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ecommerce
@@ -160,8 +160,9 @@ jobs:
           JWT_SECRET: Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=
           SPRING_PROFILES_ACTIVE: ci
         run: |
-          bash mvnw spring-boot:run -B > backend.log 2>&1 &
-          sleep 60
+          bash mvnw -B clean package -DskipTests
+          java -jar target/*.jar > backend.log 2>&1 &
+          sleep 10
 
       - name: Wait for backend to be ready
         run: |
