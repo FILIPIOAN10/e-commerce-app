@@ -84,6 +84,9 @@ services:
       # data.sql is replaced by Flyway migrations (V2__seed_roles_and_users.sql)
       SQL_INIT_MODE: never
       SPRING_FLYWAY_ENABLED: "true"
+      # Disable Vault (incompatible with Spring Boot 4.1 in local Docker) and use CI profile
+      SPRING_PROFILES_ACTIVE: ci
+      JWT_SECRET: ${JWT_SECRET:-Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=}
 
       SPRING_CLOUD_VAULT_URI: http://vault:8200
       SPRING_CLOUD_VAULT_TOKEN: ${VAULT_TOKEN:?VAULT_TOKEN is required}
