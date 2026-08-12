@@ -99,7 +99,11 @@ class CartServiceImplTest {
         when(cartRepository.save(any(Cart.class))).thenReturn(cart);
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(cartItemRepository.findCartItemByProductProductIdAndCartId(1L, 1L)).thenReturn(null);
-        when(cartItemRepository.save(any(CartItem.class))).thenReturn(cartItem);
+        doAnswer(inv -> {
+            CartItem ci = inv.getArgument(0);
+            cart.getCartItems().add(ci);
+            return ci;
+        }).when(cartItemRepository).save(any(CartItem.class));
         when(cartItemRepository.findByCartCartId(1L)).thenReturn(List.of(cartItem));
         when(cartRepository.save(cart)).thenReturn(cart);
         when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
