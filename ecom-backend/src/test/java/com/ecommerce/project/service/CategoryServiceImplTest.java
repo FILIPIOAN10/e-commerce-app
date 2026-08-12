@@ -72,7 +72,7 @@ class CategoryServiceImplTest {
         assertEquals(10, response.getPageSize());
         assertEquals(1L, response.getTotalElements());
         assertEquals(1, response.getTotalPages());
-        assertTrue(response.isLastPage());
+        assertTrue(response.getLastPage());
         verify(categoryRepository).findAll(any(Pageable.class));
     }
 
