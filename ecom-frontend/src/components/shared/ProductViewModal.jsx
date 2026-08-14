@@ -7,6 +7,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ReviewsSection from './ReviewsSection';
 import SimilarProducts from './SimilarProducts';
 import { useDispatch } from 'react-redux';
+import Breadcrumb from './Breadcrumb';
 import { recordProductView } from '../../store/actions';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
@@ -34,7 +35,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
   return (
     <>
-      <Dialog open={open} as="div" className="relative z-10" onClose={close}>
+      <Dialog open={open} as="div" className="relative z-10" onClose={() => setOpen(false)}>
       <DialogBackdrop className="fixed inset-0 bg-gray-500/75  transition-opacity" />
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
@@ -88,7 +89,12 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
 
                 <div className='px-6 pt-10 pb-2'>
-                <DialogTitle as="h1" className="lg:text-3xl sm:text-2xl text-xl font-semibold leading-6 text-gray-800 dark:text-gray-100 mb-4">
+                <Breadcrumb items={[
+                    { label: 'Home', path: '/' },
+                    { label: categoryName, path: `/products?category=${encodeURIComponent(categoryName)}` },
+                    { label: productName }
+                ]} />
+                <DialogTitle as="h1" className="lg:text-3xl sm:text-2xl text-xl font-semibold leading-6 text-gray-800 dark:text-gray-100 mb-4 mt-4">
                 {productName}
               </DialogTitle>
 

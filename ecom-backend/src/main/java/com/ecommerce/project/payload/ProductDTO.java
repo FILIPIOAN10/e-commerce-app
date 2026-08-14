@@ -45,4 +45,5 @@ public class ProductDTO {
     private Double averageRating;
     private Long reviewCount;
     private String categoryName;
+    private Long categoryId;
 }
