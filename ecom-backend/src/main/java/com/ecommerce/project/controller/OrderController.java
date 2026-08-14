@@ -3,6 +3,7 @@ package com.ecommerce.project.controller;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.model.OrderItem;
 import com.ecommerce.project.payload.*;
+import jakarta.validation.Valid;
 
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.InvoiceService;
@@ -51,7 +52,7 @@ public class OrderController {
                 orderRequestDTO.getPgPaymentId(),
                 orderRequestDTO.getPgStatus(),
                 orderRequestDTO.getPgResponseMessage(),
-                orderRequestDTO.getCouponCode()
+                orderRequestDTO.getCouponCodes()
         );
         return new  ResponseEntity<OrderDTO>(order,HttpStatus.CREATED);
     }
@@ -117,6 +118,33 @@ public class OrderController {
 
         OrderResponse orderResponse = orderService.getLoggedInUserOrders(email, pageNumber, pageSize, sortBy, sortOrder);
         return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
+    }
+
+    @Tag(name = "Order")
+    @PostMapping("/order/preview")
+    public ResponseEntity<OrderSummaryDTO> previewOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO) {
+        String emailId = authUtil.loggedInEmail();
+        OrderSummaryDTO summary = orderService.previewOrder(
+                emailId,
+                orderRequestDTO.getAddressId(),
+                orderRequestDTO.getCouponCodes()
+        );
+        return new ResponseEntity<>(summary, HttpStatus.OK);
+    }
+
+    @Tag(name = "Order")
+    @GetMapping("/order/shipping/{addressId}")
+    public ResponseEntity<Double> estimateShipping(@PathVariable Long addressId,
+                                                   @RequestParam(defaultValue = "0.0") Double cartTotal) {
+        double shipping = orderService.calculateShippingCost(addressId, cartTotal);
+        return new ResponseEntity<>(shipping, HttpStatus.OK);
+    }
+
+    @Tag(name = "Order")
+    @PostMapping("/public/orders/guest")
+    public ResponseEntity<OrderDTO> placeGuestOrder(@Valid @RequestBody GuestCheckoutRequestDTO request) {
+        OrderDTO order = orderService.placeGuestOrder(request);
+        return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
     @GetMapping("/orders/track/{orderId}")

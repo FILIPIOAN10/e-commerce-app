@@ -22,4 +22,8 @@ public interface CartService {
     void updateProductsInCarts(Long cartId, Long productId);
 
     String createOrUpdateCartWithItems(List<CartItemDTO> cartItems);
+
+    CartDTO saveItemForLater(Long cartItemId);
+
+    CartDTO moveItemToCart(Long cartItemId);
 }

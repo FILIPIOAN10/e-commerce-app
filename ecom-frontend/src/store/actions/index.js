@@ -326,17 +326,16 @@ export const createStripePaymentSecret
 export const stripePaymentConfirmation 
     = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
         try {
-            const couponCode = localStorage.getItem("appliedCouponCode");
+            const { coupon: { appliedCoupons } } = getState();
             const payload = { ...sendData };
-            if (couponCode) {
-                payload.couponCode = couponCode;
+            if (appliedCoupons && appliedCoupons.length > 0) {
+                payload.couponCodes = appliedCoupons;
             }
             const response  = await api.post("/order/users/payments/online", payload);
             if (response.data) {
                 localStorage.removeItem("CHECKOUT_ADDRESS");
                 localStorage.removeItem("cartItems");
                 localStorage.removeItem("client-secret");
-                localStorage.removeItem("appliedCouponCode");
                 dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
                 dispatch({ type: "CLEAR_CART"});
                 dispatch({ type: "clearCoupon"});
@@ -887,11 +886,25 @@ export const deleteReview = (productId, toast) => async (dispatch) => {
     }
 };
 
-export const validateCoupon = (code, orderAmount, toast) => async (dispatch) => {
+export const validateCoupon = (code, orderAmount, toast) => async (dispatch, getState) => {
     try {
         const { data } = await api.post("/coupons/validate", { code, orderAmount });
-        dispatch({ type: "couponValidateSuccess", payload: data });
-        localStorage.setItem("appliedCouponCode", data.coupon.code);
+        const { coupon } = getState();
+        const current = coupon.appliedCoupons || [];
+        if (current.includes(code.toUpperCase())) {
+            toast.error("Coupon already applied");
+            return;
+        }
+        const updatedCoupons = [...current, data.coupon.code];
+        const finalAmount = orderAmount - data.discountAmount;
+        dispatch({
+            type: "couponValidateSuccess",
+            payload: {
+                appliedCoupons: updatedCoupons,
+                discountAmount: data.discountAmount,
+                finalAmount: finalAmount,
+            }
+        });
         toast.success(`Coupon applied: ${data.discountAmount} discount`);
     } catch (error) {
         const msg = error?.response?.data?.message || "Invalid coupon code";
@@ -900,9 +913,72 @@ export const validateCoupon = (code, orderAmount, toast) => async (dispatch) => 
     }
 };
 
+export const removeCoupon = (code) => (dispatch, getState) => {
+    const { coupon } = getState();
+    const updated = (coupon.appliedCoupons || []).filter(c => c !== code);
+    dispatch({ type: "couponValidateSuccess", payload: {
+        appliedCoupons: updated,
+        discountAmount: 0,
+        finalAmount: 0,
+    }});
+};
+
 export const clearCoupon = () => (dispatch) => {
-    localStorage.removeItem("appliedCouponCode");
     dispatch({ type: "clearCoupon" });
+};
+
+export const previewOrder = (addressId) => async (dispatch, getState, toast) => {
+    try {
+        const { coupon: { appliedCoupons }, auth: { email } } = getState();
+        const payload = { addressId, couponCodes: appliedCoupons };
+        const { data } = await api.post("/order/preview", payload);
+        dispatch({ type: "orderSummarySuccess", payload: data });
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to preview order";
+        if (toast) toast.error(msg);
+    }
+};
+
+export const estimateShipping = (addressId, cartTotal) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/order/shipping/${addressId}?cartTotal=${cartTotal}`);
+        dispatch({ type: "orderSummarySuccess", payload: { shippingCost: data, discountAmount: 0, totalAmount: 0, appliedCoupons: [] } });
+    } catch (error) {
+        // silent
+    }
+};
+
+export const saveItemForLater = (cartItemId, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.put(`/cart/items/${cartItemId}/save-for-later`);
+        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: data });
+        if (toast) toast.success("Item saved for later");
+    } catch (error) {
+        if (toast) toast.error(error?.response?.data?.message || "Failed to save item");
+    }
+};
+
+export const moveItemToCart = (cartItemId, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.put(`/cart/items/${cartItemId}/move-to-cart`);
+        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: data });
+        if (toast) toast.success("Item moved to cart");
+    } catch (error) {
+        if (toast) toast.error(error?.response?.data?.message || "Failed to move item");
+    }
+};
+
+export const placeGuestOrder = (payload, setLoading, navigate, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post("/public/orders/guest", payload);
+        setLoading(false);
+        toast.success(`Order placed: #${data.orderId}`);
+        dispatch({ type: "CLEAR_CART" });
+        navigate("/track-order");
+    } catch (error) {
+        setLoading(false);
+        toast.error(error?.response?.data?.message || "Failed to place guest order");
+    }
 };
 
 export const fetchAllCoupons = () => async (dispatch) => {

@@ -46,4 +46,6 @@ public class ProductDTO {
     private Long reviewCount;
     private String categoryName;
     private Long categoryId;
+    private Long cartItemId;
+    private Boolean savedForLater;
 }

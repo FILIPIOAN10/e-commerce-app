@@ -1,6 +1,7 @@
 const initialState = {
-    appliedCoupon: null,
+    appliedCoupons: [],
     discountAmount: 0,
+    shippingCost: 0,
     finalAmount: 0,
     loading: false,
     error: null,
@@ -12,24 +13,36 @@ const couponReducer = (state = initialState, action) => {
         case "couponValidateSuccess":
             return {
                 ...state,
-                appliedCoupon: action.payload.coupon,
+                appliedCoupons: action.payload.appliedCoupons,
                 discountAmount: action.payload.discountAmount,
+                shippingCost: action.payload.shippingCost || 0,
                 finalAmount: action.payload.finalAmount,
+                error: null,
+            };
+        case "orderSummarySuccess":
+            return {
+                ...state,
+                discountAmount: action.payload.discountAmount,
+                shippingCost: action.payload.shippingCost,
+                finalAmount: action.payload.totalAmount,
+                appliedCoupons: action.payload.appliedCoupons,
                 error: null,
             };
         case "couponError":
             return {
                 ...state,
-                appliedCoupon: null,
+                appliedCoupons: [],
                 discountAmount: 0,
+                shippingCost: 0,
                 finalAmount: 0,
                 error: action.payload,
             };
         case "clearCoupon":
             return {
                 ...state,
-                appliedCoupon: null,
+                appliedCoupons: [],
                 discountAmount: 0,
+                shippingCost: 0,
                 finalAmount: 0,
                 error: null,
             };

@@ -1,12 +1,22 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.payload.GuestCheckoutRequestDTO;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderResponse;
+import com.ecommerce.project.payload.OrderSummaryDTO;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 public interface OrderService {
     @Transactional
-    OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, String couponCode);
+    OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes);
+
+    OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes);
+
+    double calculateShippingCost(Long addressId, double cartTotal);
+
+    OrderDTO placeGuestOrder(GuestCheckoutRequestDTO request);
 
     OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 

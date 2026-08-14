@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional // everything in this method successfully finishes or nothing finish
-    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, String couponCode) {
+    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes) {
 
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null) {
@@ -81,31 +81,17 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus("Placed");
         order.setAddress(address);
 
-        double totalAmount = cart.getTotalPrice();
+        double subtotal = cart.getTotalPrice();
 
-        if (couponCode != null && !couponCode.trim().isEmpty()) {
-            Coupon coupon = couponRepository.findByCode(couponCode.toUpperCase())
-                    .orElseThrow(() -> new APIException("Invalid coupon code: " + couponCode));
-
-            if (!coupon.getActive()) {
-                throw new APIException("Coupon is not active");
-            }
-            if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
-                throw new APIException("Coupon has expired");
-            }
-            if (coupon.getUsedCount() >= coupon.getMaxUses()) {
-                throw new APIException("Coupon usage limit reached");
-            }
-
-            double discountAmount = totalAmount * coupon.getDiscountPercent() / 100.0;
-            totalAmount = totalAmount - discountAmount;
-
-            coupon.setUsedCount(coupon.getUsedCount() + 1);
-            couponRepository.save(coupon);
-        }
+        CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
+        double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
+        double shippingCost = calculateShippingCost(addressId, totalAfterDiscount);
+        double totalAmount = totalAfterDiscount + shippingCost;
 
         order.setTotalAmount(totalAmount);
-
+        order.setDiscountAmount(couponResult.getDiscountAmount());
+        order.setShippingCost(shippingCost);
+        order.setAppliedCoupons(String.join(",", couponResult.getAppliedCodes()));
 
         Payment payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
         payment.setOrder(order);
@@ -148,20 +134,7 @@ public class OrderServiceImpl implements OrderService {
         });
 
         // Send back the order summary
-        OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
-
-        // transforming order item to that orderitemdto
-        orderItems.forEach(item ->
-
-                orderDTO.getItems().add(
-                        modelMapper.map(item, OrderItemDTO.class)));
-        orderDTO.setAddressId(addressId);
-
-        emailService.sendOrderConfirmationEmail(emailId, orderDTO);
-
-        notificationService.notifyAdminNewOrder(savedOrder.getId(), emailId, totalAmount);
-
-        return orderDTO;
+        return buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
     }
 
     @Override
@@ -350,6 +323,186 @@ public class OrderServiceImpl implements OrderService {
             return baos.toByteArray();
         } catch (Exception e) {
             throw new APIException("Failed to generate PDF: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public double calculateShippingCost(Long addressId, double cartTotal) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
+        double baseCost = 5.0;
+        if ("RO".equalsIgnoreCase(address.getCountry()) || "Romania".equalsIgnoreCase(address.getCountry())) {
+            baseCost = 3.0;
+        }
+        if (cartTotal >= 100.0) {
+            return 0.0;
+        }
+        return baseCost;
+    }
+
+    @Override
+    public OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes) {
+        Cart cart = cartRepository.findCartByEmail(emailId);
+        if (cart == null || cart.getCartItems().isEmpty()) {
+            throw new APIException("Cart is Empty");
+        }
+        double subtotal = cart.getTotalPrice();
+        CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
+        double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
+        double shippingCost = calculateShippingCost(addressId, totalAfterDiscount);
+        double totalAmount = totalAfterDiscount + shippingCost;
+
+        OrderSummaryDTO summary = new OrderSummaryDTO();
+        summary.setEmail(emailId);
+        summary.setAddressId(addressId);
+        summary.setSubtotal(subtotal);
+        summary.setDiscountAmount(couponResult.getDiscountAmount());
+        summary.setShippingCost(shippingCost);
+        summary.setTotalAmount(totalAmount);
+        summary.setAppliedCoupons(couponResult.getAppliedCodes());
+        return summary;
+    }
+
+    @Override
+    @Transactional
+    public OrderDTO placeGuestOrder(GuestCheckoutRequestDTO request) {
+        Address address = modelMapper.map(request.getAddress(), Address.class);
+        address = addressRepository.save(address);
+
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new APIException("Cart is Empty");
+        }
+
+        double subtotal = 0.0;
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        Order order = new Order();
+        order.setEmail(request.getEmail());
+        order.setOrderDate(LocalDate.now());
+        order.setOrderStatus("Placed");
+        order.setAddress(address);
+
+        for (CartItemDTO dto : request.getItems()) {
+            Product product = productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", dto.getProductId()));
+
+            if (product.getQuantity() < dto.getQuantity()) {
+                throw new APIException("Insufficient stock for product: "
+                        + product.getProductName()
+                        + ". Available: " + product.getQuantity()
+                        + ", requested: " + dto.getQuantity());
+            }
+
+            double price = product.getSpecialPrice();
+            subtotal += price * dto.getQuantity();
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setQuantity(dto.getQuantity());
+            orderItem.setDiscount(product.getDiscount());
+            orderItem.setOrderedProductPrice(price);
+            orderItem.setOrder(order);
+            orderItems.add(orderItem);
+
+            product.setQuantity(product.getQuantity() - dto.getQuantity());
+            productRepository.save(product);
+        }
+
+        CouponApplicationResult couponResult = applyCoupons(request.getCouponCodes(), subtotal);
+        double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
+        double shippingCost = calculateShippingCost(address.getAddressId(), totalAfterDiscount);
+        double totalAmount = totalAfterDiscount + shippingCost;
+
+        order.setTotalAmount(totalAmount);
+        order.setDiscountAmount(couponResult.getDiscountAmount());
+        order.setShippingCost(shippingCost);
+        order.setAppliedCoupons(String.join(",", couponResult.getAppliedCodes()));
+
+        Payment payment = new Payment(request.getPaymentMethod(), request.getPgPaymentId(), request.getPgStatus(), request.getPgResponseMessage(), request.getPgName());
+        payment.setOrder(order);
+        payment = paymentRepository.save(payment);
+        order.setPayment(payment);
+        Order savedOrder = orderRepository.save(order);
+
+        orderItems.forEach(item -> item.setOrder(savedOrder));
+        List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
+
+        emailService.sendOrderConfirmationEmail(request.getEmail(), buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount));
+        notificationService.notifyAdminNewOrder(savedOrder.getId(), request.getEmail(), totalAmount);
+
+        return buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount);
+    }
+
+    private CouponApplicationResult applyCoupons(List<String> couponCodes, double subtotal) {
+        double totalAfterDiscount = subtotal;
+        double totalDiscount = 0.0;
+        List<String> appliedCodes = new ArrayList<>();
+
+        if (couponCodes == null || couponCodes.isEmpty()) {
+            return new CouponApplicationResult(totalDiscount, appliedCodes);
+        }
+
+        for (String code : couponCodes) {
+            if (code == null || code.isBlank()) continue;
+
+            Coupon coupon = couponRepository.findByCode(code.toUpperCase())
+                    .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
+
+            if (!coupon.getActive()) {
+                throw new APIException("Coupon is not active: " + code);
+            }
+            if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
+                throw new APIException("Coupon has expired: " + code);
+            }
+            if (coupon.getUsedCount() >= coupon.getMaxUses()) {
+                throw new APIException("Coupon usage limit reached: " + code);
+            }
+
+            double discount = totalAfterDiscount * coupon.getDiscountPercent() / 100.0;
+            totalAfterDiscount -= discount;
+            totalDiscount += discount;
+            appliedCodes.add(coupon.getCode());
+
+            coupon.setUsedCount(coupon.getUsedCount() + 1);
+            couponRepository.save(coupon);
+        }
+
+        return new CouponApplicationResult(totalDiscount, appliedCodes);
+    }
+
+    private OrderDTO buildOrderDTO(Order order, List<OrderItem> orderItems, Long addressId, double totalAmount) {
+        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        orderDTO.setTotalAmount(totalAmount);
+        orderDTO.setDiscountAmount(order.getDiscountAmount());
+        orderDTO.setShippingCost(order.getShippingCost());
+        orderDTO.setAddressId(addressId);
+        orderDTO.setAppliedCoupons(order.getAppliedCoupons() != null
+                ? List.of(order.getAppliedCoupons().split(","))
+                : List.of());
+
+        List<OrderItemDTO> itemDTOs = orderItems.stream()
+                .map(item -> modelMapper.map(item, OrderItemDTO.class))
+                .toList();
+        orderDTO.setItems(itemDTOs);
+
+        return orderDTO;
+    }
+
+    private static class CouponApplicationResult {
+        private final double discountAmount;
+        private final List<String> appliedCodes;
+
+        CouponApplicationResult(double discountAmount, List<String> appliedCodes) {
+            this.discountAmount = discountAmount;
+            this.appliedCodes = appliedCodes;
+        }
+
+        public double getDiscountAmount() {
+            return discountAmount;
+        }
+
+        public List<String> getAppliedCodes() {
+            return appliedCodes;
         }
     }
 

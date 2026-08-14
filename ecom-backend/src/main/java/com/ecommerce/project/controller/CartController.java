@@ -100,4 +100,18 @@ public class CartController {
 
     }
 
+    @Tag(name = "Cart")
+    @PutMapping("/cart/items/{cartItemId}/save-for-later")
+    public ResponseEntity<CartDTO> saveItemForLater(@PathVariable Long cartItemId) {
+        CartDTO cartDTO = cartService.saveItemForLater(cartItemId);
+        return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);
+    }
+
+    @Tag(name = "Cart")
+    @PutMapping("/cart/items/{cartItemId}/move-to-cart")
+    public ResponseEntity<CartDTO> moveItemToCart(@PathVariable Long cartItemId) {
+        CartDTO cartDTO = cartService.moveItemToCart(cartItemId);
+        return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);
+    }
+
 }

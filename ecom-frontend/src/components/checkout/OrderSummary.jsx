@@ -1,11 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { formatPriceCalculation } from '../../utils/formatPrice'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import CouponInput from './CouponInput'
+import { previewOrder } from '../../store/actions'
 
 const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
-  const { appliedCoupon, discountAmount, finalAmount } = useSelector((state) => state.coupon)
-  const displayTotal = appliedCoupon ? finalAmount : totalPrice
+  const dispatch = useDispatch();
+  const { appliedCoupons, discountAmount, shippingCost, finalAmount } = useSelector((state) => state.coupon)
+  const displaySubtotal = totalPrice;
+  const displayDiscount = discountAmount || 0;
+  const displayShipping = shippingCost || 0;
+  const displayTotal = finalAmount > 0 ? finalAmount : (displaySubtotal - displayDiscount + displayShipping);
+
+  useEffect(() => {
+    if (address?.addressId) {
+      dispatch(previewOrder(address.addressId));
+    }
+  }, [dispatch, address, appliedCoupons]);
+
   return (
     <div className="container mx-auto px-4 mb-8">
         <div className="flex flex-wrap">
@@ -15,7 +27,7 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                         <h2 className="text-2xl  font-semibold mb-2">Billing Address</h2>
                         <p>
                             <strong>
-                                Building Name: 
+                                Building Name:
                             </strong>
                             {address?.buildingName}
                         </p>
@@ -54,7 +66,7 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                     </div>
                     <div className='p-4 border rounded-lg shadow-sm'>
                         <h2 className='text-2xl font-semibold mb-2'>
-                            Order Items 
+                            Order Items
                         </h2>
                         <div className='space-y-2'>
                             {cart?.map((item) => (
@@ -66,7 +78,7 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                                         className='w-12 h-12 rounded'
                                         >
                                     </img>
-                                    <div className='text-gray-500'> 
+                                    <div className='text-gray-500'>
                                         <p>
                                             {item?.productName}
                                         </p>
@@ -91,20 +103,20 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                     <div className='space-y-2'>
                     <div className="flex justify-between">
                         <span>Products</span>
-                        <span>${formatPriceCalculation(totalPrice,1)}</span>
+                        <span>${formatPriceCalculation(displaySubtotal,1)}</span>
                     </div>
-                    {appliedCoupon && (
+                    {appliedCoupons && appliedCoupons.length > 0 && (
                         <div className="flex justify-between text-green-600">
-                            <span>Discount ({appliedCoupon.discountPercent}%)</span>
-                            <span>-${formatPriceCalculation(discountAmount,1)}</span>
+                            <span>Coupons ({appliedCoupons.join(", ")})</span>
+                            <span>-${formatPriceCalculation(displayDiscount,1)}</span>
                         </div>
                     )}
                     <div className="flex justify-between">
-                        <span>Tax (0%)</span>
-                        <span>$0.00</span>
+                        <span>Shipping</span>
+                        <span>${formatPriceCalculation(displayShipping,1)}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
-                            <span>Subtotal</span>
+                            <span>Total</span>
                             <span>${formatPriceCalculation(displayTotal,1)}</span>
                     </div>
                 </div>
