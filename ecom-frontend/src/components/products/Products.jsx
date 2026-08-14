@@ -5,7 +5,8 @@ import { useEffect } from "react";
 import { fetchCategories } from "../../store/actions";
 import Filter from "./Filter";
 import useProductFilter from "../../hooks/useProductFilter";
-import Loader from "../shared/Loader";
+import ProductSkeleton from "../shared/ProductSkeleton";
+import Breadcrumb from "../shared/Breadcrumb";
 import Paginations from "../shared/Paginations";
 
 
@@ -27,9 +28,10 @@ const Products  = () => {
   
     return (
         <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto dark:bg-gray-950 dark:text-white min-h-screen">
+            <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Products" }]} />
             <Filter categories = {categories ? categories : []}/>
             { isLoading ? (
-                    <Loader />
+                    <ProductSkeleton />
             ) : errorMessage ? (
                 <div className="flex justify-center items-center h-50">
                     <FaExclamationTriangle className="text-slate-800 text-3xl mr-2 dark:text-white"/>
