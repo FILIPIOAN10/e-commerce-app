@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(name = "orders")
 @Data
@@ -39,6 +40,9 @@ public class Order {
     private Payment payment;
 
     private Double totalAmount;
+    private Double discountAmount = 0.0;
+    private Double shippingCost = 0.0;
+    private String appliedCoupons;
     private String orderStatus;
 
     @ManyToOne

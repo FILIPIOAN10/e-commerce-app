@@ -1,6 +1,8 @@
 package com.ecommerce.project.payload;
 
-
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,16 +10,26 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class OrderRequestDTO {
+@AllArgsConstructor
+public class GuestCheckoutRequestDTO {
+
+    @NotBlank
+    @Email
+    private String email;
 
     private Long addressId;
+
+    @NotBlank
     private String paymentMethod;
+
     private String pgName;
     private String pgPaymentId;
     private String pgStatus;
     private String pgResponseMessage;
+
     private List<String> couponCodes;
-    private String email;
+
+    @NotEmpty
+    private List<CartItemDTO> items;
 }

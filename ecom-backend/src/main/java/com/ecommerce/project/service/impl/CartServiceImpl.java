@@ -244,6 +244,39 @@ public class CartServiceImpl implements CartService {
         return "Cart created/updatee with the new items successfully!!!";
     }
 
+    @Override
+    @Transactional
+    public CartDTO saveItemForLater(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("CartItem", "cartItemId", cartItemId));
+        cartItem.setSavedForLater(true);
+        cartItemRepository.save(cartItem);
+        Cart cart = cartItem.getCart();
+        recalculateCartTotal(cart);
+        return mapToCartDTO(cart);
+    }
+
+    @Override
+    @Transactional
+    public CartDTO moveItemToCart(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("CartItem", "cartItemId", cartItemId));
+        cartItem.setSavedForLater(false);
+        cartItemRepository.save(cartItem);
+        Cart cart = cartItem.getCart();
+        recalculateCartTotal(cart);
+        return mapToCartDTO(cart);
+    }
+
+    private void recalculateCartTotal(Cart cart) {
+        double newTotal = cart.getCartItems().stream()
+                .filter(item -> Boolean.FALSE.equals(item.getSavedForLater()))
+                .mapToDouble(item -> item.getProductPrice() * item.getQuantity())
+                .sum();
+        cart.setTotalPrice(newTotal);
+        cartRepository.save(cart);
+    }
+
     private Cart createCart() {
         //  Find existing cart or create one
         Cart userCart = cartRepository.findCartByEmail(authUtil.loggedInEmail());
@@ -263,6 +296,8 @@ public class CartServiceImpl implements CartService {
                 .map(item -> {
                     ProductDTO dto = modelMapper.map(item.getProduct(), ProductDTO.class);
                     dto.setQuantity(item.getQuantity());
+                    dto.setCartItemId(item.getCartItemId());
+                    dto.setSavedForLater(Boolean.TRUE.equals(item.getSavedForLater()));
                     return dto;
                 })
                 .toList();

@@ -1,7 +1,7 @@
 import { HiOutlineTrash } from "react-icons/hi";
 import SetQuantity from "./SetQuantity";
 import { useDispatch } from "react-redux";
-import { decreaseCartQuantity, increaseCartQuantity, removeFromCart } from "../../store/actions";
+import { decreaseCartQuantity, increaseCartQuantity, removeFromCart, saveItemForLater, moveItemToCart } from "../../store/actions";
 import toast from "react-hot-toast";
 import { formatPrice } from "../../utils/formatPrice";
 import truncateText from "../../utils/truncateText";
@@ -16,6 +16,8 @@ const ItemContent = ({
     discount,
     specialPrice,
     cartId,
+    cartItemId,
+    savedForLater,
 }) => {
     const dispatch = useDispatch();
 
@@ -31,6 +33,14 @@ const ItemContent = ({
 
     const removeItemFromCart = (cartItems) => {
         dispatch(removeFromCart(cartItems, toast));
+    };
+
+    const toggleSaveForLater = () => {
+        if (savedForLater) {
+            dispatch(moveItemToCart(cartItemId, toast));
+        } else {
+            dispatch(saveItemForLater(cartItemId, toast));
+        }
     };
 
     return(
@@ -67,8 +77,14 @@ const ItemContent = ({
                             className="flex items-center font-semibold space-x-2 px-4 py-1 text-xs border border-rose-600 text-rose-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors  duration-200"
                         >
                             <HiOutlineTrash size={16} className="text-rose-600" />
-                            Remove 
+                            Remove
 
+                        </button>
+                        <button
+                            onClick={toggleSaveForLater}
+                            className="text-xs text-blue-500 hover:text-blue-700 underline"
+                        >
+                            {savedForLater ? "Move to cart" : "Save for later"}
                         </button>
                         </div>
                     </div>
