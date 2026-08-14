@@ -968,6 +968,19 @@ export const moveItemToCart = (cartItemId, toast) => async (dispatch) => {
     }
 };
 
+export const placeGuestOrder = (payload, setLoading, navigate, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post("/public/orders/guest", payload);
+        setLoading(false);
+        toast.success(`Order placed: #${data.orderId}`);
+        dispatch({ type: "CLEAR_CART" });
+        navigate("/track-order");
+    } catch (error) {
+        setLoading(false);
+        toast.error(error?.response?.data?.message || "Failed to place guest order");
+    }
+};
+
 export const fetchAllCoupons = () => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });

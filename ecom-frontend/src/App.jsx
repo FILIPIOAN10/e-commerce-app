@@ -20,6 +20,7 @@ const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'))
 const ResetPassword = lazy(() => import('./components/auth/ResetPassword'))
 const Checkout = lazy(() => import('./components/checkout/Checkout'))
 const PaymentConfirmation = lazy(() => import('./components/checkout/PaymentConfirmation'))
+const GuestCheckout = lazy(() => import('./components/checkout/GuestCheckout'))
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'))
 const Dashboard = lazy(() => import('./components/admin/dashboard/Dashboard'))
 const AdminProducts = lazy(() => import('./components/admin/products/AdminProducts'))
@@ -52,6 +53,7 @@ function App() {
         <Route  path='/about' element ={<About/>} />
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />
+        <Route  path='/guest-checkout' element ={<GuestCheckout/>} />
         <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
         <Route path='/verify-email' element={<VerifyEmail />} />
         <Route path='/forgot-password' element={<ForgotPassword />} />

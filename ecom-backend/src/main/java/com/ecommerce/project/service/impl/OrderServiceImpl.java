@@ -366,8 +366,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDTO placeGuestOrder(GuestCheckoutRequestDTO request) {
-        Address address = addressRepository.findById(request.getAddressId())
-                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", request.getAddressId()));
+        Address address = modelMapper.map(request.getAddress(), Address.class);
+        address = addressRepository.save(address);
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new APIException("Cart is Empty");

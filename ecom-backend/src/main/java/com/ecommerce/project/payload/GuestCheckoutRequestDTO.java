@@ -18,7 +18,8 @@ public class GuestCheckoutRequestDTO {
     @Email
     private String email;
 
-    private Long addressId;
+    @Valid
+    private AddressDTO address;
 
     @NotBlank
     private String paymentMethod;
