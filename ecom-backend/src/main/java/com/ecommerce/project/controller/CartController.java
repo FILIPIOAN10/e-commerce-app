@@ -79,8 +79,13 @@ public class CartController {
     @PutMapping("/cart/products/{productId}/quantity/{operation}")
     public ResponseEntity<CartDTO> updateCartProduct(@PathVariable Long productId,
                                                      @PathVariable String operation) {
-        CartDTO cartDTO = cartService.updateProductQuantityInCart(productId,
-                operation.equalsIgnoreCase("delete") ? -1 : 1);
+        int delta = switch (operation.toLowerCase()) {
+            case "plus" -> 1;
+            case "minus" -> -1;
+            case "delete" -> -1;
+            default -> 0;
+        };
+        CartDTO cartDTO = cartService.updateProductQuantityInCart(productId, delta);
         return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);
     }
 

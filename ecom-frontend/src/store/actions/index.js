@@ -80,43 +80,43 @@ export const addToCart = (data, qty = 1, toast) =>
 };
 
 
-export const increaseCartQuantity = 
-    (data, toast, currentQuantity, setCurrentQuantity) =>
-    (dispatch, getState) => {
-        // Find the product
-        const { products } = getState().products;
-        
-        const getProduct = products.find(
-            (item) => item.productId === data.productId
-        );
-
-        const isQuantityExist = getProduct.quantity >= currentQuantity + 1;
-
-        if (isQuantityExist) {
-            const newQuantity = currentQuantity + 1;
-            setCurrentQuantity(newQuantity);
-
+export const increaseCartQuantity =
+    (data, toast) =>
+    async (dispatch) => {
+        try {
+            const { data: cart } = await api.put(`/cart/products/${data.productId}/quantity/plus`);
             dispatch({
-                type: "ADD_CART",
-                payload: {...data, quantity: newQuantity },
+                type: "GET_USER_CART_PRODUCTS",
+                payload: cart.products,
+                totalPrice: cart.totalPrice,
+                cartId: cart.cartId,
             });
-            localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
-        } else {
-            toast.error("Quantity Reached to Limit");
+            localStorage.setItem("cartItems", JSON.stringify(cart.products));
+            toast?.success("Quantity increased");
+        } catch (error) {
+            toast?.error(error?.response?.data?.message || "Failed to increase quantity");
         }
-
     };
 
 
 
-export const decreaseCartQuantity = 
-    (data, newQuantity) => (dispatch, getState) => {
-        dispatch({
-            type: "ADD_CART",
-            payload: {...data, quantity: newQuantity},
-        });
-        localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
-    }
+export const decreaseCartQuantity =
+    (data, toast) =>
+    async (dispatch) => {
+        try {
+            const { data: cart } = await api.put(`/cart/products/${data.productId}/quantity/minus`);
+            dispatch({
+                type: "GET_USER_CART_PRODUCTS",
+                payload: cart.products,
+                totalPrice: cart.totalPrice,
+                cartId: cart.cartId,
+            });
+            localStorage.setItem("cartItems", JSON.stringify(cart.products));
+            toast?.success("Quantity decreased");
+        } catch (error) {
+            toast?.error(error?.response?.data?.message || "Failed to decrease quantity");
+        }
+    };
 
 export const removeFromCart =  (data, toast) => (dispatch, getState) => {
     dispatch({type: "REMOVE_CART", payload: data });
