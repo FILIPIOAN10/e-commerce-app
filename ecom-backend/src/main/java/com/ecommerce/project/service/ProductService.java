@@ -35,6 +35,8 @@ public interface ProductService {
 
     java.util.List<String> searchAutocomplete(String query);
 
+    ProductDTO getProductById(Long productId);
+
     java.util.List<ProductDTO> getBestSellers(int limit);
 
     java.util.List<ProductDTO> getNewArrivals(int limit);

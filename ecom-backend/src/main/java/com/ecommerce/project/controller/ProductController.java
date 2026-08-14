@@ -47,6 +47,13 @@ public class ProductController {
      * Returnează toate produsele cu paginare și sortare.
      */
     @Tag(name = "Product")
+    @GetMapping("/public/products/{productId}")
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
+        ProductDTO productDTO = productService.getProductById(productId);
+        return new ResponseEntity<>(productDTO, HttpStatus.OK);
+    }
+
+    @Tag(name = "Product")
     @GetMapping("/public/products")
     public ResponseEntity<ProductResponse> getAllProducts(
             @RequestParam(name = "keyword",required = false)  String keyword,
