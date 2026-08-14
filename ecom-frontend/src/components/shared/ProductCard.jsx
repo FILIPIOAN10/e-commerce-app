@@ -61,7 +61,7 @@ const ProductCard = ({
 
     return (
         <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 dark:bg-gray-800 dark:border-gray-700">
-            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
+            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryId, categoryName })}
                 className="w-full overflow-hidden aspect-3/2">
                 <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
                     src={image}
@@ -91,7 +91,7 @@ const ProductCard = ({
                         </button>
                     </div>
                 )}
-                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images })}
+                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryId, categoryName })}
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
                     {truncateText(productName, 50)}
                 </h2>

@@ -489,6 +489,7 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
         productDTO.setReviewCount(reviewCount);
         productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
+        productDTO.setCategoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null);
 
         return productDTO;
     }
@@ -620,6 +621,13 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products = productRepository.findOnSaleProducts(
                 PageRequest.of(0, limit));
         return products.stream().map(this::mapProductToDTO).toList();
+    }
+
+    @Override
+    public ProductDTO getProductById(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+        return mapProductToDTO(product);
     }
 
 }

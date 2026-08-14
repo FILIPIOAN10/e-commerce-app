@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import ItemContent from "./ItemContent";
 import CartEmpty from "./CartEmpty";
 import { formatPrice } from "../../utils/formatPrice";
+import Breadcrumb from "../shared/Breadcrumb";
 
 const Cart = () => {
     const {cart} = useSelector((state) => state.carts);
@@ -18,6 +19,8 @@ const Cart = () => {
 
     return(
         <div className="lg:px-14 sm:px-8 px-4 py-10">
+
+            <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Cart" }]} />
 
             <div className="flex flex-col items-center mb-12">
                 <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
@@ -46,6 +49,7 @@ const Cart = () => {
             <div className="flex flex-col">
                 {activeCart.map((item) => <ItemContent key={item.productId} {...item}/>)}
             </div>
+<<<<<<< HEAD
 
             {savedCart.length > 0 && (
                 <>
@@ -57,6 +61,9 @@ const Cart = () => {
             )}
 
             <div className="border-t-[1.5px] border-slate-200 py-4 flex sm:flex-row sm:px-0 flex-col sm:justify-between gap-4">
+=======
+            <div className="border-t-[1.5px] border-slate-200 py-4 flex sm:flex-row sm:px-0 flex-col sm:justify-between gap-4 sticky bottom-0 z-20 bg-white/95 backdrop-blur-sm shadow-lg">
+>>>>>>> e32f0ef67847820082923ed4c3f2509bb1424473
                 <div></div>
                 <div className="flex text-sm gap-1 flex-col">
                     <div className="flex justify-between w-full md:text-lg text-sm font-semibold">
