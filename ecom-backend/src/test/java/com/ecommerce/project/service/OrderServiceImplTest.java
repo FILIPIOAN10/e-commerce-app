@@ -349,7 +349,7 @@ class OrderServiceImplTest {
 
             OrderDTO result = orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                    "pi_123", "succeeded", "OK", "SAVE10");
+                    "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
             // 100 - 10% = 90
             assertEquals(90.0, result.getTotalAmount());
@@ -365,7 +365,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", "INVALID"));
+                            "pi_123", "succeeded", "OK", List.of("INVALID"));
 
             assertTrue(ex.getMessage().contains("Invalid coupon code"));
         }
@@ -380,7 +380,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", "SAVE10"));
+                            "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
             assertTrue(ex.getMessage().contains("Coupon is not active"));
         }
@@ -395,7 +395,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", "SAVE10"));
+                            "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
             assertTrue(ex.getMessage().contains("Coupon has expired"));
         }
@@ -409,7 +409,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", "SAVE10"));
+                            "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
             assertTrue(ex.getMessage().contains("Coupon usage limit reached"));
         }
@@ -434,7 +434,7 @@ class OrderServiceImplTest {
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                    "pi_123", "succeeded", "OK", "   ");
+                    "pi_123", "succeeded", "OK", List.of("   "));
 
             verify(couponRepository, never()).findByCode(anyString());
             verify(couponRepository, never()).save(any(Coupon.class));
@@ -448,7 +448,7 @@ class OrderServiceImplTest {
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                    "pi_123", "succeeded", "OK", "save10");
+                    "pi_123", "succeeded", "OK", List.of("save10"));
 
             // The implementation calls findByCode with toUpperCase()
             verify(couponRepository).findByCode("SAVE10");
