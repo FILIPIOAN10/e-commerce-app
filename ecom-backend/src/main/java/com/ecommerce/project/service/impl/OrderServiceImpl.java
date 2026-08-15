@@ -88,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
 
         CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(addressId, totalAfterDiscount);
+        double shippingCost = calculateShippingCost(addressId, subtotal);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         order.setTotalAmount(totalAmount);
@@ -137,7 +137,10 @@ public class OrderServiceImpl implements OrderService {
         });
 
         // Send back the order summary
-        return buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
+        OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
+        emailService.sendOrderConfirmationEmail(emailId, orderDTO);
+        notificationService.notifyAdminNewOrder(savedOrder.getId(), emailId, totalAmount);
+        return orderDTO;
     }
 
     @Override
