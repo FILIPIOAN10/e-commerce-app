@@ -41,6 +41,18 @@ public class ReviewController {
         return ResponseEntity.ok(Map.of("message", message));
     }
 
+    @PostMapping("/{reviewId}/helpful")
+    public ResponseEntity<?> markHelpful(@PathVariable Long reviewId) {
+        String message = reviewService.markReviewHelpful(reviewId);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    @PostMapping("/{reviewId}/unhelpful")
+    public ResponseEntity<?> markUnhelpful(@PathVariable Long reviewId) {
+        String message = reviewService.markReviewUnhelpful(reviewId);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
     @GetMapping("/{productId}")
     public ResponseEntity<ReviewResponse> getProductReviews(
             @PathVariable Long productId,

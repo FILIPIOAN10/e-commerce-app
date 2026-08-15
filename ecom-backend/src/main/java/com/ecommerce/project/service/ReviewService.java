@@ -10,5 +10,9 @@ public interface ReviewService {
 
     String deleteReview(Long productId);
 
+    String markReviewHelpful(Long reviewId);
+
+    String markReviewUnhelpful(Long reviewId);
+
     ReviewResponse getProductReviews(Long productId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 }

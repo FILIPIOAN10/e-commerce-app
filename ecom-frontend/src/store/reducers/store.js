@@ -9,6 +9,7 @@ import { orderReducer } from "./orderReducer";
 import { sellerReducer } from "./sellerReducer";
 import wishlistReducer from "./wishlistReducer";
 import reviewReducer from "./reviewReducer";
+import questionReducer from "./questionReducer";
 import couponReducer from "./couponReducer";
 import { notificationReducer } from "./notificationReducer";
 
@@ -41,6 +42,7 @@ export const store = configureStore({
         seller: sellerReducer,
         wishlist: wishlistReducer,
         review: reviewReducer,
+        question: questionReducer,
         coupon: couponReducer,
         notification: notificationReducer,
     },

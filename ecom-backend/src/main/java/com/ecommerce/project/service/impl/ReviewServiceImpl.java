@@ -56,6 +56,9 @@ public class ReviewServiceImpl implements ReviewService {
                 .product(product)
                 .rating(rating)
                 .comment(comment)
+                .verifiedPurchase(true)
+                .helpfulCount(0)
+                .unhelpfulCount(0)
                 .build();
 
         reviewRepository.save(review);
@@ -118,6 +121,26 @@ public class ReviewServiceImpl implements ReviewService {
         return response;
     }
 
+    @Override
+    @Transactional
+    public String markReviewHelpful(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
+        review.setHelpfulCount(review.getHelpfulCount() + 1);
+        reviewRepository.save(review);
+        return "Marked as helpful";
+    }
+
+    @Override
+    @Transactional
+    public String markReviewUnhelpful(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
+        review.setUnhelpfulCount(review.getUnhelpfulCount() + 1);
+        reviewRepository.save(review);
+        return "Marked as unhelpful";
+    }
+
     private ReviewDTO mapToDTO(Review review) {
         ReviewDTO dto = new ReviewDTO();
         dto.setReviewId(review.getId());
@@ -126,6 +149,9 @@ public class ReviewServiceImpl implements ReviewService {
         dto.setUsername(review.getUser().getUserName());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
+        dto.setVerifiedPurchase(review.getVerifiedPurchase());
+        dto.setHelpfulCount(review.getHelpfulCount());
+        dto.setUnhelpfulCount(review.getUnhelpfulCount());
         dto.setCreatedAt(review.getCreatedAt().format(FORMATTER));
         return dto;
     }

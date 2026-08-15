@@ -5,6 +5,7 @@ import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import ReviewsSection from './ReviewsSection';
+import QuestionsSection from './QuestionsSection';
 import SimilarProducts from './SimilarProducts';
 import { useDispatch } from 'react-redux';
 import Breadcrumb from './Breadcrumb';
@@ -141,6 +142,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                 </div>
 
                 {id && <ReviewsSection productId={id} />}
+                {id && <QuestionsSection productId={id} />}
                 {id && <SimilarProducts productId={id} />}
 
 

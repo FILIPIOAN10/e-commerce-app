@@ -33,6 +33,15 @@ public class Review {
     @Column(length = 1000)
     private String comment;
 
+    @Column(nullable = false)
+    private Boolean verifiedPurchase = false;
+
+    @Column(nullable = false)
+    private Integer helpfulCount = 0;
+
+    @Column(nullable = false)
+    private Integer unhelpfulCount = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
