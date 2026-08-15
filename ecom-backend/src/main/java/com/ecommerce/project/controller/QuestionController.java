@@ -36,6 +36,7 @@ public class QuestionController {
 
     @PostMapping("/{questionId}/answer")
     public ResponseEntity<?> answerQuestion(
+            @PathVariable Long productId,
             @PathVariable Long questionId,
             @RequestBody Map<String, Object> body) {
         String answer = (String) body.get("answer");
