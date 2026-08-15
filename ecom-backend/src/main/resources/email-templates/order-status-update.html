@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Status Update</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; }
+        .status { font-size: 18px; font-weight: bold; color: #1976d2; }
+        .footer { color: #777; font-size: 12px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Order Status Updated</h2>
+        <p>Your order <strong>#{{orderId}}</strong> is now:</p>
+        <p class="status">{{status}}</p>
+        <p>{{message}}</p>
+        <p class="footer">Track your order at <a href="{{trackLink}}">{{trackLink}}</a>.</p>
+    </div>
+</body>
+</html>

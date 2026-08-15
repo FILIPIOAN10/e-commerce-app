@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -22,6 +22,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final InvoiceService invoiceService;
+    private final EmailTemplateService emailTemplateService;
 
     @Value("${spring.mail.username:noreply.ecomapp@gmail.com}")
     private String fromEmail;
@@ -31,32 +32,36 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String toEmail, String token) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Password Reset Request");
-            message.setText("You requested a password reset.\n\n"
-                    + "Click the link below to reset your password (valid for 15 minutes):\n"
-                    + frontendUrl + "/reset-password?token=" + token + "\n\n"
-                    + "If you did not request this, please ignore this email.");
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Password Reset Request");
 
-            mailSender.send(message);
+            String html = emailTemplateService.render("reset-password", Map.of(
+                    "expires", "15",
+                    "link", frontendUrl + "/reset-password?token=" + token
+            ));
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
         } catch (Exception e) {
             log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
         }
     }
     public void sendVerificationEmail(String toEmail, String token) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Verify Your Email Address");
-            message.setText("Welcome! Please verify your email address to activate your account.\n\n"
-                    + "Click the link below (valid for 60 minutes):\n"
-                    + frontendUrl + "/verify-email?token=" + token + "\n\n"
-                    + "If you did not create an account, please ignore this email.");
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Verify Your Email Address");
 
-            mailSender.send(message);
+            String html = emailTemplateService.render("verify-email", Map.of(
+                    "expires", "60",
+                    "link", frontendUrl + "/verify-email?token=" + token
+            ));
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
         } catch (Exception e) {
             log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
         }
@@ -70,27 +75,27 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("Order Confirmation - #" + order.getOrderId());
 
-            StringBuilder text = new StringBuilder();
-            text.append("Thank you for your order!\n\n");
-            text.append("Order ID: #").append(order.getOrderId()).append("\n");
-            text.append("Order Date: ").append(order.getOrderDate()).append("\n");
-            text.append("Total Amount: $").append(String.format("%.2f", order.getTotalAmount())).append("\n");
-            text.append("Payment Method: ").append(order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A").append("\n\n");
-            text.append("Items:\n");
+            StringBuilder itemsHtml = new StringBuilder();
             if (order.getItems() != null) {
                 for (OrderItemDTO item : order.getItems()) {
-                    text.append("  - ")
-                            .append(item.getProduct() != null ? item.getProduct().getProductName() : "Unknown Product")
-                            .append(" x").append(item.getQuantity())
-                            .append(" - $").append(String.format("%.2f", item.getOrderedProductPrice()))
-                            .append("\n");
+                    String name = item.getProduct() != null ? item.getProduct().getProductName() : "Unknown Product";
+                    itemsHtml.append("<tr>")
+                            .append("<td>").append(name).append("</td>")
+                            .append("<td>").append(item.getQuantity()).append("</td>")
+                            .append("<td>$").append(String.format("%.2f", item.getOrderedProductPrice())).append("</td>")
+                            .append("</tr>");
                 }
             }
-            text.append("\nWe'll notify you when your order status changes.\n");
-            text.append("Track your order at: ").append(frontendUrl).append("/orders/").append(order.getOrderId()).append("\n");
-            text.append("\nYour invoice is attached to this email.\n");
 
-            helper.setText(text.toString());
+            String html = emailTemplateService.render("order-confirmation", Map.of(
+                    "orderId", String.valueOf(order.getOrderId()),
+                    "orderDate", String.valueOf(order.getOrderDate()),
+                    "paymentMethod", order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A",
+                    "total", String.format("%.2f", order.getTotalAmount()),
+                    "items", itemsHtml.toString(),
+                    "trackLink", frontendUrl + "/orders/" + order.getOrderId()
+            ));
+            helper.setText(html, true);
 
             byte[] invoicePdf = invoiceService.generateInvoicePdf(order.getOrderId());
             helper.addAttachment("invoice-" + order.getOrderId() + ".pdf", new ByteArrayResource(invoicePdf));
@@ -102,39 +107,45 @@ public class EmailService {
     }
 
     public void sendOrderStatusUpdateEmail(String toEmail, OrderDTO order) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject("Order Status Update - #" + order.getOrderId() + " - " + order.getOrderStatus());
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Order Status Update - #" + order.getOrderId() + " - " + order.getOrderStatus());
 
-        StringBuilder text = new StringBuilder();
-        text.append("Your order status has been updated.\n\n");
-        text.append("Order ID: #").append(order.getOrderId()).append("\n");
-        text.append("New Status: ").append(order.getOrderStatus()).append("\n\n");
+            String statusMessage = switch (order.getOrderStatus()) {
+                case "Packed" -> "Your order has been packed and is being prepared for shipment.";
+                case "Shipped" -> "Great news! Your order has been shipped and is on its way. Estimated delivery: 3-5 business days.";
+                case "Delivered" -> "Your order has been delivered. Enjoy your purchase!";
+                case "Cancelled" -> "Your order has been cancelled. If you did not request this, please contact support.";
+                default -> "Your order status is now: " + order.getOrderStatus();
+            };
 
-        switch (order.getOrderStatus()) {
-            case "Packed" -> text.append("Your order has been packed and is being prepared for shipment.\n");
-            case "Shipped" -> {
-                text.append("Great news! Your order has been shipped and is on its way.\n");
-                text.append("Estimated delivery: 3-5 business days.\n");
-            }
-            case "Delivered" -> text.append("Your order has been delivered. Enjoy your purchase!\n");
-            case "Cancelled" -> text.append("Your order has been cancelled. If you did not request this, please contact support.\n");
-            default -> text.append("Your order status is now: ").append(order.getOrderStatus()).append("\n");
+            String html = emailTemplateService.render("order-status-update", Map.of(
+                    "orderId", String.valueOf(order.getOrderId()),
+                    "status", order.getOrderStatus(),
+                    "message", statusMessage,
+                    "trackLink", frontendUrl + "/orders/" + order.getOrderId()
+            ));
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            log.error("Failed to send order status email to {}: {}", toEmail, e.getMessage());
         }
-
-        text.append("\nTrack your order at: ").append(frontendUrl).append("/orders/").append(order.getOrderId()).append("\n");
-
-        message.setText(text.toString());
-        mailSender.send(message);
     }
 
     public void sendContactMessage(String name, String email, String userMessage) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(fromEmail);
-        message.setSubject("Contact Form Message from " + name);
-        message.setText("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + userMessage);
-        mailSender.send(message);
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(fromEmail);
+            helper.setSubject("Contact Form Message from " + name);
+            helper.setText("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + userMessage, false);
+            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            log.error("Failed to send contact message: {}", e.getMessage());
+        }
     }
 }
