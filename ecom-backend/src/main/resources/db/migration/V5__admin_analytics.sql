@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_user_activity_logs_created_at ON user_activity_lo
 CREATE TABLE IF NOT EXISTS promo_campaigns (
     campaign_id       BIGSERIAL PRIMARY KEY,
     name              VARCHAR(255)   NOT NULL,
-    discount_percent  NUMERIC(5,2)   NOT NULL,
+    discount_percent  DOUBLE PRECISION NOT NULL,
     start_time        TIMESTAMP(6)   NOT NULL,
     end_time          TIMESTAMP(6)   NOT NULL,
     active            BOOLEAN        NOT NULL DEFAULT TRUE
