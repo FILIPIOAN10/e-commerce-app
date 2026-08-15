@@ -365,7 +365,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", List.of("INVALID"));
+                            "pi_123", "succeeded", "OK", List.of("INVALID")));
 
             assertTrue(ex.getMessage().contains("Invalid coupon code"));
         }
@@ -380,7 +380,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", List.of("SAVE10"));
+                            "pi_123", "succeeded", "OK", List.of("SAVE10")));
 
             assertTrue(ex.getMessage().contains("Coupon is not active"));
         }
@@ -395,7 +395,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", List.of("SAVE10"));
+                            "pi_123", "succeeded", "OK", List.of("SAVE10")));
 
             assertTrue(ex.getMessage().contains("Coupon has expired"));
         }
@@ -409,7 +409,7 @@ class OrderServiceImplTest {
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
-                            "pi_123", "succeeded", "OK", List.of("SAVE10"));
+                            "pi_123", "succeeded", "OK", List.of("SAVE10")));
 
             assertTrue(ex.getMessage().contains("Coupon usage limit reached"));
         }
