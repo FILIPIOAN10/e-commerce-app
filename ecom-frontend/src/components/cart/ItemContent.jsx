@@ -13,9 +13,7 @@ const ItemContent = ({
     description,
     quantity,
     price,
-    discount,
     specialPrice,
-    cartId,
     cartItemId,
     savedForLater,
 }) => {

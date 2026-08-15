@@ -26,8 +26,6 @@ const ResetPassword = () => {
         mode: "onTouched",
     });
 
-    const password = watch("newPassword", "");
-
     const onSubmit = async (data) => {
         if (!token) {
             setStatus("error");

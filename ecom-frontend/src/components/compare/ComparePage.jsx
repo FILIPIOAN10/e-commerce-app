@@ -125,7 +125,7 @@ const ComparePage = () => {
                                 </td>
                                 {compareList.map((product) => (
                                     <td key={product.productId} className="p-4 text-sm text-center text-slate-700 dark:text-gray-200">
-                                        {renderSpecValue(spec, product, renderStars, handleAddToCart)}
+                                        {renderSpecValue(spec, product, renderStars)}
                                     </td>
                                 ))}
                             </tr>
@@ -165,7 +165,7 @@ const ComparePage = () => {
     );
 };
 
-function renderSpecValue(spec, product, renderStars, handleAddToCart) {
+function renderSpecValue(spec, product, renderStars) {
     switch (spec.type) {
         case "image":
             return null;

@@ -51,7 +51,7 @@ const OrderTable = ({adminOrder, pagination}) => {
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success(`Orders exported as ${format.toUpperCase()}`);
-    } catch (error) {
+    } catch (_error) {
       toast.error(`Failed to export ${format.toUpperCase()}`);
     } finally {
       setExporting(false);

@@ -10,7 +10,7 @@ const PaymentConfirmation = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const dispatch = useDispatch();
-    const [errorMessage,setErrorMessage] = useState("");
+    const [, setErrorMessage] = useState("");
     const {cart} = useSelector((state)=> state.carts);
     const [loading,setLoading] = useState(false);
 
