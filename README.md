@@ -21,6 +21,13 @@ Designed complex entity relationships using JPA/Hibernate with PostgreSQL 16 and
  
 ## Payment Processing
 Implemented Stripe payment gateway integration with PaymentIntent-based checkout flow. Order placement includes cart-to-order conversion, inventory deduction, and payment status tracking within a single transactional boundary.
+
+## Cart & Checkout
+- Multiple stackable coupons applied to a single order.
+- Address-based shipping cost estimation (default, Romania, free over $100).
+- Save cart for later — persist unplaced cart items with a `savedForLater` flag and move them back to the active cart.
+- Guest checkout without a registered account.
+- Order summary preview before payment, showing subtotal, discount, shipping, and final total.
  
 ## Frontend Performance
 Implemented code-splitting with React.lazy and Suspense for all route-level components, reducing initial bundle size and enabling on-demand chunk loading. Eliminated console.log statements in production code and fixed React list key warnings for improved rendering performance.
