@@ -15,6 +15,7 @@ import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
