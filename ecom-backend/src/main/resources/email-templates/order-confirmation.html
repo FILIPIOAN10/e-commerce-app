@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+        th { background: #f0f0f0; }
+        .total { font-weight: bold; font-size: 16px; }
+        .footer { color: #777; font-size: 12px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Thank you for your order!</h2>
+        <p>Order <strong>#{{orderId}}</strong> has been placed on {{orderDate}}.</p>
+        <p>Payment Method: {{paymentMethod}}</p>
+        <p class="total">Total: ${{total}}</p>
+        <table>
+            <thead>
+                <tr><th>Product</th><th>Qty</th><th>Price</th></tr>
+            </thead>
+            <tbody>
+                {{items}}
+            </tbody>
+        </table>
+        <p class="footer">Track your order at <a href="{{trackLink}}">{{trackLink}}</a>. Your invoice is attached.</p>
+    </div>
+</body>
+</html>
