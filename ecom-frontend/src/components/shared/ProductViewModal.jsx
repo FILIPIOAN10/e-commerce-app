@@ -13,7 +13,7 @@ import { recordProductView } from '../../store/actions';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
   
-  const {id, productName, image, description,tags,quantity, price, discount, specialPrice, images} = product;
+  const {id, productName, categoryName, image, description,tags,quantity, price, discount, specialPrice, images} = product;
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useDispatch();
 
