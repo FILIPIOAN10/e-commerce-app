@@ -886,6 +886,61 @@ export const deleteReview = (productId, toast) => async (dispatch) => {
     }
 };
 
+export const markReviewHelpful = (productId, reviewId, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post(`/users/reviews/${reviewId}/helpful`);
+        toast.success(data.message);
+        dispatch(fetchProductReviews(productId));
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to mark helpful";
+        toast.error(msg);
+    }
+};
+
+export const markReviewUnhelpful = (productId, reviewId, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post(`/users/reviews/${reviewId}/unhelpful`);
+        toast.success(data.message);
+        dispatch(fetchProductReviews(productId));
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to mark unhelpful";
+        toast.error(msg);
+    }
+};
+
+export const fetchProductQuestions = (productId, pageNumber = 0, pageSize = 10) => async (dispatch) => {
+    try {
+        dispatch({ type: "questionError", payload: null });
+        const { data } = await api.get(`/public/products/${productId}/questions?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        dispatch({ type: "fetchQuestionsSuccess", payload: data });
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to fetch questions";
+        dispatch({ type: "questionError", payload: msg });
+    }
+};
+
+export const askQuestion = (productId, question, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post(`/public/products/${productId}/questions`, { question });
+        toast.success(data.message);
+        dispatch(fetchProductQuestions(productId));
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to ask question";
+        toast.error(msg);
+    }
+};
+
+export const answerQuestion = (productId, questionId, answer, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post(`/public/products/${productId}/questions/${questionId}/answer`, { answer });
+        toast.success(data.message);
+        dispatch(fetchProductQuestions(productId));
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to answer question";
+        toast.error(msg);
+    }
+};
+
 export const validateCoupon = (code, orderAmount, toast) => async (dispatch, getState) => {
     try {
         const { data } = await api.post("/coupons/validate", { code, orderAmount });

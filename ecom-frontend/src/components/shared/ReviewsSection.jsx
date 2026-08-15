@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { FaStar, FaTrashAlt, FaEdit } from "react-icons/fa";
+import { FaStar, FaTrashAlt, FaEdit, FaThumbsUp, FaThumbsDown } from "react-icons/fa";
+import { MdVerified } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { fetchProductReviews, addReview, updateReview, deleteReview } from "../../store/actions";
+import { fetchProductReviews, addReview, updateReview, deleteReview, markReviewHelpful, markReviewUnhelpful } from "../../store/actions";
 
 const ReviewsSection = ({ productId }) => {
     const dispatch = useDispatch();
@@ -148,7 +149,14 @@ const ReviewsSection = ({ productId }) => {
                     {reviews.map((review) => (
                         <div key={review.reviewId} className="border-b dark:border-gray-700 pb-3">
                             <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium text-sm">{review.username}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm">{review.username}</span>
+                                    {review.verifiedPurchase && (
+                                        <span className="flex items-center gap-0.5 text-xs text-teal-600 dark:text-teal-400">
+                                            <MdVerified /> Verified purchase
+                                        </span>
+                                    )}
+                                </div>
                                 <span className="text-xs text-gray-400 dark:text-gray-500">{review.createdAt}</span>
                             </div>
                             <div className="flex mb-1">
@@ -160,6 +168,20 @@ const ReviewsSection = ({ productId }) => {
                                 ))}
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">{review.comment}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                                <button
+                                    onClick={() => dispatch(markReviewHelpful(productId, review.reviewId, toast))}
+                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+                                >
+                                    <FaThumbsUp /> Yes ({review.helpfulCount || 0})
+                                </button>
+                                <button
+                                    onClick={() => dispatch(markReviewUnhelpful(productId, review.reviewId, toast))}
+                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                                >
+                                    <FaThumbsDown /> No ({review.unhelpfulCount || 0})
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
