@@ -13,4 +13,6 @@ public interface AnalyticsService {
     ChartDataResponse getTopProductsData();
 
     ChartDataResponse getOrderStatusData();
+
+    ChartDataResponse getRevenueByCategoryData();
 }

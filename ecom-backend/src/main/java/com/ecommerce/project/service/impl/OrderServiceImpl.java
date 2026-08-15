@@ -55,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private final CouponService couponService;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final UserActivityLogService userActivityLogService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
@@ -140,6 +141,7 @@ public class OrderServiceImpl implements OrderService {
         OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
         emailService.sendOrderConfirmationEmail(emailId, orderDTO);
         notificationService.notifyAdminNewOrder(savedOrder.getId(), emailId, totalAmount);
+        userActivityLogService.log(emailId, "PLACE_ORDER", "Order " + savedOrder.getId() + " placed for $" + totalAmount);
         return orderDTO;
     }
 

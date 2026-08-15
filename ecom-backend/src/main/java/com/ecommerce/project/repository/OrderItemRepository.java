@@ -22,4 +22,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
             "GROUP BY oi.product " +
             "ORDER BY MAX(oi.order.orderDate) DESC")
     List<Product> findOrderedProductsByEmail(@Param("email") String email);
+
+    @Query("SELECT COALESCE(c.categoryName, 'Uncategorized'), SUM(oi.orderedProductPrice * oi.quantity) " +
+            "FROM OrderItem oi JOIN oi.product p LEFT JOIN p.category c " +
+            "GROUP BY COALESCE(c.categoryName, 'Uncategorized') " +
+            "ORDER BY 2 DESC")
+    List<Object[]> getRevenueByCategory();
 }

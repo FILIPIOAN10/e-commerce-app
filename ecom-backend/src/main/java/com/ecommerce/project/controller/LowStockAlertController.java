@@ -17,6 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -81,6 +84,22 @@ public class LowStockAlertController {
             count = productRepository.findLowStockProductsBySeller(seller, PageRequest.of(0, 1)).getTotalElements();
         }
         return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @Tag(name = "Low Stock Alerts")
+    @GetMapping("/admin/low-stock/summary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getLowStockSummary() {
+        Pageable pageDetails = PageRequest.of(0, 5, Sort.by("quantity").ascending());
+        Page<Product> pageProducts = productRepository.findLowStockProducts(pageDetails);
+        List<ProductDTO> productDTOs = pageProducts.getContent().stream()
+                .map(p -> modelMapper.map(p, ProductDTO.class))
+                .collect(Collectors.toList());
+        Map<String, Object> summary = Map.of(
+                "count", pageProducts.getTotalElements(),
+                "products", productDTOs
+        );
+        return new ResponseEntity<>(summary, HttpStatus.OK);
     }
 
     private ResponseEntity<ProductResponse> buildResponse(Page<Product> pageProducts) {

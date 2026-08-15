@@ -78,4 +78,18 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return new ChartDataResponse(dataPoints);
     }
+
+    @Override
+    public ChartDataResponse getRevenueByCategoryData() {
+        List<Object[]> results = orderItemRepository.getRevenueByCategory();
+        List<ChartDataResponse.DataPoint> dataPoints = new ArrayList<>();
+
+        for (Object[] row : results) {
+            String category = (String) row[0];
+            double revenue = ((Number) row[1]).doubleValue();
+            dataPoints.add(new ChartDataResponse.DataPoint(category, revenue));
+        }
+
+        return new ChartDataResponse(dataPoints);
+    }
 }
