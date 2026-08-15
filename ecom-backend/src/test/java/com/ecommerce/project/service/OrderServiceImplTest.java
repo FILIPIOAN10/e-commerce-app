@@ -49,6 +49,7 @@ class OrderServiceImplTest {
     @Mock private NotificationService notificationService;
     @Mock private CouponRepository couponRepository;
     @Mock private AuthUtil authUtil;
+    @Mock private UserActivityLogService userActivityLogService;
     @Mock private ModelMapper modelMapper;
 
     @InjectMocks
