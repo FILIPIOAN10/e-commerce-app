@@ -3,10 +3,12 @@ import DashboardOverview from './DashboardOverview'
 import SalesChart from './SalesChart'
 import TopProductsChart from './TopProductsChart'
 import OrderStatusChart from './OrderStatusChart'
+import RevenueByCategoryChart from './RevenueByCategoryChart'
+import LowStockSummary from './LowStockSummary'
 import { FaBoxOpen, FaDollarSign, FaShoppingCart, FaChartLine, FaChartBar, FaChartPie } from 'react-icons/fa';
 import { MdAttachMoney } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
-import { analyticsAction, fetchSalesChartData, fetchTopProductsChartData, fetchOrderStatusChartData } from '../../../store/actions';
+import { analyticsAction, fetchSalesChartData, fetchTopProductsChartData, fetchOrderStatusChartData, fetchRevenueByCategoryChartData } from '../../../store/actions';
 import Loader from '../../shared/Loader';
 import ErrorPage from '../../shared/ErrorPage';
 
@@ -20,6 +22,7 @@ const Dashboard = () => {
     salesChart,
     topProductsChart,
     orderStatusChart,
+    revenueByCategoryChart,
     } = useSelector((state) => state.admin);
 
     useEffect(() => {
@@ -27,6 +30,7 @@ const Dashboard = () => {
         dispatch(fetchSalesChartData());
         dispatch(fetchTopProductsChartData());
         dispatch(fetchOrderStatusChartData());
+        dispatch(fetchRevenueByCategoryChartData());
     },[dispatch]);
 
     if(isLoading){
@@ -89,6 +93,17 @@ const Dashboard = () => {
                 </div>
                 <OrderStatusChart data={orderStatusChart} />
             </div>
+        </div>
+
+        <div className='mt-8 grid lg:grid-cols-2 gap-6'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-slate-200 dark:border-gray-700'>
+                <div className='flex items-center gap-2 mb-4'>
+                    <FaChartBar className='text-blue-600 dark:text-blue-400 text-xl' />
+                    <h2 className='text-xl font-bold text-slate-800 dark:text-white'>Revenue by Category</h2>
+                </div>
+                <RevenueByCategoryChart data={revenueByCategoryChart} />
+            </div>
+            <LowStockSummary />
         </div>
     </div>
   )

@@ -49,4 +49,11 @@ public class AnalyticsController {
     public ResponseEntity<ChartDataResponse> getOrderStatus() {
         return new ResponseEntity<>(analyticsService.getOrderStatusData(), HttpStatus.OK);
     }
+
+    @Tag(name = "Analytics")
+    @GetMapping("/admin/app/analytics/revenue-by-category")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ChartDataResponse> getRevenueByCategory() {
+        return new ResponseEntity<>(analyticsService.getRevenueByCategoryData(), HttpStatus.OK);
+    }
 }

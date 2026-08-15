@@ -15,6 +15,7 @@ import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
@@ -55,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
     private final CouponService couponService;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final UserActivityLogService userActivityLogService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
@@ -140,6 +142,7 @@ public class OrderServiceImpl implements OrderService {
         OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
         emailService.sendOrderConfirmationEmail(emailId, orderDTO);
         notificationService.notifyAdminNewOrder(savedOrder.getId(), emailId, totalAmount);
+        userActivityLogService.log(emailId, "PLACE_ORDER", "Order " + savedOrder.getId() + " placed for $" + totalAmount);
         return orderDTO;
     }
 

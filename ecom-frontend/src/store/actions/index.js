@@ -1133,6 +1133,105 @@ export const recordProductView = (productId) => async () => {
     }
 };
 
+export const fetchRevenueByCategoryChartData = () => async (dispatch) => {
+    try {
+        const { data } = await api.get('/admin/app/analytics/revenue-by-category');
+        dispatch({ type: "FETCH_REVENUE_BY_CATEGORY_CHART", payload: data.data });
+    } catch (error) {
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch revenue by category"
+        });
+    }
+};
+
+export const fetchLowStockSummary = () => async (dispatch) => {
+    try {
+        const { data } = await api.get('/admin/low-stock/summary');
+        dispatch({ type: "FETCH_LOW_STOCK_SUMMARY", payload: data });
+    } catch (error) {
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch low stock summary"
+        });
+    }
+};
+
+export const fetchActivityLogs = (pageNumber = 0, pageSize = 20) => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        const { data } = await api.get(`/admin/activity-logs?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        dispatch({ type: "FETCH_ACTIVITY_LOGS", payload: data });
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch activity logs" });
+    }
+};
+
+export const importProducts = (file, toast) => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        const formData = new FormData();
+        formData.append("file", file);
+        const { data } = await api.post('/admin/products/import', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success(data.message);
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to import products";
+        toast.error(msg);
+        dispatch({ type: "IS_ERROR", payload: msg });
+    }
+};
+
+export const fetchPromoCampaigns = (pageNumber = 0, pageSize = 10) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/admin/promo-campaigns?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        dispatch({ type: "FETCH_PROMO_CAMPAIGNS", payload: data });
+    } catch (error) {
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch promo campaigns"
+        });
+    }
+};
+
+export const createPromoCampaign = (payload, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.post('/admin/promo-campaigns', payload);
+        toast.success("Campaign created");
+        dispatch(fetchPromoCampaigns());
+        return data;
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to create campaign";
+        toast.error(msg);
+    }
+};
+
+export const updatePromoCampaign = (id, payload, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.put(`/admin/promo-campaigns/${id}`, payload);
+        toast.success("Campaign updated");
+        dispatch(fetchPromoCampaigns());
+        return data;
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to update campaign";
+        toast.error(msg);
+    }
+};
+
+export const deletePromoCampaign = (id, toast) => async (dispatch) => {
+    try {
+        await api.delete(`/admin/promo-campaigns/${id}`);
+        toast.success("Campaign deleted");
+        dispatch(fetchPromoCampaigns());
+    } catch (error) {
+        const msg = error?.response?.data?.message || "Failed to delete campaign";
+        toast.error(msg);
+    }
+};
+
 export const fetchRecentlyViewedProducts = () => async (dispatch) => {
     try {
         const { data } = await api.get("/user/products/recently-viewed");
