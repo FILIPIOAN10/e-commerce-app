@@ -17,6 +17,7 @@ const ItemContent = ({
     cartItemId,
     savedForLater,
 }) => {
+    const unitPrice = specialPrice ?? price;
     const dispatch = useDispatch();
 
     const handleQtyIncrease = (cartItems) => {
@@ -89,7 +90,7 @@ const ItemContent = ({
                 </div>
 
                 <div className="justify-self-center lg:text-[17px] text-sm text-slate-600 dark:text-gray-300 font-semibold">
-                   {formatPrice(Number(specialPrice))}
+                   {formatPrice(Number(unitPrice))}
                 </div>
                 <div className="justify-self-center">
                     <SetQuantity
@@ -118,7 +119,7 @@ const ItemContent = ({
                 </div>
 
                 <div className="justify-self-center lg:text-[17px] text-sm text-slate-600 dark:text-gray-300 font-semibold">
-                    {formatPrice( Number(quantity) * Number(specialPrice))}
+                    {formatPrice( Number(quantity) * Number(unitPrice))}
                 </div>
             </div>
     )

@@ -1,8 +1,12 @@
 export const formatPrice = (amount) => {
+    const value = Number(amount);
+    if (Number.isNaN(value)) {
+        return "—";
+    }
     return new Intl.NumberFormat("en-US",{
         style:"currency",
         currency:"USD",
-    }).format(amount);
+    }).format(value);
 }
 
 
