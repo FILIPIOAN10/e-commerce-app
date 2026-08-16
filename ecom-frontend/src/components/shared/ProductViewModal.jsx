@@ -3,17 +3,19 @@ import { Divider } from '@mui/material';
 import { useState, useEffect } from 'react'
 import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import ReviewsSection from './ReviewsSection';
 import QuestionsSection from './QuestionsSection';
 import SimilarProducts from './SimilarProducts';
 import { useDispatch } from 'react-redux';
+import toast from 'react-hot-toast';
 import Breadcrumb from './Breadcrumb';
-import { recordProductView } from '../../store/actions';
+import { recordProductView, addToCart } from '../../store/actions';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
-  
-  const {id, productName, categoryName, image, description,tags,quantity, price, discount, specialPrice, images} = product;
+  if (!product || typeof product !== 'object') return null;
+
+  const {id, productName, categoryName, image, description,tags,quantity, price, discount, specialPrice, images, averageRating, reviewCount} = product;
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useDispatch();
 
@@ -99,6 +101,31 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                 {productName}
               </DialogTitle>
 
+              <div className="flex flex-wrap items-center gap-4 mb-4">
+                <span className={`text-sm font-medium ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {isAvailable ? `${Number(quantity)} in stock` : 'Out of stock'}
+                </span>
+                {reviewCount > 0 && (
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center">
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const rating = averageRating || 0;
+                        if (rating >= star) {
+                          return <FaStar key={star} className="text-amber-400 text-sm" />;
+                        } else if (rating >= star - 0.5) {
+                          return <FaStarHalfAlt key={star} className="text-amber-400 text-sm" />;
+                        } else {
+                          return <FaStar key={star} className="text-gray-300 text-sm" />;
+                        }
+                      })}
+                    </div>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {Number(averageRating).toFixed(1)} ({reviewCount})
+                    </span>
+                  </div>
+                )}
+              </div>
+
 
               <div className="space-y-2 text-gray-700 dark:text-gray-300 pb-4">
                 <div className="flex items-center justify-between gap-2">
@@ -147,6 +174,24 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
 
             <div className="px-6 py-4 flex justify-end gap-4">
+              <button
+                onClick={() => {
+                  if (!isAvailable) {
+                    toast.error('Out of stock');
+                    return;
+                  }
+                  dispatch(addToCart({ ...product, productId: id }, 1, toast));
+                }}
+                type="button"
+                disabled={!isAvailable}
+                className={`px-4 py-2 text-sm font-semibold rounded-md ${
+                  isAvailable
+                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Add to Cart
+              </button>
               <button
                 onClick={() => setOpen(false)}
                 type="button"

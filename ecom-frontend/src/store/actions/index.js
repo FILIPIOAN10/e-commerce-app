@@ -57,16 +57,16 @@ export const fetchCategories = () => async (dispatch) => {
 };
 
 
-export const addToCart = (data, qty = 1, toast) => 
+export const addToCart = (data, qty = 1, toast) =>
     (dispatch, getState) => {
-        // Find the product
+        // Use product from the store list if available; otherwise use the passed stock quantity
         const { products } = getState().products;
         const getProduct = products.find(
             (item) => item.productId === data.productId
         );
 
-        // Check for stocks
-        const isQuantityExist = getProduct.quantity >= qty;
+        const stockQuantity = getProduct ? getProduct.quantity : data.quantity;
+        const isQuantityExist = Number(stockQuantity) >= qty;
 
         // If in stock -> add
         if (isQuantityExist) {

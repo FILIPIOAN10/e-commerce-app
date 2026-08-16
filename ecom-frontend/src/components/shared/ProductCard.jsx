@@ -23,7 +23,7 @@ const ProductCard = ({
 }) => {
     const [openProductViewModal, setOpenProductViewModal] = useState(false);
     const btnLoader = false;
-    const [selectedViewProduct, setSelectedViewProduct] = useState("");
+    const [selectedViewProduct, setSelectedViewProduct] = useState(null);
     const isAvailable = quantity && Number(quantity) > 0;
     const dispatch = useDispatch();
 
@@ -61,7 +61,7 @@ const ProductCard = ({
 
     return (
         <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 dark:bg-gray-800 dark:border-gray-700">
-            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryId, categoryName })}
+            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryId, categoryName, averageRating, reviewCount })}
                 className="w-full overflow-hidden aspect-3/2">
                 <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
                     src={image}
@@ -91,7 +91,7 @@ const ProductCard = ({
                         </button>
                     </div>
                 )}
-                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryId, categoryName })}
+                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryId, categoryName, averageRating, reviewCount })}
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
                     {truncateText(productName, 50)}
                 </h2>
@@ -141,7 +141,7 @@ const ProductCard = ({
                         )}
                         <button
                             disabled={!isAvailable || btnLoader}
-                            onClick={() => addToCartHandler({ image, productName, description, specialPrice, price, productId, quantity })}
+                            onClick={(e) => { e.stopPropagation(); addToCartHandler({ image, productName, description, specialPrice, price, productId, quantity }); }}
                             className={`bg-blue-500 ${isAvailable ? "opacity-100 hover:bg-blue-600" : "opacity-70"}
                                 text-white py-2 px-3 rounded-lg items-center transition-colors duration-300 w-36 flex justify-center`}>
                             <FaShoppingCart className="mr-2" />
@@ -170,12 +170,14 @@ const ProductCard = ({
                     </div>
                 )}
             </div>
-            <ProductViewModal
-                open={openProductViewModal}
-                setOpen={setOpenProductViewModal}
-                product={selectedViewProduct}
-                isAvailable={isAvailable}
-            />
+            {selectedViewProduct && (
+                <ProductViewModal
+                    open={openProductViewModal}
+                    setOpen={setOpenProductViewModal}
+                    product={selectedViewProduct}
+                    isAvailable={isAvailable}
+                />
+            )}
         </div>
     );
 };
