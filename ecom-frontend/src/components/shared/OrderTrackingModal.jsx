@@ -129,7 +129,7 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
                                             {order.items?.map((item) => (
                                                 <div key={item.orderItemId} className="flex items-center gap-3">
                                                     <img
-                                                        src={`${import.meta.env.VITE_BACK_END_URL}/images/${item.product?.image}`}
+                                                        src={`${import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"}/images/${item.product?.image}`}
                                                         alt={item.product?.productName}
                                                         className="w-12 h-12 rounded object-cover"
                                                     />

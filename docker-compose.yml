@@ -97,6 +97,11 @@ services:
       # Mail credentials are injected from Vault (see scripts/vault-init.sh)
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      # OAuth2 credentials can be injected via .env for local social-login testing
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-dummy-github-id}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-dummy-github-secret}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-dummy-google-id}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-dummy-google-secret}
       # Semantic search and AI are disabled in local ci profile to avoid version incompatibilities
       APP_SEARCH_SEMANTIC_ENABLED: "false"
       APP_SEARCH_SEMANTIC_TOP_K: ${APP_SEARCH_SEMANTIC_TOP_K:-20}

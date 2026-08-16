@@ -11,7 +11,7 @@ const Cart = () => {
     const activeCart = cart?.filter((item) => !item.savedForLater) || [];
     const savedCart = cart?.filter((item) => item.savedForLater) || [];
     const totalPrice = activeCart?.reduce(
-        (acc, cur) => acc + Number(cur?.specialPrice) * Number(cur?.quantity), 0
+        (acc, cur) => acc + Number(cur?.specialPrice ?? cur?.price) * Number(cur?.quantity), 0
     );
 
     if(!cart || cart.length === 0)

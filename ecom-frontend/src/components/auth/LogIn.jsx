@@ -146,7 +146,7 @@ const LogIn = () => {
                 <div className="flex flex-col gap-2 mt-2">
 
                     <a
-                        href={`${import.meta.env.VITE_BACK_END_URL}/oauth2/authorization/github`}
+                        href={`${import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"}/oauth2/authorization/github`}
                         className="w-full flex items-center justify-center gap-2 bg-black text-white py-2 rounded-md hover:opacity-80 transition font-medium"
                     >
                         <FaGithub className="text-xl" />
@@ -154,7 +154,7 @@ const LogIn = () => {
                     </a>
 
                     <a
-                        href={`${import.meta.env.VITE_BACK_END_URL}/oauth2/authorization/google`}
+                        href={`${import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"}/oauth2/authorization/google`}
                         className="w-full flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-md hover:opacity-80 transition font-medium"
                     >
                         {/* Adăugăm un fundal alb mic rotund în spatele iconiței Google dacă vrei să se vadă perfect pe roșu, sau o lăsăm simplă */}

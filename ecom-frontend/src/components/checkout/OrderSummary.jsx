@@ -71,7 +71,7 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                         <div className='space-y-2'>
                             {cart?.map((item) => (
                                 <div key={item?.productId} className='flex items-center'>
-                                    <img src= {`${import.meta.env.VITE_BACK_END_URL}/images/${
+                                    <img src= {`${import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"}/images/${
                                         item?.image
                                     }`}
                                         alt='Product'
