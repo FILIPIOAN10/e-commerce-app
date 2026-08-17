@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -51,12 +52,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request,response);
             return;
         }
+
+        String username = null;
         try {
             // extract the token
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtils.validateJwtToken(jwt) && !tokenBlacklistService.isBlacklisted(jwt)) {
                 // Extract username
-                String username = jwtUtils.getUserNameFromJWTToken(jwt);
+                username = jwtUtils.getUserNameFromJWTToken(jwt);
                 // Load user from DB
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 // Create Spring Security authentication object
@@ -73,10 +76,20 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 logger.debug("Roles from JWT: {} ", userDetails.getAuthorities());
             }
 
+        } catch (UsernameNotFoundException e) {
+            logger.warn("JWT token references an unknown user '{}': {}", username, e.getMessage());
+            SecurityContextHolder.clearContext();
+            clearJwtCookies(response);
         } catch (Exception e) {
             logger.error("Cannot set user authentication", e);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void clearJwtCookies(HttpServletResponse response) {
+        // Clear the current /api cookie and any legacy cookie set with path /
+        response.addHeader("Set-Cookie", jwtUtils.getCleanJwtCookie().toString());
+        response.addHeader("Set-Cookie", jwtUtils.getCleanJwtCookie("/", "Lax").toString());
     }
 
     /**

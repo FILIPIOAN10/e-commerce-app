@@ -148,6 +148,8 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         if (skipVerificationEmail) {
+            user.setVerified(true);
+            userRepository.save(user);
             return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
         }
 

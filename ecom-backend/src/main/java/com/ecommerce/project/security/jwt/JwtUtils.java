@@ -95,11 +95,21 @@ public class JwtUtils {
     /**
      * Returns a clean cookie used to clear authentication state.
      */
-    public ResponseCookie getCleanJwtCookie(){
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null)
-                .path("/api")
+    public ResponseCookie getCleanJwtCookie() {
+        return getCleanJwtCookie("/api", "Strict");
+    }
+
+    /**
+     * Returns a clean cookie for a specific path and SameSite attribute.
+     */
+    public ResponseCookie getCleanJwtCookie(String path, String sameSite) {
+        return ResponseCookie.from(jwtCookie, "")
+                .path(path)
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(!"dev".equals(activeProfile))
+                .sameSite(sameSite)
                 .build();
-        return cookie;
     }
 
     // Generating Token from Username

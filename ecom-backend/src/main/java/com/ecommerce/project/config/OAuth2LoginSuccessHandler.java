@@ -6,6 +6,7 @@ import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
+import com.ecommerce.project.security.services.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.http.ResponseCookie;
+import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -31,9 +33,6 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     @Value("${frontend.url}")
     private String frontEndUrl;
 
-    @Value("${spring.profiles.active:dev}")
-    private String activeProfile;
-
     public OAuth2LoginSuccessHandler(UserRepository userRepository,
                                      RoleRepository roleRepository,
                                      JwtUtils jwtUtils,
@@ -45,6 +44,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     }
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
@@ -86,34 +86,35 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         }
 
         // FIND OR CREATE USER
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setUserName(username);
-                    newUser.setEmail(email);
-                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-                    newUser.setProvider(provider);
-                    newUser.setProviderId(providerId);
+        User user = userRepository.findByProviderId(providerId)
+                .orElseGet(() -> userRepository.findByEmail(email)
+                        .orElseGet(() -> {
+                            User newUser = new User();
+                            newUser.setUserName(username);
+                            newUser.setEmail(email);
+                            newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                            newUser.setProvider(provider);
+                            newUser.setProviderId(providerId);
+                            newUser.setVerified(true);
 
-                    Role role = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                            .orElseThrow();
+                            Role role = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                                    .orElseThrow();
 
-                    newUser.getRoles().add(role);
+                            newUser.getRoles().add(role);
 
-                    return userRepository.save(newUser);
-                });
+                            return userRepository.save(newUser);
+                        }));
+
+        // OAuth2 provider already verified the email
+        if (!user.isVerified()) {
+            user.setVerified(true);
+            user = userRepository.save(user);
+        }
 
         // GENERATE JWT
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
         String jwt = jwtUtils.generateTokenFromUsername(user.getUserName());
-
-        // SET COOKIE (for cookie-based auth) AND pass token as query param (for localStorage-based auth)
-        ResponseCookie jwtCookie = ResponseCookie.from(jwtUtils.getJwtCookieName(), jwt)
-                .path("/")
-                .maxAge(24 * 60 * 60)
-                .httpOnly(true)
-                .secure(!"dev".equals(activeProfile))
-                .sameSite("Lax")
-                .build();
 
         response.addHeader("Set-Cookie", jwtCookie.toString());
         response.sendRedirect(frontEndUrl + "/oauth2/redirect?token=" + jwt);
