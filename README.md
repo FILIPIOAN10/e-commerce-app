@@ -4,7 +4,7 @@
 ![CI](https://github.com/FILIPIOAN10/e-commerce-app/actions/workflows/ci.yml/badge.svg)
  
 ## Full-Stack E-commerce Solution
-Built a production-grade marketplace using Spring Boot 3.5, React, and Redux. Implemented separate portals for admin, customer, and seller roles with real-time inventory management, order processing, and dashboard analytics. Added low stock threshold alerts with admin/seller notifications and product image gallery support with multiple images per product.
+Built a production-grade marketplace using Spring Boot 4.1.0, React, and Redux. Implemented separate portals for admin, customer, and seller roles with real-time inventory management, order processing, and dashboard analytics. Added low stock threshold alerts with admin/seller notifications and product image gallery support with multiple images per product.
  
 ## Advanced Security & Authentication
 Integrated enterprise-level authentication using Spring Security with JWT tokens, role-based access control (RBAC), and stateless sessions. Implemented OAuth2 social login with GitHub and Google. Added TOTP-based two-factor authentication (2FA) with purpose-scoped challenge tokens to prevent token misuse. Enabled CSRF protection with CookieCsrfTokenRepository for state-changing operations. Secured secrets using HashiCorp Vault integration, separating credentials from application code. Custom exception handling with @ControllerAdvice for structured error responses.
@@ -38,7 +38,7 @@ Containerized the entire stack using Docker Compose with PostgreSQL + pgvector, 
 ## Tech Stack
  
 ### Backend
-- Java 17, Spring Boot 3.5, Spring Security, Spring AI 1.1
+- Java 17, Spring Boot 4.1.0, Spring Security, Spring AI 2.0.0, Spring Cloud 2025.1.2
 - Spring Data JPA / Hibernate, PostgreSQL 16 + pgvector
 - Flyway (versioned schema migrations)
 - Redis 7.4 (caching, rate limiting & recently viewed tracking)
