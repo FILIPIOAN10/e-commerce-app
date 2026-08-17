@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/users/reviews")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping("/{productId}")
+    @PostMapping("/users/reviews/{productId}")
     public ResponseEntity<?> addReview(
             @PathVariable Long productId,
             @RequestBody Map<String, Object> body) {
@@ -25,7 +25,7 @@ public class ReviewController {
         return ResponseEntity.ok(Map.of("message", message));
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping("/users/reviews/{productId}")
     public ResponseEntity<?> updateReview(
             @PathVariable Long productId,
             @RequestBody Map<String, Object> body) {
@@ -35,25 +35,25 @@ public class ReviewController {
         return ResponseEntity.ok(Map.of("message", message));
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/users/reviews/{productId}")
     public ResponseEntity<?> deleteReview(@PathVariable Long productId) {
         String message = reviewService.deleteReview(productId);
         return ResponseEntity.ok(Map.of("message", message));
     }
 
-    @PostMapping("/{reviewId}/helpful")
+    @PostMapping("/users/reviews/{reviewId}/helpful")
     public ResponseEntity<?> markHelpful(@PathVariable Long reviewId) {
         String message = reviewService.markReviewHelpful(reviewId);
         return ResponseEntity.ok(Map.of("message", message));
     }
 
-    @PostMapping("/{reviewId}/unhelpful")
+    @PostMapping("/users/reviews/{reviewId}/unhelpful")
     public ResponseEntity<?> markUnhelpful(@PathVariable Long reviewId) {
         String message = reviewService.markReviewUnhelpful(reviewId);
         return ResponseEntity.ok(Map.of("message", message));
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping({"/users/reviews/{productId}", "/public/products/{productId}/reviews"})
     public ResponseEntity<ReviewResponse> getProductReviews(
             @PathVariable Long productId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,

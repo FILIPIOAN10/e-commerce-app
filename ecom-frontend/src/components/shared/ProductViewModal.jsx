@@ -7,26 +7,27 @@ import { FaChevronLeft, FaChevronRight, FaStar, FaStarHalfAlt } from 'react-icon
 import ReviewsSection from './ReviewsSection';
 import QuestionsSection from './QuestionsSection';
 import SimilarProducts from './SimilarProducts';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import Breadcrumb from './Breadcrumb';
 import { recordProductView, addToCart } from '../../store/actions';
 
-function ProductViewModal({open, setOpen, product, isAvailable}) {
+function ProductViewModal({open, setOpen, product, isAvailable, onProductSelect}) {
   if (!product || typeof product !== 'object') return null;
 
   const {id, productName, categoryName, image, description,tags,quantity, price, discount, specialPrice, images, averageRating, reviewCount} = product;
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
 
   const galleryImages = images && images.length > 0 ? images : (image ? [image] : []);
   const hasGallery = galleryImages.length > 1;
 
   useEffect(() => {
-    if (open && id) {
+    if (open && id && user) {
       dispatch(recordProductView(id));
     }
-  }, [open, id, dispatch]);
+  }, [open, id, user, dispatch]);
 
   const handlePrev = () => {
     setSelectedImage((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
@@ -170,7 +171,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
                 {id && <ReviewsSection productId={id} />}
                 {id && <QuestionsSection productId={id} />}
-                {id && <SimilarProducts productId={id} />}
+                {id && <SimilarProducts productId={id} onProductClick={onProductSelect} />}
 
 
             <div className="px-6 py-4 flex justify-end gap-4">

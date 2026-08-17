@@ -229,10 +229,13 @@ const handlePaginationChange = (paginationModel) =>{
         title="Delete Product?"
         onDeleteHandler = {onDeleteHandler}/>
         <ProductViewModal
-        
           open={openProductViewModal}
           setOpen={setOpenProductViewModal}
           product={selectedProduct}
+          isAvailable={Number(selectedProduct?.quantity) > 0}
+          onProductSelect={(item) =>
+            setSelectedProduct({ ...item, id: item.productId })
+          }
         />
 
     </div>
