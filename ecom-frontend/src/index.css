@@ -86,136 +86,135 @@ layer(base);
   }
 }
 
-/* MUI Dark Mode Overrides */
+/* MUI dark mode - uses MUI CSS variables so no !important is needed */
 .dark .MuiMenu-paper,
 .dark .MuiPopover-paper,
 .dark .MuiPaper-root {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
-  border: 1px solid #374151 !important;
+  background-color: var(--mui-palette-background-paper);
+  color: var(--mui-palette-text-primary);
+  border-color: var(--mui-palette-divider);
 }
 
 .dark .MuiMenuItem-root {
-  color: #e2e8f0 !important;
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiMenuItem-root:hover {
-  background-color: #374151 !important;
+  background-color: var(--mui-palette-action-hover);
 }
 
 .dark .MuiOutlinedInput-root {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
+  background-color: var(--mui-palette-background-paper);
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiOutlinedInput-notchedOutline {
-  border-color: #4b5563 !important;
+  border-color: var(--mui-palette-divider);
 }
 
 .dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
-  border-color: #6b7280 !important;
+  border-color: var(--mui-palette-text-secondary);
 }
 
 .dark .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: #3b82f6 !important;
+  border-color: var(--mui-palette-primary-main);
 }
 
 .dark .MuiInputLabel-root {
-  color: #9ca3af !important;
+  color: var(--mui-palette-text-secondary);
 }
 
 .dark .MuiSelect-select {
-  color: #e2e8f0 !important;
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiSvgIcon-root {
-  color: #9ca3af !important;
+  color: var(--mui-palette-text-secondary);
 }
 
 /* MUI DataGrid dark mode */
 .dark .MuiDataGrid-root {
-  background-color: #1f2937 !important;
-  color: #e2e8f0 !important;
-  border-color: #374151 !important;
+  background-color: var(--mui-palette-background-paper);
+  color: var(--mui-palette-text-primary);
+  border-color: var(--mui-palette-divider);
 }
 
 .dark .MuiDataGrid-columnHeaders {
-  background-color: #111827 !important;
-  color: #e2e8f0 !important;
-  border-color: #374151 !important;
+  background-color: var(--mui-palette-background-default);
+  color: var(--mui-palette-text-primary);
+  border-color: var(--mui-palette-divider);
 }
 
 .dark .MuiDataGrid-columnHeader {
-  border-color: #374151 !important;
+  border-color: var(--mui-palette-divider);
 }
 
 .dark .MuiDataGrid-cell {
-  border-color: #374151 !important;
-  color: #e2e8f0 !important;
+  border-color: var(--mui-palette-divider);
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiDataGrid-row {
-  background-color: #1f2937 !important;
+  background-color: var(--mui-palette-background-paper);
 }
 
 .dark .MuiDataGrid-row:hover {
-  background-color: #374151 !important;
+  background-color: var(--mui-palette-action-hover);
 }
 
 .dark .MuiDataGrid-footerContainer {
-  background-color: #111827 !important;
-  color: #e2e8f0 !important;
-  border-color: #374151 !important;
+  background-color: var(--mui-palette-background-default);
+  color: var(--mui-palette-text-primary);
+  border-color: var(--mui-palette-divider);
 }
 
 .dark .MuiTablePagination-root {
-  color: #e2e8f0 !important;
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiTablePagination-actions .MuiIconButton-root {
-  color: #e2e8f0 !important;
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiTablePagination-selectLabel,
 .dark .MuiTablePagination-displayedRows {
-  color: #9ca3af !important;
+  color: var(--mui-palette-text-secondary);
 }
 
 /* MUI Pagination dark mode */
 .dark .MuiPaginationItem-root {
-  color: #e2e8f0 !important;
+  color: var(--mui-palette-text-primary);
 }
 
 .dark .MuiPaginationItem-root.Mui-selected {
-  background-color: #3b82f6 !important;
-  color: #ffffff !important;
+  background-color: var(--mui-palette-primary-main);
+  color: #ffffff;
 }
 
 .dark .MuiPaginationItem-root.Mui-selected:hover {
-  background-color: #2563eb !important;
+  background-color: var(--mui-palette-primary-dark);
 }
 
 /* MUI Tooltip dark mode */
 .dark .MuiTooltip-tooltip {
-  background-color: #374151 !important;
-  color: #e2e8f0 !important;
-  border: 1px solid #4b5563 !important;
+  background-color: var(--mui-palette-grey-700);
+  color: var(--mui-palette-text-primary);
 }
 
 /* MUI Radio dark mode */
 .dark .MuiRadio-root {
-  color: #9ca3af !important;
+  color: var(--mui-palette-text-secondary);
 }
 
 .dark .MuiRadio-root.Mui-checked {
-  color: #3b82f6 !important;
+  color: var(--mui-palette-primary-main);
 }
 
 .dark .MuiFormControlLabel-label {
-  color: #e2e8f0 !important;
+  color: var(--mui-palette-text-primary);
 }
 
 /* MUI Divider dark mode */
 .dark .MuiDivider-root {
-  border-color: #374151 !important;
+  border-color: var(--mui-palette-divider);
 }

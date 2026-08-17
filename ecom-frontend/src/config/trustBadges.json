@@ -1,0 +1,17 @@
+[
+    {
+        "id": "free-returns",
+        "label": "Free returns",
+        "icon": "return"
+    },
+    {
+        "id": "secure-payment",
+        "label": "Secure payment",
+        "icon": "lock"
+    },
+    {
+        "id": "fast-delivery",
+        "label": "Fast delivery",
+        "icon": "truck"
+    }
+]

@@ -1,0 +1,135 @@
+import api from "../../api/api";
+
+export const addToCart = (data, qty = 1, toast) =>
+    (dispatch, getState) => {
+        const { products } = getState().products;
+        const getProduct = products.find(
+            (item) => item.productId === data.productId
+        );
+
+        const stockQuantity = getProduct ? getProduct.quantity : data.quantity;
+        const isQuantityExist = Number(stockQuantity) >= qty;
+
+        if (isQuantityExist) {
+            dispatch({ type: "ADD_CART", payload: { ...data, quantity: qty } });
+            toast.success(`${data?.productName} added to the cart`);
+            localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+        } else {
+            toast.error("Out of stock");
+        }
+};
+
+export const increaseCartQuantity =
+    (data, toast) =>
+    async (dispatch) => {
+        try {
+            const { data: cart } = await api.put(`/cart/products/${data.productId}/quantity/plus`);
+            dispatch({
+                type: "GET_USER_CART_PRODUCTS",
+                payload: cart.products,
+                totalPrice: cart.totalPrice,
+                cartId: cart.cartId,
+            });
+            localStorage.setItem("cartItems", JSON.stringify(cart.products));
+            toast?.success("Quantity increased");
+        } catch (error) {
+            toast?.error(error?.response?.data?.message || "Failed to increase quantity");
+        }
+    };
+
+export const decreaseCartQuantity =
+    (data, toast) =>
+    async (dispatch) => {
+        try {
+            const { data: cart } = await api.put(`/cart/products/${data.productId}/quantity/minus`);
+            dispatch({
+                type: "GET_USER_CART_PRODUCTS",
+                payload: cart.products,
+                totalPrice: cart.totalPrice,
+                cartId: cart.cartId,
+            });
+            localStorage.setItem("cartItems", JSON.stringify(cart.products));
+            toast?.success("Quantity decreased");
+        } catch (error) {
+            toast?.error(error?.response?.data?.message || "Failed to decrease quantity");
+        }
+    };
+
+export const removeFromCart = (data, toast) => (dispatch, getState) => {
+    dispatch({ type: "REMOVE_CART", payload: data });
+    toast.success(`${data.productName} removed from cart`);
+    localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+};
+
+export const createUserCart = (sendCartItems) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        await api.post('/cart/create', sendCartItems);
+        await dispatch(getUserCart());
+    } catch (error) {
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to create cart items",
+        });
+    }
+};
+
+export const getUserCart = () => async (dispatch, getState) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        const { data } = await api.get('/carts/users/cart');
+
+        dispatch({
+            type: "GET_USER_CART_PRODUCTS",
+            payload: data.products,
+            totalPrice: data.totalPrice,
+            cartId: data.cartId
+        });
+        localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        dispatch({
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch cart items",
+        });
+    }
+};
+
+export const saveItemForLater = (cartItemId, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.put(`/cart/items/${cartItemId}/save-for-later`);
+        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: data });
+        if (toast) toast.success("Item saved for later");
+    } catch (error) {
+        if (toast) toast.error(error?.response?.data?.message || "Failed to save item");
+    }
+};
+
+export const moveItemToCart = (cartItemId, toast) => async (dispatch) => {
+    try {
+        const { data } = await api.put(`/cart/items/${cartItemId}/move-to-cart`);
+        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: data });
+        if (toast) toast.success("Item moved to cart");
+    } catch (error) {
+        if (toast) toast.error(error?.response?.data?.message || "Failed to move item");
+    }
+};
+
+export const createCartWithFilteredItems =
+    (cartItems, toast, setLoader) => async (dispatch) => {
+        try {
+            setLoader(true);
+            const { data } = await api.post("/cart/create", cartItems);
+            toast.success("Cart updated! Items with invalid quantity were filtered out.");
+            dispatch({ type: "IS_SUCCESS" });
+            return data;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Failed to create cart");
+            dispatch({
+                type: "IS_ERROR",
+                payload: error?.response?.data?.message || "Failed to created cart",
+            });
+        } finally {
+            setLoader(false);
+        }
+    };
