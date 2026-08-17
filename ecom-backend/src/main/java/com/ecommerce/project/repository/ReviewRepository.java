@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
@@ -23,6 +24,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Double getAverageRatingForProduct(@Param("product") Product product);
 
     long countByProduct(Product product);
+
+    @Query("SELECT r.product.productId, COALESCE(AVG(r.rating), 0) FROM Review r WHERE r.product.productId IN :productIds GROUP BY r.product.productId")
+    List<Object[]> getAverageRatingsForProductIds(@Param("productIds") List<Long> productIds);
+
+    @Query("SELECT r.product.productId, COUNT(r) FROM Review r WHERE r.product.productId IN :productIds GROUP BY r.product.productId")
+    List<Object[]> getReviewCountsForProductIds(@Param("productIds") List<Long> productIds);
 
     @Query("SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END " +
             "FROM OrderItem oi JOIN oi.order o " +

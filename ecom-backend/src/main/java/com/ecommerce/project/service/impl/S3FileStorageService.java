@@ -3,6 +3,7 @@ package com.ecommerce.project.service.impl;
 import com.ecommerce.project.service.FileService;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,5 +55,34 @@ public class S3FileStorageService implements FileService {
         }
 
         return publicUrl + "/" + bucketName + "/" + objectName;
+    }
+
+    @Override
+    public void deleteImage(String path, String imageName) throws IOException {
+        if (imageName == null || imageName.isBlank()) {
+            return;
+        }
+        String publicUrlPrefix = publicUrl + "/" + bucketName + "/";
+        String objectName;
+        if (imageName.startsWith(publicUrlPrefix)) {
+            objectName = imageName.substring(publicUrlPrefix.length());
+        } else if (imageName.startsWith("http://") || imageName.startsWith("https://")) {
+            return;
+        } else {
+            String folder = path != null && path.endsWith("/") ? path.substring(0, path.length() - 1)
+                    : (path != null ? path : "uploads");
+            objectName = folder + "/" + imageName;
+        }
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build()
+            );
+        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException e) {
+            log.error("Failed to delete image from S3/MinIO: {}", e.getMessage());
+            throw new IOException("Image deletion failed", e);
+        }
     }
 }
