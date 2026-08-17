@@ -47,4 +47,15 @@ public class FileServiceImpl implements FileService {
         // returning file name
         return fileName;
     }
+
+    @Override
+    public void deleteImage(String path, String imageName) throws IOException {
+        if (imageName == null || imageName.isBlank() || imageName.startsWith("http://") || imageName.startsWith("https://")) {
+            return;
+        }
+        File file = new File(path + File.separator + imageName);
+        if (file.exists() && !file.delete()) {
+            throw new IOException("Failed to delete image: " + file.getAbsolutePath());
+        }
+    }
 }

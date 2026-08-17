@@ -22,6 +22,7 @@ import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.util.AuthUtil;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -146,9 +148,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products = pageProducts.getContent();
 
         // Transformation of the list of products into product response
-        List<ProductDTO> productDTOs = products.stream()
-                .map(this::mapProductToDTO)
-                .toList();
+        List<ProductDTO> productDTOs = mapProductsToDTOs(products);
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOs);
         productResponse.setPageNumber(pageProducts.getNumber());
@@ -198,19 +198,24 @@ public class ProductServiceImpl implements ProductService {
         List<String> terms = parseSearchTerms(query);
         List<String> classicTerms = hasCommaSeparatedTerms ? terms : buildClassicFallbackTerms(query);
         Sort sortByAndOrder = buildProductSort(sortBy,sortOrder);
-        List<Product> classicProducts = productRepository.findAll(buildClassicSearchSpec(classicTerms),sortByAndOrder);
         boolean shouldUseSemanticSearch = Boolean.TRUE.equals(semantic)
                 && productSemanticSearchService.isEnabled()
                 && !terms.isEmpty();
 
-
         if(!shouldUseSemanticSearch){
-            return buildProductResponse(classicProducts,pageNumber,pageSize);
+            Pageable pageDetails = PageRequest.of(
+                    pageNumber == null ? 0 : pageNumber,
+                    pageSize == null ? 10 : pageSize,
+                    sortByAndOrder);
+            Page<Product> classicPage = productRepository.findAll(buildClassicSearchSpec(classicTerms), pageDetails);
+            return buildProductResponse(classicPage);
         }
 
         int safePageNumber = pageNumber == null ? 0 : Math.max(pageNumber,0);
         int safePageSize   = pageSize == null ? 10: Math.max(pageSize,1);
         int semanticLimit = Math.max(semanticTopK,(safePageNumber +1) *safePageSize);
+        List<Product> classicProducts = productRepository.findAll(
+                buildClassicSearchSpec(classicTerms), PageRequest.of(0, semanticLimit, sortByAndOrder)).getContent();
         List<Long> semanticProductIds = searchSemanticProductIds(query,terms,hasCommaSeparatedTerms,semanticLimit);
         List<Product> semanticProducts = findProductsByOrderedIds(semanticProductIds);
         List<Product> products = hasCommaSeparatedTerms
@@ -254,9 +259,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Transformation of the list of products into product response
-        List<ProductDTO> productDTOs = products.stream()
-                .map(product -> modelMapper.map(product, ProductDTO.class))
-                .collect(Collectors.toList());
+        List<ProductDTO> productDTOs = mapProductsToDTOs(products);
 
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOs);
@@ -283,9 +286,7 @@ public class ProductServiceImpl implements ProductService {
         // check if product size is 0 or not
         List<Product> products = pageProducts.getContent();
         // Transformation of the list of products into product response
-        List<ProductDTO> productDTOs = products.stream()
-                .map(product -> modelMapper.map(product, ProductDTO.class))
-                .collect(Collectors.toList());
+        List<ProductDTO> productDTOs = mapProductsToDTOs(products);
 
         if (products.isEmpty()) {
             throw new APIException("Products not found with keyword " + keyword);
@@ -303,6 +304,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Caching(evict = {
+            @CacheEvict(value = "product", key = "#productId"),
             @CacheEvict(value = "publicProducts", allEntries = true),
             @CacheEvict(value = "categoryProducts", allEntries = true),
             @CacheEvict(value = "productSearch", allEntries = true),
@@ -322,6 +324,8 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setPrice(product.getPrice());
         productFromDB.setSpecialPrice(calculateSpecialPrice(product.getPrice(),product.getDiscount()));
         productFromDB.setTags(product.getTags());
+        productFromDB.setImage(productDTO.getImage() != null && !productDTO.getImage().isBlank()
+                ? productDTO.getImage() : productFromDB.getImage());
 
 
         // Save to database
@@ -345,6 +349,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Caching(evict = {
+            @CacheEvict(value = "product", key = "#productId"),
             @CacheEvict(value = "publicProducts",allEntries = true),
             @CacheEvict(value = "categoryProducts",allEntries = true),
             @CacheEvict(value = "productSearch",allEntries = true)
@@ -353,17 +358,19 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
+        deleteProductImages(product);
 
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
         carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(),productId));
 
         productRepository.delete(product);
         productSemanticSearchService.deleteProduct(productId);
-        return modelMapper.map(product, ProductDTO.class);
+        return mapProductToDTO(product);
     }
 
     @Override
     @Caching(evict = {
+            @CacheEvict(value = "product", key = "#productId"),
             @CacheEvict(value = "publicProducts",allEntries = true),
             @CacheEvict(value = "categoryProducts",allEntries = true),
             @CacheEvict(value = "productSearch",allEntries = true)
@@ -384,11 +391,12 @@ public class ProductServiceImpl implements ProductService {
         Product updatedProduct = productRepository.save(productFromDb);
         productSemanticSearchService.indexProduct(updatedProduct);
         // return DTO after mapping product to DTO
-        return modelMapper.map(updatedProduct, ProductDTO.class);
+        return mapProductToDTO(updatedProduct);
     }
 
     @Override
     @Caching(evict = {
+            @CacheEvict(value = "product", key = "#productId"),
             @CacheEvict(value = "publicProducts",allEntries = true),
             @CacheEvict(value = "categoryProducts",allEntries = true),
             @CacheEvict(value = "productSearch",allEntries = true)
@@ -417,6 +425,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Caching(evict = {
+            @CacheEvict(value = "product", key = "#productId"),
             @CacheEvict(value = "publicProducts",allEntries = true),
             @CacheEvict(value = "categoryProducts",allEntries = true),
             @CacheEvict(value = "productSearch",allEntries = true)
@@ -474,6 +483,10 @@ public class ProductServiceImpl implements ProductService {
         };
     }
     private ProductDTO mapProductToDTO(Product product){
+        return mapProductToDTO(product, Map.of(), Map.of());
+    }
+
+    private ProductDTO mapProductToDTO(Product product, Map<Long, Double> avgRatings, Map<Long, Long> reviewCounts){
         ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
         productDTO.setImage(constructImageUrl(product.getImage()));
         productDTO.setTags(product.getTags());
@@ -484,8 +497,15 @@ public class ProductServiceImpl implements ProductService {
                 : List.of();
         productDTO.setImages(imageUrls);
 
-        Double avgRating = reviewRepository.getAverageRatingForProduct(product);
-        long reviewCount = reviewRepository.countByProduct(product);
+        Long productId = product.getProductId();
+        Double avgRating = avgRatings.get(productId);
+        if (avgRating == null) {
+            avgRating = reviewRepository.getAverageRatingForProduct(product);
+        }
+        Long reviewCount = reviewCounts.get(productId);
+        if (reviewCount == null) {
+            reviewCount = reviewRepository.countByProduct(product);
+        }
         productDTO.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
         productDTO.setReviewCount(reviewCount);
         productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
@@ -494,10 +514,30 @@ public class ProductServiceImpl implements ProductService {
         return productDTO;
     }
 
-    private ProductResponse buildProductResponse(Page<Product> pageProducts){
-        List<ProductDTO> productDTOS = pageProducts.getContent().stream()
-                .map(this::mapProductToDTO)
+    private List<ProductDTO> mapProductsToDTOs(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return List.of();
+        }
+        List<Long> productIds = products.stream()
+                .map(Product::getProductId)
                 .toList();
+        Map<Long, Double> avgRatings = new HashMap<>();
+        Map<Long, Long> reviewCounts = new HashMap<>();
+        for (Long productId : productIds) {
+            avgRatings.put(productId, 0.0);
+            reviewCounts.put(productId, 0L);
+        }
+        reviewRepository.getAverageRatingsForProductIds(productIds)
+                .forEach(row -> avgRatings.put((Long) row[0], (Double) row[1]));
+        reviewRepository.getReviewCountsForProductIds(productIds)
+                .forEach(row -> reviewCounts.put((Long) row[0], (Long) row[1]));
+        return products.stream()
+                .map(p -> mapProductToDTO(p, avgRatings, reviewCounts))
+                .toList();
+    }
+
+    private ProductResponse buildProductResponse(Page<Product> pageProducts){
+        List<ProductDTO> productDTOS = mapProductsToDTOs(pageProducts.getContent());
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
         productResponse.setPageNumber(pageProducts.getNumber());
@@ -513,9 +553,7 @@ public class ProductServiceImpl implements ProductService {
         int safePageSize = pageSize == null ?  10 : Math.max(pageSize,1);
         int fromIndex = Math.min(safePageNumber * safePageSize,products.size());
         int toIndex = Math.min(fromIndex+safePageSize,products.size());
-        List<ProductDTO> productDTOS = products.subList(fromIndex,toIndex).stream()
-                .map(this::mapProductToDTO)
-                .toList();
+        List<ProductDTO> productDTOS = mapProductsToDTOs(products.subList(fromIndex, toIndex));
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
         productResponse.setPageNumber(safePageNumber);
@@ -524,6 +562,28 @@ public class ProductServiceImpl implements ProductService {
         productResponse.setTotalPages((int) Math.ceil((double) products.size() / safePageSize));
         productResponse.setLastPage(toIndex>=products.size());
         return productResponse;
+    }
+
+    private void deleteProductImages(Product product) {
+        if (product == null) {
+            return;
+        }
+        deleteProductImage(product.getImage());
+        List<ProductImage> galleryImages = productImageRepository.findByProduct_ProductId(product.getProductId());
+        if (galleryImages != null) {
+            galleryImages.forEach(img -> deleteProductImage(img.getImageName()));
+        }
+    }
+
+    private void deleteProductImage(String imageName) {
+        if (imageName == null || imageName.isBlank() || "cal.png".equals(imageName) || imageName.endsWith("/cal.png")) {
+            return;
+        }
+        try {
+            fileService.deleteImage(path, imageName);
+        } catch (IOException e) {
+            log.warn("Failed to delete product image {}: {}", imageName, e.getMessage());
+        }
     }
 
     private List<Product> mergePrioritizedProducts(List<Product> primaryProducts,List<Product> secondaryProducts){
@@ -606,24 +666,25 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductDTO> getBestSellers(int limit) {
         List<Product> products = productRepository.findBestSellingProducts(
                 PageRequest.of(0, limit));
-        return products.stream().map(this::mapProductToDTO).toList();
+        return mapProductsToDTOs(products);
     }
 
     @Override
     public List<ProductDTO> getNewArrivals(int limit) {
         List<Product> products = productRepository.findAllByOrderByProductIdDesc(
                 PageRequest.of(0, limit));
-        return products.stream().map(this::mapProductToDTO).toList();
+        return mapProductsToDTOs(products);
     }
 
     @Override
     public List<ProductDTO> getOnSaleProducts(int limit) {
         List<Product> products = productRepository.findOnSaleProducts(
                 PageRequest.of(0, limit));
-        return products.stream().map(this::mapProductToDTO).toList();
+        return mapProductsToDTOs(products);
     }
 
     @Override
+    @Cacheable(value = "product", key = "#productId")
     public ProductDTO getProductById(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));

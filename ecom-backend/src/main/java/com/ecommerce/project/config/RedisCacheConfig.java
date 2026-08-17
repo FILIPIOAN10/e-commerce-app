@@ -40,7 +40,8 @@ public class RedisCacheConfig {
                 "publicCategories",defaultConfiguration.entryTtl(Duration.ofMinutes(30)),
                 "publicProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
                 "categoryProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
-                "productSearch",defaultConfiguration.entryTtl(Duration.ofMinutes(5))
+                "productSearch",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
+                "product",defaultConfiguration.entryTtl(Duration.ofMinutes(30))
         );
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfiguration)
