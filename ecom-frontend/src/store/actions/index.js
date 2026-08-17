@@ -56,6 +56,20 @@ export const fetchCategories = () => async (dispatch) => {
     }
 };
 
+export const fetchProductById = (productId) => async (dispatch) => {
+    try {
+        dispatch({ type: "IS_FETCHING" });
+        const { data } = await api.get(`/public/products/${productId}`);
+        dispatch({ type: "FETCH_PRODUCT", payload: data });
+        dispatch({ type: "IS_SUCCESS" });
+    } catch (error) {
+        dispatch({ 
+            type: "IS_ERROR",
+            payload: error?.response?.data?.message || "Failed to fetch product",
+         });
+    }
+};
+
 
 export const addToCart = (data, qty = 1, toast) =>
     (dispatch, getState) => {

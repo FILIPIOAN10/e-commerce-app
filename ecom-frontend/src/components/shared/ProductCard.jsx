@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaHeart, FaStar, FaStarHalfAlt, FaBalanceScale, FaCheck } from "react-icons/fa";
-import ProductViewModal from "./ProductViewModal";
 import truncateText from "../../utils/truncateText";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
@@ -21,9 +20,8 @@ const ProductCard = ({
         categoryName,
         about = false,
 }) => {
-    const [openProductViewModal, setOpenProductViewModal] = useState(false);
+    const navigate = useNavigate();
     const btnLoader = false;
-    const [selectedViewProduct, setSelectedViewProduct] = useState(null);
     const isAvailable = quantity && Number(quantity) > 0;
     const dispatch = useDispatch();
 
@@ -48,10 +46,9 @@ const ProductCard = ({
         toast.success("Added to compare");
     };
 
-    const handleProductView = (product) => {
+    const handleProductView = () => {
         if (!about) {
-            setSelectedViewProduct(product);
-            setOpenProductViewModal(true);
+            navigate(`/products/${productId}`);
         }
     };
 
@@ -61,7 +58,7 @@ const ProductCard = ({
 
     return (
         <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 dark:bg-gray-800 dark:border-gray-700">
-            <div onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryName, averageRating, reviewCount })}
+            <div onClick={handleProductView}
                 className="w-full overflow-hidden aspect-3/2">
                 <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
                     src={image}
@@ -91,7 +88,7 @@ const ProductCard = ({
                         </button>
                     </div>
                 )}
-                <h2 onClick={() => handleProductView({ id: productId, productName, image, description, quantity, price, discount, specialPrice, images, categoryName, averageRating, reviewCount })}
+                <h2 onClick={handleProductView}
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
                     {truncateText(productName, 50)}
                 </h2>
@@ -170,14 +167,6 @@ const ProductCard = ({
                     </div>
                 )}
             </div>
-            {selectedViewProduct && (
-                <ProductViewModal
-                    open={openProductViewModal}
-                    setOpen={setOpenProductViewModal}
-                    product={selectedViewProduct}
-                    isAvailable={isAvailable}
-                />
-            )}
         </div>
     );
 };

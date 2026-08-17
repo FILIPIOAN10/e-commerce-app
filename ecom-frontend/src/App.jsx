@@ -10,6 +10,7 @@ import Loader from './components/shared/Loader'
 
 const Home = lazy(() => import('./components/home/Home'))
 const Products = lazy(() => import('./components/products/Products'))
+const ProductDetail = lazy(() => import('./components/products/ProductDetail'))
 const About = lazy(() => import('./components/About'))
 const Contact = lazy(() => import('./components/Contact'))
 const Cart = lazy(() => import('./components/cart/Cart'))
@@ -53,6 +54,7 @@ function App() {
       <Routes>
         <Route  path='/' element ={<Home/>} />
         <Route  path='/products' element ={<Products/>} />
+        <Route  path='/products/:productId' element ={<ProductDetail/>} />
         <Route  path='/about' element ={<About/>} />
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />

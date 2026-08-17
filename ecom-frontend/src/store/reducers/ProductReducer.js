@@ -1,5 +1,6 @@
 const initialState = {
     products: null,
+    selectedProduct: null,
     categories: null,
     lowStockProducts: null,
     lowStockCount: 0,
@@ -103,6 +104,16 @@ export const productReducer = (state = initialState, action ) => {
                     lastPage : action.lastPage,
                 },
 
+            };
+        case "FETCH_PRODUCT":
+            return {
+                ...state,
+                selectedProduct: action.payload,
+            };
+        case "CLEAR_SELECTED_PRODUCT":
+            return {
+                ...state,
+                selectedProduct: null,
             };
         case "FETCH_RECENTLY_VIEWED":
             return {

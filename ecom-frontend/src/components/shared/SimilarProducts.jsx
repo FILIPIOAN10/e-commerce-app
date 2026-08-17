@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { fetchSimilarProducts } from "../../store/actions";
 import { FaTags } from "react-icons/fa";
 
-const SimilarProducts = ({ productId }) => {
+const SimilarProducts = ({ productId, onProductClick }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { similarProducts } = useSelector((state) => state.products);
 
     useEffect(() => {
@@ -17,8 +19,16 @@ const SimilarProducts = ({ productId }) => {
         return null;
     }
 
+    const handleClick = (item) => {
+        if (onProductClick) {
+            onProductClick(item);
+        } else {
+            navigate(`/products/${item.productId}`);
+        }
+    };
+
     return (
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-2 py-4">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
                 <FaTags className="text-blue-500" />
                 Similar Products
@@ -28,10 +38,7 @@ const SimilarProducts = ({ productId }) => {
                     <div
                         key={item.productId}
                         className="flex flex-col items-center text-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer"
-                        onClick={() => {
-                            const event = new CustomEvent("openProduct", { detail: item });
-                            window.dispatchEvent(event);
-                        }}
+                        onClick={() => handleClick(item)}
                     >
                         {item.image && (
                             <img
