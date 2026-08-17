@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { ThemeProvider as MUIThemeProvider } from "@mui/material/styles";
+import { muiTheme } from "../theme/muiTheme";
 
 const ThemeContext = createContext();
 
@@ -22,9 +24,11 @@ export const ThemeProvider = ({ children }) => {
     const toggleTheme = () => setIsDark((prev) => !prev);
 
     return (
-        <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-            {children}
-        </ThemeContext.Provider>
+        <MUIThemeProvider theme={muiTheme}>
+            <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+                {children}
+            </ThemeContext.Provider>
+        </MUIThemeProvider>
     );
 };
 

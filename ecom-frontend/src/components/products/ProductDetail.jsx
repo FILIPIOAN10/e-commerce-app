@@ -19,6 +19,8 @@ import Breadcrumb from "../shared/Breadcrumb";
 import ReviewsSection from "../shared/ReviewsSection";
 import QuestionsSection from "../shared/QuestionsSection";
 import SimilarProducts from "../shared/SimilarProducts";
+import TrustBadges from "../shared/TrustBadges";
+import { Helmet } from "react-helmet-async";
 import {
   fetchProductById,
   recordProductView,
@@ -200,6 +202,14 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 dark:text-gray-100">
+      <Helmet>
+        <title>{`${productName} | E-Commerce`}</title>
+        <meta name="description" content={description?.substring(0, 160) || productName} />
+        <meta property="og:title" content={productName} />
+        <meta property="og:description" content={description?.substring(0, 160) || productName} />
+        <meta property="og:type" content="product" />
+        {image && <meta property="og:image" content={image} />}
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Breadcrumb items={breadcrumbItems} />
 
@@ -384,26 +394,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800 pt-6">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-500 text-lg">
-                  <FaCheck />
-                </span>
-                Free returns
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-blue-500 text-lg">
-                  <FaCheck />
-                </span>
-                Secure payment
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-blue-500 text-lg">
-                  <FaCheck />
-                </span>
-                Fast delivery
-              </div>
-            </div>
+            <TrustBadges />
           </div>
         </div>
 
