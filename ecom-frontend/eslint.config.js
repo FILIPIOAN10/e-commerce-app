@@ -24,6 +24,7 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]', caughtErrorsIgnorePattern: '^_' }],
+      // Keep as warning until the intentional init/fetch patterns that trigger it are refactored
       'react-hooks/set-state-in-effect': 'warn',
     },
   },
