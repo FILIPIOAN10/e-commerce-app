@@ -130,7 +130,25 @@ services:
       SPRING_MAIL_PROPERTIES_MAIL_DEBUG: ${SPRING_MAIL_DEBUG:-false}
       APP_SKIP_VERIFICATION_EMAIL: ${APP_SKIP_VERIFICATION_EMAIL:-true}
 
+  frontend:
+    image: node:22-alpine
+    container_name: ecommerce-frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ecom-frontend:/app
+      - frontend-node_modules:/app/node_modules
+    environment:
+      VITE_BACK_END_URL: ${VITE_BACK_END_URL:-http://localhost:8080}
+      CHOKIDAR_USEPOLLING: "true"
+    depends_on:
+      backend:
+        condition: service_started
+
 volumes:
   redis-data:
   postgres-data:
   backend-m2:
+  frontend-node_modules:
