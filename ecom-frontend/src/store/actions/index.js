@@ -856,7 +856,7 @@ export const fetchWishlist = (pageNumber = 0, pageSize = 10) => async (dispatch)
 export const fetchProductReviews = (productId, pageNumber = 0, pageSize = 10) => async (dispatch) => {
     try {
         dispatch({ type: "reviewError", payload: null });
-        const { data } = await api.get(`/users/reviews/${productId}?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        const { data } = await api.get(`/public/products/${productId}/reviews?pageNumber=${pageNumber}&pageSize=${pageSize}`);
         dispatch({ type: "fetchReviewsSuccess", payload: data });
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to fetch reviews";
