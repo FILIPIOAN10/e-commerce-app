@@ -44,8 +44,9 @@ public class EmailService {
             ));
             helper.setText(html, true);
             mailSender.send(mimeMessage);
+            log.info("Password reset email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
-            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            log.error("Failed to send password reset email to {}", toEmail, e);
         }
     }
     public void sendVerificationEmail(String toEmail, String token) {
@@ -62,8 +63,9 @@ public class EmailService {
             ));
             helper.setText(html, true);
             mailSender.send(mimeMessage);
+            log.info("Verification email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
-            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
+            log.error("Failed to send verification email to {}", toEmail, e);
         }
     }
 
@@ -101,8 +103,9 @@ public class EmailService {
             helper.addAttachment("invoice-" + order.getOrderId() + ".pdf", new ByteArrayResource(invoicePdf));
 
             mailSender.send(mimeMessage);
+            log.info("Order confirmation email handed off to SMTP for {}", toEmail);
         } catch (MessagingException e) {
-            log.error("Failed to send order confirmation email with invoice to {}: {}", toEmail, e.getMessage());
+            log.error("Failed to send order confirmation email with invoice to {}", toEmail, e);
         }
     }
 
@@ -130,8 +133,9 @@ public class EmailService {
             ));
             helper.setText(html, true);
             mailSender.send(mimeMessage);
+            log.info("Order status email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
-            log.error("Failed to send order status email to {}: {}", toEmail, e.getMessage());
+            log.error("Failed to send order status email to {}", toEmail, e);
         }
     }
 
@@ -144,8 +148,9 @@ public class EmailService {
             helper.setSubject("Contact Form Message from " + name);
             helper.setText("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + userMessage, false);
             mailSender.send(mimeMessage);
+            log.info("Contact message handed off to SMTP from {}", email);
         } catch (Exception e) {
-            log.error("Failed to send contact message: {}", e.getMessage());
+            log.error("Failed to send contact message", e);
         }
     }
 }
