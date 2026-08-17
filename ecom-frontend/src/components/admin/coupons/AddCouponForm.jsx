@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { createCouponAction, updateCouponAction } from "../../../store/actions";
 import InputField from "../../shared/InputField";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 const AddCouponForm = ({ setOpen, open, coupon, update = false }) => {
     const dispatch = useDispatch();
@@ -13,7 +13,7 @@ const AddCouponForm = ({ setOpen, open, coupon, update = false }) => {
         handleSubmit,
         reset,
         setValue,
-        watch,
+        control,
         formState: { errors },
     } = useForm({
         mode: "onTouched",
@@ -26,7 +26,7 @@ const AddCouponForm = ({ setOpen, open, coupon, update = false }) => {
         },
     });
 
-    const isActive = watch("active");
+    const isActive = useWatch({ control, name: "active" });
 
     useEffect(() => {
         if (update && coupon) {

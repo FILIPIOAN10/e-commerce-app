@@ -14,7 +14,6 @@ const ProductCard = ({
         price,
         discount,
         specialPrice,
-        images,
         averageRating,
         reviewCount,
         categoryName,

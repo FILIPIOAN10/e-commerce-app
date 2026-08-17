@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { use2FA } from '../../hooks/use2FA';
 import Setup2FA from '../auth/Setup2FA';
 import './TwoFactorSettings.css';
@@ -10,12 +10,7 @@ const TwoFactorSettings = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [disableConfirm, setDisableConfirm] = useState(false);
 
-  // Fetch 2FA status on component mount
-  useEffect(() => {
-    fetchStatus();
-  }, []);
-
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setStatusLoading(true);
       setError(null);
@@ -25,7 +20,12 @@ const TwoFactorSettings = () => {
     } finally {
       setStatusLoading(false);
     }
-  };
+  }, [get2FAStatus, setError]);
+
+  // Fetch 2FA status on component mount
+  useEffect(() => {
+    fetchStatus();
+  }, [fetchStatus]);
 
   const handleDisable = async () => {
     try {

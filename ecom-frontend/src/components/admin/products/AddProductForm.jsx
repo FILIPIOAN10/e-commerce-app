@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import InputField from '../../shared/InputField';
 import { Button, Skeleton } from '@mui/material';
 import {addNewProductFromDashboard, fetchCategories, updateProductFromDashboard } from '../../../store/actions';
@@ -22,14 +22,14 @@ const AddProductForm = ({setOpen,product,update=false}) => {
         handleSubmit,
         reset,
         setValue,
-        watch,
+        control,
         formState: { errors}
         } = useForm({
             mode :"onTouched"
         });
     
-    const price = watch("price");
-    const discount = watch("discount");
+    const price = useWatch({ control, name: "price" });
+    const discount = useWatch({ control, name: "discount" });
     const calculateSpecialPrice = (priceValue, discountValue) =>{
         const numericPrice = Number(priceValue);
         const numericDiscount= Number(discountValue || 0);
@@ -90,7 +90,7 @@ const AddProductForm = ({setOpen,product,update=false}) => {
                 setValue("description",product?.description);
                 setValue("tags",product?.tags || "");
             }
-        },[update,product]);
+        },[update,product,setValue]);
 
         useEffect( () => {
             if(!update){

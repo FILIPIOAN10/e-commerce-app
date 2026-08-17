@@ -1,5 +1,3 @@
-import { Icon } from "@mui/material";
-
 const Status =({text,icon:Icon,bg,color}) => {
     return (
         <div 

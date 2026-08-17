@@ -6,7 +6,7 @@ import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
 import UserMenu from "../UserMenu";
-import { useTheme } from "../../context/ThemeContext";
+import { useTheme } from "../../hooks/useTheme";
 import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {

@@ -1,6 +1,6 @@
 import api from "../../api/api";
 
-export const analyticsAction = () => async (dispatch, getState) => {
+export const analyticsAction = () => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
         const { data } = await api.get('/admin/app/analytics');

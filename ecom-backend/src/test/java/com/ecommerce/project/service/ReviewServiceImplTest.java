@@ -192,4 +192,46 @@ class ReviewServiceImplTest {
         assertEquals(4.5, response.getAverageRating());
         assertEquals(1L, response.getTotalReviews());
     }
+
+    @Test
+    @DisplayName("markReviewHelpful increments helpful count")
+    void markReviewHelpful_success() {
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+
+        String result = reviewService.markReviewHelpful(1L);
+
+        assertEquals("Marked as helpful", result);
+        assertEquals(1, review.getHelpfulCount());
+        verify(reviewRepository).save(review);
+    }
+
+    @Test
+    @DisplayName("markReviewHelpful throws when review not found")
+    void markReviewHelpful_notFound_throws() {
+        when(reviewRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> reviewService.markReviewHelpful(99L));
+    }
+
+    @Test
+    @DisplayName("markReviewUnhelpful increments unhelpful count")
+    void markReviewUnhelpful_success() {
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+
+        String result = reviewService.markReviewUnhelpful(1L);
+
+        assertEquals("Marked as unhelpful", result);
+        assertEquals(1, review.getUnhelpfulCount());
+        verify(reviewRepository).save(review);
+    }
+
+    @Test
+    @DisplayName("markReviewUnhelpful throws when review not found")
+    void markReviewUnhelpful_notFound_throws() {
+        when(reviewRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> reviewService.markReviewUnhelpful(99L));
+    }
 }

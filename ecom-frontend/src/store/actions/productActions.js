@@ -71,7 +71,7 @@ export const fetchProductById = (productId) => async (dispatch) => {
 export const recordProductView = (productId) => async () => {
     try {
         await api.post(`/user/products/${productId}/view`);
-    } catch (error) {
+    } catch {
         // silently ignore - product view tracking is non-critical
     }
 };
@@ -90,7 +90,7 @@ export const fetchRecommendedProducts = (limit = 8) => async (dispatch) => {
         const { data } = await api.get(`/user/recommendations?limit=${limit}`);
         dispatch({ type: "SET_RECOMMENDED_PRODUCTS", payload: data });
         return data;
-    } catch (error) {
+    } catch {
         dispatch({ type: "SET_RECOMMENDED_PRODUCTS", payload: [] });
     }
 };
@@ -100,7 +100,7 @@ export const fetchSimilarProducts = (productId, limit = 4) => async (dispatch) =
         const { data } = await api.get(`/public/products/${productId}/similar?limit=${limit}`);
         dispatch({ type: "SET_SIMILAR_PRODUCTS", payload: data });
         return data;
-    } catch (error) {
+    } catch {
         dispatch({ type: "SET_SIMILAR_PRODUCTS", payload: [] });
     }
 };
@@ -109,7 +109,7 @@ export const fetchBestSellers = (limit = 8) => async (dispatch) => {
     try {
         const { data } = await api.get(`/public/products/best-sellers?limit=${limit}`);
         dispatch({ type: "SET_BEST_SELLERS", payload: data });
-    } catch (error) {
+    } catch {
         dispatch({ type: "SET_BEST_SELLERS", payload: [] });
     }
 };
@@ -118,7 +118,7 @@ export const fetchNewArrivals = (limit = 8) => async (dispatch) => {
     try {
         const { data } = await api.get(`/public/products/new-arrivals?limit=${limit}`);
         dispatch({ type: "SET_NEW_ARRIVALS", payload: data });
-    } catch (error) {
+    } catch {
         dispatch({ type: "SET_NEW_ARRIVALS", payload: [] });
     }
 };
@@ -127,7 +127,7 @@ export const fetchOnSaleProducts = (limit = 8) => async (dispatch) => {
     try {
         const { data } = await api.get(`/public/products/on-sale?limit=${limit}`);
         dispatch({ type: "SET_ON_SALE", payload: data });
-    } catch (error) {
+    } catch {
         dispatch({ type: "SET_ON_SALE", payload: [] });
     }
 };

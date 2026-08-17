@@ -192,9 +192,10 @@ function renderSpecValue(spec, product, renderStars) {
             ) : (
                 <span className="text-red-500 font-medium">Out of Stock</span>
             );
-        default:
+        default: {
             const value = product[spec.key];
             return value ? <span>{value}</span> : <span className="text-gray-400">—</span>;
+        }
     }
 }
 

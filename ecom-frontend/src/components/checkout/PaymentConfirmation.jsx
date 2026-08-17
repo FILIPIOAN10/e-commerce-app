@@ -41,7 +41,7 @@ const PaymentConfirmation = () => {
                 console.log(sendData);
             dispatch(stripePaymentConfirmation(sendData, setErrorMessage,setLoading,toast));
         }
-    },[paymentIntent,clientSecret,redirectStatus,cart]);
+    },[paymentIntent,clientSecret,redirectStatus,cart,dispatch,selectedUserCheckoutAddress]);
   return (
     <div className='min-h-screen flex items-center justify-center dark:bg-gray-950'>
       {loading ? (

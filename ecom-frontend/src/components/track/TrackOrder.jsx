@@ -11,6 +11,7 @@ const TrackOrder = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [order, setOrder] = useState(null);
+    const steps = ["Placed", "Packed", "Shipped", "Delivered"];
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -109,7 +110,6 @@ const TrackOrder = () => {
                                         { label: "Shipped", icon: "🚚" },
                                         { label: "Delivered", icon: "✅" },
                                     ].map((step, index) => {
-                                        const steps = ["Placed", "Packed", "Shipped", "Delivered"];
                                         const currentIndex = steps.indexOf(order.orderStatus);
                                         const isCompleted = index <= currentIndex;
                                         return (

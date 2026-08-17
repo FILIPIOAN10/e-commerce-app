@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchLowStockCount } from '../../store/actions';
 
-const SideBar = ({isProfile = false}) => {
+const SideBar = () => {
   
     const pathName = useLocation().pathname;
     const {user} = useSelector((state) => state.auth);

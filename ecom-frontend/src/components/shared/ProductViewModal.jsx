@@ -13,21 +13,22 @@ import Breadcrumb from './Breadcrumb';
 import { recordProductView, addToCart } from '../../store/actions';
 
 function ProductViewModal({open, setOpen, product, isAvailable, onProductSelect}) {
-  if (!product || typeof product !== 'object') return null;
-
-  const {id, productName, categoryName, image, description,tags,quantity, price, discount, specialPrice, images, averageRating, reviewCount} = product;
   const [selectedImage, setSelectedImage] = useState(0);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
+  useEffect(() => {
+    if (open && product?.productId && user) {
+      dispatch(recordProductView(product.productId));
+    }
+  }, [open, product?.productId, user, dispatch]);
+
+  if (!product || typeof product !== 'object') return null;
+
+  const {id, productName, categoryName, image, description, quantity, price, specialPrice, images, averageRating, reviewCount} = product;
+
   const galleryImages = images && images.length > 0 ? images : (image ? [image] : []);
   const hasGallery = galleryImages.length > 1;
-
-  useEffect(() => {
-    if (open && id && user) {
-      dispatch(recordProductView(id));
-    }
-  }, [open, id, user, dispatch]);
 
   const handlePrev = () => {
     setSelectedImage((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));

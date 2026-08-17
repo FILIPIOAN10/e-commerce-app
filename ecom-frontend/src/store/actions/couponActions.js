@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import api from "../../api/api";
 
 export const validateCoupon = (code, orderAmount, toast) => async (dispatch, getState) => {

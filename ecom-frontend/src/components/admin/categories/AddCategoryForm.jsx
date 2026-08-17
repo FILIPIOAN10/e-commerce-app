@@ -37,7 +37,7 @@ const AddCategoryForm = ({ setOpen, open, category, update = false }) => {
     if (update && category) {
       setValue("categoryName", category?.categoryName);
     }
-  }, [update, category]);
+  }, [update, category, setValue]);
 
   return (
     <div className="py-5 relative h-full ">

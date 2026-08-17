@@ -126,7 +126,7 @@ public class ReviewServiceImpl implements ReviewService {
     public String markReviewHelpful(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
-        review.setHelpfulCount(review.getHelpfulCount() + 1);
+        review.setHelpfulCount((review.getHelpfulCount() == null ? 0 : review.getHelpfulCount()) + 1);
         reviewRepository.save(review);
         return "Marked as helpful";
     }
@@ -136,7 +136,7 @@ public class ReviewServiceImpl implements ReviewService {
     public String markReviewUnhelpful(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
-        review.setUnhelpfulCount(review.getUnhelpfulCount() + 1);
+        review.setUnhelpfulCount((review.getUnhelpfulCount() == null ? 0 : review.getUnhelpfulCount()) + 1);
         reviewRepository.save(review);
         return "Marked as unhelpful";
     }

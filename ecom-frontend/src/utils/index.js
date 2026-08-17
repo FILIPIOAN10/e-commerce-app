@@ -1,8 +1,4 @@
-import toast from "react-hot-toast";
 import { bannerImageOne, bannerImageThree, bannerImageTwo } from "./constant";
-import api from "../api/api";
-import { href } from "react-router-dom";
-import { current } from "@reduxjs/toolkit";
 import { FaBoxOpen, FaBullhorn, FaChartBar, FaClipboardList, FaExclamationTriangle, FaFileImport, FaHome, FaShoppingCart, FaStore, FaTag, FaThList, FaUndo, FaUsers } from "react-icons/fa";
 
 export const bannerLists =[

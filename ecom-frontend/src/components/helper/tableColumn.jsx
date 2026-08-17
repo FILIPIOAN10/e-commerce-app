@@ -19,7 +19,7 @@ export const adminProductTableColumn = (
     editable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">ProductID</span>,
+    renderHeader: (_params) => <span className="text-center">ProductID</span>,
   },
   {
     disableColumnMenu: true,
@@ -32,7 +32,7 @@ export const adminProductTableColumn = (
     headerAlign: "center",
     headerClassName: "text-black font-semibold text-center border ",
     cellClassName: "text-slate-700 font-normal border text-center",
-    renderHeader: (params) => <span>Product Name</span>,
+    renderHeader: (_params) => <span>Product Name</span>,
   },
 
   {
@@ -45,7 +45,7 @@ export const adminProductTableColumn = (
     editable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">Price</span>,
+    renderHeader: (_params) => <span className="text-center">Price</span>,
   },
   {
     disableColumnMenu: true,
@@ -57,7 +57,7 @@ export const adminProductTableColumn = (
     editable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">Quantity</span>,
+    renderHeader: (_params) => <span className="text-center">Quantity</span>,
   },
   {
     disableColumnMenu: true,
@@ -69,7 +69,7 @@ export const adminProductTableColumn = (
     editable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => (
+    renderHeader: (_params) => (
       <span className="text-center">Special Price</span>
     ),
   },
@@ -84,7 +84,7 @@ export const adminProductTableColumn = (
     disableColumnMenu: true,
     headerClassName: "text-black font-semibold border ",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="ps-10">Description</span>,
+    renderHeader: (_params) => <span className="ps-10">Description</span>,
   },
   {
     sortable: false,
@@ -97,7 +97,7 @@ export const adminProductTableColumn = (
     disableColumnMenu: true,
     headerClassName: "text-black font-semibold border ",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span>Tags</span>,
+    renderHeader: (_params) => <span>Tags</span>,
   },
   {
     sortable: false,
@@ -110,7 +110,7 @@ export const adminProductTableColumn = (
     disableColumnMenu: true,
     headerClassName: "text-black font-semibold border ",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="ps-10">Image</span>,
+    renderHeader: (_params) => <span className="ps-10">Image</span>,
   },
 
   {
@@ -122,26 +122,26 @@ export const adminProductTableColumn = (
     cellClassName: "text-slate-700 font-normal",
     sortable: false,
     width: 560,
-    renderHeader: (params) => <span>Action</span>,
-    renderCell: (params) => {
+    renderHeader: (_params) => <span>Action</span>,
+    renderCell: (_params) => {
       return (
         <div className="flex flex-wrap justify-center items-center gap-1 h-full py-1">
           <button
-            onClick={() => handleImageUpload(params.row)}
+            onClick={() => handleImageUpload(_params.row)}
             className="flex items-center bg-green-500 hover:bg-green-600 text-white px-2 h-8 rounded-md text-xs"
           >
             <FaImage className="mr-1" />
             Image
           </button>
           <button
-            onClick={() => handleGalleryUpload(params.row)}
+            onClick={() => handleGalleryUpload(_params.row)}
             className="flex items-center bg-teal-500 hover:bg-teal-600 text-white px-2 h-8 rounded-md text-xs"
           >
             <FaImages className="mr-1" />
             Gallery
           </button>
           <button
-            onClick={() => handleEdit(params.row)}
+            onClick={() => handleEdit(_params.row)}
             className="flex items-center bg-blue-500 text-white px-2 h-8 rounded-md text-xs"
           >
             <FaEdit className="mr-1" />
@@ -149,14 +149,14 @@ export const adminProductTableColumn = (
           </button>
 
           <button
-            onClick={() => handleDelete(params.row)}
+            onClick={() => handleDelete(_params.row)}
             className="flex items-center bg-red-500 text-white px-2 h-8 rounded-md text-xs"
           >
             <FaTrashAlt className="mr-1" />
             Delete
           </button>
           <button
-            onClick={() => handleProductView(params.row)}
+            onClick={() => handleProductView(_params.row)}
             className="flex items-center bg-slate-800 text-white px-2 h-8 rounded-md text-xs"
           >
             <FaEye className="mr-1" />
@@ -184,7 +184,7 @@ export const categoryTableColumns = (handleEdit, handleDelete) => [
     editable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">CategoryId</span>,
+    renderHeader: (_params) => <span className="text-center">CategoryId</span>,
   },
   {
     disableColumnMenu: true,
@@ -197,7 +197,7 @@ export const categoryTableColumns = (handleEdit, handleDelete) => [
     headerAlign: "center",
     headerClassName: "text-black font-semibold text-center border ",
     cellClassName: "text-slate-700 font-normal border text-center",
-    renderHeader: (params) => <span>Category Name</span>,
+    renderHeader: (_params) => <span>Category Name</span>,
   },
 
   {
@@ -209,12 +209,12 @@ export const categoryTableColumns = (handleEdit, handleDelete) => [
     cellClassName: "text-slate-700 font-normal",
     sortable: false,
     width: 400,
-    renderHeader: (params) => <span>Action</span>,
-    renderCell: (params) => {
+    renderHeader: (_params) => <span>Action</span>,
+    renderCell: (_params) => {
       return (
         <div className="flex justify-center space-x-2 h-full pt-2">
           <button
-            onClick={() => handleEdit(params.row)}
+            onClick={() => handleEdit(_params.row)}
             className="flex items-center bg-blue-500 text-white px-4 h-9 rounded-md "
           >
             <FaEdit className="mr-2" />
@@ -223,7 +223,7 @@ export const categoryTableColumns = (handleEdit, handleDelete) => [
 
           {/* Delete Button */}
           <button
-            onClick={() => handleDelete(params.row)}
+            onClick={() => handleDelete(_params.row)}
             className="flex items-center bg-red-500 text-white px-4   h-9 rounded-md"
           >
             <FaTrashAlt className="mr-2" />
@@ -249,7 +249,7 @@ export const sellerTableColumns = [
 
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">SellerID</span>,
+    renderHeader: (_params) => <span className="text-center">SellerID</span>,
   },
   {
     disableColumnMenu: true,
@@ -262,7 +262,7 @@ export const sellerTableColumns = [
     sortable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">UserName</span>,
+    renderHeader: (_params) => <span className="text-center">UserName</span>,
   },
   {
     disableColumnMenu: true,
@@ -275,14 +275,14 @@ export const sellerTableColumns = [
     headerAlign: "center",
     headerClassName: "text-black font-semibold text-center border ",
     cellClassName: "text-slate-700 font-normal border text-center",
-    renderHeader: (params) => <span>Email</span>,
-    renderCell: (params) => {
+    renderHeader: (_params) => <span>Email</span>,
+    renderCell: (_params) => {
       return (
         <div className="flex items-center justify-center gap-1">
           <span>
             <MdOutlineEmail className="text-slate-700 text-lg" />
           </span>
-          <span>{params?.row?.email}</span>
+          <span>{_params?.row?.email}</span>
         </div>
       );
     },
@@ -303,7 +303,7 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       editable: false,
       headerClassName: "text-black font-semibold border",
       cellClassName: "text-slate-700 font-normal border",
-      renderHeader: (params) => <span className="text-center">Order ID</span>,
+      renderHeader: (_params) => <span className="text-center">Order ID</span>,
     },
     {
       disableColumnMenu: true,
@@ -316,14 +316,14 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       sortable: false,
       headerClassName: "text-black font-semibold border",
       cellClassName: "text-slate-700 font-normal border",
-      renderHeader: (params) => <span className="text-center">Email</span>,
-      renderCell: (params) => {
+      renderHeader: (_params) => <span className="text-center">Email</span>,
+      renderCell: (_params) => {
         return (
           <div className="flex items-center justify-center gap-1">
             <span>
               <MdOutlineEmail className="text-slate-700 text-lg" />
             </span>
-            <span>{params?.row?.email}</span>
+            <span>{_params?.row?.email}</span>
           </div>
         );
       },
@@ -338,7 +338,7 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       editable: false,
       headerClassName: "text-black font-semibold border",
       cellClassName: "text-slate-700 font-normal border",
-      renderHeader: (params) => <span className="text-center">Total Amount</span>,
+      renderHeader: (_params) => <span className="text-center">Total Amount</span>,
     },
     {
       disableColumnMenu: true,
@@ -350,8 +350,8 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       editable: false,
       headerClassName: "text-black font-semibold border",
       cellClassName: "text-slate-700 font-normal border",
-      renderHeader: (params) => <span className="text-center">Status</span>,
-      renderCell: (params) => {
+      renderHeader: (_params) => <span className="text-center">Status</span>,
+      renderCell: (_params) => {
         const statusColors = {
           "Placed": "bg-blue-100 text-blue-700",
           "Packed": "bg-purple-100 text-purple-700",
@@ -359,10 +359,10 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
           "Delivered": "bg-green-100 text-green-700",
           "Cancelled": "bg-red-100 text-red-600",
         };
-        const colorClass = statusColors[params.value] || "bg-gray-100 text-gray-600";
+        const colorClass = statusColors[_params.value] || "bg-gray-100 text-gray-600";
         return (
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
-            {params.value}
+            {_params.value}
           </span>
         );
       },
@@ -378,7 +378,7 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       editable: false,
       headerClassName: "text-black font-semibold border",
       cellClassName: "text-slate-700 font-normal border",
-      renderHeader: (params) => <span className="text-center">Order Date</span>,
+      renderHeader: (_params) => <span className="text-center">Order Date</span>,
     },
   ];
 
@@ -392,12 +392,12 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
     cellClassName: "text-slate-700 font-normal",
     sortable: false,
     width: 120,
-    renderHeader: (params) => <span>Track</span>,
-    renderCell: (params) => {
+    renderHeader: (_params) => <span>Track</span>,
+    renderCell: (_params) => {
       return (
         <div className="flex justify-center items-center h-full">
           <button
-            onClick={() => handleTrack(params.row)}
+            onClick={() => handleTrack(_params.row)}
             className="flex items-center bg-slate-700 hover:bg-slate-800 text-white px-3 h-8 rounded-md text-sm"
           >
             <FaEye className="mr-1 text-xs" />
@@ -419,12 +419,12 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       cellClassName: "text-slate-700 font-normal",
       sortable: false,
       width: 120,
-      renderHeader: (params) => <span>Invoice</span>,
-      renderCell: (params) => {
+      renderHeader: (_params) => <span>Invoice</span>,
+      renderCell: (_params) => {
         return (
           <div className="flex justify-center items-center h-full">
             <button
-              onClick={() => handleInvoice(params.row)}
+              onClick={() => handleInvoice(_params.row)}
               className="flex items-center bg-red-500 hover:bg-red-600 text-white px-3 h-8 rounded-md text-sm"
             >
               <FaFilePdf className="mr-1 text-xs" />
@@ -447,14 +447,14 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       cellClassName: "text-slate-700 font-normal",
       sortable: false,
       width: 120,
-      renderHeader: (params) => <span>Return</span>,
-      renderCell: (params) => {
-        const status = params.row.status;
+      renderHeader: (_params) => <span>Return</span>,
+      renderCell: (_params) => {
+        const status = _params.row.status;
         if (status === "Delivered") {
           return (
             <div className="flex justify-center items-center h-full">
               <button
-                onClick={() => handleReturn(params.row)}
+                onClick={() => handleReturn(_params.row)}
                 className="flex items-center bg-orange-500 hover:bg-orange-600 text-white px-3 h-8 rounded-md text-sm"
               >
                 <FaUndo className="mr-1 text-xs" />
@@ -484,12 +484,12 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       cellClassName: "text-slate-700 font-normal",
       sortable: false,
       width: 200,
-      renderHeader: (params) => <span>Action</span>,
-      renderCell: (params) => {
+      renderHeader: (_params) => <span>Action</span>,
+      renderCell: (_params) => {
         return (
           <div className="flex justify-center items-center space-x-2 h-full pt-2">
             <button
-              onClick={() => handleEdit(params.row)}
+              onClick={() => handleEdit(_params.row)}
               className="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 h-9 rounded-md"
             >
               <FaEdit className="mr-2" />

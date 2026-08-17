@@ -2,7 +2,7 @@
 import { Pagination } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-const Paginations = ({numberOfPage,totalProducts}) => {
+const Paginations = ({numberOfPage}) => {
     const [searchParams] = useSearchParams ();
     const pathname = useLocation().pathname;
     const params = new URLSearchParams(searchParams);

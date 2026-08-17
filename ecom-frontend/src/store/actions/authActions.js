@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import api from "../../api/api";
 
 export const authenticateSignInUser = (
@@ -38,7 +37,7 @@ export const authenticateSignInUser = (
 };
 
 export const registerNewUser
-    = (sendData, toast, reset, navigate, setLoader) => async (dispatch) => {
+    = (sendData, toast, reset, navigate, setLoader) => async () => {
         try {
             setLoader(true);
 
@@ -65,24 +64,20 @@ export const logOutUser = (navigate) => (dispatch) => {
 };
 
 export const fetchUserDetails = (token) => async (dispatch) => {
-    try {
-        const { data } = await api.get("/auth/user", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    const { data } = await api.get("/auth/user", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
 
-        const authData = {
-            jwtToken: token,
-            id: data.id,
-            username: data.username,
-            email: data.email,
-            roles: data.roles,
-            phone: data.phone,
-            avatarUrl: data.avatarUrl,
-        };
+    const authData = {
+        jwtToken: token,
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        roles: data.roles,
+        phone: data.phone,
+        avatarUrl: data.avatarUrl,
+    };
 
-        dispatch({ type: "LOGIN_USER", payload: authData });
-        localStorage.setItem("auth", JSON.stringify(authData));
-    } catch (error) {
-        throw error;
-    }
+    dispatch({ type: "LOGIN_USER", payload: authData });
+    localStorage.setItem("auth", JSON.stringify(authData));
 };

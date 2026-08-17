@@ -12,7 +12,6 @@ const InputField = ({
     minValue,
     maxValue,
     step,
-    value,
     readOnly,
     placeHolder,
 }) => {

@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import api from "../../api/api";
 
 export const fetchProductReviews = (productId, pageNumber = 0, pageSize = 10) => async (dispatch) => {

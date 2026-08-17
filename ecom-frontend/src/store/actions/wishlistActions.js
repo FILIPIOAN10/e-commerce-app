@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import api from "../../api/api";
 
 export const addToWishlist = (productId, toast) => async (dispatch) => {

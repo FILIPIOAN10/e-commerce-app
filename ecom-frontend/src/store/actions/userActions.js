@@ -1,8 +1,7 @@
-import toast from "react-hot-toast";
 import api from "../../api/api";
 
 export const addUpdateUserAddress =
-    (sendData, toast, addressId, setOpenAddressModal) => async (dispatch, getState) => {
+    (sendData, toast, addressId, setOpenAddressModal) => async (dispatch) => {
     dispatch({ type: "BUTTON_LOADER" });
     try {
         if (!addressId) {
@@ -22,7 +21,7 @@ export const addUpdateUserAddress =
 };
 
 export const deleteUserAddress =
-    (toast, addressId, setOpenDeleteModal) => async (dispatch, getState) => {
+    (toast, addressId, setOpenDeleteModal) => async (dispatch) => {
     try {
         dispatch({ type: "BUTTON_LOADER" });
         await api.delete(`/addresses/${addressId}`);
@@ -46,7 +45,7 @@ export const clearCheckoutAddress = () => {
     }
 };
 
-export const getUserAddresses = () => async (dispatch, getState) => {
+export const getUserAddresses = () => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
         const { data } = await api.get(`/users/addresses`);
@@ -94,7 +93,7 @@ export const updateProfile = (sendData, toast, setLoader) => async (dispatch, ge
     }
 };
 
-export const changePassword = (sendData, toast, setLoader, reset) => async (dispatch) => {
+export const changePassword = (sendData, toast, setLoader, reset) => async () => {
     try {
         setLoader(true);
         const { data } = await api.post("/auth/profile/change-password", sendData);

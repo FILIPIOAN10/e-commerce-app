@@ -38,7 +38,7 @@ const StripePayment = () => {
       };
       dispatch(createStripePaymentSecret(sendData));
     }
-  }, [clientSecret])
+  }, [clientSecret,dispatch,selectedUserCheckoutAddress,totalPrice,user])
   
   if (isLoading){
     return(

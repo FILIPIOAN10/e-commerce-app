@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import InputField from '../shared/InputField';
 import SelectField from '../shared/SelectField'; 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { FaAddressCard } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -22,14 +22,14 @@ const AddAddressForm = ({address, setOpenAddressModal}) => {
         register,
         handleSubmit,
         setValue,
-        watch, 
+        control, 
         formState:{errors},
     } = useForm({
         mode:"onTouched",
     });
 
-    const selectedCountryName = watch("country");
-    const selectedStateName = watch("state");
+    const selectedCountryName = useWatch({ control, name: "country" });
+    const selectedStateName = useWatch({ control, name: "state" });
 
     const onSaveAddressHandler = async (data) => {
         dispatch(addUpdateUserAddress(

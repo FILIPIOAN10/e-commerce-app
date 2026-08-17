@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import api from "../../api/api";
 import { getAllCategoriesDashboard } from "./productActions";
 
@@ -50,7 +49,7 @@ export const updateProductFromDashboard =
 };
 
 export const deleteProduct =
-    (setLoader, productId, toast, setOpenDeleteModal, isAdmin, queryString = "") => async (dispatch, getState) => {
+    (setLoader, productId, toast, setOpenDeleteModal, isAdmin, queryString = "") => async (dispatch) => {
 
     try {
         setLoader(true);
@@ -70,7 +69,7 @@ export const deleteProduct =
 };
 
 export const addNewProductFromDashboard =
-    (sendData, toast, reset, setLoader, setOpen, isAdmin) => async (dispatch, getState) => {
+    (sendData, toast, reset, setLoader, setOpen, isAdmin) => async (dispatch) => {
         try {
             setLoader(true);
             const endpoint = isAdmin ? "/admin/categories/" : "/seller/categories/";
@@ -107,7 +106,7 @@ export const updateProductImageFromDashboard =
 
 export const updateCategoryDashboardAction =
     (sendData, setOpen, categoryID, reset, toast) =>
-    async (dispatch, getState) => {
+    async (dispatch) => {
         try {
             dispatch({ type: "CATEGORY_LOADER" });
 
@@ -132,7 +131,7 @@ export const updateCategoryDashboardAction =
     };
 
 export const createCategoryDashboardAction =
-    (sendData, setOpen, reset, toast) => async (dispatch, getState) => {
+    (sendData, setOpen, reset, toast) => async (dispatch) => {
         try {
             dispatch({ type: "CATEGORY_LOADER" });
             await api.post("/admin/categories", sendData);
@@ -154,7 +153,7 @@ export const createCategoryDashboardAction =
     };
 
 export const deleteCategoryDashboardAction =
-    (setOpen, categoryID, toast) => async (dispatch, getState) => {
+    (setOpen, categoryID, toast) => async (dispatch) => {
         try {
             dispatch({ type: "DELETE_CATEGORY_SUCCESS", payload: categoryID });
             dispatch({ type: "CATEGORY_LOADER" });
@@ -176,8 +175,7 @@ export const deleteCategoryDashboardAction =
     };
 
 export const getAllSellersDashboard =
-    (queryString) => async (dispatch, getState) => {
-        const { user } = getState().auth;
+    (queryString) => async (dispatch) => {
         try {
             dispatch({ type: "IS_FETCHING" });
             const { data } = await api.get(`/auth/sellers?${queryString}`);

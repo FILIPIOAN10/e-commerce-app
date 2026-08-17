@@ -93,7 +93,7 @@ export const getFilteredOrdersList = () => async (dispatch) => {
 
 export const previewOrder = (addressId) => async (dispatch, getState) => {
     try {
-        const { coupon: { appliedCoupons }, auth: { email } } = getState();
+        const { coupon: { appliedCoupons } } = getState();
         const payload = { addressId, couponCodes: appliedCoupons };
         const { data } = await api.post("/order/preview", payload);
         dispatch({ type: "orderSummarySuccess", payload: data });
@@ -107,7 +107,7 @@ export const estimateShipping = (addressId, cartTotal) => async (dispatch) => {
     try {
         const { data } = await api.get(`/order/shipping/${addressId}?cartTotal=${cartTotal}`);
         dispatch({ type: "orderSummarySuccess", payload: { shippingCost: data, discountAmount: 0, totalAmount: 0, appliedCoupons: [] } });
-    } catch (error) {
+    } catch {
         // silent
     }
 };
@@ -125,7 +125,7 @@ export const placeGuestOrder = (payload, setLoading, navigate, toast) => async (
     }
 };
 
-export const createStripePaymentSecret = (sendData) => async (dispatch, getState) => {
+export const createStripePaymentSecret = (sendData) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
         const { data } = await api.post("/order/stripe-client-secret", sendData);
@@ -156,7 +156,7 @@ export const stripePaymentConfirmation = (sendData, setErrorMesssage, setLoadng,
         } else {
             setErrorMesssage("Payment Failed. Please try again.");
         }
-    } catch (error) {
+    } catch {
         setErrorMesssage("Payment Failed. Please try again.");
     }
 };

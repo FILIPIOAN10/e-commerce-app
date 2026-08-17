@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
@@ -31,7 +31,6 @@ import {
 
 const ProductDetail = () => {
   const { productId } = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const product = useSelector((state) => state.products.selectedProduct);

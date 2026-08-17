@@ -1,8 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeProvider as MUIThemeProvider } from "@mui/material/styles";
 import { muiTheme } from "../theme/muiTheme";
-
-const ThemeContext = createContext();
+import { ThemeContext } from "./ThemeContext.js";
 
 export const ThemeProvider = ({ children }) => {
     const [isDark, setIsDark] = useState(() => {
@@ -32,8 +31,3 @@ export const ThemeProvider = ({ children }) => {
     );
 };
 
-export const useTheme = () => {
-    const context = useContext(ThemeContext);
-    if (!context) throw new Error("useTheme must be used within ThemeProvider");
-    return context;
-};

@@ -71,7 +71,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private boolean canAnswer(User user, ProductQuestion q) {
-        boolean admin = user.getRoles().stream().map(Role::getRoleName).anyMatch("ROLE_ADMIN"::equals);
+        boolean admin = user.getRoles().stream().map(Role::getRoleName).anyMatch(com.ecommerce.project.model.AppRole.ROLE_ADMIN::equals);
         boolean seller = q.getProduct().getUser() != null
                 && q.getProduct().getUser().getUserId().equals(user.getUserId());
         return admin || seller;

@@ -1,5 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { use2FA } from '../../hooks/use2FA';
 import './Setup2FA.css';
 
@@ -10,12 +10,7 @@ const Setup2FA = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState('qrcode'); // 'qrcode' or 'verify'
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Generate QR code on component mount
-  useEffect(() => {
-    generateQRCode();
-  }, []);
-
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     try {
       setSuccessMessage('');
       setError(null);
@@ -24,7 +19,12 @@ const Setup2FA = ({ onClose, onSuccess }) => {
     } catch (err) {
       console.error('Error generating QR code:', err);
     }
-  };
+  }, [enable2FA, setError, setStep, setSuccessMessage]);
+
+  // Generate QR code on component mount
+  useEffect(() => {
+    generateQRCode();
+  }, [generateQRCode]);
 
   const handleVerify = async (e) => {
     e.preventDefault();

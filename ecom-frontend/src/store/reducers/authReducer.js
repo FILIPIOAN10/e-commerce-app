@@ -1,4 +1,3 @@
-import { selectedUserCheckoutAddress } from "../actions";
 
 // 1. Verificăm dacă avem deja user-ul salvat în browser
 const savedAuth = localStorage.getItem("auth") 

@@ -61,7 +61,7 @@ export const removeFromCart = (data, toast) => (dispatch, getState) => {
     localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
 };
 
-export const createUserCart = (sendCartItems) => async (dispatch, getState) => {
+export const createUserCart = (sendCartItems) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
         await api.post('/cart/create', sendCartItems);
