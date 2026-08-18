@@ -32,7 +32,7 @@ test.describe('Admin category CRUD', () => {
     const deleteBtn = page.locator('button:has-text("Delete")').first()
     if (await deleteBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await deleteBtn.click()
-      await page.click('button:has-text("Delete")')
+      await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
       await page.waitForTimeout(2000)
     }
   })

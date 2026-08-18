@@ -21,6 +21,10 @@ const cartItems = localStorage.getItem("cartItems")
     ? JSON.parse(localStorage.getItem("cartItems"))
     : [];
 
+const compareItems = localStorage.getItem("compareItems")
+    ? JSON.parse(localStorage.getItem("compareItems"))
+    : [];
+
 const selectedUserCheckoutAddress = localStorage.getItem("CHECKOUT_ADDRESS")
     ? JSON.parse(localStorage.getItem("CHECKOUT_ADDRESS"))
     : null;
@@ -28,6 +32,7 @@ const selectedUserCheckoutAddress = localStorage.getItem("CHECKOUT_ADDRESS")
 const initialState = {
     auth: { user: user, selectedUserCheckoutAddress },
     carts: { cart: cartItems },
+    products: { compareList: compareItems },
 };
 
 export const store = configureStore({

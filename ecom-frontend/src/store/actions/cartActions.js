@@ -3,7 +3,7 @@ import api from "../../api/api";
 export const addToCart = (data, qty = 1, toast) =>
     (dispatch, getState) => {
         const { products } = getState().products;
-        const getProduct = products.find(
+        const getProduct = products?.find?.(
             (item) => item.productId === data.productId
         );
 
@@ -12,10 +12,10 @@ export const addToCart = (data, qty = 1, toast) =>
 
         if (isQuantityExist) {
             dispatch({ type: "ADD_CART", payload: { ...data, quantity: qty } });
-            toast.success(`${data?.productName} added to the cart`);
+            if (toast) toast.success(`${data?.productName} added to the cart`);
             localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
         } else {
-            toast.error("Out of stock");
+            if (toast) toast.error("Out of stock");
         }
 };
 

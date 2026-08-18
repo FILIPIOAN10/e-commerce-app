@@ -59,6 +59,8 @@ function App() {
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />
         <Route  path='/guest-checkout' element ={<GuestCheckout/>} />
+        <Route  path='/compare' element={<ComparePage />} />
+        <Route  path='/track-order' element={<TrackOrder />} />
         <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
         <Route path='/verify-email' element={<VerifyEmail />} />
         <Route path='/forgot-password' element={<ForgotPassword />} />
@@ -94,8 +96,6 @@ function App() {
         <Route path='/' element={<PrivateRoute />}>
           <Route path='/profile/orders' element={<ProfileOrders />} />
           <Route path='/wishlist' element={<Wishlist />} />
-          <Route path='/compare' element={<ComparePage />} />
-          <Route path='/track-order' element={<TrackOrder />} />
         </Route>
         <Route path='*' element={<NotFound />} />
       </Routes>
