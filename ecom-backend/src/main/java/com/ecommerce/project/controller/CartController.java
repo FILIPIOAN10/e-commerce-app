@@ -40,6 +40,13 @@ public class CartController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     @Tag(name = "Cart")
+    @PostMapping("/carts/bundles/{bundleId}")
+    public ResponseEntity<CartDTO> addBundleToCart(@PathVariable Long bundleId) {
+        CartDTO cartDTO = cartService.addBundleToCart(bundleId);
+        return new ResponseEntity<>(cartDTO, HttpStatus.CREATED);
+    }
+
+    @Tag(name = "Cart")
     @PostMapping("/carts/products/{productId}/quantity/{quantity}")
     public ResponseEntity<CartDTO> addProductToCart(@PathVariable Long productId,
                                                     @PathVariable Integer quantity) {
