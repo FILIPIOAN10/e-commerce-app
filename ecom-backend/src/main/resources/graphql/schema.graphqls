@@ -1,0 +1,187 @@
+type Query {
+    adminProducts(
+        page: Int = 0,
+        size: Int = 10,
+        sortBy: String = "productId",
+        sortOrder: String = "asc"
+    ): ProductResponse
+
+    adminProduct(productId: ID!): ProductDTO
+
+    adminCategories(
+        page: Int = 0,
+        size: Int = 10,
+        sortBy: String = "categoryId",
+        sortOrder: String = "asc"
+    ): CategoryResponse
+
+    adminOrders(
+        page: Int = 0,
+        size: Int = 10,
+        sortBy: String = "orderDate",
+        sortOrder: String = "desc"
+    ): OrderResponse
+
+    adminUsers(
+        page: Int = 0,
+        size: Int = 10,
+        sortBy: String = "userId",
+        sortOrder: String = "asc"
+    ): UserResponse
+
+    adminCoupons: [CouponDTO]
+
+    adminPromoCampaigns(
+        page: Int = 0,
+        size: Int = 10
+    ): PromoCampaignResponse
+
+    adminReturnRequests(
+        page: Int = 0,
+        size: Int = 10
+    ): ReturnRequestPage
+}
+
+type ProductResponse {
+    content: [ProductDTO]
+    pageNumber: Int
+    pageSize: Int
+    totalElements: Float
+    totalPages: Int
+    lastPage: Boolean
+}
+
+type CategoryResponse {
+    content: [CategoryDTO]
+    pageNumber: Int
+    pageSize: Int
+    totalElements: Float
+    totalPages: Int
+    lastPage: Boolean
+}
+
+type OrderResponse {
+    content: [OrderDTO]
+    pageNumber: Int
+    pageSize: Int
+    totalElements: Float
+    totalPages: Int
+    lastPage: Boolean
+}
+
+type UserResponse {
+    content: [UserDTO]
+    pageNumber: Int
+    pageSize: Int
+    totalElements: Float
+    totalPages: Int
+    lastPage: Boolean
+}
+
+type PromoCampaignResponse {
+    content: [PromoCampaignDTO]
+    totalElements: Float
+}
+
+type ReturnRequestPage {
+    content: [ReturnRequestDTO]
+    pageNumber: Int
+    pageSize: Int
+    totalElements: Float
+    totalPages: Int
+    lastPage: Boolean
+}
+
+type ProductDTO {
+    productId: ID
+    productName: String
+    image: String
+    images: [String]
+    description: String
+    tags: String
+    quantity: Int
+    lowStockThreshold: Int
+    price: Float
+    discount: Float
+    specialPrice: Float
+    averageRating: Float
+    reviewCount: Float
+    categoryName: String
+    categoryId: ID
+    cartItemId: ID
+    savedForLater: Boolean
+}
+
+type CategoryDTO {
+    categoryId: ID
+    categoryName: String
+}
+
+type OrderDTO {
+    orderId: ID
+    email: String
+    items: [OrderItemDTO]
+    orderDate: String
+    payment: PaymentDTO
+    totalAmount: Float
+    discountAmount: Float
+    shippingCost: Float
+    appliedCoupons: [String]
+    orderStatus: String
+    addressId: ID
+}
+
+type OrderItemDTO {
+    orderItemId: ID
+    product: ProductDTO
+    quantity: Int
+    discount: Float
+    orderedProductPrice: Float
+}
+
+type PaymentDTO {
+    paymentId: ID
+    paymentMethod: String
+    pgPaymentId: String
+    pgStatus: String
+    pgResponseMessage: String
+    pgName: String
+}
+
+type UserDTO {
+    userId: ID
+    username: String
+    email: String
+}
+
+type CouponDTO {
+    couponId: ID
+    code: String
+    discountPercent: Int
+    expiryDate: String
+    maxUses: Int
+    usedCount: Int
+    active: Boolean
+}
+
+type PromoCampaignDTO {
+    id: ID
+    name: String
+    discountPercent: Float
+    startTime: String
+    endTime: String
+    active: Boolean
+    productIds: [ID]
+}
+
+type ReturnRequestDTO {
+    id: ID
+    orderId: ID
+    userEmail: String
+    reason: String
+    status: String
+    requestedAt: String
+    processedAt: String
+    adminNote: String
+    refundAmount: Float
+}
