@@ -1,5 +1,5 @@
 import { bannerImageOne, bannerImageThree, bannerImageTwo } from "./constant";
-import { FaBoxOpen, FaBullhorn, FaChartBar, FaClipboardList, FaExclamationTriangle, FaFileImport, FaHome, FaShoppingCart, FaStore, FaTag, FaThList, FaUndo, FaUsers } from "react-icons/fa";
+import { FaBoxOpen, FaBullhorn, FaChartBar, FaClipboardList, FaExclamationTriangle, FaFileImport, FaHome, FaShoppingCart, FaStore, FaSync, FaSyncAlt, FaTag, FaThList, FaUndo, FaUsers } from "react-icons/fa";
 
 export const bannerLists =[
 
@@ -45,6 +45,14 @@ export const adminNavigation = [
     { name: "Products", 
       href :"/admin/products",
       icon : FaBoxOpen
+    },
+    { name: "Bundles", 
+      href :"/admin/bundles",
+      icon : FaTag
+    },
+    { name: "Subscriptions", 
+      href :"/admin/subscriptions",
+      icon : FaSync
     },
     { name: "Categories", 
       href :"/admin/categories",

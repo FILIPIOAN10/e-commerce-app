@@ -34,6 +34,11 @@ const ProductImport = lazy(() => import('./components/admin/import/ProductImport
 const PromoCampaigns = lazy(() => import('./components/admin/promo/PromoCampaigns'))
 const Orders = lazy(() => import('./components/admin/orders/Orders'))
 const AdminReturns = lazy(() => import('./components/admin/returns/AdminReturns'))
+const Bundles = lazy(() => import('./components/bundles/Bundles'))
+const AdminBundles = lazy(() => import('./components/admin/bundles/AdminBundles'))
+const SubscriptionPlans = lazy(() => import('./components/subscriptions/SubscriptionPlans'))
+const MySubscriptions = lazy(() => import('./components/subscriptions/MySubscriptions'))
+const AdminSubscriptions = lazy(() => import('./components/admin/subscriptions/AdminSubscriptions'))
 const Profile = lazy(() => import('./components/profile/Profile'))
 const ProfileSettings = lazy(() => import('./components/profile/ProfileSettings'))
 const ProfileOrders = lazy(() => import('./components/profile/ProfileOrders'))
@@ -55,6 +60,8 @@ function App() {
         <Route  path='/' element ={<Home/>} />
         <Route  path='/products' element ={<Products/>} />
         <Route  path='/products/:productId' element ={<ProductDetail/>} />
+        <Route  path='/bundles' element ={<Bundles/>} />
+        <Route  path='/subscriptions' element ={<SubscriptionPlans/>} />
         <Route  path='/about' element ={<About/>} />
         <Route  path='/contact' element ={<Contact/>} />
         <Route  path='/cart' element ={<Cart/>} />
@@ -66,8 +73,9 @@ function App() {
         <Route path='/forgot-password' element={<ForgotPassword />} />
         <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/' element={<PrivateRoute />}>
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/settings" element={<ProfileSettings />} />
+          <Route path='/profile' element={<Profile />} />
+          <Route path='/profile/settings' element={<ProfileSettings />} />
+          <Route path='/my-subscriptions' element={<MySubscriptions />} />
           <Route path ="/checkout" element ={<Checkout/>}/>
           <Route path ="/checkout/order-confirm" element ={<PaymentConfirmation />}/>
         </Route>
@@ -80,6 +88,8 @@ function App() {
           <Route path='/admin' element={<AdminLayout/>}>
            <Route path='' element={<Dashboard />}/>
             <Route path='products' element={<AdminProducts />}/>
+            <Route path='bundles' element={<AdminBundles />}/>
+            <Route path='subscriptions' element={<AdminSubscriptions />}/>
             <Route path='sellers' element={<Sellers />}/>
             <Route path='orders' element={<Orders />}/>
             <Route path='returns' element={<AdminReturns />}/>

@@ -26,4 +26,6 @@ public interface CartService {
     CartDTO saveItemForLater(Long cartItemId);
 
     CartDTO moveItemToCart(Long cartItemId);
+
+    CartDTO addBundleToCart(Long bundleId);
 }

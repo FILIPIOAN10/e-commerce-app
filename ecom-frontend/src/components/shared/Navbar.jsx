@@ -1,6 +1,6 @@
 import { Badge } from "@mui/material";
 import { useState } from "react";
-import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck, FaMoon, FaSun, FaBalanceScale } from "react-icons/fa";
+import { FaShoppingCart, FaSignInAlt, FaStore, FaHeart, FaTruck, FaMoon, FaSun, FaBalanceScale, FaTags, FaSync } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
@@ -41,6 +41,18 @@ const Navbar = () => {
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/products" ? "text-white font-semibold" : "text-gray-200"}`} to="/products">
                             Products
+                        </Link>
+                    </li>
+
+                    <li className="font-medium transition-all duration-150">
+                        <Link className={`${path === "/bundles" ? "text-white font-semibold" : "text-gray-200"}`} to="/bundles">
+                            Bundles
+                        </Link>
+                    </li>
+
+                    <li className="font-medium transition-all duration-150">
+                        <Link className={`${path === "/subscriptions" ? "text-white font-semibold" : "text-gray-200"}`} to="/subscriptions">
+                            Subscriptions
                         </Link>
                     </li>
 

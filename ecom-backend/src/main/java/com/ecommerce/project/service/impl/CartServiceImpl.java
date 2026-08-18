@@ -2,12 +2,14 @@ package com.ecommerce.project.service.impl;
 
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
+import com.ecommerce.project.model.Bundle;
 import com.ecommerce.project.model.Cart;
 import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.CartDTO;
 import com.ecommerce.project.payload.CartItemDTO;
 import com.ecommerce.project.payload.ProductDTO;
+import com.ecommerce.project.repository.BundleRepository;
 import com.ecommerce.project.repository.CartItemRepository;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.ProductRepository;
@@ -33,6 +35,7 @@ public class CartServiceImpl implements CartService {
     private final AuthUtil authUtil;
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
+    private final BundleRepository bundleRepository;
     private final ModelMapper modelMapper;
 
 
@@ -275,6 +278,51 @@ public class CartServiceImpl implements CartService {
                 .sum();
         cart.setTotalPrice(newTotal);
         cartRepository.save(cart);
+    }
+
+    @Override
+    @Transactional
+    public CartDTO addBundleToCart(Long bundleId) {
+        Cart cart = createCart();
+        Bundle bundle = bundleRepository.findById(bundleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bundle", "bundleId", bundleId));
+
+        if (!Boolean.TRUE.equals(bundle.getActive())) {
+            throw new APIException("Bundle is no longer available");
+        }
+
+        if (bundle.getProducts() == null || bundle.getProducts().isEmpty()) {
+            throw new APIException("Bundle has no products");
+        }
+
+        double discountRate = (bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0) / 100.0;
+
+        for (Product product : bundle.getProducts()) {
+            if (product.getQuantity() == null || product.getQuantity() <= 0) {
+                throw new APIException("Product " + product.getProductName() + " is not available");
+            }
+
+            CartItem existingItem = cartItemRepository.findCartItemByProductProductIdAndCartId(cart.getCartId(), product.getProductId());
+            if (existingItem != null) {
+                existingItem.setQuantity(existingItem.getQuantity() + 1);
+                double bundlePrice = product.getSpecialPrice() * (1 - discountRate);
+                existingItem.setProductPrice(bundlePrice);
+                existingItem.setDiscount(product.getDiscount() + bundle.getDiscountPercentage());
+                cartItemRepository.save(existingItem);
+            } else {
+                CartItem newCartItem = new CartItem();
+                newCartItem.setProduct(product);
+                newCartItem.setCart(cart);
+                newCartItem.setQuantity(1);
+                double bundlePrice = product.getSpecialPrice() * (1 - discountRate);
+                newCartItem.setProductPrice(bundlePrice);
+                newCartItem.setDiscount(product.getDiscount() + bundle.getDiscountPercentage());
+                cartItemRepository.save(newCartItem);
+            }
+        }
+
+        recalculateCartTotal(cart);
+        return mapToCartDTO(cart);
     }
 
     private Cart createCart() {
