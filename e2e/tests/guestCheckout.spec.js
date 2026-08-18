@@ -5,9 +5,9 @@ test.describe('Guest checkout flow', () => {
   let product
 
   test.beforeAll(async () => {
-    const token = await loginAsAdmin()
-    const category = await createCategory(token, `Guest Category ${Date.now()}`)
-    product = await createProduct(token, category.categoryId, {
+    await loginAsAdmin()
+    const category = await createCategory(`Guest Category ${Date.now()}`)
+    product = await createProduct(category.categoryId, {
       productName: `Guest Product ${Date.now()}`,
       description: 'A product for guest checkout testing',
       quantity: 10,

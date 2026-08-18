@@ -1,11 +1,12 @@
 package com.ecommerce.project.controller;
 
 import com.ecommerce.project.model.User;
-import com.ecommerce.project.security.response.UserInfoResponse;
+import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.service.TotpService;
 import com.ecommerce.project.service.TwoFactorService;
 import com.ecommerce.project.util.AuthUtil;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -68,8 +69,10 @@ public class TwoFactorController {
         int code = (Integer) requestBody.get("code");
         String jwtToken = (String) requestBody.get("jwtToken");
         try {
-            UserInfoResponse response = twoFactorService.complete2FALogin(jwtToken, code);
-            return ResponseEntity.ok(response);
+            AuthenticationResult result = twoFactorService.complete2FALogin(jwtToken, code);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
+                    .body(result.getResponse());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", e.getMessage()));

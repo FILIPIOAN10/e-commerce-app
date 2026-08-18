@@ -1,24 +1,15 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchUserDetails } from "../../store/actions";
 import toast from "react-hot-toast";
 
 const OAuth2Redirect = () => {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const token = searchParams.get("token");
-
-        if (!token) {
-            toast.error("OAuth2 login failed. Please try again.");
-            navigate("/login");
-            return;
-        }
-
-        dispatch(fetchUserDetails(token))
+        dispatch(fetchUserDetails())
             .then(() => {
                 toast.success("Login successful!");
                 navigate("/");
@@ -27,7 +18,7 @@ const OAuth2Redirect = () => {
                 toast.error("Could not load user data.");
                 navigate("/login");
             });
-    }, [searchParams, navigate, dispatch]);
+    }, [navigate, dispatch]);
 
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">

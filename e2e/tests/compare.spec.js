@@ -6,9 +6,9 @@ test.describe('Compare flow', () => {
   let product
 
   test.beforeAll(async () => {
-    const token = await loginAsAdmin()
-    const category = await createCategory(token, `Compare Category ${Date.now()}`)
-    product = await createProduct(token, category.categoryId, {
+    await loginAsAdmin()
+    const category = await createCategory(`Compare Category ${Date.now()}`)
+    product = await createProduct(category.categoryId, {
       productName: `Compare Product ${Date.now()}`,
       description: 'A product for compare testing',
       quantity: 10,

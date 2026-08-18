@@ -6,7 +6,7 @@ const BACKEND_URL = import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"
 let stompClient = null;
 let onNotificationCallback = null;
 
-export const connectWebSocket = (jwtToken, onNotification) => {
+export const connectWebSocket = (onNotification) => {
     if (stompClient && stompClient.active) {
         return;
     }
@@ -15,9 +15,6 @@ export const connectWebSocket = (jwtToken, onNotification) => {
 
     stompClient = new Client({
         webSocketFactory: () => new SockJS(`${BACKEND_URL}/ws-notifications`),
-        connectHeaders: {
-            Authorization: `Bearer ${jwtToken}`,
-        },
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,

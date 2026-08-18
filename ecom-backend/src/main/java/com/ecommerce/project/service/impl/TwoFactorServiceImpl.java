@@ -3,13 +3,15 @@ package com.ecommerce.project.service.impl;
 import com.ecommerce.project.exception.InvalidCredentialsException;
 import com.ecommerce.project.exception.UserNotFoundException;
 import com.ecommerce.project.model.User;
+import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
-import com.ecommerce.project.security.response.UserInfoResponse;
+import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.TotpService;
 import com.ecommerce.project.service.TwoFactorService;
 import com.ecommerce.project.util.UserInfoMapper;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,14 +74,15 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     }
 
     @Override
-    public UserInfoResponse complete2FALogin(String jwtToken, int code) {
+    public AuthenticationResult complete2FALogin(String jwtToken, int code) {
         if (!verify2FALogin(jwtToken, code)) {
             throw new InvalidCredentialsException("Invalid 2FA code");
         }
         String username = jwtUtils.getUserNameFromJWTToken(jwtToken);
         User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        String newToken = jwtUtils.generateTokenFromUsername(username);
-        return UserInfoMapper.toUserInfoResponse(user, newToken);
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+        return new AuthenticationResult(UserInfoMapper.toUserInfoResponse(user), jwtCookie, false, null);
     }
 }

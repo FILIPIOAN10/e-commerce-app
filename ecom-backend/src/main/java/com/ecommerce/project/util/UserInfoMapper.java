@@ -11,7 +11,7 @@ public final class UserInfoMapper {
     private UserInfoMapper() {
     }
 
-    public static UserInfoResponse toUserInfoResponse(User user, String jwtToken) {
+    public static UserInfoResponse toUserInfoResponse(User user) {
         if (user == null) {
             return null;
         }
@@ -23,7 +23,6 @@ public final class UserInfoMapper {
                 user.getUserName(),
                 roles,
                 user.getEmail(),
-                jwtToken,
                 user.getPhone(),
                 user.getAvatarUrl()
         );

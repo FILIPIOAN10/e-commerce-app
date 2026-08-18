@@ -18,8 +18,8 @@ const NotificationBell = () => {
 
     // Connect WebSocket when user logs in
     useEffect(() => {
-        if (user?.jwtToken) {
-            connectWebSocket(user.jwtToken, (notification) => {
+        if (user?.id) {
+            connectWebSocket((notification) => {
                 dispatch(addNotification(notification));
             });
             dispatch(fetchNotifications());
@@ -28,7 +28,7 @@ const NotificationBell = () => {
         return () => {
             disconnectWebSocket();
         };
-    }, [user?.jwtToken, dispatch]);
+    }, [user?.id, dispatch]);
 
     // Close dropdown when clicking outside
     useEffect(() => {

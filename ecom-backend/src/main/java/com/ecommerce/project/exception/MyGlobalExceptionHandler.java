@@ -2,6 +2,8 @@ package com.ecommerce.project.exception;
 
 
 import com.ecommerce.project.payload.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,6 +18,8 @@ import java.util.Map;
 // Handler global pentru excepții (validează și formatează răspunsurile cu erori)
 
 public class MyGlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(MyGlobalExceptionHandler.class);
 
     /**
      * Gestionează erorile de validare a DTO-urilor.
@@ -79,5 +83,12 @@ public class MyGlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAccountNotVerified(AccountNotVerifiedException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {
+        logger.error("Unhandled exception", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Internal server error"));
     }
 }

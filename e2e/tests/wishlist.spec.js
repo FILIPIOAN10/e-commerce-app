@@ -6,9 +6,9 @@ test.describe('Wishlist flow', () => {
   let product
 
   test.beforeAll(async () => {
-    const token = await loginAsAdmin()
-    const category = await createCategory(token, `Wishlist Category ${Date.now()}`)
-    product = await createProduct(token, category.categoryId, {
+    await loginAsAdmin()
+    const category = await createCategory(`Wishlist Category ${Date.now()}`)
+    product = await createProduct(category.categoryId, {
       productName: `Wishlist Product ${Date.now()}`,
       description: 'A product for wishlist testing',
       quantity: 10,

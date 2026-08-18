@@ -1,7 +1,7 @@
 import api from "../../api/api";
 
 export const authenticateSignInUser = (
-    sendData, toast, reset, navigate, setLoader, fetchHint,
+    sendData, toast, reset, navigate, setLoader,
     setNeeds2FA, setTemp2FAToken, setLoginEmail
 ) => async (dispatch) => {
     try {
@@ -30,7 +30,6 @@ export const authenticateSignInUser = (
 
     } catch (error) {
         toast.error(error?.response?.data?.message || "Internal Server Error");
-        if (fetchHint) fetchHint(sendData.username);
     } finally {
         setLoader(false);
     }
@@ -63,13 +62,10 @@ export const logOutUser = (navigate) => (dispatch) => {
     navigate("/login");
 };
 
-export const fetchUserDetails = (token) => async (dispatch) => {
-    const { data } = await api.get("/auth/user", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+export const fetchUserDetails = () => async (dispatch) => {
+    const { data } = await api.get("/auth/user");
 
     const authData = {
-        jwtToken: token,
         id: data.id,
         username: data.username,
         email: data.email,

@@ -7,6 +7,7 @@ import com.ecommerce.project.util.PaginationUtil;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -57,8 +58,8 @@ public class UserController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/hint/{username}")
-    public ResponseEntity<?> getPasswordHint(@PathVariable String username){
-        return userManagementService.getPasswordHint(username);
+    @GetMapping("/hint")
+    public ResponseEntity<?> getPasswordHint(Authentication authentication){
+        return userManagementService.getPasswordHint(authentication.getName());
     }
 }

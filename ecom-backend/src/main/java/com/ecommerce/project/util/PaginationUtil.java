@@ -7,6 +7,8 @@ import org.springframework.data.domain.Sort;
 
 public class PaginationUtil {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private PaginationUtil() {
     }
 
@@ -17,6 +19,7 @@ public class PaginationUtil {
         if (pageSize == null || pageSize <= 0) {
             pageSize = 10;
         }
+        pageSize = Math.min(pageSize, MAX_PAGE_SIZE);
         Sort sort = buildSort(sortBy, sortOrder);
         return PageRequest.of(pageNumber, pageSize, sort);
     }
