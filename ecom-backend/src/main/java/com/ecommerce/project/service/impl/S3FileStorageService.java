@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 @Slf4j
@@ -45,11 +43,11 @@ public class S3FileStorageService implements FileService {
                     PutObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
-                            .stream(file.getInputStream(), file.getSize(), -1)
+                            .stream(file.getInputStream(), file.getSize(), null)
                             .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
                             .build()
             );
-        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException e) {
+        } catch (MinioException e) {
             log.error("Failed to upload image to S3/MinIO: {}", e.getMessage());
             throw new IOException("Image upload failed", e);
         }
@@ -80,7 +78,7 @@ public class S3FileStorageService implements FileService {
                             .object(objectName)
                             .build()
             );
-        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException e) {
+        } catch (MinioException e) {
             log.error("Failed to delete image from S3/MinIO: {}", e.getMessage());
             throw new IOException("Image deletion failed", e);
         }
