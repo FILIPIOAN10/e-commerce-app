@@ -22,6 +22,7 @@ import org.springframework.web.util.WebUtils;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.Set;
 
 
 @Component
@@ -32,7 +33,7 @@ public class JwtUtils {
     private static final String ACCESS_TOKEN_PURPOSE = "access";
     private static final String TWO_FACTOR_TOKEN_PURPOSE = "2fa_challenge";
     private static final long TWO_FACTOR_TOKEN_EXPIRATION_MS = 5 * 60 * 1000L;
-    private static Logger logger = LoggerFactory.getLogger(JwtUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
     // Getting JWT From Header
 
     @Value("${spring.app.jwtSecret}")
@@ -44,8 +45,13 @@ public class JwtUtils {
     @Value("${spring.ecom.app.jwtCookieName}")
     private String jwtCookie;
 
+    @Value("${spring.ecom.app.refreshTokenCookieName}")
+    private String refreshTokenCookieName;
+
     @Value("${spring.profiles.active:dev}")
     private String activeProfile;
+
+    private static final Set<String> NON_SECURE_PROFILES = Set.of("dev", "ci");
 
     public String getJwtFromCookies(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, jwtCookie);
@@ -63,12 +69,20 @@ public class JwtUtils {
         String jwt = generateTokenFromUsername(userPrincipal.getUsername());
         ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
                 .path("/api")
-                .maxAge(24 * 60 * 60)
+                .maxAge(jwtExpirationMs / 1000)
                 .httpOnly(true)
-                .secure(!"dev".equals(activeProfile))
+                .secure(!NON_SECURE_PROFILES.contains(activeProfile))
                 .sameSite("Lax")
                 .build();
         return cookie;
+    }
+
+    public String getRefreshTokenFromCookies(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, refreshTokenCookieName);
+        if (cookie != null) {
+            return cookie.getValue();
+        }
+        return null;
     }
 
     public String getJwtFromHeader(HttpServletRequest request) {
@@ -96,7 +110,7 @@ public class JwtUtils {
      * Returns a clean cookie used to clear authentication state.
      */
     public ResponseCookie getCleanJwtCookie() {
-        return getCleanJwtCookie("/api", "Strict");
+        return getCleanJwtCookie("/api", "Lax");
     }
 
     /**
@@ -107,8 +121,8 @@ public class JwtUtils {
                 .path(path)
                 .maxAge(0)
                 .httpOnly(true)
-                .secure(!"dev".equals(activeProfile))
-                .sameSite("Lax")
+                .secure(!NON_SECURE_PROFILES.contains(activeProfile))
+                .sameSite(sameSite)
                 .build();
     }
 

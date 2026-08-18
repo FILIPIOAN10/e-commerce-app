@@ -10,6 +10,7 @@ import org.springframework.http.ResponseCookie;
 public class AuthenticationResult {
     private final UserInfoResponse response;
     private final ResponseCookie jwtCookie;
+    private final ResponseCookie refreshCookie;
     private final boolean needs2FA;
     private final String temp2FAToken;
 }

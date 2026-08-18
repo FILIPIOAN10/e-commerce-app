@@ -14,5 +14,5 @@ public interface AuthService {
 
     ResponseCookie logoutUser();
 
-
+    AuthenticationResult refreshAccessToken(String refreshToken);
 }

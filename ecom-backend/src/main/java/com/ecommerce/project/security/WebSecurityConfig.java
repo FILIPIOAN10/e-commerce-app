@@ -16,7 +16,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -43,6 +42,9 @@ public class WebSecurityConfig {
 
     @Value("${frontend.url}")
     String frontEndUrl;
+
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
 
     public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthEntryPointJwt unauthorizedHandler) {
         this.userDetailsService = userDetailsService;
@@ -98,23 +100,28 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/auth/**","/error").permitAll()
-                        .requestMatchers("/ws-notifications/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
-                        .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/api/test/**").permitAll()
-                        .requestMatchers("/images/**").permitAll()
-                        .requestMatchers("/images/avatars/**").permitAll()
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
+                .authorizeHttpRequests((auth) -> {
+                    auth.requestMatchers("/api/auth/**", "/error").permitAll();
+                    auth.requestMatchers("/ws-notifications/**").permitAll();
+                    auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
+                    auth.requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER");
+                    auth.requestMatchers("/api/public/**").permitAll();
+                    auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
+                    auth.requestMatchers("/images/**").permitAll();
+                    auth.requestMatchers("/images/avatars/**").permitAll();
+                    auth.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
+
+                    if (activeProfile != null && activeProfile.contains("dev")) {
+                        auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll();
+                    } else {
+                        auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").hasRole("ADMIN");
+                    }
+                    auth.anyRequest().authenticated();
+                })
+                .oauth2Login(oauth2 -> oauth2
                     .successHandler(oAuth2LoginSuccessHandler)
-                        .failureUrl(frontEndUrl + "/login?error=oauth2")
-            );
+                    .failureUrl(frontEndUrl + "/login?error=oauth2")
+                );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(rateLimitFilter,AuthTokenFilter.class);
@@ -123,19 +130,6 @@ public class WebSecurityConfig {
                 HeadersConfigurer.FrameOptionsConfig::sameOrigin
         ));
         return http.build();
-    }
-
-
-    // use to completely bypass web security
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring()
-                .requestMatchers("/v2/api-docs",
-                        "/configuration/ui",
-                        "/swagger-resources/**",
-                        "/configuration/security",
-                        "/swagger-ui.html",
-                        "/webjars/**"));
     }
 
 

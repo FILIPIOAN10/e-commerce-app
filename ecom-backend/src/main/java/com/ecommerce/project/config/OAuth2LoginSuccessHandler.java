@@ -6,6 +6,7 @@ import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
+import com.ecommerce.project.security.redis.RefreshTokenService;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     private final RoleRepository roleRepository;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${frontend.url}")
     private String frontEndUrl;
@@ -36,11 +38,13 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     public OAuth2LoginSuccessHandler(UserRepository userRepository,
                                      RoleRepository roleRepository,
                                      JwtUtils jwtUtils,
-                                     PasswordEncoder passwordEncoder) {
+                                     PasswordEncoder passwordEncoder,
+                                     RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.jwtUtils = jwtUtils;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -111,11 +115,14 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             user = userRepository.save(user);
         }
 
-        // GENERATE JWT (as HttpOnly cookie only)
+        // GENERATE JWT and refresh token (as HttpOnly cookies)
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getUserName());
+        ResponseCookie refreshCookie = refreshTokenService.generateRefreshCookie(refreshToken);
 
         response.addHeader("Set-Cookie", jwtCookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
         response.sendRedirect(frontEndUrl + "/oauth2/redirect");
     }
 }
