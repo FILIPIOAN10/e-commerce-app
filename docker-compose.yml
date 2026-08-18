@@ -129,6 +129,12 @@ services:
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT: ${SPRING_MAIL_WRITETIMEOUT:-10000}
       SPRING_MAIL_PROPERTIES_MAIL_DEBUG: ${SPRING_MAIL_DEBUG:-false}
       APP_SKIP_VERIFICATION_EMAIL: ${APP_SKIP_VERIFICATION_EMAIL:-true}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health >/dev/null 2>&1 || curl -sf http://localhost:8080/actuator/health >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   frontend:
     image: node:22-alpine
@@ -146,6 +152,12 @@ services:
     depends_on:
       backend:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   redis-data:

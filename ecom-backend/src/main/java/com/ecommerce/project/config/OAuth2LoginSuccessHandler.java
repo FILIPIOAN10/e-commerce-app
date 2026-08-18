@@ -111,12 +111,11 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             user = userRepository.save(user);
         }
 
-        // GENERATE JWT
+        // GENERATE JWT (as HttpOnly cookie only)
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-        String jwt = jwtUtils.generateTokenFromUsername(user.getUserName());
 
         response.addHeader("Set-Cookie", jwtCookie.toString());
-        response.sendRedirect(frontEndUrl + "/oauth2/redirect?token=" + jwt);
+        response.sendRedirect(frontEndUrl + "/oauth2/redirect");
     }
 }

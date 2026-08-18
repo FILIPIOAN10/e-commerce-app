@@ -6,29 +6,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-
-    const requestUrl = config.url || "";
-
-    // Exclude DOAR endpoint-urile publice de auth, nu toate /auth/
-    const isPublicAuthRequest = 
-        requestUrl.includes("/auth/signin") || 
-        requestUrl.includes("/auth/signup") ||
-        requestUrl.includes("/auth/signout") ||
-        requestUrl.includes("/auth/public/") ||
-        requestUrl.includes("/auth/forgot-password") ||
-        requestUrl.includes("/auth/reset-password");
-
     config.headers = config.headers || {};
-
-    if(!isPublicAuthRequest){
-        const auth = localStorage.getItem("auth");
-        const user = auth ? JSON.parse(auth) : null;
-        const jwtToken = user?.jwtToken;
-
-        if(jwtToken){
-            config.headers.Authorization = `Bearer ${jwtToken}`;
-        }
-    }
 
     const csrfToken = document.cookie
         .split("; ")

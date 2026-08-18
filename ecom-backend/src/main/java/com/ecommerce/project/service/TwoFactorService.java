@@ -1,6 +1,6 @@
 package com.ecommerce.project.service;
 
-import com.ecommerce.project.security.response.UserInfoResponse;
+import com.ecommerce.project.payload.AuthenticationResult;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 
 public interface TwoFactorService {
@@ -13,5 +13,5 @@ public interface TwoFactorService {
 
     void disable2FA(Long userId);
 
-    UserInfoResponse complete2FALogin(String jwtToken, int code);
+    AuthenticationResult complete2FALogin(String jwtToken, int code);
 }

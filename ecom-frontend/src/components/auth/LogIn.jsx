@@ -7,7 +7,6 @@ import { useDispatch } from "react-redux";
 import { authenticateSignInUser } from "../../store/actions";
 import toast from "react-hot-toast";
 import Spinners from "../shared/Spinners";
-import api from "../../api/api";
 import { FaGithub } from "react-icons/fa"; 
 import { FcGoogle } from "react-icons/fc";
 import Verify2FALogin from "./Verify2FALogin";
@@ -31,30 +30,13 @@ const LogIn = () => {
         mode:"onTouched",
     });
 
-    const [hint,setHint] = useState(null);
-
-    const fetchHint = async (username) => {
-        console.log(" log1 " )
-        try {
-            const {data}= await api.get(`/auth/hint/${username}`);
-            console.log("log 2 "+data);
-            if(data?.message && data.message !== "No hit available"){
-                setHint(data.message);
-            }
-            
-        } catch (e) {
-            console.log("Could not fetch hint",e);
-        }
-    };
-
     const loginHandler = async (data) => {
         dispatch(authenticateSignInUser(
-            data, 
-            toast, 
-            reset, 
-            navigate, 
-            setLoader, 
-            fetchHint,
+            data,
+            toast,
+            reset,
+            navigate,
+            setLoader,
             setNeeds2FA,
             setTemp2FAToken,
             setLoginEmail
@@ -165,13 +147,6 @@ const LogIn = () => {
                     </a>
 
                 </div>
-
-                {/* HINT */}
-                {hint && (
-                    <p className="text-amber-600 dark:text-amber-400 text-sm text-center mt-3 p-2 bg-amber-50 dark:bg-amber-900/30 rounded">
-                        Hint: {hint}
-                    </p>
-                )}
 
                 {/* REGISTER */}
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">

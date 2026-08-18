@@ -88,9 +88,8 @@ public class AuthServiceImpl implements AuthService {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-            String jwtToken = jwtUtils.generateJwtToken(userDetails);
 
-            UserInfoResponse response = UserInfoMapper.toUserInfoResponse(user, jwtToken);
+            UserInfoResponse response = UserInfoMapper.toUserInfoResponse(user);
             return new AuthenticationResult(response, jwtCookie, false, null);
 
         } catch (org.springframework.security.core.AuthenticationException e) {
