@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../api/api";
 import toast from "react-hot-toast";
-import { FaCheck, FaTimes, FaDollarSign } from "react-icons/fa";
+import { FaCheck, FaTimes, FaDollarSign, FaTruck, FaSync } from "react-icons/fa";
 
 const AdminReturns = () => {
     const [returns, setReturns] = useState([]);
@@ -60,11 +60,23 @@ const AdminReturns = () => {
         }
     };
 
+    const handleRefreshTracking = async (returnId) => {
+        try {
+            const { data } = await api.post(`/admin/returns/${returnId}/track`);
+            toast.success(`Tracking updated: ${data.trackingStatus || data.status}`);
+            fetchReturns(page);
+        } catch (error) {
+            const msg = error?.response?.data?.message || "Failed to refresh tracking";
+            toast.error(msg);
+        }
+    };
+
     const statusColors = {
-        "PENDING": "bg-yellow-100 text-yellow-700",
+        "REQUESTED": "bg-yellow-100 text-yellow-700",
         "APPROVED": "bg-blue-100 text-blue-700",
-        "REJECTED": "bg-red-100 text-red-700",
+        "SHIPPED_BACK": "bg-indigo-100 text-indigo-700",
         "REFUNDED": "bg-green-100 text-green-700",
+        "REJECTED": "bg-red-100 text-red-700",
     };
 
     return (
@@ -95,6 +107,8 @@ const AdminReturns = () => {
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Reason</th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Refund</th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Carrier / Tracking</th>
+                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Tracking Status</th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Date</th>
                                     <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                                 </tr>
@@ -112,12 +126,37 @@ const AdminReturns = () => {
                                                 {r.status}
                                             </span>
                                         </td>
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs">
+                                            {r.carrierName ? (
+                                                <>
+                                                    <div>{r.carrierName}</div>
+                                                    <div className="text-gray-400">{r.trackingNumber}</div>
+                                                </>
+                                            ) : (
+                                                <span className="text-gray-400">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {r.trackingStatus ? (
+                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                    r.trackingStatus === "DELIVERED"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : r.trackingStatus === "EXCEPTION"
+                                                        ? "bg-red-100 text-red-700"
+                                                        : "bg-blue-100 text-blue-700"
+                                                }`}>
+                                                    {r.trackingStatus}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400 text-xs">—</span>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                                             {r.requestedAt ? new Date(r.requestedAt).toLocaleDateString() : "—"}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex justify-center gap-1">
-                                                {r.status === "PENDING" && (
+                                            <div className="flex justify-center gap-1 flex-wrap">
+                                                {r.status === "REQUESTED" && (
                                                     <>
                                                         <button
                                                             onClick={() => handleApprove(r.id)}
@@ -135,14 +174,26 @@ const AdminReturns = () => {
                                                         </button>
                                                     </>
                                                 )}
-                                                {r.status === "APPROVED" && (
-                                                    <button
-                                                        onClick={() => handleRefund(r.id)}
-                                                        className="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-2 h-8 rounded-md text-xs"
-                                                    >
-                                                        <FaDollarSign className="mr-1" />
-                                                        Mark Refunded
-                                                    </button>
+                                                {(r.status === "APPROVED" || r.status === "SHIPPED_BACK") && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleRefreshTracking(r.id)}
+                                                            className="flex items-center bg-indigo-500 hover:bg-indigo-600 text-white px-2 h-8 rounded-md text-xs"
+                                                            title="Refresh tracking"
+                                                        >
+                                                            <FaSync className="mr-1" />
+                                                            Track
+                                                        </button>
+                                                        {r.status === "SHIPPED_BACK" && (
+                                                            <button
+                                                                onClick={() => handleRefund(r.id)}
+                                                                className="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-2 h-8 rounded-md text-xs"
+                                                            >
+                                                                <FaDollarSign className="mr-1" />
+                                                                Refund
+                                                            </button>
+                                                        )}
+                                                    </>
                                                 )}
                                                 {(r.status === "REJECTED" || r.status === "REFUNDED") && (
                                                     <span className="text-xs text-gray-400">—</span>

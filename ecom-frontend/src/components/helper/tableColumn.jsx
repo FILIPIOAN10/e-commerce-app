@@ -358,6 +358,9 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
           "Shipped": "bg-orange-100 text-orange-700",
           "Delivered": "bg-green-100 text-green-700",
           "Cancelled": "bg-red-100 text-red-600",
+          "Return Requested": "bg-indigo-100 text-indigo-700",
+          "Returned": "bg-gray-100 text-gray-700",
+          "Refunded": "bg-teal-100 text-teal-700",
         };
         const colorClass = statusColors[_params.value] || "bg-gray-100 text-gray-600";
         return (
@@ -450,7 +453,9 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
       renderHeader: (_params) => <span>Return</span>,
       renderCell: (_params) => {
         const status = _params.row.status;
-        if (status === "Delivered") {
+        const returnStatus = _params.row.returnStatus;
+
+        if (status === "Delivered" && !returnStatus) {
           return (
             <div className="flex justify-center items-center h-full">
               <button
@@ -463,9 +468,33 @@ export const adminOrderTableColumn = (handleEdit, isAdmin, handleTrack, handleIn
             </div>
           );
         }
-        if (status === "Return Requested" || status === "Returned" || status === "Refunded") {
+
+        if (returnStatus === "APPROVED") {
           return (
-            <span className="text-xs text-gray-500">{status}</span>
+            <button
+              onClick={() => handleReturn(_params.row)}
+              className="flex items-center bg-indigo-500 hover:bg-indigo-600 text-white px-2 h-8 rounded-md text-xs"
+            >
+              Add Tracking
+            </button>
+          );
+        }
+
+        if (returnStatus === "SHIPPED_BACK") {
+          return (
+            <button
+              onClick={() => handleReturn(_params.row)}
+              className="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-2 h-8 rounded-md text-xs"
+            >
+              Track
+            </button>
+          );
+        }
+
+        if (status === "Return Requested" || status === "Returned" || status === "Refunded" || returnStatus) {
+          const label = returnStatus || status;
+          return (
+            <span className="text-xs text-gray-500">{label}</span>
           );
         }
         return <span className="text-xs text-gray-300">—</span>;

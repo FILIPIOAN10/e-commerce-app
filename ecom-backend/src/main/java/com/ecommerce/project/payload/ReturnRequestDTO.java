@@ -17,6 +17,11 @@ public class ReturnRequestDTO {
     private String status;
     private LocalDateTime requestedAt;
     private LocalDateTime processedAt;
+    private LocalDateTime shippedBackAt;
     private String adminNote;
+    private String trackingNumber;
+    private String carrierName;
+    private String trackingStatus;
+    private LocalDateTime lastTrackedAt;
     private Double refundAmount;
 }
