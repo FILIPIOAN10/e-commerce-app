@@ -1,6 +1,5 @@
 package com.ecommerce.project.service;
 
-import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Category;
 import com.ecommerce.project.model.Product;
@@ -9,7 +8,9 @@ import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.ProductServiceImpl;
+import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,17 +36,16 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@DisplayName("ProductServiceImpl — search, pagination and read operations")
+@DisplayName("ProductServiceImpl — pagination and read operations")
 class ProductServiceImplTest {
 
     @Mock private ProductRepository productRepository;
-    @Mock private ProductImageRepository productImageRepository;
     @Mock private CategoryRepository categoryRepository;
-    @Mock private ReviewRepository reviewRepository;
     @Mock private ModelMapper modelMapper;
-    @Mock private FileService fileService;
     @Mock private CartRepository cartRepository;
     @Mock private CartService cartService;
+    @Mock private ProductImageService productImageService;
+    @Mock private ProductMapper productMapper;
     @Mock private ProductSemanticSearchService productSemanticSearchService;
     @Mock private AuthUtil authUtil;
 
@@ -80,15 +79,24 @@ class ProductServiceImplTest {
         product.setCategory(category);
         product.setUser(user);
 
-        ReflectionTestUtils.setField(productService, "imageBaseUrl", "http://localhost:8080/images");
-
         when(modelMapper.map(any(Product.class), eq(ProductDTO.class)))
                 .thenAnswer(inv -> mapToDto(inv.getArgument(0)));
 
-        when(reviewRepository.getAverageRatingForProduct(any(Product.class))).thenReturn(0.0);
-        when(reviewRepository.countByProduct(any(Product.class))).thenReturn(0L);
-        when(reviewRepository.getAverageRatingsForProductIds(anyList())).thenReturn(List.of());
-        when(reviewRepository.getReviewCountsForProductIds(anyList())).thenReturn(List.of());
+        when(productMapper.mapProductToDTO(any(Product.class)))
+                .thenAnswer(inv -> mapToDto(inv.getArgument(0)));
+
+        when(productMapper.buildProductResponse(any(Page.class)))
+                .thenAnswer(inv -> {
+                    Page<Product> page = inv.getArgument(0);
+                    ProductResponse response = new ProductResponse();
+                    response.setContent(page.getContent().stream().map(this::mapToDto).toList());
+                    response.setPageNumber(page.getNumber());
+                    response.setPageSize(page.getSize());
+                    response.setTotalElements(page.getTotalElements());
+                    response.setTotalPages(page.getTotalPages());
+                    response.setLastPage(page.isLast());
+                    return response;
+                });
     }
 
     private ProductDTO mapToDto(Product p) {
@@ -143,68 +151,6 @@ class ProductServiceImplTest {
         assertTrue(response.getContent().isEmpty());
     }
 
-    @Test
-    @DisplayName("searchByCategory returns products and throws when none found")
-    void searchByCategory_successAndEmpty() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(productRepository.findByCategoryOrderByPriceAsc(eq(category), any(Pageable.class)))
-                .thenReturn(pageOf(product));
-
-        ProductResponse response = productService.searchByCategory(1L, 0, 10, "price", "asc");
-
-        assertEquals(1, response.getContent().size());
-        assertEquals("Wireless Headphones", response.getContent().get(0).getProductName());
-
-        when(productRepository.findByCategoryOrderByPriceAsc(eq(category), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
-
-        assertThrows(APIException.class,
-                () -> productService.searchByCategory(1L, 0, 10, "price", "asc"));
-    }
-
-    @Test
-    @DisplayName("searchProductByKeyword returns matching products and throws when none found")
-    void searchProductByKeyword_successAndEmpty() {
-        when(productRepository.findByProductNameLikeIgnoreCase(eq("%laptop%"), any(Pageable.class)))
-                .thenReturn(pageOf(product));
-
-        ProductResponse response = productService.searchProductByKeyword("laptop", 0, 10, "price", "asc");
-
-        assertEquals(1, response.getContent().size());
-
-        when(productRepository.findByProductNameLikeIgnoreCase(eq("%unknown%"), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
-
-        assertThrows(APIException.class,
-                () -> productService.searchProductByKeyword("unknown", 0, 10, "price", "asc"));
-    }
-
-    @Test
-    @DisplayName("searchProducts falls back to classic search when semantic search is disabled")
-    void searchProducts_classicFallback() {
-        when(productSemanticSearchService.isEnabled()).thenReturn(false);
-        when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
-                .thenReturn(pageOf(product));
-
-        ProductResponse response = productService.searchProducts("laptop", 0, 10, "price", "asc", true);
-
-        assertEquals(1, response.getContent().size());
-        verify(productSemanticSearchService).isEnabled();
-        verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("searchProducts with null query uses disjunction and returns empty page")
-    void searchProducts_nullQuery() {
-        when(productSemanticSearchService.isEnabled()).thenReturn(false);
-        when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
-
-        ProductResponse response = productService.searchProducts(null, 0, 10, "price", "asc", false);
-
-        assertNotNull(response);
-        assertTrue(response.getContent().isEmpty());
-    }
 
     @Test
     @DisplayName("getProductById returns product DTO when found")
@@ -253,33 +199,4 @@ class ProductServiceImplTest {
         verify(productRepository).findByUser(eq(user), any(Pageable.class));
     }
 
-    @Test
-    @DisplayName("searchAutocomplete returns distinct product names")
-    void searchAutocomplete() {
-        Product p2 = new Product();
-        p2.setProductName("Wired Headphones");
-        when(productRepository.findByProductNameLikeIgnoreCase(eq("%head%"), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(product, p2)));
-
-        List<String> result = productService.searchAutocomplete("head");
-
-        assertEquals(2, result.size());
-        assertTrue(result.contains("Wireless Headphones"));
-    }
-
-    @Test
-    @DisplayName("getBestSellers, getNewArrivals and getOnSaleProducts return mapped DTOs")
-    void getDiscoveryLists() {
-        when(productRepository.findBestSellingProducts(any(Pageable.class))).thenReturn(List.of(product));
-        when(productRepository.findAllByOrderByProductIdDesc(any(Pageable.class))).thenReturn(List.of(product));
-        when(productRepository.findOnSaleProducts(any(Pageable.class))).thenReturn(List.of(product));
-
-        List<ProductDTO> bestSellers = productService.getBestSellers(5);
-        List<ProductDTO> newArrivals = productService.getNewArrivals(5);
-        List<ProductDTO> onSale = productService.getOnSaleProducts(5);
-
-        assertEquals(1, bestSellers.size());
-        assertEquals(1, newArrivals.size());
-        assertEquals(1, onSale.size());
-    }
 }

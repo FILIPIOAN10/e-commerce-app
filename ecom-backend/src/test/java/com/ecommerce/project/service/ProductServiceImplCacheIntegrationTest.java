@@ -4,10 +4,13 @@ import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.*;
-import com.ecommerce.project.service.ProductService;
+import com.ecommerce.project.service.ProductImageService;
+import com.ecommerce.project.service.ProductSearchService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
+import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.service.impl.ProductServiceImpl;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -101,23 +104,6 @@ class ProductServiceImplCacheIntegrationTest {
         verify(productRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
     }
 
-    @Test
-    @DisplayName("searchProducts caches classic fallback when semantic is true but disabled")
-    void searchProducts_caches() {
-        when(productSemanticSearchService.isEnabled()).thenReturn(false);
-        when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(product), Pageable.ofSize(10), 1));
-        when(reviewRepository.getAverageRatingsForProductIds(anyList())).thenReturn(List.of());
-        when(reviewRepository.getReviewCountsForProductIds(anyList())).thenReturn(List.of());
-
-        ProductResponse first = productService.searchProducts("laptop", 0, 10, "price", "asc", true);
-        ProductResponse second = productService.searchProducts("laptop", 0, 10, "price", "asc", true);
-
-        assertEquals(1, first.getContent().size());
-        assertEquals(1, second.getContent().size());
-        verify(productSemanticSearchService, times(1)).isEnabled();
-        verify(productRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
-    }
 
     @Configuration
     @EnableCaching
@@ -126,11 +112,6 @@ class ProductServiceImplCacheIntegrationTest {
         @Bean
         public ProductRepository productRepository() {
             return mock(ProductRepository.class);
-        }
-
-        @Bean
-        public ProductImageRepository productImageRepository() {
-            return mock(ProductImageRepository.class);
         }
 
         @Bean
@@ -149,8 +130,8 @@ class ProductServiceImplCacheIntegrationTest {
         }
 
         @Bean
-        public FileService fileService() {
-            return mock(FileService.class);
+        public ProductImageService productImageService() {
+            return mock(ProductImageService.class);
         }
 
         @Bean
@@ -174,27 +155,35 @@ class ProductServiceImplCacheIntegrationTest {
         }
 
         @Bean
+        public ProductMapper productMapper(ModelMapper modelMapper, ReviewRepository reviewRepository) {
+            ProductMapper mapper = new ProductMapper(modelMapper, reviewRepository);
+            ReflectionTestUtils.setField(mapper, "imageBaseUrl", "http://localhost:8080/images");
+            return mapper;
+        }
+
+        @Bean
+        public ProductSearchService productSearchService() {
+            return mock(ProductSearchService.class);
+        }
+
+        @Bean
         public CacheManager cacheManager() {
             return new ConcurrentMapCacheManager("product", "publicProducts", "categoryProducts", "productSearch");
         }
 
         @Bean
         public ProductService productService(ProductRepository productRepository,
-                                             ProductImageRepository productImageRepository,
                                              CategoryRepository categoryRepository,
-                                             ReviewRepository reviewRepository,
                                              ModelMapper modelMapper,
-                                             FileService fileService,
                                              CartRepository cartRepository,
                                              CartService cartService,
+                                             ProductImageService productImageService,
+                                             ProductMapper productMapper,
                                              ProductSemanticSearchService productSemanticSearchService,
                                              AuthUtil authUtil) {
-            ProductServiceImpl service = new ProductServiceImpl(
-                    productRepository, productImageRepository, categoryRepository, reviewRepository,
-                    modelMapper, fileService, cartRepository, cartService, productSemanticSearchService, authUtil);
-            ReflectionTestUtils.setField(service, "imageBaseUrl", "http://localhost:8080/images");
-            ReflectionTestUtils.setField(service, "path", "images/");
-            return service;
+            return new ProductServiceImpl(
+                    productRepository, categoryRepository, modelMapper, cartRepository, cartService,
+                    productImageService, productMapper, productSemanticSearchService, authUtil);
         }
     }
 }

@@ -27,7 +27,4 @@ public interface OrderService {
 
     OrderDTO getOrderById(Long orderId, String email);
 
-    byte[] exportOrdersToCsv();
-
-    byte[] exportOrdersToPdf();
 }
