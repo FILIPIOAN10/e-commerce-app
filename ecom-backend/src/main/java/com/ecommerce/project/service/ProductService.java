@@ -2,44 +2,21 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 public interface ProductService {
     ProductDTO addProduct(Long categoryId, ProductDTO product);
 
     ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category);
 
-    ProductResponse searchByCategory(Long categoryId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
-
-    ProductResponse searchProductByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
-
     ProductDTO updateProduct(Long productId, ProductDTO product);
 
     ProductDTO deleteProduct(Long productId);
-
-    ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
-
-    ProductDTO uploadProductGalleryImages(Long productId, MultipartFile[] images) throws IOException;
-
-    ProductDTO deleteProductGalleryImage(Long productId, Long imageId);
 
     ProductResponse getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
     ProductResponse getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
-    ProductResponse searchProducts(String query, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, Boolean semantic);
-
     int reindexProductSearch();
 
-    java.util.List<String> searchAutocomplete(String query);
-
     ProductDTO getProductById(Long productId);
-
-    java.util.List<ProductDTO> getBestSellers(int limit);
-
-    java.util.List<ProductDTO> getNewArrivals(int limit);
-
-    java.util.List<ProductDTO> getOnSaleProducts(int limit);
 }
