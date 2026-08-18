@@ -81,7 +81,7 @@ const ItemContent = ({
                         </button>
                         <button
                             onClick={toggleSaveForLater}
-                            className="text-xs text-blue-500 hover:text-blue-700 underline"
+                            className="text-xs text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 underline"
                         >
                             {savedForLater ? "Move to cart" : "Save for later"}
                         </button>

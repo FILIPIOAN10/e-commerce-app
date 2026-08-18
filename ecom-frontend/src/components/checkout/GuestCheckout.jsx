@@ -55,18 +55,18 @@ const GuestCheckout = () => {
 
     return (
         <div className='py-14 px-4 min-h-[calc(100vh-100px)]'>
-            <h1 className='text-3xl font-bold text-center mb-8'>Guest Checkout</h1>
+            <h1 className='text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white'>Guest Checkout</h1>
             <div className='max-w-4xl mx-auto flex flex-wrap gap-6'>
                 <div className='w-full lg:w-7/12 space-y-4'>
-                    <form onSubmit={handleSubmit} className='space-y-4 p-4 border rounded-lg'>
-                        <h2 className='text-xl font-semibold'>Contact & Shipping</h2>
+                    <form onSubmit={handleSubmit} className='space-y-4 p-4 border border-slate-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white'>
+                        <h2 className='text-xl font-semibold text-gray-900 dark:text-white'>Contact & Shipping</h2>
                         <input
                             name='email'
                             type='email'
                             placeholder='Email'
                             value={form.email}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                             required
                         />
                         <input
@@ -74,14 +74,14 @@ const GuestCheckout = () => {
                             placeholder='Building Name'
                             value={form.buildingName}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                         />
                         <input
                             name='street'
                             placeholder='Street'
                             value={form.street}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                             required
                         />
                         <input
@@ -89,7 +89,7 @@ const GuestCheckout = () => {
                             placeholder='City'
                             value={form.city}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                             required
                         />
                         <input
@@ -97,14 +97,14 @@ const GuestCheckout = () => {
                             placeholder='State'
                             value={form.state}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                         />
                         <input
                             name='country'
                             placeholder='Country'
                             value={form.country}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                             required
                         />
                         <input
@@ -112,7 +112,7 @@ const GuestCheckout = () => {
                             placeholder='Pincode'
                             value={form.pincode}
                             onChange={handleChange}
-                            className='w-full border rounded-lg px-3 py-2'
+                            className='w-full border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
                             required
                         />
                         <button
@@ -125,15 +125,15 @@ const GuestCheckout = () => {
                 </div>
 
                 <div className='w-full lg:w-4/12'>
-                    <div className='border rounded-lg p-4 space-y-2'>
-                        <h2 className='text-xl font-semibold mb-2'>Order Summary</h2>
+                    <div className='border border-slate-200 dark:border-gray-700 rounded-lg p-4 space-y-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'>
+                        <h2 className='text-xl font-semibold mb-2 text-gray-900 dark:text-white'>Order Summary</h2>
                         {cart?.map((item) => (
                             <div key={item.productId} className='flex justify-between text-sm'>
                                 <span>{item.productName} x {item.quantity}</span>
                                 <span>{formatPrice(item.specialPrice * item.quantity)}</span>
                             </div>
                         ))}
-                        <div className='border-t pt-2 space-y-1'>
+                        <div className='border-t border-slate-200 dark:border-gray-700 pt-2 space-y-1'>
                             <div className='flex justify-between'>
                                 <span>Subtotal</span>
                                 <span>{formatPrice(subtotal)}</span>

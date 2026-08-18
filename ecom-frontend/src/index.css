@@ -218,3 +218,12 @@ layer(base);
 .dark .MuiDivider-root {
   border-color: var(--mui-palette-divider);
 }
+
+/* MUI Stepper dark mode */
+.dark .MuiStepLabel-label {
+  color: var(--mui-palette-text-primary) !important;
+}
+
+.dark .MuiStepConnector-line {
+  border-color: var(--mui-palette-text-secondary) !important;
+}

@@ -28,7 +28,7 @@ const PaymentMethod = () => {
     }
   return (
     <div className='max-w-md mx-auto p-5 bg-white dark:bg-gray-800 shadow-md rounded-lg mt-16 border dark:border-gray-700'>
-        <h1 className='text-2xl  font-semibold mb-4'>Select Payment Method</h1>
+        <h1 className='text-2xl font-semibold mb-4 text-gray-900 dark:text-white'>Select Payment Method</h1>
         
             <FormControl>
             <RadioGroup
@@ -41,7 +41,7 @@ const PaymentMethod = () => {
                  value="Stripe" 
                  control={<Radio color='primary' />} 
                  label="Stripe"
-                 className='text-gray-700' />
+                 className='text-gray-700 dark:text-gray-300' />
                 {/* <FormControlLabel 
                 value="Paypal" 
                 control={<Radio color='primary' />} 
