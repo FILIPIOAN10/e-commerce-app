@@ -84,16 +84,12 @@ export async function loginAsAdmin() {
     throw new Error(`Admin login failed: ${res.status}`)
   }
 
-  const data = await res.json()
-  return data.jwtToken
+  return res.json()
 }
 
-export async function createCategory(token, name) {
+export async function createCategory(name) {
   const res = await apiRequest('/admin/categories', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({ categoryName: name }),
   })
 
@@ -104,12 +100,9 @@ export async function createCategory(token, name) {
   return res.json()
 }
 
-export async function updateCategory(token, id, name) {
+export async function updateCategory(id, name) {
   const res = await apiRequest(`/admin/categories/${id}`, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({ categoryName: name }),
   })
 
@@ -118,12 +111,9 @@ export async function updateCategory(token, id, name) {
   }
 }
 
-export async function deleteCategory(token, id) {
+export async function deleteCategory(id) {
   const res = await apiRequest(`/admin/categories/${id}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   })
 
   if (!res.ok) {
@@ -131,12 +121,9 @@ export async function deleteCategory(token, id) {
   }
 }
 
-export async function createProduct(token, categoryId, product) {
+export async function createProduct(categoryId, product) {
   const res = await apiRequest(`/admin/categories/${categoryId}/product`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(product),
   })
 

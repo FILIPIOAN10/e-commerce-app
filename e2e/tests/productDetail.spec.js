@@ -5,9 +5,9 @@ test.describe('Product detail page', () => {
   let product
 
   test.beforeAll(async () => {
-    const token = await loginAsAdmin()
-    const category = await createCategory(token, `E2E Category ${Date.now()}`)
-    product = await createProduct(token, category.categoryId, {
+    await loginAsAdmin()
+    const category = await createCategory(`E2E Category ${Date.now()}`)
+    product = await createProduct(category.categoryId, {
       productName: `E2E Product ${Date.now()}`,
       description: 'E2E product description sample',
       quantity: 10,
