@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 import api from "../../api/api";
@@ -8,6 +8,7 @@ const VerifyEmail = () => {
     const navigate = useNavigate();
     const [status, setStatus] = useState("loading");
     const [message, setMessage] = useState("");
+    const hasVerified = useRef(false);
 
     useEffect(() => {
         const token = searchParams.get("token");
@@ -16,6 +17,15 @@ const VerifyEmail = () => {
             setMessage("No verification token found in URL.");
             return;
         }
+
+        // Guard against React.StrictMode's double effect invocation (and
+        // accidental re-renders), which would otherwise call the
+        // single-use verification endpoint twice and turn a successful
+        // verification into a false "Invalid or expired token" error.
+        if (hasVerified.current) {
+            return;
+        }
+        hasVerified.current = true;
 
         const verify = async () => {
             try {
