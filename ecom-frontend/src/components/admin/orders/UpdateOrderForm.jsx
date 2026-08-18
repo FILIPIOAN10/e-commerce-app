@@ -13,6 +13,9 @@ const ORDER_STATUSES=[
     "Shipped",
     "Delivered",
     "Cancelled",
+    "Return Requested",
+    "Returned",
+    "Refunded",
 ];
 
 const UpdateOrderForm = ({setOpen,selectedId,selectedItem,loader,setLoader}) => {

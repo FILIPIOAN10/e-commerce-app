@@ -1,6 +1,7 @@
 package com.ecommerce.project.controller;
 
 import com.ecommerce.project.payload.ReturnRequestDTO;
+import com.ecommerce.project.payload.TrackingStatus;
 import com.ecommerce.project.service.ReturnService;
 import com.ecommerce.project.util.AuthUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -77,5 +78,32 @@ public class ReturnController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReturnRequestDTO> markAsRefunded(@PathVariable Long returnId) {
         return ResponseEntity.ok(returnService.markAsRefunded(returnId));
+    }
+
+    @Tag(name = "Returns")
+    @PutMapping("/returns/{returnId}/tracking")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ReturnRequestDTO> provideTracking(
+            @PathVariable Long returnId,
+            @RequestBody Map<String, String> body) {
+        String email = authUtil.loggedInEmail();
+        String carrierName = body.getOrDefault("carrierName", "");
+        String trackingNumber = body.getOrDefault("trackingNumber", "");
+        return ResponseEntity.ok(returnService.provideTracking(returnId, email, carrierName, trackingNumber));
+    }
+
+    @Tag(name = "Returns")
+    @GetMapping("/returns/{returnId}/tracking")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TrackingStatus> getTrackingStatus(@PathVariable Long returnId) {
+        String email = authUtil.loggedInEmail();
+        return ResponseEntity.ok(returnService.getTrackingStatus(returnId, email));
+    }
+
+    @Tag(name = "Returns")
+    @PostMapping("/admin/returns/{returnId}/track")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ReturnRequestDTO> refreshTracking(@PathVariable Long returnId) {
+        return ResponseEntity.ok(returnService.refreshTracking(returnId));
     }
 }

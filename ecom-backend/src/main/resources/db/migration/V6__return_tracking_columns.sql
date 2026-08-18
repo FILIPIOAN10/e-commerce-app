@@ -1,0 +1,7 @@
+ALTER TABLE return_requests
+    ADD COLUMN IF NOT EXISTS shipped_back_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS carrier_name VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS tracking_status VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS last_tracked_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS refund_amount DOUBLE PRECISION;

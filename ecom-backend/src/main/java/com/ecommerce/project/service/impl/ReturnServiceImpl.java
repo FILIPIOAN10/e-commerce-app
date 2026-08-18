@@ -5,8 +5,10 @@ import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Order;
 import com.ecommerce.project.model.ReturnRequest;
 import com.ecommerce.project.payload.ReturnRequestDTO;
+import com.ecommerce.project.payload.TrackingStatus;
 import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.ReturnRequestRepository;
+import com.ecommerce.project.service.CourierTrackingService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.ReturnService;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +29,12 @@ public class ReturnServiceImpl implements ReturnService {
     private final ReturnRequestRepository returnRequestRepository;
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
+    private final CourierTrackingService courierTrackingService;
 
-    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_REQUESTED = "REQUESTED";
     private static final String STATUS_APPROVED = "APPROVED";
     private static final String STATUS_REJECTED = "REJECTED";
+    private static final String STATUS_SHIPPED_BACK = "SHIPPED_BACK";
     private static final String STATUS_REFUNDED = "REFUNDED";
 
     @Override
@@ -47,7 +51,7 @@ public class ReturnServiceImpl implements ReturnService {
             throw new APIException("Returns can only be requested for delivered orders");
         }
 
-        if (returnRequestRepository.existsByOrderIdAndStatus(orderId, STATUS_PENDING)) {
+        if (returnRequestRepository.existsByOrderIdAndStatus(orderId, STATUS_REQUESTED)) {
             throw new APIException("A pending return request already exists for this order");
         }
 
@@ -59,8 +63,9 @@ public class ReturnServiceImpl implements ReturnService {
         returnRequest.setOrderId(orderId);
         returnRequest.setUserEmail(email);
         returnRequest.setReason(reason);
-        returnRequest.setStatus(STATUS_PENDING);
+        returnRequest.setStatus(STATUS_REQUESTED);
         returnRequest.setRequestedAt(LocalDateTime.now());
+        returnRequest.setRefundAmount(order.getTotalAmount());
 
         returnRequest = returnRequestRepository.save(returnRequest);
 
@@ -69,7 +74,7 @@ public class ReturnServiceImpl implements ReturnService {
 
         notificationService.notifyAdminNewOrder(orderId, email, order.getTotalAmount());
 
-        return toDTO(returnRequest, order.getTotalAmount());
+        return toDTO(returnRequest);
     }
 
     @Override
@@ -92,8 +97,8 @@ public class ReturnServiceImpl implements ReturnService {
         ReturnRequest returnRequest = returnRequestRepository.findById(returnId)
                 .orElseThrow(() -> new ResourceNotFoundException("ReturnRequest", "id", returnId));
 
-        if (!STATUS_PENDING.equals(returnRequest.getStatus())) {
-            throw new APIException("Only pending return requests can be approved");
+        if (!STATUS_REQUESTED.equals(returnRequest.getStatus())) {
+            throw new APIException("Only requested return requests can be approved");
         }
 
         returnRequest.setStatus(STATUS_APPROVED);
@@ -107,9 +112,9 @@ public class ReturnServiceImpl implements ReturnService {
         order.setOrderStatus("Returned");
         orderRepository.save(order);
 
-        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Returned");
+        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Approved");
 
-        return toDTO(saved, order.getTotalAmount());
+        return toDTO(saved);
     }
 
     @Override
@@ -118,8 +123,8 @@ public class ReturnServiceImpl implements ReturnService {
         ReturnRequest returnRequest = returnRequestRepository.findById(returnId)
                 .orElseThrow(() -> new ResourceNotFoundException("ReturnRequest", "id", returnId));
 
-        if (!STATUS_PENDING.equals(returnRequest.getStatus())) {
-            throw new APIException("Only pending return requests can be rejected");
+        if (!STATUS_REQUESTED.equals(returnRequest.getStatus())) {
+            throw new APIException("Only requested return requests can be rejected");
         }
 
         returnRequest.setStatus(STATUS_REJECTED);
@@ -133,9 +138,9 @@ public class ReturnServiceImpl implements ReturnService {
         order.setOrderStatus("Delivered");
         orderRepository.save(order);
 
-        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Rejected — Order Delivered");
+        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Rejected");
 
-        return toDTO(saved, order.getTotalAmount());
+        return toDTO(saved);
     }
 
     @Override
@@ -144,12 +149,14 @@ public class ReturnServiceImpl implements ReturnService {
         ReturnRequest returnRequest = returnRequestRepository.findById(returnId)
                 .orElseThrow(() -> new ResourceNotFoundException("ReturnRequest", "id", returnId));
 
-        if (!STATUS_APPROVED.equals(returnRequest.getStatus())) {
-            throw new APIException("Only approved returns can be marked as refunded");
+        if (!STATUS_SHIPPED_BACK.equals(returnRequest.getStatus()) && !STATUS_APPROVED.equals(returnRequest.getStatus())) {
+            throw new APIException("Only approved or shipped-back returns can be marked as refunded");
         }
 
         returnRequest.setStatus(STATUS_REFUNDED);
-        returnRequest.setProcessedAt(LocalDateTime.now());
+        if (returnRequest.getProcessedAt() == null) {
+            returnRequest.setProcessedAt(LocalDateTime.now());
+        }
         ReturnRequest saved = returnRequestRepository.save(returnRequest);
         final Long savedOrderId = saved.getOrderId();
 
@@ -160,7 +167,83 @@ public class ReturnServiceImpl implements ReturnService {
 
         notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Refunded");
 
-        return toDTO(saved, order.getTotalAmount());
+        return toDTO(saved);
+    }
+
+    @Override
+    @Transactional
+    public ReturnRequestDTO provideTracking(Long returnId, String email, String carrierName, String trackingNumber) {
+        ReturnRequest returnRequest = returnRequestRepository.findById(returnId)
+                .orElseThrow(() -> new ResourceNotFoundException("ReturnRequest", "id", returnId));
+
+        assertOwnership(returnRequest, email);
+
+        if (!STATUS_APPROVED.equals(returnRequest.getStatus())) {
+            throw new APIException("Tracking can only be provided for approved returns");
+        }
+
+        if (trackingNumber == null || trackingNumber.isBlank()) {
+            throw new APIException("Tracking number is required");
+        }
+
+        returnRequest.setCarrierName(carrierName);
+        returnRequest.setTrackingNumber(trackingNumber);
+        returnRequest.setShippedBackAt(LocalDateTime.now());
+        returnRequest.setStatus(STATUS_SHIPPED_BACK);
+
+        TrackingStatus tracking = courierTrackingService.track(carrierName, trackingNumber);
+        returnRequest.setTrackingStatus(tracking.getStatus());
+        returnRequest.setLastTrackedAt(LocalDateTime.now());
+
+        ReturnRequest saved = returnRequestRepository.save(returnRequest);
+
+        Order order = orderRepository.findById(saved.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", saved.getOrderId()));
+        order.setOrderStatus("Returned");
+        orderRepository.save(order);
+
+        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Shipped Back");
+
+        return toDTO(saved);
+    }
+
+    @Override
+    @Transactional
+    public ReturnRequestDTO refreshTracking(Long returnId) {
+        ReturnRequest returnRequest = returnRequestRepository.findById(returnId)
+                .orElseThrow(() -> new ResourceNotFoundException("ReturnRequest", "id", returnId));
+
+        if (returnRequest.getTrackingNumber() == null) {
+            throw new APIException("No tracking number available for this return");
+        }
+
+        TrackingStatus tracking = courierTrackingService.track(
+                returnRequest.getCarrierName(),
+                returnRequest.getTrackingNumber());
+
+        returnRequest.setTrackingStatus(tracking.getStatus());
+        returnRequest.setLastTrackedAt(LocalDateTime.now());
+        returnRequest = returnRequestRepository.save(returnRequest);
+
+        if ("DELIVERED".equals(tracking.getStatus())) {
+            return markAsRefunded(returnRequest.getId());
+        }
+
+        return toDTO(returnRequest);
+    }
+
+    @Override
+    public TrackingStatus getTrackingStatus(Long returnId, String email) {
+        ReturnRequest returnRequest = returnRequestRepository.findById(returnId)
+                .orElseThrow(() -> new ResourceNotFoundException("ReturnRequest", "id", returnId));
+
+        assertOwnership(returnRequest, email);
+
+        if (returnRequest.getTrackingNumber() == null) {
+            return new TrackingStatus("NO_TRACKING", "No tracking number provided", LocalDateTime.now());
+        }
+
+        return courierTrackingService.track(returnRequest.getCarrierName(), returnRequest.getTrackingNumber());
     }
 
     private Double getOrderTotal(Long orderId) {
@@ -169,7 +252,11 @@ public class ReturnServiceImpl implements ReturnService {
                 .orElse(0.0);
     }
 
-    private ReturnRequestDTO toDTO(ReturnRequest r, Double refundAmount) {
+    private ReturnRequestDTO toDTO(ReturnRequest r) {
+        return toDTO(r, getOrderTotal(r.getOrderId()));
+    }
+
+    private ReturnRequestDTO toDTO(ReturnRequest r, Double orderTotal) {
         ReturnRequestDTO dto = new ReturnRequestDTO();
         dto.setId(r.getId());
         dto.setOrderId(r.getOrderId());
@@ -178,8 +265,19 @@ public class ReturnServiceImpl implements ReturnService {
         dto.setStatus(r.getStatus());
         dto.setRequestedAt(r.getRequestedAt());
         dto.setProcessedAt(r.getProcessedAt());
+        dto.setShippedBackAt(r.getShippedBackAt());
         dto.setAdminNote(r.getAdminNote());
-        dto.setRefundAmount(refundAmount);
+        dto.setTrackingNumber(r.getTrackingNumber());
+        dto.setCarrierName(r.getCarrierName());
+        dto.setTrackingStatus(r.getTrackingStatus());
+        dto.setLastTrackedAt(r.getLastTrackedAt());
+        dto.setRefundAmount(r.getRefundAmount() != null ? r.getRefundAmount() : orderTotal);
         return dto;
+    }
+
+    private void assertOwnership(ReturnRequest returnRequest, String email) {
+        if (!returnRequest.getUserEmail().equals(email)) {
+            throw new APIException("You can only manage your own return requests");
+        }
     }
 }
