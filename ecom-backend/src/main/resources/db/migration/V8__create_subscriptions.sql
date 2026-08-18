@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     stripe_product_id VARCHAR(255),
     stripe_price_id VARCHAR(255),
     interval VARCHAR(20) NOT NULL,
-    amount NUMERIC(19,2) NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'USD',
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

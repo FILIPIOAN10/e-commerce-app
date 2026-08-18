@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS bundles (
     bundle_id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    discount_percentage NUMERIC(5,2) NOT NULL DEFAULT 0.0,
+    discount_percentage DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
