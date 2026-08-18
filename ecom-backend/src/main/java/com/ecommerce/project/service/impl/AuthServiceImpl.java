@@ -12,6 +12,8 @@ import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.redis.LoginAttemptService;
+import com.ecommerce.project.security.redis.RefreshTokenService;
+import com.ecommerce.project.security.services.UserDetailsServiceImpl;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
@@ -49,6 +51,8 @@ public class AuthServiceImpl implements AuthService {
     private final LoginAttemptService loginAttemptService;
     private final EmailService emailService;
     private final EmailVerificationService emailVerificationService;
+    private final RefreshTokenService refreshTokenService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Value("${app.skip-verification-email:false}")
     private boolean skipVerificationEmail;
@@ -83,14 +87,16 @@ public class AuthServiceImpl implements AuthService {
 
             if (user.isTwoFactorEnabled()) {
                 String tempToken = jwtUtils.generateTwoFactorToken(userDetails);
-                return new AuthenticationResult(null, null, true, tempToken);
+                return new AuthenticationResult(null, null, null, true, tempToken);
             }
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+            String refreshToken = refreshTokenService.createRefreshToken(user.getUserName());
+            ResponseCookie refreshCookie = refreshTokenService.generateRefreshCookie(refreshToken);
 
             UserInfoResponse response = UserInfoMapper.toUserInfoResponse(user);
-            return new AuthenticationResult(response, jwtCookie, false, null);
+            return new AuthenticationResult(response, jwtCookie, refreshCookie, false, null);
 
         } catch (org.springframework.security.core.AuthenticationException e) {
             loginAttemptService.recordFailedAttempt(username);
@@ -141,7 +147,23 @@ public class AuthServiceImpl implements AuthService {
         return jwtUtils.getCleanJwtCookie();
     }
 
+    @Override
+    public AuthenticationResult refreshAccessToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new InvalidCredentialsException("Refresh token is required");
+        }
 
+        String newRefreshToken = refreshTokenService.rotate(refreshToken);
+        String username = refreshTokenService.validateAndGetUsername(newRefreshToken);
 
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+        UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
+        ResponseCookie accessCookie = jwtUtils.generateJwtCookie(userDetails);
+        ResponseCookie refreshCookie = refreshTokenService.generateRefreshCookie(newRefreshToken);
+
+        UserInfoResponse response = UserInfoMapper.toUserInfoResponse(user);
+        return new AuthenticationResult(response, accessCookie, refreshCookie, false, null);
+    }
 }

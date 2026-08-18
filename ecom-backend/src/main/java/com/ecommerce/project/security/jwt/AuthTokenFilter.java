@@ -48,7 +48,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 request.getRequestURI());
 
         String uri = request.getRequestURI();
-        if(uri.equals("/api/auth/signin") || uri.equals("/api/auth/signup")){
+        if(uri.equals("/api/auth/signin") || uri.equals("/api/auth/signup") || uri.equals("/api/auth/refresh")){
             filterChain.doFilter(request,response);
             return;
         }

@@ -3,6 +3,7 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.security.jwt.JwtUtils;
+import com.ecommerce.project.security.redis.RefreshTokenService;
 import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
@@ -35,11 +36,14 @@ public class AuthController {
     private final AuthService authService;
     private final JwtUtils jwtUtils;
     private final TokenBlacklistService tokenBlacklistService;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthController(AuthService authService, JwtUtils jwtUtils, TokenBlacklistService tokenBlacklistService) {
+    public AuthController(AuthService authService, JwtUtils jwtUtils, TokenBlacklistService tokenBlacklistService,
+                          RefreshTokenService refreshTokenService) {
         this.authService = authService;
         this.jwtUtils = jwtUtils;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.refreshTokenService = refreshTokenService;
     }
 
 
@@ -60,26 +64,20 @@ public class AuthController {
                             schema = @Schema(implementation = MessageResponse.class)))
     })
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        try {
-            AuthenticationResult result = authService.login(loginRequest);
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        AuthenticationResult result = authService.login(loginRequest);
 
-            if (result.isNeeds2FA()) {
-                Map<String, Object> body = new HashMap<>();
-                body.put("needs2FA", true);
-                body.put("temp2FAToken", result.getTemp2FAToken());
-                return ResponseEntity.ok(body);
-            }
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
-                    .body(result.getResponse());
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("Account locked")) {
-                return ResponseEntity.status(429).body(Map.of("message", e.getMessage()));
-            }
-            return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
+        if (result.isNeeds2FA()) {
+            Map<String, Object> body = new HashMap<>();
+            body.put("needs2FA", true);
+            body.put("temp2FAToken", result.getTemp2FAToken());
+            return ResponseEntity.ok(body);
         }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
+                .header(HttpHeaders.SET_COOKIE, result.getRefreshCookie().toString())
+                .body(result.getResponse());
     }
 
 
@@ -114,6 +112,19 @@ public class AuthController {
      * Șterge cookie-ul JWT, efectiv deconectând utilizatorul.
      */
     @Tag(name = "Authentication")
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request) {
+        String refreshToken = jwtUtils.getRefreshTokenFromCookies(request);
+        if (refreshToken == null) {
+            refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
+        }
+        AuthenticationResult result = authService.refreshAccessToken(refreshToken);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
+                .header(HttpHeaders.SET_COOKIE, result.getRefreshCookie().toString())
+                .body(result.getResponse());
+    }
+
     @PostMapping("/signout")
     public ResponseEntity<?> signoutUser(HttpServletRequest request) {
         String jwt = jwtUtils.getJwtFromHeader(request);
@@ -128,8 +139,17 @@ public class AuthController {
                 // Token already expired, no need to blacklist
             }
         }
-        ResponseCookie cookie = authService.logoutUser();
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+        String refreshToken = jwtUtils.getRefreshTokenFromCookies(request);
+        if (refreshToken == null) {
+            refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
+        }
+        refreshTokenService.delete(refreshToken);
+
+        ResponseCookie accessCookie = authService.logoutUser();
+        ResponseCookie refreshCookie = refreshTokenService.getCleanRefreshCookie();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new MessageResponse("Successfully logged out! Token revoked."));
     }
 }

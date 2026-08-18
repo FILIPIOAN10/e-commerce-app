@@ -6,6 +6,7 @@ import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
+import com.ecommerce.project.security.redis.RefreshTokenService;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.TotpService;
 import com.ecommerce.project.service.TwoFactorService;
@@ -22,11 +23,14 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     private final UserRepository userRepository;
     private final TotpService totpService;
     private final JwtUtils jwtUtils;
+    private final RefreshTokenService refreshTokenService;
 
-    public TwoFactorServiceImpl(UserRepository userRepository, TotpService totpService, JwtUtils jwtUtils) {
+    public TwoFactorServiceImpl(UserRepository userRepository, TotpService totpService, JwtUtils jwtUtils,
+                                RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.totpService = totpService;
         this.jwtUtils = jwtUtils;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -83,6 +87,8 @@ public class TwoFactorServiceImpl implements TwoFactorService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-        return new AuthenticationResult(UserInfoMapper.toUserInfoResponse(user), jwtCookie, false, null);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getUserName());
+        ResponseCookie refreshCookie = refreshTokenService.generateRefreshCookie(refreshToken);
+        return new AuthenticationResult(UserInfoMapper.toUserInfoResponse(user), jwtCookie, refreshCookie, false, null);
     }
 }

@@ -56,22 +56,19 @@ services:
     entrypoint: ["/bin/sh", "/vault-init.sh"]
 
   backend:
-    image: maven:3.9.9-eclipse-temurin-17
-    working_dir: /workspace
-    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    build:
+      context: ./ecom-backend
+    container_name: ecommerce-backend
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
-      vault-init: # [MODIFICAT]: Acum backend-ul asteapta ca scriptul de initiere Vault sa se termine cu succes
+      vault-init: # [MODIFICAT]: Acum backend-ul astepta ca scriptul de initiere Vault sa se termine cu succes
         condition: service_completed_successfully
     ports:
       - "8080:8080"
       - "5005:5005"
-    volumes:
-      - ./ecom-backend:/workspace
-      - backend-m2:/root/.m2
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?POSTGRES_USER is required}
@@ -81,12 +78,14 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       # Flyway owns the schema. Hibernate only validates that entities match it.
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      # Remote debug (optional; disable in production)
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       # data.sql is replaced by Flyway migrations (V2__seed_roles_and_users.sql)
       SQL_INIT_MODE: never
       SPRING_FLYWAY_ENABLED: "true"
       # Disable Vault (incompatible with Spring Boot 4.1 in local Docker) and use CI profile
       SPRING_PROFILES_ACTIVE: ci
-      JWT_SECRET: ${JWT_SECRET:-Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
 
       SPRING_CLOUD_VAULT_URI: http://vault:8200
       SPRING_CLOUD_VAULT_TOKEN: ${VAULT_TOKEN:?VAULT_TOKEN is required}
@@ -164,5 +163,4 @@ services:
 volumes:
   redis-data:
   postgres-data:
-  backend-m2:
   frontend-node_modules:

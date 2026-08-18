@@ -132,6 +132,9 @@ jobs:
           echo "POSTGRES_USER=postgres" >> .env
           echo "POSTGRES_PASSWORD=postgres" >> .env
           echo "VAULT_TOKEN=root" >> .env
+          echo "JWT_SECRET=Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=" >> .env
+          echo "STRIPE_SECRET_KEY=dummy" >> .env
+          echo "STRIPE_WEBHOOK_SECRET=dummy" >> .env
 
       - name: Create .env for frontend
         working-directory: ecom-frontend
