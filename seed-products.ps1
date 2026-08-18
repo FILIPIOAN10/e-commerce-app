@@ -13,6 +13,14 @@ function Get-CsrfToken {
     return $null
 }
 
+# Helper: Get JWT from the HttpOnly springBootEcom cookie (path /api)
+function Get-JwtToken {
+    $apiUri = [Uri]"$($script:baseUrl)/api"
+    $cookie = $script:session.Cookies.GetCookies($apiUri) | Where-Object { $_.Name -eq "springBootEcom" } | Select-Object -First 1
+    if ($cookie) { return $cookie.Value }
+    return $null
+}
+
 # Helper: Build headers with fresh CSRF token
 function Get-AuthHeaders {
     $csrf = Get-CsrfToken
@@ -58,8 +66,12 @@ try {
 Write-Host "=== Logging in as admin ===" -ForegroundColor Cyan
 $loginBody = @{ username = "admin"; password = "adminPass" } | ConvertTo-Json
 try {
-    $loginResp = Invoke-RestMethod -Uri "$baseUrl/api/auth/signin" -Method Post -Body $loginBody -ContentType "application/json" -WebSession $session
-    $jwtToken = $loginResp.jwtToken
+    $loginResp = Invoke-WebRequest -Uri "$baseUrl/api/auth/signin" -Method Post -Body $loginBody -ContentType "application/json" -WebSession $session -UseBasicParsing
+    $setCookieHeader = $loginResp.Headers['Set-Cookie']
+    if ($setCookieHeader -is [array]) { $setCookieHeader = $setCookieHeader | Where-Object { $_ -like 'springBootEcom=*' } | Select-Object -First 1 }
+    if (-not $setCookieHeader -or $setCookieHeader -notlike 'springBootEcom=*') { Write-Host "No JWT cookie received. Check admin credentials or cookie settings." -ForegroundColor Red; exit 1 }
+    $jwtToken = ($setCookieHeader -split ';')[0] -replace '^springBootEcom=', ''
+    $script:jwtToken = $jwtToken
     if (-not $jwtToken) { Write-Host "No token received. Check admin credentials." -ForegroundColor Red; exit 1 }
     Write-Host "Got token: $($jwtToken.Substring(0,20))..." -ForegroundColor Green
 } catch {
@@ -73,7 +85,14 @@ Write-Host "`n=== Creating categories ===" -ForegroundColor Cyan
 $categories = @("Electronics", "Clothing", "Home & Garden", "Sports", "Books")
 $categoryIds = @{}
 
+$existingCats = Invoke-RestMethod -Uri "$baseUrl/api/public/categories?pageNumber=0&pageSize=100" -Method Get
 foreach ($cat in $categories) {
+    $found = $existingCats.content | Where-Object { $_.categoryName -eq $cat } | Select-Object -First 1
+    if ($found) {
+        $categoryIds[$cat] = $found.categoryId
+        Write-Host "  Already exists: $cat (ID=$($found.categoryId))" -ForegroundColor Yellow
+        continue
+    }
     $catBody = @{ categoryName = $cat } | ConvertTo-Json
     try {
         $resp = Invoke-PostWithCsrf -Uri "$baseUrl/api/admin/categories" -Body $catBody

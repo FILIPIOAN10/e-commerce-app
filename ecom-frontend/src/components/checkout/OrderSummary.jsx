@@ -23,8 +23,8 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
         <div className="flex flex-wrap">
             <div className="w-full lg:w-8/12 pr-4">
                 <div className="space-y-4">
-                    <div className="p-4 border rounded-lg shadow-custom">
-                        <h2 className="text-2xl  font-semibold mb-2">Billing Address</h2>
+                    <div className="p-4 border border-slate-200 dark:border-gray-700 rounded-lg shadow-custom bg-white dark:bg-gray-800">
+                        <h2 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-white">Billing Address</h2>
                         <p>
                             <strong>
                                 Building Name:
@@ -55,8 +55,8 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                             {address?.country}
                         </p>
                     </div>
-                    <div className='p-4 border rounded-lg'>
-                        <h2 className='text-2xl font-semibold mb-2'>
+                    <div className='p-4 border border-slate-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800'>
+                        <h2 className='text-2xl font-semibold mb-2 text-gray-900 dark:text-white'>
                             Payment Method
                         </h2>
                         <p>
@@ -64,8 +64,8 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                             {paymentMethod}
                         </p>
                     </div>
-                    <div className='p-4 border rounded-lg shadow-sm'>
-                        <h2 className='text-2xl font-semibold mb-2'>
+                    <div className='p-4 border border-slate-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800'>
+                        <h2 className='text-2xl font-semibold mb-2 text-gray-900 dark:text-white'>
                             Order Items
                         </h2>
                         <div className='space-y-2'>
@@ -78,7 +78,7 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                                         className='w-12 h-12 rounded'
                                         >
                                     </img>
-                                    <div className='text-gray-500'>
+                                    <div className='text-gray-500 dark:text-gray-400'>
                                         <p>
                                             {item?.productName}
                                         </p>
@@ -97,8 +97,8 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
             </div>
 
         <div className="w-full lg:w-4/12 mt-4 lg:mt-0">
-            <div className="border rounded-lg shadow-sm p-4 space-y-4">
-                <h2 className="text-2xl font-semibold mb-b">Order Summary</h2>
+            <div className="border border-slate-200 dark:border-gray-700 rounded-lg shadow-sm p-4 space-y-4 bg-white dark:bg-gray-800">
+                <h2 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-white">Order Summary</h2>
 
                     <div className='space-y-2'>
                     <div className="flex justify-between">
@@ -106,7 +106,7 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                         <span>${formatPriceCalculation(displaySubtotal,1)}</span>
                     </div>
                     {appliedCoupons && appliedCoupons.length > 0 && (
-                        <div className="flex justify-between text-green-600">
+                        <div className="flex justify-between text-green-600 dark:text-green-400">
                             <span>Coupons ({appliedCoupons.join(", ")})</span>
                             <span>-${formatPriceCalculation(displayDiscount,1)}</span>
                         </div>

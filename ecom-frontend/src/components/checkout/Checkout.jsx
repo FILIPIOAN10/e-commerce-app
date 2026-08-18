@@ -50,7 +50,7 @@ const Checkout = () => {
       dispatch(getUserAddresses());
     },[dispatch]);
   return (
-    <div className='py-14 min-h-[calc(100vh-100px)]:'>
+    <div className='py-14 min-h-[calc(100vh-100px)]'>
       <Stepper activeStep={activeStep} alternativeLabel>
         {steps.map((label,index) => (
             <Step key={index}>

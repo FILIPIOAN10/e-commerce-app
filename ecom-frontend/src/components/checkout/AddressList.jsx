@@ -69,7 +69,7 @@ const AddressList = ({ addresses, setSelectedAddress, setOpenAddressModal,setOpe
 
                  <div className="flex gap-3 absolute top-4 right-2">
                     <button onClick={() => onEditButtonHandler(address)}>
-                        <FaEdit size={18} className="text-teal-700" />
+                        <FaEdit size={18} className="text-teal-700 dark:text-teal-300" />
                     </button> 
                     <button onClick={() => onDeleteButtonHandler(address)}>
                         <FaTrash size={17} className="text-rose-600" />

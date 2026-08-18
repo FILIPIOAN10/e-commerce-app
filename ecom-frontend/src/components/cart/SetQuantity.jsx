@@ -1,6 +1,6 @@
 
 
-const btnStyles="border-[1.2px] border-slate-800 px-3 rounded"
+const btnStyles="border-[1.2px] border-slate-800 dark:border-gray-300 px-3 rounded"
 const SetQuantity = ({
     quantity,
     cardCounter,
