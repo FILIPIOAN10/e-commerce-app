@@ -111,7 +111,8 @@ public class WebSecurityConfig {
                     auth.requestMatchers("/images/avatars/**").permitAll();
                     auth.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
 
-                    if (activeProfile != null && activeProfile.contains("dev")) {
+                    if (activeProfile != null
+                            && (activeProfile.contains("dev") || activeProfile.contains("test") || activeProfile.contains("ci"))) {
                         auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll();
                     } else {
                         auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").hasRole("ADMIN");
