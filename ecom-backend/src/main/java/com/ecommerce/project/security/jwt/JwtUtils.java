@@ -66,7 +66,7 @@ public class JwtUtils {
                 .maxAge(24 * 60 * 60)
                 .httpOnly(true)
                 .secure(!"dev".equals(activeProfile))
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
         return cookie;
     }
@@ -108,7 +108,7 @@ public class JwtUtils {
                 .maxAge(0)
                 .httpOnly(true)
                 .secure(!"dev".equals(activeProfile))
-                .sameSite(sameSite)
+                .sameSite("Lax")
                 .build();
     }
 
