@@ -103,6 +103,7 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: [backend-test, frontend-test]
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -112,6 +113,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Fix apt mirrors before Playwright install
+        run: |
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+          sudo apt-get update -qq
 
       - name: Install Playwright dependencies
         working-directory: e2e
