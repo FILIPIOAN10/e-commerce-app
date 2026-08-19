@@ -14,7 +14,7 @@ import {
   FaChevronRight,
   FaBoxOpen,
 } from "react-icons/fa";
-import Loader from "../shared/Loader";
+import Skeleton from "../shared/Skeleton";
 import Breadcrumb from "../shared/Breadcrumb";
 import ReviewsSection from "../shared/ReviewsSection";
 import QuestionsSection from "../shared/QuestionsSection";
@@ -66,8 +66,8 @@ const ProductDetail = () => {
 
   if (isLoading || (!product && !errorMessage)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <Loader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 sm:px-6 lg:px-8 py-8">
+        <Skeleton variant="detail" />
       </div>
     );
   }

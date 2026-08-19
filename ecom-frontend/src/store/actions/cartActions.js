@@ -19,9 +19,20 @@ export const addToCart = (data, qty = 1, toast) =>
         }
 };
 
+const takeCartSnapshot = (getState) => ({
+    cart: [...getState().carts.cart],
+    totalPrice: getState().carts.totalPrice,
+    cartId: getState().carts.cartId,
+});
+
 export const increaseCartQuantity =
     (data, toast) =>
-    async (dispatch) => {
+    async (dispatch, getState) => {
+        const previousCart = takeCartSnapshot(getState);
+        dispatch({
+            type: "OPTIMISTIC_INCREASE_QTY",
+            payload: { productId: data.productId },
+        });
         try {
             const { data: cart } = await api.put(`/cart/products/${data.productId}/quantity/plus`);
             dispatch({
@@ -33,13 +44,23 @@ export const increaseCartQuantity =
             localStorage.setItem("cartItems", JSON.stringify(cart.products));
             toast?.success("Quantity increased");
         } catch (error) {
+            dispatch({
+                type: "ROLLBACK_CART",
+                payload: previousCart,
+            });
+            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
             toast?.error(error?.response?.data?.message || "Failed to increase quantity");
         }
     };
 
 export const decreaseCartQuantity =
     (data, toast) =>
-    async (dispatch) => {
+    async (dispatch, getState) => {
+        const previousCart = takeCartSnapshot(getState);
+        dispatch({
+            type: "OPTIMISTIC_DECREASE_QTY",
+            payload: { productId: data.productId },
+        });
         try {
             const { data: cart } = await api.put(`/cart/products/${data.productId}/quantity/minus`);
             dispatch({
@@ -51,14 +72,35 @@ export const decreaseCartQuantity =
             localStorage.setItem("cartItems", JSON.stringify(cart.products));
             toast?.success("Quantity decreased");
         } catch (error) {
+            dispatch({
+                type: "ROLLBACK_CART",
+                payload: previousCart,
+            });
+            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
             toast?.error(error?.response?.data?.message || "Failed to decrease quantity");
         }
     };
 
-export const removeFromCart = (data, toast) => (dispatch, getState) => {
-    dispatch({ type: "REMOVE_CART", payload: data });
-    toast.success(`${data.productName} removed from cart`);
+export const removeFromCart = (data, toast) => async (dispatch, getState) => {
+    const { cartId } = getState().carts;
+    const previousCart = takeCartSnapshot(getState);
+
+    dispatch({ type: "OPTIMISTIC_REMOVE_CART_ITEM", payload: { productId: data.productId } });
     localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+
+    if (!cartId) {
+        toast.success(`${data.productName} removed from cart`);
+        return;
+    }
+
+    try {
+        await api.delete(`/carts/${cartId}/product/${data.productId}`);
+        toast.success(`${data.productName} removed from cart`);
+    } catch (error) {
+        dispatch({ type: "ROLLBACK_CART", payload: previousCart });
+        localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+        toast?.error(error?.response?.data?.message || "Failed to remove item");
+    }
 };
 
 export const createUserCart = (sendCartItems) => async (dispatch) => {
@@ -95,22 +137,62 @@ export const getUserCart = () => async (dispatch, getState) => {
     }
 };
 
-export const saveItemForLater = (cartItemId, toast) => async (dispatch) => {
+export const saveItemForLater = (cartItemId, toast) => async (dispatch, getState) => {
+    const item = getState().carts.cart.find((i) => i.cartItemId === cartItemId);
+    const previousCart = takeCartSnapshot(getState);
+
+    if (item) {
+        dispatch({
+            type: "OPTIMISTIC_TOGGLE_SAVE_FOR_LATER",
+            payload: { productId: item.productId },
+        });
+    }
+
     try {
         const { data } = await api.put(`/cart/items/${cartItemId}/save-for-later`);
-        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: data });
+        dispatch({
+            type: "GET_USER_CART_PRODUCTS",
+            payload: data.products,
+            totalPrice: data.totalPrice,
+            cartId: data.cartId,
+        });
+        localStorage.setItem("cartItems", JSON.stringify(data.products));
         if (toast) toast.success("Item saved for later");
     } catch (error) {
+        if (item) {
+            dispatch({ type: "ROLLBACK_CART", payload: previousCart });
+            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+        }
         if (toast) toast.error(error?.response?.data?.message || "Failed to save item");
     }
 };
 
-export const moveItemToCart = (cartItemId, toast) => async (dispatch) => {
+export const moveItemToCart = (cartItemId, toast) => async (dispatch, getState) => {
+    const item = getState().carts.cart.find((i) => i.cartItemId === cartItemId);
+    const previousCart = takeCartSnapshot(getState);
+
+    if (item) {
+        dispatch({
+            type: "OPTIMISTIC_TOGGLE_SAVE_FOR_LATER",
+            payload: { productId: item.productId },
+        });
+    }
+
     try {
         const { data } = await api.put(`/cart/items/${cartItemId}/move-to-cart`);
-        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: data });
+        dispatch({
+            type: "GET_USER_CART_PRODUCTS",
+            payload: data.products,
+            totalPrice: data.totalPrice,
+            cartId: data.cartId,
+        });
+        localStorage.setItem("cartItems", JSON.stringify(data.products));
         if (toast) toast.success("Item moved to cart");
     } catch (error) {
+        if (item) {
+            dispatch({ type: "ROLLBACK_CART", payload: previousCart });
+            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+        }
         if (toast) toast.error(error?.response?.data?.message || "Failed to move item");
     }
 };

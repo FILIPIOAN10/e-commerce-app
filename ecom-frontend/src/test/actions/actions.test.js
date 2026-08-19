@@ -100,7 +100,7 @@ describe('addToCart action', () => {
 
 describe('removeFromCart action', () => {
   const mockDispatch = vi.fn()
-  const mockGetState = () => ({ carts: { cart: [{ productId: 1 }] } })
+  const mockGetState = () => ({ carts: { cart: [{ productId: 1 }], cartId: null, totalPrice: 0 } })
   const mockToast = { success: vi.fn(), error: vi.fn() }
 
   beforeEach(() => {
@@ -108,15 +108,15 @@ describe('removeFromCart action', () => {
     localStorage.clear()
   })
 
-  it('dispatches REMOVE_CART and shows toast', () => {
-    removeFromCart({ productId: 1, productName: 'Widget' }, mockToast)(
+  it('dispatches OPTIMISTIC_REMOVE_CART_ITEM and shows toast', async () => {
+    await removeFromCart({ productId: 1, productName: 'Widget' }, mockToast)(
       mockDispatch,
       mockGetState
     )
 
     expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'REMOVE_CART',
-      payload: { productId: 1, productName: 'Widget' },
+      type: 'OPTIMISTIC_REMOVE_CART_ITEM',
+      payload: { productId: 1 },
     })
     expect(mockToast.success).toHaveBeenCalled()
   })
