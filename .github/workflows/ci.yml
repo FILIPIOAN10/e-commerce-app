@@ -127,12 +127,15 @@ jobs:
           cache: 'maven'
 
       - name: Create .env for Docker Compose
+        id: create-env
         run: |
+          JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+          echo "jwt_secret=$JWT_SECRET" >> "$GITHUB_OUTPUT"
           echo "POSTGRES_DB=ecommerce" > .env
           echo "POSTGRES_USER=postgres" >> .env
           echo "POSTGRES_PASSWORD=postgres" >> .env
           echo "VAULT_TOKEN=root" >> .env
-          echo "JWT_SECRET=Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=" >> .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
           echo "STRIPE_SECRET_KEY=dummy" >> .env
           echo "STRIPE_WEBHOOK_SECRET=dummy" >> .env
 
@@ -159,7 +162,7 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
           SPRING_DATA_REDIS_HOST: localhost
-          JWT_SECRET: Y2ktdGVzdC1zZWNyZXQta2V5LWZvci1qd3Qtc2lnbmluZy1tdXN0LWJlLWF0LWxlYXN0LTY0LWJ5dGVzISE=
+          JWT_SECRET: ${{ steps.create-env.outputs.jwt_secret }}
           SPRING_PROFILES_ACTIVE: ci
         run: |
           bash mvnw -B clean package -DskipTests
