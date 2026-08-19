@@ -42,6 +42,7 @@ const AdminSubscriptions = lazy(() => import('./components/admin/subscriptions/A
 const Profile = lazy(() => import('./components/profile/Profile'))
 const ProfileSettings = lazy(() => import('./components/profile/ProfileSettings'))
 const ProfileOrders = lazy(() => import('./components/profile/ProfileOrders'))
+const Devices = lazy(() => import('./components/profile/Devices'))
 const Wishlist = lazy(() => import('./components/wishlist/Wishlist'))
 const ComparePage = lazy(() => import('./components/compare/ComparePage'))
 const TrackOrder = lazy(() => import('./components/track/TrackOrder'))
@@ -75,6 +76,7 @@ function App() {
         <Route path='/' element={<PrivateRoute />}>
           <Route path='/profile' element={<Profile />} />
           <Route path='/profile/settings' element={<ProfileSettings />} />
+          <Route path='/profile/devices' element={<Devices />} />
           <Route path='/my-subscriptions' element={<MySubscriptions />} />
           <Route path ="/checkout" element ={<Checkout/>}/>
           <Route path ="/checkout/order-confirm" element ={<PaymentConfirmation />}/>

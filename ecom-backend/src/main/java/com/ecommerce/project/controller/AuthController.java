@@ -125,6 +125,30 @@ public class AuthController {
                 .body(result.getResponse());
     }
 
+    @Tag(name = "Authentication")
+    @GetMapping("/devices")
+    public ResponseEntity<?> getActiveSessions(Authentication authentication, HttpServletRequest request) {
+        String username = authentication.getName();
+        String currentToken = refreshTokenService.getRefreshTokenFromCookies(request);
+        return ResponseEntity.ok(refreshTokenService.getSessions(username, currentToken));
+    }
+
+    @Tag(name = "Authentication")
+    @DeleteMapping("/devices/{token}")
+    public ResponseEntity<?> revokeSession(@PathVariable String token, Authentication authentication) {
+        refreshTokenService.revokeSession(authentication.getName(), token);
+        return ResponseEntity.ok(new MessageResponse("Device session revoked successfully"));
+    }
+
+    @Tag(name = "Authentication")
+    @DeleteMapping("/devices")
+    public ResponseEntity<?> revokeAllOtherSessions(Authentication authentication, HttpServletRequest request) {
+        String username = authentication.getName();
+        String currentToken = refreshTokenService.getRefreshTokenFromCookies(request);
+        refreshTokenService.revokeAllOtherSessions(username, currentToken);
+        return ResponseEntity.ok(new MessageResponse("All other devices have been signed out"));
+    }
+
     @PostMapping("/signout")
     public ResponseEntity<?> signoutUser(HttpServletRequest request) {
         String jwt = jwtUtils.getJwtFromHeader(request);

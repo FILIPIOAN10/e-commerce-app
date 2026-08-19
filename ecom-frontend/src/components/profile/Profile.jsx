@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import TwoFactorSettings from './TwoFactorSettings';
-import { FaUserCircle, FaCog } from 'react-icons/fa';
+import { FaUserCircle, FaCog, FaLaptop } from 'react-icons/fa';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -12,12 +12,20 @@ const Profile = () => {
     <div className="max-w-2xl mx-auto p-6 mt-10 dark:text-white">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold dark:text-white">Profilul meu</h1>
-        <Link
-          to="/profile/settings"
-          className="flex items-center gap-2 bg-button-gradient text-white px-4 py-2 rounded-md hover:opacity-90 transition"
-        >
-          <FaCog /> Settings
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/profile/devices"
+            className="flex items-center gap-2 bg-button-gradient text-white px-4 py-2 rounded-md hover:opacity-90 transition"
+          >
+            <FaLaptop /> Devices
+          </Link>
+          <Link
+            to="/profile/settings"
+            className="flex items-center gap-2 bg-button-gradient text-white px-4 py-2 rounded-md hover:opacity-90 transition"
+          >
+            <FaCog /> Settings
+          </Link>
+        </div>
       </div>
       <div className="bg-white dark:bg-gray-800 shadow rounded p-6 space-y-3 dark:text-white">
         <div className="flex items-center gap-4 mb-4">
