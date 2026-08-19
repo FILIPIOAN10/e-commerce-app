@@ -96,7 +96,8 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**", "/api/public/subscriptions/webhook"))
+                        .ignoringRequestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**",
+                                "/api/public/subscriptions/webhook", "/api/public/webhooks/stripe"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
