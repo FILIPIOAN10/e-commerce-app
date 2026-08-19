@@ -50,6 +50,7 @@ class OrderServiceImplTest {
     @Mock private CouponRepository couponRepository;
     @Mock private AuthUtil authUtil;
     @Mock private UserActivityLogService userActivityLogService;
+    @Mock private InventoryReservationService inventoryReservationService;
     @Mock private ModelMapper modelMapper;
 
     @InjectMocks
@@ -140,6 +141,12 @@ class OrderServiceImplTest {
                 .thenReturn(new com.ecommerce.project.payload.OrderItemDTO());
 
         when(cartService.deleteProductFromCart(anyLong(), anyLong())).thenReturn("");
+        doAnswer(invocation -> {
+            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
+            productRepository.save(product);
+            return null;
+        }).when(inventoryReservationService).consumeReservationsForCart(CART_ID);
+
         doNothing().when(emailService).sendOrderConfirmationEmail(anyString(), any(OrderDTO.class));
         doNothing().when(notificationService).notifyAdminNewOrder(anyLong(), anyString(), anyDouble());
     }
@@ -299,6 +306,14 @@ class OrderServiceImplTest {
                 return o;
             });
             when(orderItemRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+            doThrow(new APIException(String.format(
+                    "Insufficient stock for product: %s. Available: %d, requested: %d",
+                    product.getProductName(),
+                    product.getQuantity(),
+                    cartItem.getQuantity())))
+                    .when(inventoryReservationService)
+                    .consumeReservationsForCart(CART_ID);
 
             APIException ex = assertThrows(APIException.class, () ->
                     orderService.placeOrder(
