@@ -68,10 +68,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "publicCategories",allEntries = true),
-            @CacheEvict(value = "publicProducts",allEntries = true),
-            @CacheEvict(value = "categoryProducts",allEntries = true),
-            @CacheEvict(value = "productSearch",allEntries = true)
+            @CacheEvict(value = "publicCategories", allEntries = true),
+            @CacheEvict(value = "publicProducts", allEntries = true),
+            @CacheEvict(value = "categoryProducts", allEntries = true),
+            @CacheEvict(value = "productSearch", allEntries = true),
+            @CacheEvict(value = "product", allEntries = true),
+            @CacheEvict(value = "adminProducts", allEntries = true),
+            @CacheEvict(value = "sellerProducts", allEntries = true)
     })
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
 
@@ -89,10 +92,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "publicCategories",allEntries = true),
-            @CacheEvict(value = "publicProducts",allEntries = true),
-            @CacheEvict(value = "categoryProducts",allEntries = true),
-            @CacheEvict(value = "productSearch",allEntries = true)
+            @CacheEvict(value = "publicCategories", allEntries = true),
+            @CacheEvict(value = "publicProducts", allEntries = true),
+            @CacheEvict(value = "categoryProducts", allEntries = true),
+            @CacheEvict(value = "productSearch", allEntries = true),
+            @CacheEvict(value = "product", allEntries = true),
+            @CacheEvict(value = "adminProducts", allEntries = true),
+            @CacheEvict(value = "sellerProducts", allEntries = true)
     })
     public CategoryDTO deleteCategory(Long categoryId) {
 
@@ -104,10 +110,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "publicCategories",allEntries = true),
-            @CacheEvict(value = "publicProducts",allEntries = true),
-            @CacheEvict(value = "categoryProducts",allEntries = true),
-            @CacheEvict(value = "productSearch",allEntries = true)
+            @CacheEvict(value = "publicCategories", allEntries = true),
+            @CacheEvict(value = "publicProducts", allEntries = true),
+            @CacheEvict(value = "categoryProducts", allEntries = true),
+            @CacheEvict(value = "productSearch", allEntries = true),
+            @CacheEvict(value = "product", allEntries = true),
+            @CacheEvict(value = "adminProducts", allEntries = true),
+            @CacheEvict(value = "sellerProducts", allEntries = true)
     })
     public CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId) {
 
