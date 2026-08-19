@@ -19,6 +19,27 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@NamedEntityGraph(
+        name = "Order.withDetails",
+        attributeNodes = {
+                @NamedAttributeNode(value = "orderItems", subgraph = "orderItemGraph"),
+                @NamedAttributeNode("payment"),
+                @NamedAttributeNode("address")
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "orderItemGraph",
+                        attributeNodes = @NamedAttributeNode(value = "product", subgraph = "productGraph")
+                ),
+                @NamedSubgraph(
+                        name = "productGraph",
+                        attributeNodes = {
+                                @NamedAttributeNode("category"),
+                                @NamedAttributeNode("user")
+                        }
+                )
+        }
+)
 public class Order {
 
     @Id
