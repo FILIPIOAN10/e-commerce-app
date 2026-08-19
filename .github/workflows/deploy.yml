@@ -1,0 +1,43 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/ecommerce
+
+jobs:
+  build-and-push:
+    name: Build & Push Images
+    uses: ./.github/workflows/build-push.yml
+
+  deploy:
+    name: Deploy
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying version ${{ github.ref_name }}"
+          echo "Backend image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.ref_name }}"
+          echo "Frontend image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.ref_name }}"
+          # TODO: replace this placeholder with the real deployment command(s).
+          # Examples:
+          #   ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker compose pull && docker compose up -d"
+          #   argocd app sync ecommerce-app
+          #   helm upgrade --install ecommerce ./helm/ecommerce --set image.tag=${{ github.ref_name }}

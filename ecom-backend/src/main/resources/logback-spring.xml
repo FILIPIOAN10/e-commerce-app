@@ -1,0 +1,23 @@
+<configuration>
+  <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="sb-ecom"/>
+
+  <!-- Human-readable console appender for dev/test/ci -->
+  <springProfile name="dev | test | ci | default">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      </encoder>
+    </appender>
+  </springProfile>
+
+  <!-- JSON structured console appender for production -->
+  <springProfile name="prod">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+  </springProfile>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

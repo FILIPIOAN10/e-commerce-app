@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, feat/*]
+    branches: [main, 'feat/**']
   pull_request:
     branches: [main]
 
@@ -259,3 +259,32 @@ jobs:
           name: playwright-videos
           path: e2e/test-results/
           retention-days: 7
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Secret scan with gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          ignore-unfixed: true
+          format: 'table'
+          skip-dirs: 'ecom-frontend/node_modules,ecom-backend/target,e2e/node_modules'
+
+      - name: Dependency review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4

@@ -1,0 +1,16 @@
+title = "E-commerce App Gitleaks Allowlist"
+
+[allowlist]
+description = "Allow dummy/placeholder secrets used for local and CI environments"
+paths = [
+  'ecom-backend/src/main/resources/application-ci.properties',
+  'ecom-backend/src/main/resources/application-dev.properties',
+  'ecom-backend/src/main/resources/application.properties',
+  'docker-compose.yml',
+]
+regexes = [
+  '''dummy''',
+  '''sk_test_dummy''',
+  '''example\.com''',
+  '''\$\{.*\}''',
+]
