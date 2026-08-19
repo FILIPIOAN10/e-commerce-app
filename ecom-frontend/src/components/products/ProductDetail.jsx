@@ -19,6 +19,7 @@ import Breadcrumb from "../shared/Breadcrumb";
 import ReviewsSection from "../shared/ReviewsSection";
 import QuestionsSection from "../shared/QuestionsSection";
 import SimilarProducts from "../shared/SimilarProducts";
+import FrequentlyBoughtTogether from "../shared/FrequentlyBoughtTogether";
 import TrustBadges from "../shared/TrustBadges";
 import { Helmet } from "react-helmet-async";
 import {
@@ -183,6 +184,7 @@ const ProductDetail = () => {
     { key: "reviews", label: `Reviews ${reviewCount ? `(${reviewCount})` : ""}` },
     { key: "qna", label: "Q&A" },
     { key: "similar", label: "Similar Products" },
+    { key: "fbt", label: "Frequently Bought" },
   ];
 
   const breadcrumbItems = [
@@ -424,6 +426,9 @@ const ProductDetail = () => {
             )}
             {activeTab === "similar" && (
               <SimilarProducts productId={product.productId} />
+            )}
+            {activeTab === "fbt" && (
+              <FrequentlyBoughtTogether productId={product.productId} />
             )}
           </div>
         </div>

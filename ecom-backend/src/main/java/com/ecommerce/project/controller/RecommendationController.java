@@ -34,4 +34,13 @@ public class RecommendationController {
         List<ProductDTO> similar = recommendationService.getSimilarProducts(productId, limit);
         return ResponseEntity.ok(similar);
     }
+
+    @Tag(name = "Recommendations")
+    @GetMapping("/public/products/{productId}/frequently-bought-together")
+    public ResponseEntity<List<ProductDTO>> getFrequentlyBoughtTogether(
+            @PathVariable Long productId,
+            @RequestParam(name = "limit", defaultValue = "4", required = false) int limit) {
+        List<ProductDTO> recommendations = recommendationService.getFrequentlyBoughtTogether(productId, limit);
+        return ResponseEntity.ok(recommendations);
+    }
 }

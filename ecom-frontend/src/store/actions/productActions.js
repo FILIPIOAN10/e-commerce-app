@@ -105,6 +105,16 @@ export const fetchSimilarProducts = (productId, limit = 4) => async (dispatch) =
     }
 };
 
+export const fetchFrequentlyBoughtTogether = (productId, limit = 4) => async (dispatch) => {
+    try {
+        const { data } = await api.get(`/public/products/${productId}/frequently-bought-together?limit=${limit}`);
+        dispatch({ type: "SET_FREQUENTLY_BOUGHT_TOGETHER", payload: data });
+        return data;
+    } catch {
+        dispatch({ type: "SET_FREQUENTLY_BOUGHT_TOGETHER", payload: [] });
+    }
+};
+
 export const fetchBestSellers = (limit = 8) => async (dispatch) => {
     try {
         const { data } = await api.get(`/public/products/best-sellers?limit=${limit}`);

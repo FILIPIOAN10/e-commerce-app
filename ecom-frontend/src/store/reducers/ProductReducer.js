@@ -15,6 +15,7 @@ const initialState = {
     recentlyViewed: [],
     recommendedProducts: [],
     similarProducts: [],
+    frequentlyBoughtTogetherProducts: [],
     bestSellers: [],
     newArrivals: [],
     onSaleProducts: [],

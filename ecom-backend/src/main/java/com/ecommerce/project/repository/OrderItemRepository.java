@@ -2,6 +2,7 @@ package com.ecommerce.project.repository;
 
 import com.ecommerce.project.model.OrderItem;
 import com.ecommerce.project.model.Product;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +29,14 @@ public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
             "GROUP BY COALESCE(c.categoryName, 'Uncategorized') " +
             "ORDER BY 2 DESC")
     List<Object[]> getRevenueByCategory();
+
+    @Query("SELECT oi2.product.productId AS productId, COUNT(DISTINCT oi1.order.id) AS orderCount, " +
+            "SUM(oi2.quantity) AS totalQuantity " +
+            "FROM OrderItem oi1, OrderItem oi2 " +
+            "WHERE oi1.order.id = oi2.order.id " +
+            "  AND oi1.product.productId = :productId " +
+            "  AND oi2.product.productId <> :productId " +
+            "GROUP BY oi2.product.productId " +
+            "ORDER BY orderCount DESC, totalQuantity DESC")
+    List<Object[]> findFrequentlyBoughtTogether(@Param("productId") Long productId, Pageable pageable);
 }

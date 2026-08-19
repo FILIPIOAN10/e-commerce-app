@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,6 +101,38 @@ public class RecommendationServiceImpl implements RecommendationService {
         return loadProductsByIds(filteredIds);
     }
 
+    @Override
+    public List<ProductDTO> getFrequentlyBoughtTogether(Long productId, int limit) {
+        if (productId == null || limit <= 0) {
+            return List.of();
+        }
+
+        List<Long> resultIds = new ArrayList<>();
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit);
+        List<Object[]> rows = orderItemRepository.findFrequentlyBoughtTogether(productId, pageable);
+
+        for (Object[] row : rows) {
+            if (row[0] instanceof Number) {
+                resultIds.add(((Number) row[0]).longValue());
+            }
+        }
+
+        if (resultIds.size() < limit) {
+            // Fill the rest with similar products while avoiding duplicates
+            List<ProductDTO> similar = getSimilarProducts(productId, limit);
+            for (ProductDTO dto : similar) {
+                if (dto.getProductId() != null && !resultIds.contains(dto.getProductId())) {
+                    resultIds.add(dto.getProductId());
+                    if (resultIds.size() >= limit) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return loadProductsByIds(resultIds);
+    }
+
     private List<ProductDTO> getFallbackRecommendations(int limit) {
         List<Object[]> topSelling = orderItemRepository.getTop10BestSellingProducts();
         if (topSelling.isEmpty()) {
@@ -156,6 +190,10 @@ public class RecommendationServiceImpl implements RecommendationService {
         dto.setQuantity(product.getQuantity());
         dto.setImage(product.getImage());
         dto.setTags(product.getTags());
+        if (product.getCategory() != null) {
+            dto.setCategoryId(product.getCategory().getCategoryId());
+            dto.setCategoryName(product.getCategory().getCategoryName());
+        }
         return dto;
     }
 }
