@@ -269,6 +269,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up JDK 17 + Maven cache
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Download Maven dependencies
+        working-directory: ecom-backend
+        run: ./mvnw -B dependency:go-offline
+
       - name: Secret scan with gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -276,6 +287,8 @@ jobs:
 
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_CACHE_DIR: /home/runner/.cache/trivy
         with:
           scan-type: 'fs'
           scan-ref: '.'
