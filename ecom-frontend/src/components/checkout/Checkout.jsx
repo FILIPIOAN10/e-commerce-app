@@ -2,7 +2,7 @@ import { Button, Step, StepLabel, Stepper } from '@mui/material';
 import React, { useEffect, useState } from 'react'
 import AddressInfo from './AddressInfo';
 import { useDispatch, useSelector } from 'react-redux';
-import { addPaymentMethod, getUserAddresses, selectedUserCheckoutAddress } from '../../store/actions';
+import { addPaymentMethod, getUserAddresses, selectedUserCheckoutAddress as setCheckoutAddress } from '../../store/actions';
 import toast from 'react-hot-toast';
 import Skeleton from '../shared/Skeleton';
 import ErrorPage from '../shared/ErrorPage';
@@ -32,9 +32,7 @@ const saveProgress = (progress) => {
 
 const Checkout = () => {
 
-    const savedProgress = loadSavedProgress();
-
-    const [activeStep,setActiveStep] = useState(savedProgress?.activeStep ?? 0);
+    const [activeStep,setActiveStep] = useState(() => loadSavedProgress()?.activeStep ?? 0);
     const {isLoading ,errorMessage} = useSelector((state)=> state.errors);
     const {cart ,totalPrice} = useSelector((state)=> state.carts);
     const dispatch = useDispatch();
@@ -47,11 +45,12 @@ const Checkout = () => {
 
     // Restore selections from sessionStorage on mount
     useEffect(() => {
-      if (savedProgress?.selectedUserCheckoutAddress) {
-        dispatch(selectedUserCheckoutAddress(savedProgress.selectedUserCheckoutAddress));
+      const saved = loadSavedProgress();
+      if (saved?.selectedUserCheckoutAddress) {
+        dispatch(setCheckoutAddress(saved.selectedUserCheckoutAddress));
       }
-      if (savedProgress?.paymentMethod) {
-        dispatch(addPaymentMethod(savedProgress.paymentMethod));
+      if (saved?.paymentMethod) {
+        dispatch(addPaymentMethod(saved.paymentMethod));
       }
     }, [dispatch]);
 
