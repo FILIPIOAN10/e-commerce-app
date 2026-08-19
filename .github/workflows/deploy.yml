@@ -31,13 +31,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to production
+      - name: Announce deployment
         run: |
           echo "Deploying version ${{ github.ref_name }}"
           echo "Backend image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.ref_name }}"
           echo "Frontend image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.ref_name }}"
-          # TODO: replace this placeholder with the real deployment command(s).
-          # Examples:
-          #   ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker compose pull && docker compose up -d"
-          #   argocd app sync ecommerce-app
-          #   helm upgrade --install ecommerce ./helm/ecommerce --set image.tag=${{ github.ref_name }}
+
+      - name: Check deployment secrets
+        id: check
+        run: |
+          if [ -n "${{ secrets.DEPLOY_HOST }}" ] && [ -n "${{ secrets.DEPLOY_USER }}" ] && [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Requires repo secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (and optional DEPLOY_PATH,
+      # default /opt/ecommerce) pointing at a host with docker compose + the production compose file.
+      - name: Deploy over SSH
+        if: steps.check.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: REGISTRY,IMAGE_PREFIX
+          script: |
+            set -e
+            cd "${DEPLOY_PATH:-/opt/ecommerce}"
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
+
+      - name: Deployment secrets missing
+        if: steps.check.outputs.configured == 'false'
+        run: |
+          echo "::warning::DEPLOY_HOST, DEPLOY_USER or DEPLOY_SSH_KEY repo secrets are not configured. Skipping real deployment for ${{ github.ref_name }}. Images were still pushed to GHCR."

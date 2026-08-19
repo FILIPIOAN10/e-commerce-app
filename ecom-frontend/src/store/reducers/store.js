@@ -12,6 +12,7 @@ import reviewReducer from "./reviewReducer";
 import questionReducer from "./questionReducer";
 import couponReducer from "./couponReducer";
 import { notificationReducer } from "./notificationReducer";
+import { apiSlice } from "../api/apiSlice";
 
 const user = localStorage.getItem("auth")
     ? JSON.parse(localStorage.getItem("auth"))
@@ -50,8 +51,11 @@ export const store = configureStore({
         question: questionReducer,
         coupon: couponReducer,
         notification: notificationReducer,
+        [apiSlice.reducerPath]: apiSlice.reducer,
     },
     preloadedState: initialState,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(apiSlice.middleware),
 });
 
 export default store;

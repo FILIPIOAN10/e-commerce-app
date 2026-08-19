@@ -52,11 +52,11 @@ const ProductCard = ({
     };
 
     const addToCartHandler = (cartItems) => {
-        dispatch(addToCart(cartItems, 1, toast));
+        dispatch(addToCart(cartItems, 1, toast, navigate));
     };
 
     return (
-        <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 dark:bg-gray-800 dark:border-gray-700">
+        <div className="card shadow-xl overflow-hidden transition-shadow duration-300">
             <div onClick={handleProductView}
                 className="w-full overflow-hidden aspect-3/2">
                 <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
