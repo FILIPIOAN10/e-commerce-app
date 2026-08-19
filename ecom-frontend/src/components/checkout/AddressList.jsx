@@ -68,10 +68,20 @@ const AddressList = ({ addresses, setSelectedAddress, setOpenAddressModal,setOpe
                  </div>
 
                  <div className="flex gap-3 absolute top-4 right-2">
-                    <button onClick={() => onEditButtonHandler(address)}>
+                    <button
+                        onClick={() => onEditButtonHandler(address)}
+                        aria-label="Edit address"
+                        className="p-1 rounded focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
+                        type="button"
+                    >
                         <FaEdit size={18} className="text-teal-700 dark:text-teal-300" />
-                    </button> 
-                    <button onClick={() => onDeleteButtonHandler(address)}>
+                    </button>
+                    <button
+                        onClick={() => onDeleteButtonHandler(address)}
+                        aria-label="Delete address"
+                        className="p-1 rounded focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
+                        type="button"
+                    >
                         <FaTrash size={17} className="text-rose-600" />
                     </button>
                     </div>

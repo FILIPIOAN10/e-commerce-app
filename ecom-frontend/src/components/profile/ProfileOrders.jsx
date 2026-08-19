@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
+import { MdArrowBack } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
 import { getUserOrders } from '../../store/actions';
 import OrderTable from '../admin/orders/OrderTable';
 import Skeleton from '../shared/Skeleton';
+import EmptyState from '../shared/EmptyState';
 
 const ProfileOrders = () => {
   const dispatch = useDispatch();
@@ -41,11 +43,12 @@ const ProfileOrders = () => {
       </div>
 
       {emptyOrder ? (
-        <div className='flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-20 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700'>
-          <FaShoppingCart size={50} className='mb-3 text-gray-400' />
-          <h2 className='text-2xl font-semibold'>Nu ai plasat nicio comandă încă</h2>
-          <p className='text-gray-400 text-sm mt-1'>Comenzile tale finalizate vor apărea în această listă.</p>
-        </div>
+        <EmptyState
+          icon={FaShoppingCart}
+          title="Nu ai plasat nicio comandă încă"
+          message="Comenzile tale finalizate vor apărea în această listă."
+          action={{ label: "Start Shopping", path: "/", icon: MdArrowBack }}
+        />
       ) : (
         /* Trimitem `userOrders` ca prop-ul `adminOrder` în componenta ta de tabelă.
            Dacă în interiorul OrderTable nu ai editări sau butoane condiționate de rol, 

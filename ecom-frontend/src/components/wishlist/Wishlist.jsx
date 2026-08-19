@@ -4,6 +4,7 @@ import { fetchWishlist, removeFromWishlist } from "../../store/actions";
 import { FaHeart, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Loader from "../shared/Loader";
+import EmptyState from "../shared/EmptyState";
 
 const Wishlist = () => {
     const dispatch = useDispatch();
@@ -48,13 +49,12 @@ const Wishlist = () => {
             )}
 
             {!error && wishlist.length === 0 && (
-                <div className="flex flex-col items-center justify-center min-h-96">
-                    <FaHeart className="text-gray-300 text-6xl mb-4" />
-                    <p className="text-gray-500 text-lg mb-4">Your wishlist is empty</p>
-                    <Link to="/products" className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
-                        Browse Products
-                    </Link>
-                </div>
+                <EmptyState
+                    icon={FaHeart}
+                    title="Your wishlist is empty"
+                    message="Save products you love to find them easily later."
+                    action={{ label: "Browse Products", path: "/products", icon: FaHeart }}
+                />
             )}
 
             {wishlist.length > 0 && (

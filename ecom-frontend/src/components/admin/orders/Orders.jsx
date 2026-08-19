@@ -4,6 +4,7 @@ import OrderTable from './OrderTable';
 import { useSelector } from 'react-redux';
 import useOrderFilter from '../../../hooks/useOrderFilter';
 import Skeleton from '../../shared/Skeleton';
+import EmptyState from '../../shared/EmptyState';
 
 const Orders = () => {
   const {adminOrder,pagination} = useSelector((state) => state.order);
@@ -24,10 +25,11 @@ const Orders = () => {
   return (
     <div className='pb-6 pt-20 '>
       {emptyOrder ? (
-        <div className='flex flex-col items-center justify-center text-gray-600 dark:text-gray-400 py-10'>
-            <FaShoppingCart size={50} className='mb-3' />
-            <h2 className='text-2xl font-semibold'>No Orders Placed Yet</h2>
-        </div>
+        <EmptyState
+          icon={FaShoppingCart}
+          title="No Orders Placed Yet"
+          message="Orders from customers will appear here."
+        />
       ) :(
 
         <OrderTable adminOrder={adminOrder} pagination={pagination}/>

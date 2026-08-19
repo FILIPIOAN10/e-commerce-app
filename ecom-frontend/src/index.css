@@ -227,3 +227,26 @@ layer(base);
 .dark .MuiStepConnector-line {
   border-color: var(--mui-palette-text-secondary) !important;
 }
+
+/* Accessible focus rings */
+@layer base {
+  :focus-visible {
+    outline: none;
+    --tw-ring-inset: ;
+    --tw-ring-offset-width: 2px;
+    --tw-ring-offset-color: #ffffff;
+    --tw-ring-color: #2563eb;
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  }
+
+  .dark :focus-visible {
+    --tw-ring-offset-color: #0f172a;
+    --tw-ring-color: #60a5fa;
+  }
+
+  :disabled:focus-visible {
+    box-shadow: none;
+  }
+}

@@ -8,6 +8,7 @@ import {
     addNotification,
 } from "../../store/actions";
 import { connectWebSocket, disconnectWebSocket } from "../../services/websocketService";
+import EmptyState from "./EmptyState";
 
 const NotificationBell = () => {
     const dispatch = useDispatch();
@@ -55,8 +56,9 @@ const NotificationBell = () => {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={handleBellClick}
-                className="relative text-white hover:text-yellow-300 transition-colors text-xl"
+                className="relative text-white hover:text-yellow-300 transition-colors text-xl focus:ring-2 focus:ring-yellow-300 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-full p-1"
                 title="Notifications"
+                aria-label="Notifications"
             >
                 <FaBell />
                 {unreadCount > 0 && (
@@ -75,9 +77,13 @@ const NotificationBell = () => {
                     </div>
 
                     {notifications.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-                            No notifications yet
-                        </div>
+                        <EmptyState
+                            icon={FaBell}
+                            title="No notifications yet"
+                            message="You're all caught up!"
+                            className="min-h-0 py-8"
+                            iconSize={48}
+                        />
                     ) : (
                         <div className="divide-y divide-gray-100 dark:divide-gray-700">
                             {notifications.slice(0, 15).map((n) => (
