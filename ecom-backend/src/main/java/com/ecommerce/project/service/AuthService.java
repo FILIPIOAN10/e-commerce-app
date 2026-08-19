@@ -5,12 +5,11 @@ import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 
 public interface AuthService {
     AuthenticationResult login(LoginRequest loginRequest);
 
-    ResponseEntity<MessageResponse> register(SignupRequest signupRequest);
+    MessageResponse register(SignupRequest signupRequest);
 
     ResponseCookie logoutUser();
 

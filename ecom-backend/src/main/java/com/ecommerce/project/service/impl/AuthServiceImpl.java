@@ -20,10 +20,12 @@ import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.AuthService;
+import com.ecommerce.project.exception.UsernameAlreadyExistsException;
+import com.ecommerce.project.exception.EmailAlreadyExistsException;
+import com.ecommerce.project.exception.RoleNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -111,12 +113,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<MessageResponse> register(SignupRequest signupRequest) {
+    public MessageResponse register(SignupRequest signupRequest) {
         if (userRepository.existsByUserName(signupRequest.getUsername())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+            throw new UsernameAlreadyExistsException("Error: Username is already taken!");
         }
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+            throw new EmailAlreadyExistsException("Error: Email is already in use!");
         }
         User user = new User(
                 signupRequest.getUsername(),
@@ -125,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
         );
         user.setPasswordHint(signupRequest.getPasswordHint());
         Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+                .orElseThrow(() -> new RoleNotFoundException("Error: Role is not found"));
         user.setRoles(Set.of(userRole));
         user.setVerified(false);
         userRepository.save(user);
@@ -133,13 +135,13 @@ public class AuthServiceImpl implements AuthService {
         if (skipVerificationEmail) {
             user.setVerified(true);
             userRepository.save(user);
-            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+            return new MessageResponse("User registered successfully!");
         }
 
         String token = emailVerificationService.generateVerificationToken(user.getEmail());
         emailService.sendVerificationEmail(user.getEmail(), token);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully! Please check your email to verify your account."));
+        return new MessageResponse("User registered successfully! Please check your email to verify your account.");
     }
 
     @Override

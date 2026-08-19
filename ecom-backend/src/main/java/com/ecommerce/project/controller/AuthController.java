@@ -89,7 +89,7 @@ public class AuthController {
     @Tag(name = "Authentication")
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
-        return authService.register(signupRequest);
+        return ResponseEntity.ok(authService.register(signupRequest));
     }
 
     //întoarce username-ul autentificat
