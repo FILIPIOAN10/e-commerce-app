@@ -13,6 +13,7 @@ import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.EmailService;
+import com.ecommerce.project.service.InventoryReservationService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.UserActivityLogService;
@@ -57,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
     private final EmailService emailService;
     private final NotificationService notificationService;
     private final UserActivityLogService userActivityLogService;
+    private final InventoryReservationService inventoryReservationService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
@@ -121,22 +123,13 @@ public class OrderServiceImpl implements OrderService {
 
         orderItems = orderItemRepository.saveAll(orderItems);
 
-        // Update product stock
-        cart.getCartItems().forEach(item -> {
-            int quantity = item.getQuantity();
-            Product product = item.getProduct();
+        // Consume the Redis reservation and deduct the reserved stock in DB
+        inventoryReservationService.consumeReservationsForCart(cart.getCartId());
 
-            if (product.getQuantity() < quantity) {
-                throw new APIException("Insufficient stock for product: "
-                        + product.getProductName()
-                        + ". Available: " + product.getQuantity()
-                        + ", requested: " + quantity);
-            }
-
-            product.setQuantity(product.getQuantity() - quantity);
-            productRepository.save(product);
-            cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId());
-        });
+        // Clear the cart after the reservation has been consumed
+        cart.getCartItems().forEach(item ->
+            cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId())
+        );
 
         // Send back the order summary
         OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
@@ -289,6 +282,10 @@ public class OrderServiceImpl implements OrderService {
         if (cart == null || cart.getCartItems().isEmpty()) {
             throw new APIException("Cart is Empty");
         }
+
+        // Reserve stock for 10 minutes (TTL) to prevent race conditions at checkout
+        inventoryReservationService.reserveCartItems(cart.getCartId(), cart.getCartItems());
+
         double subtotal = cart.getTotalPrice();
         CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
