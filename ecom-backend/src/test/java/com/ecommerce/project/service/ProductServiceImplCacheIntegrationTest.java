@@ -168,7 +168,8 @@ class ProductServiceImplCacheIntegrationTest {
 
         @Bean
         public CacheManager cacheManager() {
-            return new ConcurrentMapCacheManager("product", "publicProducts", "categoryProducts", "productSearch");
+            return new ConcurrentMapCacheManager("product", "publicProducts", "categoryProducts", "productSearch",
+                    "adminProducts", "sellerProducts");
         }
 
         @Bean

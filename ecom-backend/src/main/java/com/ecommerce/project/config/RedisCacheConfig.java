@@ -36,12 +36,14 @@ public class RedisCacheConfig {
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
                 .disableCachingNullValues();
-        Map<String,RedisCacheConfiguration> cacheConfigurations =Map.of(
+        Map<String,RedisCacheConfiguration> cacheConfigurations = Map.of(
                 "publicCategories",defaultConfiguration.entryTtl(Duration.ofMinutes(30)),
                 "publicProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
                 "categoryProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
                 "productSearch",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
-                "product",defaultConfiguration.entryTtl(Duration.ofMinutes(30))
+                "product",defaultConfiguration.entryTtl(Duration.ofMinutes(30)),
+                "adminProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
+                "sellerProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5))
         );
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfiguration)

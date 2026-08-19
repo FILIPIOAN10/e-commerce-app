@@ -56,9 +56,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "publicProducts",allEntries = true),
-            @CacheEvict(value = "categoryProducts",allEntries = true),
-            @CacheEvict(value = "productSearch",allEntries = true)
+            @CacheEvict(value = "publicProducts", allEntries = true),
+            @CacheEvict(value = "categoryProducts", allEntries = true),
+            @CacheEvict(value = "productSearch", allEntries = true),
+            @CacheEvict(value = "adminProducts", allEntries = true),
+            @CacheEvict(value = "sellerProducts", allEntries = true)
     })
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
         // 1. Găsim categoria sau aruncăm excepție
@@ -127,6 +129,10 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
+    @Cacheable(
+            value = "adminProducts",
+            key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
+    )
     public ProductResponse getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
@@ -138,6 +144,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(
+            value = "sellerProducts",
+            key = "@authUtil.loggedInUserId() + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
+    )
     public ProductResponse getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
@@ -162,6 +172,8 @@ public class ProductServiceImpl implements ProductService {
             @CacheEvict(value = "publicProducts", allEntries = true),
             @CacheEvict(value = "categoryProducts", allEntries = true),
             @CacheEvict(value = "productSearch", allEntries = true),
+            @CacheEvict(value = "adminProducts", allEntries = true),
+            @CacheEvict(value = "sellerProducts", allEntries = true)
     })
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
 
@@ -204,9 +216,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Caching(evict = {
             @CacheEvict(value = "product", key = "#productId"),
-            @CacheEvict(value = "publicProducts",allEntries = true),
-            @CacheEvict(value = "categoryProducts",allEntries = true),
-            @CacheEvict(value = "productSearch",allEntries = true)
+            @CacheEvict(value = "publicProducts", allEntries = true),
+            @CacheEvict(value = "categoryProducts", allEntries = true),
+            @CacheEvict(value = "productSearch", allEntries = true),
+            @CacheEvict(value = "adminProducts", allEntries = true),
+            @CacheEvict(value = "sellerProducts", allEntries = true)
     })
     public ProductDTO deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
