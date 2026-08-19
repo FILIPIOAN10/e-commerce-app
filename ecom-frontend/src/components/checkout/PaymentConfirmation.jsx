@@ -16,12 +16,17 @@ const PaymentConfirmation = () => {
 
     const paymentIntent = searchParams.get("payment_intent");
     const clientSecret = searchParams.get("payment_intent_client_secret");
-    
+
     const redirectStatus = searchParams.get("redirect_status");
-    
+
       const {selectedUserCheckoutAddress} = useSelector(
           (state) => state.auth
         );
+    useEffect(() => {
+        // Checkout is complete, clear saved progress
+        sessionStorage.removeItem("checkoutProgress");
+    }, []);
+
     useEffect(() => {
         if(paymentIntent &&
             clientSecret &&

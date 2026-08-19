@@ -2,7 +2,7 @@ import { Button, Step, StepLabel, Stepper } from '@mui/material';
 import React, { useEffect, useState } from 'react'
 import AddressInfo from './AddressInfo';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserAddresses } from '../../store/actions';
+import { addPaymentMethod, getUserAddresses, selectedUserCheckoutAddress } from '../../store/actions';
 import toast from 'react-hot-toast';
 import Skeleton from '../shared/Skeleton';
 import ErrorPage from '../shared/ErrorPage';
@@ -11,9 +11,30 @@ import OrderSummary from './OrderSummary';
 import StripePayment from './StripePayment';
 import PaypalPayment from './PaypalPayment';
 
+const CHECKOUT_PROGRESS_KEY = "checkoutProgress";
+
+const loadSavedProgress = () => {
+  try {
+    const saved = sessionStorage.getItem(CHECKOUT_PROGRESS_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveProgress = (progress) => {
+  try {
+    sessionStorage.setItem(CHECKOUT_PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const Checkout = () => {
 
-    const [activeStep,setActiveStep] = useState(0);
+    const savedProgress = loadSavedProgress();
+
+    const [activeStep,setActiveStep] = useState(savedProgress?.activeStep ?? 0);
     const {isLoading ,errorMessage} = useSelector((state)=> state.errors);
     const {cart ,totalPrice} = useSelector((state)=> state.carts);
     const dispatch = useDispatch();
@@ -23,6 +44,25 @@ const Checkout = () => {
     );
 
     const {paymentMethod} = useSelector((state) => state.payment);
+
+    // Restore selections from sessionStorage on mount
+    useEffect(() => {
+      if (savedProgress?.selectedUserCheckoutAddress) {
+        dispatch(selectedUserCheckoutAddress(savedProgress.selectedUserCheckoutAddress));
+      }
+      if (savedProgress?.paymentMethod) {
+        dispatch(addPaymentMethod(savedProgress.paymentMethod));
+      }
+    }, [dispatch]);
+
+    // Persist progress whenever it changes
+    useEffect(() => {
+      saveProgress({
+        activeStep,
+        selectedUserCheckoutAddress,
+        paymentMethod,
+      });
+    }, [activeStep, selectedUserCheckoutAddress, paymentMethod]);
 
     const handleBack = () =>{
       setActiveStep((prevStep) => prevStep -1);
