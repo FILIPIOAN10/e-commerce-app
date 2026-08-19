@@ -23,25 +23,25 @@ const Cart = () => {
             <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Cart" }]} />
 
             <div className="flex flex-col items-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-                    <MdShoppingCart size={36} className="text-gray-700 dark:text-gray-300"/>
+                <h1 className="text-4xl font-bold text-heading flex items-center gap-3">
+                    <MdShoppingCart size={36} className="text-heading"/>
                    Your Cart
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">All your selected items</p>
+                <p className="text-lg text-muted mt-2">All your selected items</p>
             </div>
             <div className="grid md:grid-cols-5 grid-cols-4 gap-4 pb-2 font-semibold items-center">
-                <div className="md:col-span-2 justify-self-start text-lg text-slate-800 dark:text-gray-200 lg:ps-4">
+                <div className="md:col-span-2 justify-self-start text-lg text-heading lg:ps-4">
                     Product
                 </div>
-                <div className="justify-self-center text-lg text-slate-800 dark:text-gray-200">
+                <div className="justify-self-center text-lg text-heading">
                     Price
                 </div>
 
-                <div className="justify-self-center text-lg text-slate-800 dark:text-gray-200">
+                <div className="justify-self-center text-lg text-heading">
                     Quantity
                 </div>
 
-                <div className="justify-self-center text-lg text-slate-800 dark:text-gray-200">
+                <div className="justify-self-center text-lg text-heading">
                     Total
                 </div>
             </div>
@@ -52,7 +52,7 @@ const Cart = () => {
 
             {savedCart.length > 0 && (
                 <>
-                    <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-700 dark:text-gray-300">Saved for later</h2>
+                    <h2 className="text-xl font-semibold mt-8 mb-4 text-body">Saved for later</h2>
                     <div className="flex flex-col opacity-70">
                         {savedCart.map((item) => <ItemContent key={item.productId} {...item}/>)}
                     </div>
@@ -62,11 +62,11 @@ const Cart = () => {
             <div className="border-t-[1.5px] border-slate-200 dark:border-gray-700 py-4 flex sm:flex-row sm:px-0 flex-col sm:justify-between gap-4 sticky bottom-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg">
                 <div></div>
                 <div className="flex text-sm gap-1 flex-col">
-                    <div className="flex justify-between w-full md:text-lg text-sm font-semibold">
+                    <div className="flex justify-between w-full md:text-lg text-sm font-semibold text-heading">
                         <span>Subtotal</span>
                         <span>{formatPrice(totalPrice)}</span>
                     </div>
-                    <p className="text-slate-500 dark:text-gray-400">
+                    <p className="text-muted">
                         Taxes and shipping calculated at checkout
                     </p>
                     <Link className="w-full flex justify-end" to="/checkout">
@@ -90,7 +90,7 @@ const Cart = () => {
                     </Link>
 
 
-                    <Link className="flex gap-2 items-center mt-2 text-slate-500 dark:text-gray-400" to="/products">
+                    <Link className="flex gap-2 items-center mt-2 text-muted" to="/products">
 
                     <MdArrowBack/>
                     <span>

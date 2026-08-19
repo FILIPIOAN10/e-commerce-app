@@ -227,3 +227,72 @@ layer(base);
 .dark .MuiStepConnector-line {
   border-color: var(--mui-palette-text-secondary) !important;
 }
+
+/*
+  Semantic design tokens with dark variants.
+  Use these instead of duplicating dark: utilities everywhere.
+*/
+@layer components {
+  .surface {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+  }
+  .dark .surface {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
+
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm p-4;
+  }
+  .dark .card {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
+
+  .input-base {
+    @apply block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none;
+  }
+  .dark .input-base {
+    @apply border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:border-blue-400 focus:ring-blue-400;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white font-medium transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .dark .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600;
+  }
+
+  .text-heading {
+    @apply text-slate-800;
+  }
+  .dark .text-heading {
+    @apply text-white;
+  }
+
+  .text-body {
+    @apply text-gray-600;
+  }
+  .dark .text-body {
+    @apply text-gray-300;
+  }
+
+  .text-muted {
+    @apply text-gray-500;
+  }
+  .dark .text-muted {
+    @apply text-gray-400;
+  }
+
+  .table-header {
+    @apply bg-gray-50 border-b border-gray-200;
+  }
+  .dark .table-header {
+    @apply bg-gray-900 border-gray-700 text-gray-300;
+  }
+
+  .table-row {
+    @apply border-b border-gray-100;
+  }
+  .dark .table-row {
+    @apply border-gray-700;
+  }
+}

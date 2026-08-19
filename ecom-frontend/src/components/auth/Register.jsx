@@ -1,17 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useForm } from 'react-hook-form';
 import { FaUserPlus } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import InputField from '../shared/InputField';
-import { useDispatch } from 'react-redux';
-import { registerNewUser } from '../../store/actions';
+import { useRegisterMutation } from '../../store/api/authApi';
 import toast from 'react-hot-toast';
 import Spinners from '../shared/Spinners';
 
 const Register = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const [loader,setLoader]= useState(false);
+    const [registerUser, { isLoading }] = useRegisterMutation();
 
     const {
         register,
@@ -24,8 +22,17 @@ const Register = () => {
     });
 
     const registerHandler = async (data) => {
-        dispatch(registerNewUser(data,toast,reset,navigate,setLoader));
+        const payload = { ...data, roles: data.role ? [data.role] : ["ROLE_USER"] };
+        delete payload.role;
 
+        try {
+            const result = await registerUser(payload).unwrap();
+            reset();
+            toast.success(result?.message || "User Registered Successfully");
+            navigate("/login");
+        } catch (error) {
+            toast.error(error?.data?.message || error?.data?.password || "Internal Server Error");
+        }
     };
 
     return (
@@ -109,22 +116,17 @@ const Register = () => {
 
 
                 <button
-                    disabled={loader}
+                    disabled={isLoading}
                     className="bg-button-gradient flex gap-2 items-center justify-center font-semibold text-white w-full py-2 hover:text-slate-400 transition-colors duration-100 rounded-sm my-3"
                     type="submit"
                 >
-                    {loader ? (
-                    <>
-
-                        <Spinners/> Loading...   </>
-                        
-                        
-                       
+                    {isLoading ? (
+                        <>
+                            <Spinners /> Loading...
+                        </>
                     ) : (
-                        <> Register</>
-                       
+                        <>Register</>
                     )}
-                  
                 </button>
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Already have an account?

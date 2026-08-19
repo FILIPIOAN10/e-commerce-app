@@ -10,6 +10,7 @@ import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.ProductSearchService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
+import com.ecommerce.project.util.PaginationUtil;
 import com.ecommerce.project.util.ProductMapper;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,9 +59,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Category", "categoryId", categoryId));
 
-        Sort sortByAndOrder = buildProductSort(sortBy, sortOrder);
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         Page<Product> pageProducts = productRepository.findByCategoryOrderByPriceAsc(category, pageDetails);
 
         List<Product> products = pageProducts.getContent();
@@ -74,9 +73,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     @Override
     public ProductResponse searchProductByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Sort sortByAndOrder = buildProductSort(sortBy, sortOrder);
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         Page<Product> pageProducts = productRepository.findByProductNameLikeIgnoreCase('%' + keyword + '%', pageDetails);
 
         List<Product> products = pageProducts.getContent();
@@ -97,23 +94,21 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         boolean hasCommaSeparatedTerms = query != null && query.contains(",");
         List<String> terms = parseSearchTerms(query);
         List<String> classicTerms = hasCommaSeparatedTerms ? terms : buildClassicFallbackTerms(query);
-        Sort sortByAndOrder = buildProductSort(sortBy, sortOrder);
         boolean shouldUseSemanticSearch = Boolean.TRUE.equals(semantic)
                 && productSemanticSearchService.isEnabled()
                 && !terms.isEmpty();
 
         if (!shouldUseSemanticSearch) {
-            Pageable pageDetails = PageRequest.of(
-                    pageNumber == null ? 0 : pageNumber,
-                    pageSize == null ? 10 : pageSize,
-                    sortByAndOrder);
+            Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
             Page<Product> classicPage = productRepository.findAll(buildClassicSearchSpec(classicTerms), pageDetails);
             return productMapper.buildProductResponse(classicPage);
         }
 
         int safePageNumber = pageNumber == null ? 0 : Math.max(pageNumber, 0);
         int safePageSize = pageSize == null ? 10 : Math.max(pageSize, 1);
-        int semanticLimit = Math.max(semanticTopK, (safePageNumber + 1) * safePageSize);
+        int semanticLimit = Math.min(PaginationUtil.getMaxPageSize(),
+                Math.max(semanticTopK, (safePageNumber + 1) * safePageSize));
+        Sort sortByAndOrder = PaginationUtil.buildSort(sortBy, sortOrder);
         List<Product> classicProducts = productRepository.findAll(
                 buildClassicSearchSpec(classicTerms), PageRequest.of(0, semanticLimit, sortByAndOrder)).getContent();
         List<Long> semanticProductIds = searchSemanticProductIds(query, terms, hasCommaSeparatedTerms, semanticLimit);

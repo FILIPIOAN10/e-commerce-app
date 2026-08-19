@@ -1,10 +1,16 @@
 import { HiOutlineTrash } from "react-icons/hi";
 import SetQuantity from "./SetQuantity";
-import { useDispatch } from "react-redux";
-import { decreaseCartQuantity, increaseCartQuantity, removeFromCart, saveItemForLater, moveItemToCart } from "../../store/actions";
+import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { formatPrice } from "../../utils/formatPrice";
 import truncateText from "../../utils/truncateText";
+import {
+    useIncreaseCartQuantityMutation,
+    useDecreaseCartQuantityMutation,
+    useRemoveFromCartMutation,
+    useSaveItemForLaterMutation,
+    useMoveItemToCartMutation,
+} from "../../store/api/cartApi";
 
 const ItemContent = ({
     productId,
@@ -18,28 +24,42 @@ const ItemContent = ({
     savedForLater,
 }) => {
     const unitPrice = specialPrice ?? price;
-    const dispatch = useDispatch();
+    const cartId = useSelector((state) => state.carts.cartId);
+    const [increaseQuantity] = useIncreaseCartQuantityMutation();
+    const [decreaseQuantity] = useDecreaseCartQuantityMutation();
+    const [removeFromCart] = useRemoveFromCartMutation();
+    const [saveItemForLater] = useSaveItemForLaterMutation();
+    const [moveItemToCart] = useMoveItemToCartMutation();
 
-    const handleQtyIncrease = (cartItems) => {
-        dispatch(increaseCartQuantity(cartItems, toast));
+    const handleQtyIncrease = () => {
+        increaseQuantity(productId)
+            .unwrap()
+            .then(() => toast.success("Quantity increased"))
+            .catch((error) => toast.error(error?.data?.message || "Failed to increase quantity"));
     };
 
-    const handleQtyDecrease = (cartItems) => {
-        if(quantity > 1) {
-            dispatch(decreaseCartQuantity(cartItems, toast));
+    const handleQtyDecrease = () => {
+        if (quantity > 1) {
+            decreaseQuantity(productId)
+                .unwrap()
+                .then(() => toast.success("Quantity decreased"))
+                .catch((error) => toast.error(error?.data?.message || "Failed to decrease quantity"));
         }
     };
 
-    const removeItemFromCart = (cartItems) => {
-        dispatch(removeFromCart(cartItems, toast));
+    const removeItemFromCart = () => {
+        removeFromCart({ cartId, productId })
+            .unwrap()
+            .then(() => toast.success(`${productName} removed from cart`))
+            .catch((error) => toast.error(error?.data?.message || "Failed to remove item"));
     };
 
     const toggleSaveForLater = () => {
-        if (savedForLater) {
-            dispatch(moveItemToCart(cartItemId, toast));
-        } else {
-            dispatch(saveItemForLater(cartItemId, toast));
-        }
+        const action = savedForLater ? moveItemToCart : saveItemForLater;
+        action(cartItemId)
+            .unwrap()
+            .then(() => toast.success(savedForLater ? "Item moved to cart" : "Item saved for later"))
+            .catch((error) => toast.error(error?.data?.message || "Failed to update item"));
     };
 
     return(
@@ -63,17 +83,9 @@ const ItemContent = ({
                
                     <div className="flex items-start gap-5 mt-3 ">
                         <button
-                            onClick={() =>removeItemFromCart({
-                                image,
-                                productName,
-                                description,
-                                specialPrice,
-                                price,
-                                productId,
-                                quantity,
-
-                            })}
-                            className="flex items-center font-semibold space-x-2 px-4 py-1 text-xs border border-rose-600 text-rose-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors  duration-200"
+                            onClick={removeItemFromCart}
+                            disabled={!cartId}
+                            className="flex items-center font-semibold space-x-2 px-4 py-1 text-xs border border-rose-600 text-rose-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors  duration-200 disabled:opacity-50"
                         >
                             <HiOutlineTrash size={16} className="text-rose-600" />
                             Remove
@@ -96,24 +108,8 @@ const ItemContent = ({
                     <SetQuantity
                         quantity={quantity}
                         cardCounter={true}
-                        handleQtyIncrease={() => handleQtyIncrease({
-                            image,
-                            productName,
-                            description,
-                            specialPrice,
-                            price,
-                            productId,
-                            quantity,
-                        })}
-                        handleQtyDecrease={() => {handleQtyDecrease({
-                            image,
-                            productName,
-                            description,
-                            specialPrice,
-                            price,
-                            productId,
-                            quantity,
-                        })}}
+                        handleQtyIncrease={handleQtyIncrease}
+                        handleQtyDecrease={handleQtyDecrease}
                     
                     />
                 </div>

@@ -4,22 +4,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineLogin } from "react-icons/ai";
 import InputField from "../shared/InputField";
 import { useDispatch } from "react-redux";
-import { authenticateSignInUser } from "../../store/actions";
 import toast from "react-hot-toast";
 import Spinners from "../shared/Spinners";
 import { FaGithub } from "react-icons/fa"; 
 import { FcGoogle } from "react-icons/fc";
 import Verify2FALogin from "./Verify2FALogin";
+import { useLoginMutation } from "../../store/api/authApi";
 
 
 const LogIn = () => {
 
     const navigate = useNavigate();
-    const [loader,setLoader]= useState(false);
+    const dispatch = useDispatch();
     const [needs2FA, setNeeds2FA] = useState(false);
     const [temp2FAToken, setTemp2FAToken] = useState(null);
     const [loginEmail, setLoginEmail] = useState(null);
-    const dispatch = useDispatch();
+    const [login, { isLoading }] = useLoginMutation();
     const {
         register,
         handleSubmit,
@@ -31,16 +31,25 @@ const LogIn = () => {
     });
 
     const loginHandler = async (data) => {
-        dispatch(authenticateSignInUser(
-            data,
-            toast,
-            reset,
-            navigate,
-            setLoader,
-            setNeeds2FA,
-            setTemp2FAToken,
-            setLoginEmail
-        ));
+        try {
+            const result = await login({
+                ...data,
+                username: String(data.username || "").trim(),
+            }).unwrap();
+
+            if (result.needs2FA) {
+                setNeeds2FA(true);
+                setTemp2FAToken(result.temp2FAToken);
+                setLoginEmail(data.username);
+                return;
+            }
+
+            reset();
+            toast.success("Login Success");
+            navigate("/");
+        } catch (error) {
+            toast.error(error?.data?.message || "Internal Server Error");
+        }
     };
 
             const handle2FASuccess = (authData) => {
@@ -101,11 +110,11 @@ const LogIn = () => {
 
                 {/* LOGIN BUTTON */}
                 <button
-                    disabled={loader}
+                    disabled={isLoading}
                     className="bg-button-gradient flex gap-2 items-center justify-center font-semibold text-white w-full py-2 hover:text-slate-400 transition-colors duration-100 rounded-sm my-3"
                     type="submit"
                 >
-                    {loader ? (
+                    {isLoading ? (
                         <>
                             <Spinners /> Loading...
                         </>
