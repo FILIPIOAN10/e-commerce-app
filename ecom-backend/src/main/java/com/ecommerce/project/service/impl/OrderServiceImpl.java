@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageDetails = PageRequest.of(pageNumber,pageSize,sortByAndOrder);
-        Page<Order> pageOrders= orderRepository.findAll(pageDetails);
+        Page<Order> pageOrders = orderRepository.findAllWithDetails(pageDetails);
 
         // Got the order details
         List<Order> orders = pageOrders.getContent();
@@ -203,7 +203,7 @@ public class OrderServiceImpl implements OrderService {
 
         User seller = authUtil.loggedInUser();
 
-        Page<Order> pageOrders = orderRepository.findOrdersBySellerId(seller.getUserId(), pageDetails);
+        Page<Order> pageOrders = orderRepository.findOrdersBySellerIdWithDetails(seller.getUserId(), pageDetails);
 
         List<OrderDTO> orderDTOS = pageOrders.getContent().stream()
                 .map(order -> modelMapper.map(order, OrderDTO.class))
@@ -229,7 +229,7 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
 
         // Apelăm metoda nouă din repository filtrată după email
-        Page<Order> pageOrders = orderRepository.findByEmail(email, pageDetails);
+        Page<Order> pageOrders = orderRepository.findByEmailWithDetails(email, pageDetails);
 
         List<Order> orders = pageOrders.getContent();
 
@@ -250,7 +250,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO getOrderById(Long orderId, String email) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
 
         if (!order.getEmail().equals(email)) {

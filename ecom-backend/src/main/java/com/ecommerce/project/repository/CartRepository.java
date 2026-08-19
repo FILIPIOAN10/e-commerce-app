@@ -12,7 +12,11 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
 
 
     //Filter this cart where this associated user's email matches the given parameter okay
-    @Query("SELECT c FROM Cart c WHERE c.user.email = ?1")
+    @Query("SELECT DISTINCT c FROM Cart c " +
+           "JOIN FETCH c.user u " +
+           "LEFT JOIN FETCH c.cartItems ci " +
+           "LEFT JOIN FETCH ci.product p " +
+           "WHERE u.email = ?1")
     Cart findCartByEmail(String email);
 
 
