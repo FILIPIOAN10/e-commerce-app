@@ -177,10 +177,10 @@ jobs:
       - name: Build and start backend
         working-directory: ecom-backend
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ecommerce
+          SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ecommerce
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
-          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_HOST: redis
           JWT_SECRET: ${{ steps.create-env.outputs.jwt_secret }}
           SPRING_PROFILES_ACTIVE: ci
         run: |
