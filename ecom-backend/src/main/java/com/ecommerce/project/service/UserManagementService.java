@@ -13,4 +13,6 @@ public interface UserManagementService {
     UserResponse getAllUsers(Pageable pageable);
 
     void deleteUser(Long userId);
+
+    void updateUserRole(Long userId, String roleName);
 }

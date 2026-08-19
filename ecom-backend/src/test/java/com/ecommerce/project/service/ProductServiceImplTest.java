@@ -8,6 +8,7 @@ import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.ProductServiceImpl;
+import com.ecommerce.project.service.AdminAuditLogService;
 import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.ProductMapper;
@@ -48,6 +49,7 @@ class ProductServiceImplTest {
     @Mock private ProductMapper productMapper;
     @Mock private ProductSemanticSearchService productSemanticSearchService;
     @Mock private AuthUtil authUtil;
+    @Mock private AdminAuditLogService adminAuditLogService;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -197,6 +199,47 @@ class ProductServiceImplTest {
         assertEquals("Wireless Headphones", response.getContent().get(0).getProductName());
         verify(authUtil).loggedInUser();
         verify(productRepository).findByUser(eq(user), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("updateProduct logs audit when price changes")
+    void updateProduct_priceChange_logsAudit() {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setProductName(product.getProductName());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setTags(product.getTags());
+        productDTO.setQuantity(product.getQuantity());
+        productDTO.setPrice(120.0);
+        productDTO.setDiscount(10.0);
+        productDTO.setSpecialPrice(108.0);
+        productDTO.setImage(product.getImage());
+
+        Product mappedProduct = new Product();
+        mappedProduct.setProductName(product.getProductName());
+        mappedProduct.setDescription(product.getDescription());
+        mappedProduct.setTags(product.getTags());
+        mappedProduct.setQuantity(product.getQuantity());
+        mappedProduct.setPrice(120.0);
+        mappedProduct.setDiscount(10.0);
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(modelMapper.map(productDTO, Product.class)).thenReturn(mappedProduct);
+        when(authUtil.loggedInUser()).thenReturn(user);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cartRepository.findCartsByProductId(1L)).thenReturn(List.of());
+        when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(inv -> mapToDto(inv.getArgument(0)));
+
+        productService.updateProduct(1L, productDTO);
+
+        verify(adminAuditLogService).logPriceChange(
+                eq(user.getUserId()),
+                eq(user.getUserName()),
+                eq(1L),
+                eq(100.0),
+                eq(120.0),
+                eq(90.0),
+                eq(108.0)
+        );
     }
 
 }

@@ -4,6 +4,7 @@ import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.*;
+import com.ecommerce.project.service.AdminAuditLogService;
 import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.service.ProductSearchService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
@@ -167,6 +168,11 @@ class ProductServiceImplCacheIntegrationTest {
         }
 
         @Bean
+        public AdminAuditLogService adminAuditLogService() {
+            return mock(AdminAuditLogService.class);
+        }
+
+        @Bean
         public CacheManager cacheManager() {
             return new ConcurrentMapCacheManager("product", "publicProducts", "categoryProducts", "productSearch",
                     "adminProducts", "sellerProducts");
@@ -181,10 +187,12 @@ class ProductServiceImplCacheIntegrationTest {
                                              ProductImageService productImageService,
                                              ProductMapper productMapper,
                                              ProductSemanticSearchService productSemanticSearchService,
-                                             AuthUtil authUtil) {
+                                             AuthUtil authUtil,
+                                             AdminAuditLogService adminAuditLogService) {
             return new ProductServiceImpl(
                     productRepository, categoryRepository, modelMapper, cartRepository, cartService,
-                    productImageService, productMapper, productSemanticSearchService, authUtil);
+                    productImageService, productMapper, productSemanticSearchService, authUtil,
+                    adminAuditLogService);
         }
     }
 }

@@ -62,4 +62,12 @@ public class UserController {
     public ResponseEntity<?> getPasswordHint(Authentication authentication){
         return userManagementService.getPasswordHint(authentication.getName());
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/users/{userId}/role")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long userId,
+                                            @RequestParam String role) {
+        userManagementService.updateUserRole(userId, role);
+        return ResponseEntity.ok(Map.of("message", "User role updated successfully"));
+    }
 }

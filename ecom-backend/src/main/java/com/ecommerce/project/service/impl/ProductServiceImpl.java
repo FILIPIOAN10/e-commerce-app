@@ -12,6 +12,7 @@ import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.service.AdminAuditLogService;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
@@ -51,6 +52,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductSemanticSearchService productSemanticSearchService;
 
     private final AuthUtil authUtil;
+    private final AdminAuditLogService adminAuditLogService;
 
 
 
@@ -180,6 +182,10 @@ public class ProductServiceImpl implements ProductService {
         // Get the existing product from DB
         Product productFromDB = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        double oldPrice = productFromDB.getPrice();
+        double oldSpecialPrice = productFromDB.getSpecialPrice();
+
         // Update the product info with the one in the request body
         //automatically converts (maps) the productDTO object into a Product object.
         Product product = modelMapper.map(productDTO, Product.class);
@@ -192,6 +198,20 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setTags(product.getTags());
         productFromDB.setImage(productDTO.getImage() != null && !productDTO.getImage().isBlank()
                 ? productDTO.getImage() : productFromDB.getImage());
+
+        if (Double.compare(oldPrice, productFromDB.getPrice()) != 0
+                || Double.compare(oldSpecialPrice, productFromDB.getSpecialPrice()) != 0) {
+            User admin = authUtil.loggedInUser();
+            adminAuditLogService.logPriceChange(
+                    admin.getUserId(),
+                    admin.getUserName(),
+                    productId,
+                    oldPrice,
+                    productFromDB.getPrice(),
+                    oldSpecialPrice,
+                    productFromDB.getSpecialPrice()
+            );
+        }
 
 
         // Save to database
