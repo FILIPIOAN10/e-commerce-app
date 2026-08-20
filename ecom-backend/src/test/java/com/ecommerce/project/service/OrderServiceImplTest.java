@@ -355,6 +355,14 @@ class OrderServiceImplTest {
             stubHappyPath();
             when(couponRepository.findByCode("SAVE10")).thenReturn(Optional.of(coupon));
             when(couponRepository.save(any(Coupon.class))).thenAnswer(inv -> inv.getArgument(0));
+            doAnswer(invocation -> {
+                Coupon c = invocation.getArgument(0);
+                String code = invocation.getArgument(1);
+                if (!c.getActive()) throw new APIException("Coupon is not active: " + code);
+                if (c.getExpiryDate().isBefore(LocalDate.now())) throw new APIException("Coupon has expired: " + code);
+                if (c.getUsedCount() >= c.getMaxUses()) throw new APIException("Coupon usage limit reached: " + code);
+                return null;
+            }).when(couponService).validateCouponState(any(Coupon.class), anyString());
         }
 
         @Test

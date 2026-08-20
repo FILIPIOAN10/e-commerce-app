@@ -14,6 +14,7 @@ import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.impl.CartServiceImpl;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ class CartServiceImplTest {
     @Mock private ProductRepository productRepository;
     @Mock private AuthUtil authUtil;
     @Mock private ModelMapper modelMapper;
+    @Mock private ProductMapper productMapper;
 
     @InjectMocks
     private CartServiceImpl cartService;
@@ -107,7 +109,7 @@ class CartServiceImplTest {
         when(cartItemRepository.findByCartCartId(1L)).thenReturn(List.of(cartItem));
         when(cartRepository.save(cart)).thenReturn(cart);
         when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
-        when(modelMapper.map(product, ProductDTO.class)).thenReturn(cartDTO.getProducts().get(0));
+        when(productMapper.mapCartItemsToProductDTOs(any())).thenReturn(cartDTO.getProducts());
 
         CartDTO result = cartService.addProductToCart(1L, 2);
 
@@ -156,6 +158,7 @@ class CartServiceImplTest {
         when(cartRepository.findAll()).thenReturn(List.of(cart, secondCart));
         when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
         when(modelMapper.map(secondCart, CartDTO.class)).thenReturn(new CartDTO());
+        when(productMapper.mapCartItemsToProductDTOs(any())).thenReturn(List.of());
 
         List<CartDTO> result = cartService.getAllCarts();
 
@@ -176,7 +179,7 @@ class CartServiceImplTest {
         cart.setCartItems(List.of(cartItem));
         when(cartRepository.findCartByEmailAndCartId("user1@test.com", 1L)).thenReturn(cart);
         when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
-        when(modelMapper.map(product, ProductDTO.class)).thenReturn(cartDTO.getProducts().get(0));
+        when(productMapper.mapCartItemsToProductDTOs(any())).thenReturn(cartDTO.getProducts());
 
         CartDTO result = cartService.getCart("user1@test.com", 1L);
 
