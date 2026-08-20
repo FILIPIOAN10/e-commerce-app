@@ -38,9 +38,11 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Autobuild
+      - name: Build Java
         if: matrix.language == 'java'
-        uses: github/codeql-action/autobuild@v3
+        run: |
+          mvn -B -f ecom-backend/pom.xml -DskipTests package
+          mvn -B -f selenium-tests/pom.xml -DskipTests test-compile
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3
