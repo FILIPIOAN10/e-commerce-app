@@ -1,7 +1,16 @@
 package com.ecommerce.project.service.impl;
 
+import com.ecommerce.project.exception.APIException;
+import com.ecommerce.project.model.Address;
+import com.ecommerce.project.model.Cart;
+import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.payload.StripePaymentDto;
+import com.ecommerce.project.repository.AddressRepository;
+import com.ecommerce.project.repository.CartRepository;
+import com.ecommerce.project.repository.CouponRepository;
+import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.StripeService;
+import com.ecommerce.project.util.AuthUtil;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -12,14 +21,24 @@ import com.stripe.param.CustomerSearchParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class StripeServiceImpl implements StripeService {
     @Value("${stripe.secret.key}")
     private String stripeApiKey;
+
+    private final AuthUtil authUtil;
+    private final CartRepository cartRepository;
+    private final AddressRepository addressRepository;
+    private final CouponRepository couponRepository;
+    private final CouponService couponService;
 
     @PostConstruct
     public void init(){
@@ -29,18 +48,51 @@ public class StripeServiceImpl implements StripeService {
 
     @Override
     public PaymentIntent paymentIntent(StripePaymentDto stripePaymentDto) throws StripeException {
+        String email = authUtil.loggedInEmail();
+        Cart cart = cartRepository.findCartByEmail(email);
+        if (cart == null || cart.getCartItems().isEmpty()) {
+            throw new APIException("Cart is Empty");
+        }
+
+        Address address = null;
+        if (stripePaymentDto.getAddress() != null && stripePaymentDto.getAddress().getAddressId() != null) {
+            address = addressRepository.findById(stripePaymentDto.getAddress().getAddressId())
+                    .orElseThrow(() -> new APIException("Address not found"));
+            if (address.getUser() == null || !email.equalsIgnoreCase(address.getUser().getEmail())) {
+                throw new APIException("Address does not belong to the current user");
+            }
+        }
+
+        double subtotal = cart.getTotalPrice();
+        double totalAfterDiscount = subtotal;
+        List<String> couponCodes = stripePaymentDto.getCouponCodes();
+        if (couponCodes != null) {
+            for (String code : couponCodes) {
+                if (code == null || code.isBlank()) {
+                    continue;
+                }
+                Coupon coupon = couponRepository.findByCode(code.toUpperCase())
+                        .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
+                couponService.validateCouponState(coupon, code);
+                double discount = totalAfterDiscount * coupon.getDiscountPercent() / 100.0;
+                totalAfterDiscount -= discount;
+            }
+        }
+
+        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
+        double totalAmount = totalAfterDiscount + shippingCost;
+
+        long serverCalculatedAmountCents = Math.round(totalAmount * 100);
+
         Customer customer;
-        // Retrive and check  if customer exist
         CustomerSearchParams searchParams =
                 CustomerSearchParams.builder()
-                        .setQuery("email:'"+stripePaymentDto.getEmail()+ "'")
+                        .setQuery("email:'" + stripePaymentDto.getEmail() + "'")
                         .build();
         CustomerSearchResult customers = Customer.search(searchParams);
         if (customers.getData().isEmpty()) {
-            // Create a new customer
             CustomerCreateParams customerParams =
                     CustomerCreateParams.builder()
-
                             .setEmail(stripePaymentDto.getEmail())
                             .setName(stripePaymentDto.getName())
                             .setAddress(
@@ -52,15 +104,14 @@ public class StripeServiceImpl implements StripeService {
                                             .setCountry(stripePaymentDto.getAddress().getCountry())
                                             .build()
                             ).build();
-           customer = Customer.create(customerParams);
-
-        }else {
-            // fetch the customer that exists
+            customer = Customer.create(customerParams);
+        } else {
             customer = customers.getData().get(0);
         }
+
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
-                        .setAmount(stripePaymentDto.getAmount())
+                        .setAmount(serverCalculatedAmountCents)
                         .setCurrency(stripePaymentDto.getCurrency())
                         .setCustomer(customer.getId())
                         .setDescription(stripePaymentDto.getDescription())
@@ -72,5 +123,25 @@ public class StripeServiceImpl implements StripeService {
                         .build();
 
         return PaymentIntent.create(params);
+    }
+
+    @Override
+    public PaymentIntent retrievePaymentIntent(String paymentIntentId) {
+        try {
+            return PaymentIntent.retrieve(paymentIntentId);
+        } catch (StripeException e) {
+            throw new APIException("Failed to retrieve payment: " + e.getMessage());
+        }
+    }
+
+    private double calculateShippingCost(Address address, double cartTotal) {
+        double baseCost = 5.0;
+        if (address != null && ("RO".equalsIgnoreCase(address.getCountry()) || "Romania".equalsIgnoreCase(address.getCountry()))) {
+            baseCost = 3.0;
+        }
+        if (cartTotal >= 100.0) {
+            return 0.0;
+        }
+        return baseCost;
     }
 }

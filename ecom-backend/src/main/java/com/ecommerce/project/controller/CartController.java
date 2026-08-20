@@ -10,6 +10,7 @@ import com.ecommerce.project.util.AuthUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -59,6 +60,7 @@ public class CartController {
 
     @Tag(name = "Cart")
     @GetMapping("/carts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CartDTO>> getCarts() {
         List<CartDTO> cartDTOS = cartService.getAllCarts();
         return new ResponseEntity<List<CartDTO>>(cartDTOS, HttpStatus.FOUND);

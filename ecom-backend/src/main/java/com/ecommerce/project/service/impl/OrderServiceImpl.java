@@ -16,6 +16,7 @@ import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.InventoryReservationService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
@@ -28,6 +29,7 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.stripe.model.PaymentIntent;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -63,6 +65,7 @@ public class OrderServiceImpl implements OrderService {
     private final CouponRepository couponRepository;
 
     private final AuthUtil authUtil;
+    private final StripeService stripeService;
 
 
     @Override
@@ -98,6 +101,20 @@ public class OrderServiceImpl implements OrderService {
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
         double shippingCost = calculateShippingCost(addressId, subtotal);
         double totalAmount = totalAfterDiscount + shippingCost;
+
+        if (isStripePayment(paymentMethod, pgName)) {
+            if (pgPaymentId == null || pgPaymentId.isBlank()) {
+                throw new APIException("Payment id is required");
+            }
+            PaymentIntent intent = stripeService.retrievePaymentIntent(pgPaymentId);
+            if (!"succeeded".equals(intent.getStatus())) {
+                throw new APIException("Payment has not succeeded");
+            }
+            long expectedCents = Math.round(totalAmount * 100);
+            if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
+                throw new APIException("Payment amount does not match order total");
+            }
+        }
 
         order.setTotalAmount(totalAmount);
         order.setDiscountAmount(couponResult.getDiscountAmount());
@@ -408,6 +425,12 @@ public class OrderServiceImpl implements OrderService {
         public List<String> getAppliedCodes() {
             return appliedCodes;
         }
+    }
+
+    private boolean isStripePayment(String paymentMethod, String pgName) {
+        return "STRIPE".equalsIgnoreCase(paymentMethod)
+                || "online".equalsIgnoreCase(paymentMethod)
+                || "Stripe".equalsIgnoreCase(pgName);
     }
 
 }

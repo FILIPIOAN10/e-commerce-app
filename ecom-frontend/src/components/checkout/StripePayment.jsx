@@ -15,6 +15,7 @@ const StripePayment = () => {
   const {isLoading} = useSelector((state) => state.errors);
 
   const {user, selectedUserCheckoutAddress} = useSelector((state) => state.auth);
+  const {appliedCoupons} = useSelector((state) => state.coupon || {});
 
   // Memoize options object to prevent Elements remounting
   const options = useMemo(() => ({
@@ -32,13 +33,14 @@ const StripePayment = () => {
         name: `${user.username}`,
         address: selectedUserCheckoutAddress,
         description :`Order for ${user.email}`,
+        couponCodes: appliedCoupons || [],
         metadata: {
           test: "1"
         }
       };
       dispatch(createStripePaymentSecret(sendData));
     }
-  }, [clientSecret,dispatch,selectedUserCheckoutAddress,totalPrice,user])
+  }, [clientSecret,dispatch,selectedUserCheckoutAddress,totalPrice,user,appliedCoupons])
   
   if (isLoading){
     return(

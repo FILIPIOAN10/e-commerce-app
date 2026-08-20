@@ -7,6 +7,7 @@ import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
 import com.ecommerce.project.util.AuthUtil;
+import com.stripe.model.PaymentIntent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,6 +53,7 @@ class OrderServiceImplTest {
     @Mock private UserActivityLogService userActivityLogService;
     @Mock private InventoryReservationService inventoryReservationService;
     @Mock private ModelMapper modelMapper;
+    @Mock private StripeService stripeService;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -64,6 +66,7 @@ class OrderServiceImplTest {
     private Address address;
     private Product product;
     private CartItem cartItem;
+    private PaymentIntent paymentIntent;
 
     @BeforeEach
     void setUp() {
@@ -110,6 +113,10 @@ class OrderServiceImplTest {
     private void stubHappyPath() {
         when(cartRepository.findCartByEmail(EMAIL)).thenReturn(cart);
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
+
+        paymentIntent = mock(PaymentIntent.class);
+        when(paymentIntent.getStatus()).thenReturn("succeeded");
+        doReturn(paymentIntent).when(stripeService).retrievePaymentIntent(anyString());
 
         Payment savedPayment = new Payment("STRIPE", "pi_123", "succeeded", "OK", "Stripe");
         savedPayment.setPaymentId(1L);
@@ -168,6 +175,7 @@ class OrderServiceImplTest {
         @DisplayName("should place order and return OrderDTO with correct fields")
         void placeOrder_success() {
             stubHappyPath();
+            when(paymentIntent.getAmount()).thenReturn(10000L);
 
             OrderDTO result = orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
@@ -190,6 +198,7 @@ class OrderServiceImplTest {
         @DisplayName("should deduct inventory for each product in cart")
         void placeOrder_deductsInventory() {
             stubHappyPath();
+            when(paymentIntent.getAmount()).thenReturn(10000L);
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
@@ -202,6 +211,7 @@ class OrderServiceImplTest {
         @DisplayName("should remove items from cart after order is placed")
         void placeOrder_clearsCartItems() {
             stubHappyPath();
+            when(paymentIntent.getAmount()).thenReturn(10000L);
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
@@ -312,6 +322,11 @@ class OrderServiceImplTest {
             });
             when(orderItemRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
+            PaymentIntent intent = mock(PaymentIntent.class);
+            when(intent.getStatus()).thenReturn("succeeded");
+            when(intent.getAmount()).thenReturn(10000L);
+            doReturn(intent).when(stripeService).retrievePaymentIntent(anyString());
+
             doThrow(new APIException(String.format(
                     "Insufficient stock for product: %s. Available: %d, requested: %d",
                     product.getProductName(),
@@ -375,6 +390,7 @@ class OrderServiceImplTest {
         void placeOrder_validCoupon() {
             Coupon coupon = buildActiveCoupon(10, 100, 5);
             stubWithCoupon(coupon);
+            when(paymentIntent.getAmount()).thenReturn(9000L);
 
             OrderDTO result = orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
@@ -447,6 +463,7 @@ class OrderServiceImplTest {
         @DisplayName("should not apply coupon when couponCode is null")
         void placeOrder_nullCouponCode() {
             stubHappyPath();
+            when(paymentIntent.getAmount()).thenReturn(10000L);
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
@@ -460,6 +477,7 @@ class OrderServiceImplTest {
         @DisplayName("should not apply coupon when couponCode is blank")
         void placeOrder_blankCouponCode() {
             stubHappyPath();
+            when(paymentIntent.getAmount()).thenReturn(10000L);
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
@@ -474,6 +492,7 @@ class OrderServiceImplTest {
         void placeOrder_couponCodeCaseInsensitive() {
             Coupon coupon = buildActiveCoupon(20, 100, 0);
             stubWithCoupon(coupon);
+            when(paymentIntent.getAmount()).thenReturn(8000L);
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",

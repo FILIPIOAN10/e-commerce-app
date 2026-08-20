@@ -202,6 +202,7 @@ class CartServiceImplTest {
         cart.setTotalPrice(199.98);
         cart.setCartItems(new ArrayList<>(List.of(cartItem)));
 
+        when(authUtil.loggedInEmail()).thenReturn("user1@test.com");
         when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
         when(cartItemRepository.findCartItemByProductProductIdAndCartId(1L, 1L)).thenReturn(cartItem);
 

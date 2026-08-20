@@ -167,6 +167,8 @@ public class CartServiceImpl implements CartService {
 
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
+        assertCartOwnedByCurrentUser(cart);
+
         CartItem cartItem = cartItemRepository.findCartItemByProductProductIdAndCartId(cartId, productId);
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product", "productId", productId);
@@ -254,6 +256,7 @@ public class CartServiceImpl implements CartService {
     public CartDTO saveItemForLater(Long cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", "cartItemId", cartItemId));
+        assertCartOwnedByCurrentUser(cartItem.getCart());
         cartItem.setSavedForLater(true);
         cartItemRepository.save(cartItem);
         Cart cart = cartItem.getCart();
@@ -266,6 +269,7 @@ public class CartServiceImpl implements CartService {
     public CartDTO moveItemToCart(Long cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", "cartItemId", cartItemId));
+        assertCartOwnedByCurrentUser(cartItem.getCart());
         cartItem.setSavedForLater(false);
         cartItemRepository.save(cartItem);
         Cart cart = cartItem.getCart();
@@ -280,6 +284,13 @@ public class CartServiceImpl implements CartService {
                 .sum();
         cart.setTotalPrice(newTotal);
         cartRepository.save(cart);
+    }
+
+    private void assertCartOwnedByCurrentUser(Cart cart) {
+        String email = authUtil.loggedInEmail();
+        if (cart.getUser() == null || !email.equalsIgnoreCase(cart.getUser().getEmail())) {
+            throw new APIException("You are not allowed to modify this cart");
+        }
     }
 
     @Override
