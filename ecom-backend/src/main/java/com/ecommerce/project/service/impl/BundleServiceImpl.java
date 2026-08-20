@@ -105,12 +105,7 @@ public class BundleServiceImpl implements BundleService {
     }
 
     public BundleDTO mapToDTO(Bundle bundle) {
-        BundleDTO dto = new BundleDTO();
-        dto.setBundleId(bundle.getBundleId());
-        dto.setName(bundle.getName());
-        dto.setDescription(bundle.getDescription());
-        dto.setDiscountPercentage(bundle.getDiscountPercentage());
-        dto.setActive(bundle.getActive());
+        BundleDTO dto = modelMapper.map(bundle, BundleDTO.class);
         dto.setProducts(productMapper.mapProductsToDTOs(bundle.getProducts()));
 
         double bundlePrice = bundle.getProducts().stream()

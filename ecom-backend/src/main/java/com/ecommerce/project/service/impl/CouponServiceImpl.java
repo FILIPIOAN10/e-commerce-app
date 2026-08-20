@@ -7,6 +7,7 @@ import com.ecommerce.project.payload.CouponDTO;
 import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.List;
 public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional
@@ -70,15 +72,7 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponRepository.findByCode(code.toUpperCase())
                 .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
 
-        if (!coupon.getActive()) {
-            throw new APIException("Coupon is not active");
-        }
-        if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
-            throw new APIException("Coupon has expired");
-        }
-        if (coupon.getUsedCount() >= coupon.getMaxUses()) {
-            throw new APIException("Coupon usage limit reached");
-        }
+        validateCouponState(coupon, code);
 
         double discountAmount = orderAmount * coupon.getDiscountPercent() / 100.0;
         CouponDTO dto = mapToDTO(coupon);
@@ -92,15 +86,7 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponRepository.findByCode(code.toUpperCase())
                 .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
 
-        if (!coupon.getActive()) {
-            throw new APIException("Coupon is not active");
-        }
-        if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
-            throw new APIException("Coupon has expired");
-        }
-        if (coupon.getUsedCount() >= coupon.getMaxUses()) {
-            throw new APIException("Coupon usage limit reached");
-        }
+        validateCouponState(coupon, code);
 
         coupon.setUsedCount(coupon.getUsedCount() + 1);
         coupon = couponRepository.save(coupon);
@@ -114,15 +100,20 @@ public class CouponServiceImpl implements CouponService {
                 .toList();
     }
 
+    @Override
+    public void validateCouponState(Coupon coupon, String code) {
+        if (!coupon.getActive()) {
+            throw new APIException("Coupon is not active: " + code);
+        }
+        if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
+            throw new APIException("Coupon has expired: " + code);
+        }
+        if (coupon.getUsedCount() >= coupon.getMaxUses()) {
+            throw new APIException("Coupon usage limit reached: " + code);
+        }
+    }
+
     private CouponDTO mapToDTO(Coupon coupon) {
-        CouponDTO dto = new CouponDTO();
-        dto.setCouponId(coupon.getId());
-        dto.setCode(coupon.getCode());
-        dto.setDiscountPercent(coupon.getDiscountPercent());
-        dto.setExpiryDate(coupon.getExpiryDate());
-        dto.setMaxUses(coupon.getMaxUses());
-        dto.setUsedCount(coupon.getUsedCount());
-        dto.setActive(coupon.getActive());
-        return dto;
+        return modelMapper.map(coupon, CouponDTO.class);
     }
 }

@@ -2,6 +2,7 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.payload.ApiResponse;
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductImageService;
@@ -18,7 +19,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api")
-public class ProductManagementController {
+public class ProductManagementController extends BaseController {
 
     private final ProductService productService;
     private final ProductImageService productImageService;
@@ -34,7 +35,7 @@ public class ProductManagementController {
     public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO,
                                                  @PathVariable Long categoryId) {
         ProductDTO savedProductDto = productService.addProduct(categoryId, productDTO);
-        return new ResponseEntity<>(savedProductDto, HttpStatus.CREATED);
+        return created(savedProductDto);
     }
 
     @Tag(name="Product")
@@ -43,7 +44,7 @@ public class ProductManagementController {
     public ResponseEntity<ApiResponse> reindexProductSearch(){
         int indexedProducts = productService.reindexProductSearch();
         ApiResponse response = new ApiResponse("Reindexed " + indexedProducts +" products",true);
-        return new ResponseEntity<>(response,HttpStatus.OK);
+        return ok(response);
     }
 
     @Tag(name = "Product")
@@ -52,7 +53,7 @@ public class ProductManagementController {
     public ResponseEntity<ProductDTO> updateProduct(@Valid @RequestBody ProductDTO productDTO,
                                                     @PathVariable Long productId) {
         ProductDTO updatedProductDTO = productService.updateProduct(productId,productDTO);
-        return new ResponseEntity<>(updatedProductDTO,HttpStatus.OK);
+        return ok(updatedProductDTO);
     }
 
     @Tag(name = "Product")
@@ -60,7 +61,7 @@ public class ProductManagementController {
     @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public  ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long productId) {
         ProductDTO deletedProduct = productService.deleteProduct(productId);
-        return new ResponseEntity<>(deletedProduct,HttpStatus.OK);
+        return ok(deletedProduct);
     }
 
     @Tag(name = "Product")
@@ -70,7 +71,7 @@ public class ProductManagementController {
                                                          @RequestParam("image") MultipartFile image) throws IOException {
 
         ProductDTO updatedProduct = productImageService.updateProductImage(productId, image);
-        return new ResponseEntity<>(updatedProduct,HttpStatus.OK);
+        return ok(updatedProduct);
     }
 
     @Tag(name = "Product")
@@ -79,7 +80,7 @@ public class ProductManagementController {
     public ResponseEntity<ProductDTO> uploadGalleryImages(@PathVariable Long productId,
                                                           @RequestParam("images") MultipartFile[] images) throws IOException {
         ProductDTO updatedProduct = productImageService.uploadProductGalleryImages(productId, images);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        return ok(updatedProduct);
     }
 
     @Tag(name = "Product")
@@ -88,34 +89,22 @@ public class ProductManagementController {
     public ResponseEntity<ProductDTO> deleteGalleryImage(@PathVariable Long productId,
                                                          @PathVariable Long imageId) {
         ProductDTO updatedProduct = productImageService.deleteProductGalleryImage(productId, imageId);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        return ok(updatedProduct);
     }
 
     @Tag(name = "Product")
     @GetMapping("/admin/products")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> getAllProductsForAdmin(
-            @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
-            @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false)  String sortBy,
-            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_DIR, required = false) String  sortOrder
-
-    ) {
-        ProductResponse productResponse = productService.getAllProductsForAdmin(pageNumber,pageSize,sortBy,sortOrder);
-        return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    public ResponseEntity<ProductResponse> getAllProductsForAdmin(@ModelAttribute PaginationParams params) {
+        ProductResponse productResponse = productService.getAllProductsForAdmin(params.getPageNumber(),params.getPageSize(),params.getSortBy(),params.getSortOrder());
+        return ok(productResponse);
     }
 
     @Tag(name = "Product")
     @GetMapping("/seller/products")
     @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public ResponseEntity<ProductResponse> getAllProductsForSeller(
-            @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
-            @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false)  String sortBy,
-            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_DIR, required = false) String  sortOrder
-
-    ) {
-        ProductResponse productResponse = productService.getAllProductsForSeller(pageNumber,pageSize,sortBy,sortOrder);
-        return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    public ResponseEntity<ProductResponse> getAllProductsForSeller(@ModelAttribute PaginationParams params) {
+        ProductResponse productResponse = productService.getAllProductsForSeller(params.getPageNumber(),params.getPageSize(),params.getSortBy(),params.getSortOrder());
+        return ok(productResponse);
     }
 }

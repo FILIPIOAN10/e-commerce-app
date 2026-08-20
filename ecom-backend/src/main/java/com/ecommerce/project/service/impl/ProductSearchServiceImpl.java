@@ -11,7 +11,8 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.ProductSearchService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.util.ProductMapper;
-import jakarta.persistence.criteria.Predicate;
+import com.ecommerce.project.util.ProductSpecifications;
+import com.ecommerce.project.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -168,29 +169,11 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     }
 
     private Sort buildProductSort(String sortBy, String sortOrder) {
-        return sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        return PaginationUtil.buildSort(sortBy, sortOrder);
     }
 
     private Specification<Product> buildClassicSearchSpec(List<String> terms) {
-        if (terms.isEmpty()) {
-            return (root, query, cb) -> cb.disjunction();
-        }
-        return (root, query, cb) -> {
-            List<Predicate> termPredicates = new ArrayList<>();
-
-            for (String term : terms) {
-                String likeTerm = "%" + term.toLowerCase() + "%";
-                termPredicates.add(
-                        cb.or(
-                                cb.like(cb.lower(root.get("productName")), likeTerm),
-                                cb.like(cb.lower(root.get("description")), likeTerm),
-                                cb.like(cb.lower(root.get("tags")), likeTerm),
-                                cb.like(cb.lower(root.get("category").get("categoryName")), likeTerm)
-                        ));
-            }
-            return cb.or(termPredicates.toArray(Predicate[]::new));
-        };
+        return ProductSpecifications.withTerms(terms);
     }
 
     private List<Product> mergePrioritizedProducts(List<Product> primaryProducts, List<Product> secondaryProducts) {
