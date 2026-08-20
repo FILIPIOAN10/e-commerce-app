@@ -54,7 +54,7 @@ public class LoginAttemptService {
     }
 
     public void unlockUser(String username) {
-        redisTemplate.delete(KEY_PREFIX + username);
+        resetAttempts(username);
     }
 
     public int getRemainingAttempts(String username) {
