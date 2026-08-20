@@ -141,7 +141,9 @@ const AdminUsers = () => {
                             <FaLock /> Locked
                         </span>
                     ) : (
-                        <span className="text-gray-400 text-sm">No</span>
+                        <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm">
+                            <FaLockOpen /> Unlocked
+                        </span>
                     )}
                 </div>
             ),
