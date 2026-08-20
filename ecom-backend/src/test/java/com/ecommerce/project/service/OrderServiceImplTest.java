@@ -88,6 +88,11 @@ class OrderServiceImplTest {
 
         address = new Address("Strada Test", "Bloc A", "Bucuresti", "Bucuresti", "Romania", "123456");
         address.setAddressId(ADDRESS_ID);
+        User user = new User();
+        user.setUserId(1L);
+        user.setUserName("user1");
+        user.setEmail(EMAIL);
+        address.setUser(user);
     }
 
     private OrderDTO buildOrderDTO() {

@@ -82,6 +82,10 @@ public class OrderServiceImpl implements OrderService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
 
+        if (address.getUser() == null || !emailId.equalsIgnoreCase(address.getUser().getEmail())) {
+            throw new APIException("Address does not belong to the current user");
+        }
+
         Order order = new Order();
         order.setEmail(emailId);
         order.setOrderDate(LocalDate.now());
@@ -229,6 +233,12 @@ public class OrderServiceImpl implements OrderService {
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null || cart.getCartItems().isEmpty()) {
             throw new APIException("Cart is Empty");
+        }
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
+        if (address.getUser() == null || !emailId.equalsIgnoreCase(address.getUser().getEmail())) {
+            throw new APIException("Address does not belong to the current user");
         }
 
         // Reserve stock for 10 minutes (TTL) to prevent race conditions at checkout

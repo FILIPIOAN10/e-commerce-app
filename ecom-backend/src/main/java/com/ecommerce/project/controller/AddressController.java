@@ -44,7 +44,7 @@ public class AddressController extends BaseController {
 
     @Tag(name = "Address")
     @GetMapping("/addresses/{addressesId}")
-    @PreAuthorize("hasRole('ADMIN') or returnObject.body !=null")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AddressDTO> getAddressById(@PathVariable Long addressesId) {
         AddressDTO addressDTO = addressService.getAddressesById(addressesId);
         return ok(addressDTO);
@@ -61,8 +61,9 @@ public class AddressController extends BaseController {
 
     @Tag(name = "Address")
     @PutMapping("/addresses/{addressId}")
-    public ResponseEntity<AddressDTO> updateAddress(@PathVariable Long addressId
-            , @RequestBody AddressDTO addressDTO){
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AddressDTO> updateAddress(@PathVariable Long addressId,
+                                                    @Valid @RequestBody AddressDTO addressDTO) {
         AddressDTO updatedAddress = addressService.updateAddress(addressId, addressDTO);
         return ok(updatedAddress);
     }
