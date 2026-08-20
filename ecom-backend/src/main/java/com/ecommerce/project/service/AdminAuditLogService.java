@@ -13,6 +13,8 @@ public interface AdminAuditLogService {
     AdminAuditLog logRoleChange(Long adminUserId, String adminUsername, Long userId,
                                 String oldRoles, String newRoles);
 
+    AdminAuditLog logAccountUnlock(Long adminUserId, String adminUsername, Long userId, String targetUsername);
+
     List<AdminAuditLog> getRecentLogs();
 
     List<AdminAuditLog> getLogsByAction(String action);

@@ -1,7 +1,8 @@
 import { HiOutlineTrash } from "react-icons/hi";
 import SetQuantity from "./SetQuantity";
 import { useDispatch } from "react-redux";
-import { decreaseCartQuantity, increaseCartQuantity, removeFromCart, saveItemForLater, moveItemToCart } from "../../store/actions";
+import { removeFromCart, saveItemForLater, moveItemToCart } from "../../store/actions";
+import { useIncreaseCartQuantityMutation, useDecreaseCartQuantityMutation } from "../../store/api/cartApi";
 import toast from "react-hot-toast";
 import { formatPrice } from "../../utils/formatPrice";
 import truncateText from "../../utils/truncateText";
@@ -19,14 +20,22 @@ const ItemContent = ({
 }) => {
     const unitPrice = specialPrice ?? price;
     const dispatch = useDispatch();
+    const [increaseCartQuantity] = useIncreaseCartQuantityMutation();
+    const [decreaseCartQuantity] = useDecreaseCartQuantityMutation();
 
     const handleQtyIncrease = (cartItems) => {
-        dispatch(increaseCartQuantity(cartItems, toast));
+        increaseCartQuantity(cartItems.productId)
+            .unwrap()
+            .then(() => toast.success("Quantity increased"))
+            .catch((error) => toast.error(error?.data?.message || "Failed to increase quantity"));
     };
 
     const handleQtyDecrease = (cartItems) => {
-        if(quantity > 1) {
-            dispatch(decreaseCartQuantity(cartItems, toast));
+        if (quantity > 1) {
+            decreaseCartQuantity(cartItems.productId)
+                .unwrap()
+                .then(() => toast.success("Quantity decreased"))
+                .catch((error) => toast.error(error?.data?.message || "Failed to decrease quantity"));
         }
     };
 

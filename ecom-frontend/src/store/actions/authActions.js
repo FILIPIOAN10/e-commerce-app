@@ -2,7 +2,7 @@ import api from "../../api/api";
 
 export const authenticateSignInUser = (
     sendData, toast, reset, navigate, setLoader,
-    setNeeds2FA, setTemp2FAToken, setLoginEmail
+    setNeeds2FA, setTemp2FAToken, setLoginEmail, setLockedUsername
 ) => async (dispatch) => {
     try {
         setLoader(true);
@@ -29,7 +29,11 @@ export const authenticateSignInUser = (
         navigate("/");
 
     } catch (error) {
-        toast.error(error?.response?.data?.message || "Internal Server Error");
+        const data = error?.response?.data;
+        if (data?.locked && setLockedUsername) {
+            setLockedUsername(String(sendData.username || "").trim());
+        }
+        toast.error(data?.message || "Internal Server Error");
     } finally {
         setLoader(false);
     }

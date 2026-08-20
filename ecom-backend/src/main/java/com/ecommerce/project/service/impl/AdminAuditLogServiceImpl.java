@@ -62,6 +62,26 @@ public class AdminAuditLogServiceImpl implements AdminAuditLogService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AdminAuditLog logAccountUnlock(Long adminUserId, String adminUsername, Long userId, String targetUsername) {
+        String details = String.format("Admin %s unlocked account for user %s (id=%d)",
+                adminUsername, targetUsername, userId);
+
+        AdminAuditLog log = AdminAuditLog.builder()
+                .adminUserId(adminUserId)
+                .adminUsername(adminUsername)
+                .action("USER_ACCOUNT_UNLOCK")
+                .entityType("User")
+                .entityId(String.valueOf(userId))
+                .oldValue("LOCKED")
+                .newValue("UNLOCKED")
+                .details(details)
+                .build();
+
+        return adminAuditLogRepository.save(log);
+    }
+
+    @Override
     public List<AdminAuditLog> getRecentLogs() {
         return adminAuditLogRepository.findTop100ByOrderByCreatedAtDesc();
     }

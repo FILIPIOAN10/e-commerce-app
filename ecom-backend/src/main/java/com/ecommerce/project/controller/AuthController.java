@@ -8,6 +8,8 @@ import com.ecommerce.project.security.request.LoginRequest;
 import com.ecommerce.project.security.request.SignupRequest;
 import com.ecommerce.project.security.response.MessageResponse;
 import com.ecommerce.project.service.AuthService;
+import com.ecommerce.project.service.EmailService;
+import com.ecommerce.project.security.redis.LoginAttemptService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,13 +39,18 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final TokenBlacklistService tokenBlacklistService;
     private final RefreshTokenService refreshTokenService;
+    private final LoginAttemptService loginAttemptService;
+    private final EmailService emailService;
 
     public AuthController(AuthService authService, JwtUtils jwtUtils, TokenBlacklistService tokenBlacklistService,
-                          RefreshTokenService refreshTokenService) {
+                          RefreshTokenService refreshTokenService, LoginAttemptService loginAttemptService,
+                          EmailService emailService) {
         this.authService = authService;
         this.jwtUtils = jwtUtils;
         this.tokenBlacklistService = tokenBlacklistService;
         this.refreshTokenService = refreshTokenService;
+        this.loginAttemptService = loginAttemptService;
+        this.emailService = emailService;
     }
 
 
@@ -175,5 +182,23 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new MessageResponse("Successfully logged out! Token revoked."));
+    }
+
+    /**
+     * Permite unui utilizator cu contul blocat să solicite deblocarea de către admin.
+     * Trimite un email de notificare adminului; nu deblochează automat contul.
+     */
+    @Tag(name = "Authentication")
+    @PostMapping("/unlock-request")
+    public ResponseEntity<?> requestUnlock(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Username is required"));
+        }
+        if (!loginAttemptService.isLocked(username)) {
+            return ResponseEntity.ok(new MessageResponse("This account is not currently locked."));
+        }
+        emailService.sendUnlockRequestEmail(username);
+        return ResponseEntity.ok(new MessageResponse("Your unlock request has been sent to the admin."));
     }
 }

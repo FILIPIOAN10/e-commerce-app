@@ -22,7 +22,7 @@ function Modal({ open, setOpen, children, title = ""}) {
                         className='pointer-events-auto relative w-screen max-w-[800px] transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700'>
                             
                             {/* Structura internă a modalului cu scroll pentru conținut lung */}
-                            <div className='flex h-full flex-col overflow-y-scroll bg-white dark:bg-gray-800 shadow-xl'>
+                            <div className='card flex h-full flex-col overflow-y-scroll rounded-none shadow-xl'>
                                 
                                 {/* Header-ul pentru accesibilitate (Title cerut de Headless UI) */}
                                 <div className='px-4 sm:px-6'>

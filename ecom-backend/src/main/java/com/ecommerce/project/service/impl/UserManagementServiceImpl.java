@@ -10,6 +10,7 @@ import com.ecommerce.project.payload.UserResponse;
 import com.ecommerce.project.repository.RoleRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.response.MessageResponse;
+import com.ecommerce.project.security.redis.LoginAttemptService;
 import com.ecommerce.project.service.AdminAuditLogService;
 import com.ecommerce.project.service.UserManagementService;
 import com.ecommerce.project.util.AuthUtil;
@@ -33,15 +34,18 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final ModelMapper modelMapper;
     private final AuthUtil authUtil;
     private final AdminAuditLogService adminAuditLogService;
+    private final LoginAttemptService loginAttemptService;
 
     public UserManagementServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
                                      ModelMapper modelMapper, AuthUtil authUtil,
-                                     AdminAuditLogService adminAuditLogService) {
+                                     AdminAuditLogService adminAuditLogService,
+                                     LoginAttemptService loginAttemptService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.modelMapper = modelMapper;
         this.authUtil = authUtil;
         this.adminAuditLogService = adminAuditLogService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -78,7 +82,11 @@ public class UserManagementServiceImpl implements UserManagementService {
         Page<User> allUsers = userRepository.findAll(pageable);
         List<UserDTO> userDTOs = allUsers.getContent()
                 .stream()
-                .map(p -> modelMapper.map(p, UserDTO.class))
+                .map(p -> {
+                    UserDTO dto = modelMapper.map(p, UserDTO.class);
+                    dto.setLocked(loginAttemptService.isLocked(p.getUserName()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
         UserResponse response = new UserResponse();
         response.setContent(userDTOs);
@@ -94,6 +102,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         userRepository.delete(user);
+    }
+
+    @Override
+    public void unlockUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        loginAttemptService.unlockUser(user.getUserName());
+
+        User admin = authUtil.loggedInUser();
+        adminAuditLogService.logAccountUnlock(
+                admin.getUserId(),
+                admin.getUserName(),
+                userId,
+                user.getUserName()
+        );
     }
 
     @Override

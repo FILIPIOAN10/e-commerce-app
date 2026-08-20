@@ -37,8 +37,7 @@ import com.ecommerce.project.security.redis.EmailVerificationService;
 import com.ecommerce.project.util.UserInfoMapper;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.*;
-
+import java.util.Set;
 
 @Service
 @Transactional

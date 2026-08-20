@@ -70,4 +70,11 @@ public class UserController {
         userManagementService.updateUserRole(userId, role);
         return ResponseEntity.ok(Map.of("message", "User role updated successfully"));
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/users/{userId}/unlock")
+    public ResponseEntity<?> unlockUser(@PathVariable Long userId) {
+        userManagementService.unlockUser(userId);
+        return ResponseEntity.ok(Map.of("message", "User account unlocked successfully"));
+    }
 }

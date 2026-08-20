@@ -15,4 +15,6 @@ public interface UserManagementService {
     void deleteUser(Long userId);
 
     void updateUserRole(Long userId, String roleName);
+
+    void unlockUser(Long userId);
 }

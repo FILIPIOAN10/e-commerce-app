@@ -1,6 +1,27 @@
+import { createElement } from "react";
 import api from "../../api/api";
 
-export const addToCart = (data, qty = 1, toast) =>
+const renderAddedToCartToast = (productName, navigate, toast, t) =>
+    createElement(
+        "span",
+        { className: "flex items-center gap-3" },
+        createElement("span", null, `${productName} added to the cart`),
+        createElement(
+            "button",
+            {
+                type: "button",
+                onClick: () => {
+                    navigate("/cart");
+                    toast.dismiss(t.id);
+                },
+                className:
+                    "shrink-0 rounded-md bg-blue-600 hover:bg-blue-700 px-2 py-1 text-xs font-semibold text-white transition-colors",
+            },
+            "View Cart"
+        )
+    );
+
+export const addToCart = (data, qty = 1, toast, navigate) =>
     (dispatch, getState) => {
         const { products } = getState().products;
         const getProduct = products?.find?.(
@@ -12,7 +33,13 @@ export const addToCart = (data, qty = 1, toast) =>
 
         if (isQuantityExist) {
             dispatch({ type: "ADD_CART", payload: { ...data, quantity: qty } });
-            if (toast) toast.success(`${data?.productName} added to the cart`);
+            if (toast) {
+                if (navigate) {
+                    toast.success((t) => renderAddedToCartToast(data?.productName, navigate, toast, t));
+                } else {
+                    toast.success(`${data?.productName} added to the cart`);
+                }
+            }
             localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
         } else {
             if (toast) toast.error("Out of stock");

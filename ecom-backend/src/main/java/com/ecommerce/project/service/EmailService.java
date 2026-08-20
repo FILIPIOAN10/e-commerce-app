@@ -139,6 +139,23 @@ public class EmailService {
         }
     }
 
+    public void sendUnlockRequestEmail(String username) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(fromEmail);
+            helper.setSubject("Account Unlock Request - " + username);
+            helper.setText("User \"" + username + "\" has requested their account be unlocked "
+                    + "after too many failed login attempts. Please review and unlock the account "
+                    + "from the Admin Panel if appropriate.", false);
+            mailSender.send(mimeMessage);
+            log.info("Unlock request email handed off to SMTP for user {}", username);
+        } catch (Exception e) {
+            log.error("Failed to send unlock request email for user {}", username, e);
+        }
+    }
+
     public void sendContactMessage(String name, String email, String userMessage) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
