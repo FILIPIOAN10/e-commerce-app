@@ -5,7 +5,6 @@ import com.ecommerce.project.service.BundleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class BundleController {
+public class BundleController extends BaseController {
 
     private final BundleService bundleService;
 
@@ -42,7 +41,7 @@ public class BundleController {
     @PostMapping("/admin/bundles")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BundleDTO> createBundle(@Valid @RequestBody BundleDTO bundleDTO) {
-        return new ResponseEntity<>(bundleService.createBundle(bundleDTO), HttpStatus.CREATED);
+        return created(bundleService.createBundle(bundleDTO));
     }
 
     @Tag(name = "Bundles")

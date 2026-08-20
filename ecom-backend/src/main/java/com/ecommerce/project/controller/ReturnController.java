@@ -7,7 +7,6 @@ import com.ecommerce.project.util.AuthUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class ReturnController {
+public class ReturnController extends BaseController {
 
     private final ReturnService returnService;
     private final AuthUtil authUtil;
@@ -31,7 +30,7 @@ public class ReturnController {
         String email = authUtil.loggedInEmail();
         String reason = body.getOrDefault("reason", "No reason provided");
         ReturnRequestDTO dto = returnService.requestReturn(orderId, email, reason);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        return created(dto);
     }
 
     @Tag(name = "Returns")

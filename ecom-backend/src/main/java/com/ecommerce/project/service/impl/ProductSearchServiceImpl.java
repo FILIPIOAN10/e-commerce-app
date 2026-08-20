@@ -169,7 +169,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     }
 
     private Sort buildProductSort(String sortBy, String sortOrder) {
-        return PaginationUtil.buildSort(sortBy, sortOrder);
+        return PaginationUtil.buildSort(sortBy == null || sortBy.isBlank() ? "productId" : sortBy, sortOrder);
     }
 
     private Specification<Product> buildClassicSearchSpec(List<String> terms) {

@@ -11,6 +11,7 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.WishlistRepository;
 import com.ecommerce.project.service.impl.WishlistServiceImpl;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -42,7 +42,7 @@ class WishlistServiceImplTest {
     @Mock private WishlistRepository wishlistRepository;
     @Mock private ProductRepository productRepository;
     @Mock private AuthUtil authUtil;
-    @Mock private ModelMapper modelMapper;
+    @Mock private ProductMapper productMapper;
 
     @InjectMocks
     private WishlistServiceImpl wishlistService;
@@ -141,7 +141,7 @@ class WishlistServiceImplTest {
 
         when(authUtil.loggedInUser()).thenReturn(user);
         when(wishlistRepository.findByUser(user, pageable)).thenReturn(page);
-        when(modelMapper.map(product, ProductDTO.class)).thenReturn(productDTO);
+        when(productMapper.mapProductToDTO(product)).thenReturn(productDTO);
 
         ProductResponse response = wishlistService.getWishlist(0, 10, "createdAt", "desc");
 

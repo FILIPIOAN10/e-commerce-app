@@ -12,11 +12,10 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.QuestionRepository;
 import com.ecommerce.project.service.QuestionService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,9 +80,7 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponse getProductQuestions(Long productId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
-        Sort sort = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sort);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         Page<ProductQuestion> page = questionRepository.findByProduct(product, pageDetails);
         List<QuestionDTO> dtos = page.getContent().stream().map(this::mapToDTO).toList();
         QuestionResponse response = new QuestionResponse();

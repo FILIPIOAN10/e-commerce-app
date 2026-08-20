@@ -13,33 +13,33 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class CouponController {
+public class CouponController extends BaseController {
 
     private final CouponService couponService;
 
     @PostMapping("/admin/coupons")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CouponDTO> createCoupon(@RequestBody CouponDTO couponDTO) {
-        return ResponseEntity.ok(couponService.createCoupon(couponDTO));
+        return ok(couponService.createCoupon(couponDTO));
     }
 
     @PutMapping("/admin/coupons/{couponId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CouponDTO> updateCoupon(@PathVariable Long couponId, @RequestBody CouponDTO couponDTO) {
-        return ResponseEntity.ok(couponService.updateCoupon(couponId, couponDTO));
+        return ok(couponService.updateCoupon(couponId, couponDTO));
     }
 
     @DeleteMapping("/admin/coupons/{couponId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCoupon(@PathVariable Long couponId) {
         couponService.deleteCoupon(couponId);
-        return ResponseEntity.ok(Map.of("message", "Coupon deleted successfully"));
+        return ok(Map.of("message", "Coupon deleted successfully"));
     }
 
     @GetMapping("/admin/coupons")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CouponDTO>> getAllCoupons() {
-        return ResponseEntity.ok(couponService.getAllCoupons());
+        return ok(couponService.getAllCoupons());
     }
 
     @PostMapping("/coupons/validate")
@@ -49,7 +49,7 @@ public class CouponController {
         CouponDTO coupon = couponService.validateCoupon(code, orderAmount);
         double discountAmount = orderAmount * coupon.getDiscountPercent() / 100.0;
         double finalAmount = orderAmount - discountAmount;
-        return ResponseEntity.ok(Map.of(
+        return ok(Map.of(
                 "coupon", coupon,
                 "discountAmount", Math.round(discountAmount * 100.0) / 100.0,
                 "finalAmount", Math.round(finalAmount * 100.0) / 100.0

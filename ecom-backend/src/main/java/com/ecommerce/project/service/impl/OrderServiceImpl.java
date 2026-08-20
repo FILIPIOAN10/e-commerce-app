@@ -145,23 +145,7 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
         Page<Order> pageOrders = orderRepository.findAllWithDetails(pageDetails);
 
-        // Got the order details
-        List<Order> orders = pageOrders.getContent();
-
-        List<OrderDTO> orderDTOS = orders.stream()
-                .map(order -> modelMapper.map(order, OrderDTO.class))
-                .toList();
-
-
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setContent(orderDTOS);
-        orderResponse.setPageNumber(pageOrders.getNumber());
-        orderResponse.setPageSize(pageOrders.getSize());
-        orderResponse.setTotalElements(pageOrders.getTotalElements());
-        orderResponse.setTotalPages(pageOrders.getTotalPages());
-        orderResponse.setLastPage(pageOrders.isLast());
-
-        return orderResponse;
+        return buildOrderResponse(pageOrders);
     }
 
     private static final List<String> VALID_STATUSES = List.of(
@@ -192,19 +176,7 @@ public class OrderServiceImpl implements OrderService {
 
         Page<Order> pageOrders = orderRepository.findOrdersBySellerIdWithDetails(seller.getUserId(), pageDetails);
 
-        List<OrderDTO> orderDTOS = pageOrders.getContent().stream()
-                .map(order -> modelMapper.map(order, OrderDTO.class))
-                .toList();
-
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setContent(orderDTOS);
-        orderResponse.setPageNumber(pageOrders.getNumber());
-        orderResponse.setPageSize(pageOrders.getSize());
-        orderResponse.setTotalElements(pageOrders.getTotalElements());
-        orderResponse.setTotalPages(pageOrders.getTotalPages());
-        orderResponse.setLastPage(pageOrders.isLast());
-
-        return orderResponse;
+        return buildOrderResponse(pageOrders);
     }
 
     @Override
@@ -214,21 +186,7 @@ public class OrderServiceImpl implements OrderService {
         // Apelăm metoda nouă din repository filtrată după email
         Page<Order> pageOrders = orderRepository.findByEmailWithDetails(email, pageDetails);
 
-        List<Order> orders = pageOrders.getContent();
-
-        List<OrderDTO> orderDTOS = orders.stream()
-                .map(order -> modelMapper.map(order, OrderDTO.class))
-                .toList();
-
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setContent(orderDTOS);
-        orderResponse.setPageNumber(pageOrders.getNumber());
-        orderResponse.setPageSize(pageOrders.getSize());
-        orderResponse.setTotalElements(pageOrders.getTotalElements());
-        orderResponse.setTotalPages(pageOrders.getTotalPages());
-        orderResponse.setLastPage(pageOrders.isLast());
-
-        return orderResponse;
+        return buildOrderResponse(pageOrders);
     }
 
     @Override
@@ -361,6 +319,20 @@ public class OrderServiceImpl implements OrderService {
         notificationService.notifyAdminNewOrder(savedOrder.getId(), request.getEmail(), totalAmount);
 
         return buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount);
+    }
+
+    private OrderResponse buildOrderResponse(Page<Order> pageOrders) {
+        List<OrderDTO> orderDTOS = pageOrders.getContent().stream()
+                .map(order -> modelMapper.map(order, OrderDTO.class))
+                .toList();
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setContent(orderDTOS);
+        orderResponse.setPageNumber(pageOrders.getNumber());
+        orderResponse.setPageSize(pageOrders.getSize());
+        orderResponse.setTotalElements(pageOrders.getTotalElements());
+        orderResponse.setTotalPages(pageOrders.getTotalPages());
+        orderResponse.setLastPage(pageOrders.isLast());
+        return orderResponse;
     }
 
     private CouponApplicationResult applyCoupons(List<String> couponCodes, double subtotal) {

@@ -11,12 +11,11 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.WishlistRepository;
 import com.ecommerce.project.service.WishlistService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.PaginationUtil;
+import com.ecommerce.project.util.ProductMapper;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final WishlistRepository wishlistRepository;
     private final ProductRepository productRepository;
     private final AuthUtil authUtil;
-    private final ModelMapper modelMapper;
+    private final ProductMapper productMapper;
 
     @Override
     public String addToWishlist(Long productId) {
@@ -69,14 +68,12 @@ public class WishlistServiceImpl implements WishlistService {
     public ProductResponse getWishlist(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         User user = authUtil.loggedInUser();
 
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
 
         Page<Wishlist> wishlistPage = wishlistRepository.findByUser(user, pageDetails);
 
         List<ProductDTO> productDTOs = wishlistPage.getContent().stream()
-                .map(w -> modelMapper.map(w.getProduct(), ProductDTO.class))
+                .map(w -> productMapper.mapProductToDTO(w.getProduct()))
                 .toList();
 
         ProductResponse response = new ProductResponse();

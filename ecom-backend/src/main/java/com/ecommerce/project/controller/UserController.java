@@ -14,7 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-public class UserController {
+public class UserController extends BaseController {
 
     private final UserManagementService userManagementService;
     private final AuthUtil authUtil;
@@ -29,7 +29,7 @@ public class UserController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber
     ) {
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, Integer.parseInt(AppConstants.PAGE_SIZE), AppConstants.SORT_USERS_BY, "desc");
-        return ResponseEntity.ok(userManagementService.getAllSellers(pageDetails));
+        return ok(userManagementService.getAllSellers(pageDetails));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -39,7 +39,7 @@ public class UserController {
             @RequestParam(name = "pageSize", defaultValue = "20", required = false) Integer pageSize
     ) {
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, AppConstants.SORT_USERS_BY, "desc");
-        return ResponseEntity.ok(userManagementService.getAllUsers(pageDetails));
+        return ok(userManagementService.getAllUsers(pageDetails));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

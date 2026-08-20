@@ -1,5 +1,6 @@
 package com.ecommerce.project.controller;
 
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.ReviewResponse;
 import com.ecommerce.project.service.ReviewService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class ReviewController {
+public class ReviewController extends BaseController {
 
     private final ReviewService reviewService;
 
@@ -56,10 +57,7 @@ public class ReviewController {
     @GetMapping({"/users/reviews/{productId}", "/public/products/{productId}/reviews"})
     public ResponseEntity<ReviewResponse> getProductReviews(
             @PathVariable Long productId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = "createdAt", required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = "desc", required = false) String sortOrder) {
-        return ResponseEntity.ok(reviewService.getProductReviews(productId, pageNumber, pageSize, sortBy, sortOrder));
+            @ModelAttribute PaginationParams params) {
+        return ok(reviewService.getProductReviews(productId, params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder()));
     }
 }

@@ -1,5 +1,6 @@
 package com.ecommerce.project.controller;
 
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.QuestionResponse;
 import com.ecommerce.project.service.QuestionService;
 import lombok.RequiredArgsConstructor;
@@ -11,18 +12,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/public/products/{productId}/questions")
 @RequiredArgsConstructor
-public class QuestionController {
+public class QuestionController extends BaseController {
 
     private final QuestionService questionService;
 
     @GetMapping
     public ResponseEntity<QuestionResponse> getProductQuestions(
             @PathVariable Long productId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = "createdAt", required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = "desc", required = false) String sortOrder) {
-        return ResponseEntity.ok(questionService.getProductQuestions(productId, pageNumber, pageSize, sortBy, sortOrder));
+            @ModelAttribute PaginationParams params) {
+        return ok(questionService.getProductQuestions(productId, params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder()));
     }
 
     @PostMapping

@@ -7,6 +7,7 @@ import com.ecommerce.project.repository.OrderItemRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.impl.RecommendationServiceImpl;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,7 @@ class RecommendationServiceImplTest {
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private ProductRepository productRepository;
     @Mock private AuthUtil authUtil;
+    @Mock private ProductMapper productMapper;
 
     @InjectMocks
     private RecommendationServiceImpl recommendationService;
@@ -59,6 +61,14 @@ class RecommendationServiceImplTest {
                 }
             }
             return result;
+        });
+
+        when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(invocation -> {
+            Product p = invocation.getArgument(0);
+            ProductDTO dto = new ProductDTO();
+            dto.setProductId(p.getProductId());
+            dto.setProductName(p.getProductName());
+            return dto;
         });
     }
 

@@ -11,11 +11,10 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.PromoCampaignProductRepository;
 import com.ecommerce.project.repository.PromoCampaignRepository;
 import com.ecommerce.project.service.PromoCampaignService;
+import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +69,7 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
 
     @Override
     public PromoCampaignResponse getCampaigns(Integer pageNumber, Integer pageSize) {
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, Sort.by("startTime").descending());
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, "startTime", "desc");
         Page<PromoCampaign> page = promoCampaignRepository.findAll(pageDetails);
         PromoCampaignResponse response = new PromoCampaignResponse();
         response.setContent(page.getContent().stream().map(this::mapToDTO).toList());

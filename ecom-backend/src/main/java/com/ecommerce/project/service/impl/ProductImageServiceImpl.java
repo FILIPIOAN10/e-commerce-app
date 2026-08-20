@@ -1,5 +1,6 @@
 package com.ecommerce.project.service.impl;
 
+import com.ecommerce.project.cache.EvictProductCaches;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.model.ProductImage;
@@ -12,7 +13,6 @@ import com.ecommerce.project.util.ProductMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,12 +45,8 @@ public class ProductImageServiceImpl implements ProductImageService {
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "product", key = "#productId"),
-            @CacheEvict(value = "publicProducts", allEntries = true),
-            @CacheEvict(value = "categoryProducts", allEntries = true),
-            @CacheEvict(value = "productSearch", allEntries = true)
-    })
+    @EvictProductCaches
+    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
         Product productFromDb = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
@@ -63,12 +59,8 @@ public class ProductImageServiceImpl implements ProductImageService {
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "product", key = "#productId"),
-            @CacheEvict(value = "publicProducts", allEntries = true),
-            @CacheEvict(value = "categoryProducts", allEntries = true),
-            @CacheEvict(value = "productSearch", allEntries = true)
-    })
+    @EvictProductCaches
+    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO uploadProductGalleryImages(Long productId, MultipartFile[] images) throws IOException {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
@@ -92,12 +84,8 @@ public class ProductImageServiceImpl implements ProductImageService {
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "product", key = "#productId"),
-            @CacheEvict(value = "publicProducts", allEntries = true),
-            @CacheEvict(value = "categoryProducts", allEntries = true),
-            @CacheEvict(value = "productSearch", allEntries = true)
-    })
+    @EvictProductCaches
+    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO deleteProductGalleryImage(Long productId, Long imageId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));

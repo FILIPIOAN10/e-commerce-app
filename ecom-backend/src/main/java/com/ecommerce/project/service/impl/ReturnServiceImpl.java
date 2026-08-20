@@ -11,11 +11,12 @@ import com.ecommerce.project.repository.ReturnRequestRepository;
 import com.ecommerce.project.service.CourierTrackingService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.ReturnService;
+import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,14 +80,14 @@ public class ReturnServiceImpl implements ReturnService {
 
     @Override
     public Page<ReturnRequestDTO> getAllReturnRequests(int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("requestedAt").descending());
+        Pageable pageRequest = PageRequest.of(page, size, PaginationUtil.buildSort("requestedAt", "desc"));
         Page<ReturnRequest> requests = returnRequestRepository.findAllByOrderByRequestedAtDesc(pageRequest);
         return requests.map(r -> toDTO(r, getOrderTotal(r.getOrderId())));
     }
 
     @Override
     public Page<ReturnRequestDTO> getMyReturnRequests(String email, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("requestedAt").descending());
+        Pageable pageRequest = PageRequest.of(page, size, PaginationUtil.buildSort("requestedAt", "desc"));
         Page<ReturnRequest> requests = returnRequestRepository.findByUserEmailOrderByRequestedAtDesc(email, pageRequest);
         return requests.map(r -> toDTO(r, getOrderTotal(r.getOrderId())));
     }
@@ -105,14 +106,8 @@ public class ReturnServiceImpl implements ReturnService {
         returnRequest.setAdminNote(adminNote);
         returnRequest.setProcessedAt(LocalDateTime.now());
         ReturnRequest saved = returnRequestRepository.save(returnRequest);
-        final Long savedOrderId = saved.getOrderId();
 
-        Order order = orderRepository.findById(savedOrderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", savedOrderId));
-        order.setOrderStatus("Returned");
-        orderRepository.save(order);
-
-        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Approved");
+        updateOrderStatusAndNotify(saved.getOrderId(), "Returned", "Return Approved");
 
         return toDTO(saved);
     }
@@ -131,14 +126,8 @@ public class ReturnServiceImpl implements ReturnService {
         returnRequest.setAdminNote(adminNote);
         returnRequest.setProcessedAt(LocalDateTime.now());
         ReturnRequest saved = returnRequestRepository.save(returnRequest);
-        final Long savedOrderId = saved.getOrderId();
 
-        Order order = orderRepository.findById(savedOrderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", savedOrderId));
-        order.setOrderStatus("Delivered");
-        orderRepository.save(order);
-
-        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Rejected");
+        updateOrderStatusAndNotify(saved.getOrderId(), "Delivered", "Return Rejected");
 
         return toDTO(saved);
     }
@@ -158,14 +147,8 @@ public class ReturnServiceImpl implements ReturnService {
             returnRequest.setProcessedAt(LocalDateTime.now());
         }
         ReturnRequest saved = returnRequestRepository.save(returnRequest);
-        final Long savedOrderId = saved.getOrderId();
 
-        Order order = orderRepository.findById(savedOrderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", savedOrderId));
-        order.setOrderStatus("Refunded");
-        orderRepository.save(order);
-
-        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Refunded");
+        updateOrderStatusAndNotify(saved.getOrderId(), "Refunded", "Refunded");
 
         return toDTO(saved);
     }
@@ -197,12 +180,7 @@ public class ReturnServiceImpl implements ReturnService {
 
         ReturnRequest saved = returnRequestRepository.save(returnRequest);
 
-        Order order = orderRepository.findById(saved.getOrderId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", saved.getOrderId()));
-        order.setOrderStatus("Returned");
-        orderRepository.save(order);
-
-        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Return Shipped Back");
+        updateOrderStatusAndNotify(saved.getOrderId(), "Returned", "Return Shipped Back");
 
         return toDTO(saved);
     }
@@ -244,6 +222,14 @@ public class ReturnServiceImpl implements ReturnService {
         }
 
         return courierTrackingService.track(returnRequest.getCarrierName(), returnRequest.getTrackingNumber());
+    }
+
+    private void updateOrderStatusAndNotify(Long orderId, String status, String notificationMessage) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+        order.setOrderStatus(status);
+        orderRepository.save(order);
+        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), notificationMessage);
     }
 
     private Double getOrderTotal(Long orderId) {

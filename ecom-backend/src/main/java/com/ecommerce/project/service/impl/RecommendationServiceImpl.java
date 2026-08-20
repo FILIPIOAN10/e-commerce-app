@@ -8,6 +8,7 @@ import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.RecommendationService;
 import com.ecommerce.project.service.RecentlyViewedService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final AuthUtil authUtil;
+    private final ProductMapper productMapper;
 
     @Override
     public List<ProductDTO> getRecommendedForUser(int limit) {
@@ -180,20 +182,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private ProductDTO toDTO(Product product) {
-        ProductDTO dto = new ProductDTO();
-        dto.setProductId(product.getProductId());
-        dto.setProductName(product.getProductName());
-        dto.setDescription(product.getDescription());
-        dto.setPrice(product.getPrice());
-        dto.setDiscount(product.getDiscount());
-        dto.setSpecialPrice(product.getSpecialPrice());
-        dto.setQuantity(product.getQuantity());
-        dto.setImage(product.getImage());
-        dto.setTags(product.getTags());
-        if (product.getCategory() != null) {
-            dto.setCategoryId(product.getCategory().getCategoryId());
-            dto.setCategoryName(product.getCategory().getCategoryName());
-        }
-        return dto;
+        return productMapper.mapProductToDTO(product);
     }
 }

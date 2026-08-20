@@ -11,11 +11,10 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.ReviewRepository;
 import com.ecommerce.project.service.ReviewService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,9 +103,7 @@ public class ReviewServiceImpl implements ReviewService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
-        Sort sort = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sort);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
 
         Page<Review> reviewPage = reviewRepository.findByProduct(product, pageDetails);
 

@@ -5,6 +5,7 @@ import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.RecentlyViewedService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +24,16 @@ public class RecentlyViewedServiceImpl implements RecentlyViewedService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ProductRepository productRepository;
     private final AuthUtil authUtil;
+    private final ProductMapper productMapper;
 
     public RecentlyViewedServiceImpl(RedisTemplate<String, Object> redisTemplate,
                                      ProductRepository productRepository,
-                                     AuthUtil authUtil) {
+                                     AuthUtil authUtil,
+                                     ProductMapper productMapper) {
         this.redisTemplate = redisTemplate;
         this.productRepository = productRepository;
         this.authUtil = authUtil;
+        this.productMapper = productMapper;
     }
 
     @Override
@@ -70,17 +74,7 @@ public class RecentlyViewedServiceImpl implements RecentlyViewedService {
         for (Long pid : productIds) {
             Product product = productMap.get(pid);
             if (product != null) {
-                ProductDTO dto = new ProductDTO();
-                dto.setProductId(product.getProductId());
-                dto.setProductName(product.getProductName());
-                dto.setDescription(product.getDescription());
-                dto.setPrice(product.getPrice());
-                dto.setDiscount(product.getDiscount());
-                dto.setSpecialPrice(product.getSpecialPrice());
-                dto.setQuantity(product.getQuantity());
-                dto.setImage(product.getImage());
-                dto.setTags(product.getTags());
-                result.add(dto);
+                result.add(productMapper.mapProductToDTO(product));
             }
         }
         return result;

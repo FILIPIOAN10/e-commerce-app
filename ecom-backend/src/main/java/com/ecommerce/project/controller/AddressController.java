@@ -6,7 +6,6 @@ import com.ecommerce.project.service.AddressService;
 import com.ecommerce.project.util.AuthUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class AddressController {
+public class AddressController extends BaseController {
 
 
     private final AddressService addressService;
@@ -31,7 +30,7 @@ public class AddressController {
     public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO ) {
         User user = authUtil.loggedInUser();
         AddressDTO savedAddressDTO = addressService.createAddress(addressDTO,user);
-        return new ResponseEntity<>(savedAddressDTO, HttpStatus.CREATED);
+        return created(savedAddressDTO);
     }
 
     @Tag(name = "Address")
@@ -39,7 +38,7 @@ public class AddressController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AddressDTO>> getAddresses() {
         List<AddressDTO> addressList = addressService.getAddresses();
-        return new ResponseEntity<>(addressList, HttpStatus.OK);
+        return ok(addressList);
     }
 
 
@@ -48,7 +47,7 @@ public class AddressController {
     @PreAuthorize("hasRole('ADMIN') or returnObject.body !=null")
     public ResponseEntity<AddressDTO> getAddressById(@PathVariable Long addressesId) {
         AddressDTO addressDTO = addressService.getAddressesById(addressesId);
-        return new ResponseEntity<>(addressDTO, HttpStatus.OK);
+        return ok(addressDTO);
     }
 
     @Tag(name = "Address")
@@ -56,7 +55,7 @@ public class AddressController {
     public ResponseEntity<List<AddressDTO>> getUserAddresses() {
         User user = authUtil.loggedInUser();
         List<AddressDTO> addressList = addressService.getUserAddresses(user);
-        return new ResponseEntity<>(addressList,HttpStatus.OK);
+        return ok(addressList);
 
     }
 
@@ -65,7 +64,7 @@ public class AddressController {
     public ResponseEntity<AddressDTO> updateAddress(@PathVariable Long addressId
             , @RequestBody AddressDTO addressDTO){
         AddressDTO updatedAddress = addressService.updateAddress(addressId, addressDTO);
-        return new ResponseEntity<>(updatedAddress, HttpStatus.OK);
+        return ok(updatedAddress);
     }
 
     @Tag(name = "Address")
@@ -73,7 +72,7 @@ public class AddressController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> deleteAddress(@PathVariable Long addressId){
         String status = addressService.deleteAddress(addressId);
-        return new ResponseEntity<>(status, HttpStatus.OK);
+        return ok(status);
     }
 
 

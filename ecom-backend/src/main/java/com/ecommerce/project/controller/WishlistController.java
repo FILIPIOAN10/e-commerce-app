@@ -1,6 +1,6 @@
 package com.ecommerce.project.controller;
 
-import com.ecommerce.project.config.AppConstants;
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.WishlistService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +14,7 @@ import java.util.Map;
 @RequestMapping("/api/users/wishlist")
 @RequiredArgsConstructor
 @Tag(name = "Wishlist")
-public class WishlistController {
+public class WishlistController extends BaseController {
 
     private final WishlistService wishlistService;
 
@@ -31,11 +31,7 @@ public class WishlistController {
     }
 
     @GetMapping
-    public ResponseEntity<ProductResponse> getWishlist(
-            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = "createdAt", required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
-        return ResponseEntity.ok(wishlistService.getWishlist(pageNumber, pageSize, sortBy, sortOrder));
+    public ResponseEntity<ProductResponse> getWishlist(@ModelAttribute PaginationParams params) {
+        return ok(wishlistService.getWishlist(params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder()));
     }
 }
