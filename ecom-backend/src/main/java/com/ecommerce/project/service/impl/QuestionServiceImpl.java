@@ -80,7 +80,7 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponse getProductQuestions(Long productId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, "createdAt");
         Page<ProductQuestion> page = questionRepository.findByProduct(product, pageDetails);
         List<QuestionDTO> dtos = page.getContent().stream().map(this::mapToDTO).toList();
         QuestionResponse response = new QuestionResponse();

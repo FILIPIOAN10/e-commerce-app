@@ -35,6 +35,9 @@ public class PaginationUtil {
     }
 
     public static Sort buildSort(String sortBy, String sortOrder) {
+        if (sortBy == null || sortBy.isBlank()) {
+            return Sort.unsorted();
+        }
         Sort sort = Sort.by(sortBy);
         if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
             sort = sort.descending();

@@ -68,7 +68,7 @@ public class WishlistServiceImpl implements WishlistService {
     public ProductResponse getWishlist(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         User user = authUtil.loggedInUser();
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, "createdAt");
 
         Page<Wishlist> wishlistPage = wishlistRepository.findByUser(user, pageDetails);
 
