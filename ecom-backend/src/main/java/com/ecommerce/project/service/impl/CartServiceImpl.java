@@ -15,6 +15,7 @@ import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.ProductMapper;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -37,6 +38,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final BundleRepository bundleRepository;
     private final ModelMapper modelMapper;
+    private final ProductMapper productMapper;
 
 
 
@@ -340,16 +342,7 @@ public class CartServiceImpl implements CartService {
 
     private CartDTO mapToCartDTO(Cart cart){
         CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
-        List<ProductDTO> products = cart.getCartItems().stream()
-                .map(item -> {
-                    ProductDTO dto = modelMapper.map(item.getProduct(), ProductDTO.class);
-                    dto.setQuantity(item.getQuantity());
-                    dto.setCartItemId(item.getCartItemId());
-                    dto.setSavedForLater(Boolean.TRUE.equals(item.getSavedForLater()));
-                    return dto;
-                })
-                .toList();
-        cartDTO.setProducts(products);
+        cartDTO.setProducts(productMapper.mapCartItemsToProductDTOs(cart.getCartItems()));
         return cartDTO;
     }
 }

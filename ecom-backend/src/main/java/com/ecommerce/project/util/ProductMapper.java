@@ -1,5 +1,6 @@
 package com.ecommerce.project.util;
 
+import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
@@ -107,6 +109,21 @@ public class ProductMapper {
         productResponse.setTotalPages((int) Math.ceil((double) products.size() / safePageSize));
         productResponse.setLastPage(toIndex >= products.size());
         return productResponse;
+    }
+
+    public List<ProductDTO> mapCartItemsToProductDTOs(List<CartItem> cartItems) {
+        if (cartItems == null || cartItems.isEmpty()) {
+            return List.of();
+        }
+        return cartItems.stream()
+                .map(item -> {
+                    ProductDTO dto = modelMapper.map(item.getProduct(), ProductDTO.class);
+                    dto.setQuantity(item.getQuantity());
+                    dto.setCartItemId(item.getCartItemId());
+                    dto.setSavedForLater(Boolean.TRUE.equals(item.getSavedForLater()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     public String constructImageUrl(String imageName) {

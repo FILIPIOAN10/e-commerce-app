@@ -1,5 +1,6 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.payload.CouponDTO;
 
 public interface CouponService {
@@ -15,4 +16,6 @@ public interface CouponService {
     CouponDTO applyCoupon(String code);
 
     java.util.List<CouponDTO> getAllCoupons();
+
+    void validateCouponState(Coupon coupon, String code);
 }

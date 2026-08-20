@@ -19,6 +19,7 @@ import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
+import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
 import com.lowagie.text.Document;
@@ -141,7 +142,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
         Page<Order> pageOrders = orderRepository.findAllWithDetails(pageDetails);
 
         // Got the order details
@@ -185,7 +186,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse getAllSellerOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
 
         User seller = authUtil.loggedInUser();
 
@@ -208,7 +209,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse getLoggedInUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
 
         // Apelăm metoda nouă din repository filtrată după email
         Page<Order> pageOrders = orderRepository.findByEmailWithDetails(email, pageDetails);
@@ -377,15 +378,7 @@ public class OrderServiceImpl implements OrderService {
             Coupon coupon = couponRepository.findByCode(code.toUpperCase())
                     .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
 
-            if (!coupon.getActive()) {
-                throw new APIException("Coupon is not active: " + code);
-            }
-            if (coupon.getExpiryDate().isBefore(LocalDate.now())) {
-                throw new APIException("Coupon has expired: " + code);
-            }
-            if (coupon.getUsedCount() >= coupon.getMaxUses()) {
-                throw new APIException("Coupon usage limit reached: " + code);
-            }
+            couponService.validateCouponState(coupon, code);
 
             double discount = totalAfterDiscount * coupon.getDiscountPercent() / 100.0;
             totalAfterDiscount -= discount;

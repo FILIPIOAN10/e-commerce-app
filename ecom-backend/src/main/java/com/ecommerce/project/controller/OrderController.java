@@ -2,6 +2,7 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.payload.*;
+import com.ecommerce.project.payload.PaginationParams;
 import jakarta.validation.Valid;
 
 import com.ecommerce.project.service.OrderService;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
-public class OrderController {
+public class OrderController extends BaseController {
 
     private final OrderService orderService;
     private final AuthUtil authUtil;
@@ -46,27 +47,21 @@ public class OrderController {
                 orderRequestDTO.getPgResponseMessage(),
                 orderRequestDTO.getCouponCodes()
         );
-        return new  ResponseEntity<OrderDTO>(order,HttpStatus.CREATED);
+        return created(order);
     }
     @PostMapping("/order/stripe-client-secret")
     public ResponseEntity<String> createStripeClientSecret(@RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
 
         PaymentIntent paymentIntent = stripeService.paymentIntent(stripePaymentDto);
-        return  new ResponseEntity<>(paymentIntent.getClientSecret(),HttpStatus.CREATED);
+        return  created(paymentIntent.getClientSecret());
 
     }
     @GetMapping("/orders/my-orders")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<OrderResponse> getMyOrders(
-            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder
-    ){
+    public ResponseEntity<OrderResponse> getMyOrders(@ModelAttribute PaginationParams params){
         String email = authUtil.loggedInEmail();
-
-        OrderResponse orderResponse = orderService.getLoggedInUserOrders(email, pageNumber, pageSize, sortBy, sortOrder);
-        return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
+        OrderResponse orderResponse = orderService.getLoggedInUserOrders(email, params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder());
+        return ok(orderResponse);
     }
 
     @Tag(name = "Order")
@@ -78,7 +73,7 @@ public class OrderController {
                 orderRequestDTO.getAddressId(),
                 orderRequestDTO.getCouponCodes()
         );
-        return new ResponseEntity<>(summary, HttpStatus.OK);
+        return ok(summary);
     }
 
     @Tag(name = "Order")
@@ -86,14 +81,14 @@ public class OrderController {
     public ResponseEntity<Double> estimateShipping(@PathVariable Long addressId,
                                                    @RequestParam(defaultValue = "0.0") Double cartTotal) {
         double shipping = orderService.calculateShippingCost(addressId, cartTotal);
-        return new ResponseEntity<>(shipping, HttpStatus.OK);
+        return ok(shipping);
     }
 
     @Tag(name = "Order")
     @PostMapping("/public/orders/guest")
     public ResponseEntity<OrderDTO> placeGuestOrder(@Valid @RequestBody GuestCheckoutRequestDTO request) {
         OrderDTO order = orderService.placeGuestOrder(request);
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
+        return created(order);
     }
 
     @GetMapping("/orders/track/{orderId}")
@@ -101,7 +96,7 @@ public class OrderController {
     public ResponseEntity<OrderDTO> trackOrder(@PathVariable Long orderId) {
         String email = authUtil.loggedInEmail();
         OrderDTO order = orderService.getOrderById(orderId, email);
-        return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
+        return ok(order);
     }
 
 }

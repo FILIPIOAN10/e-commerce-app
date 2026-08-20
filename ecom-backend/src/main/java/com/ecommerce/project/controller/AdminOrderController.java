@@ -4,6 +4,7 @@ import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderResponse;
 import com.ecommerce.project.payload.OrderStatusUpdateDto;
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
-public class AdminOrderController {
+public class AdminOrderController extends BaseController {
 
     private final OrderService orderService;
 
@@ -22,26 +23,16 @@ public class AdminOrderController {
 
     @GetMapping("/admin/orders")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OrderResponse> getAllOrders(
-            @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
-            @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_ORDERS_BY, required = false)  String sortBy,
-            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_DIR, required = false) String  sortOrder
-    ){
-        OrderResponse orderResponse = orderService.getAllOrders(pageNumber,pageSize,sortBy,sortOrder);
-        return new ResponseEntity<OrderResponse>(orderResponse,HttpStatus.OK);
+    public ResponseEntity<OrderResponse> getAllOrders(@ModelAttribute PaginationParams params){
+        OrderResponse orderResponse = orderService.getAllOrders(params.getPageNumber(),params.getPageSize(),params.getSortBy(),params.getSortOrder());
+        return ok(orderResponse);
     }
 
     @GetMapping("/seller/orders")
     @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
-    public ResponseEntity<OrderResponse> getAllSellerOrders(
-            @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE, required = false)Integer  pageSize,
-            @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_ORDERS_BY, required = false)  String sortBy,
-            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_DIR, required = false) String  sortOrder
-    ){
-        OrderResponse orderResponse = orderService.getAllSellerOrders(pageNumber,pageSize,sortBy,sortOrder);
-        return new ResponseEntity<OrderResponse>(orderResponse,HttpStatus.OK);
+    public ResponseEntity<OrderResponse> getAllSellerOrders(@ModelAttribute PaginationParams params){
+        OrderResponse orderResponse = orderService.getAllSellerOrders(params.getPageNumber(),params.getPageSize(),params.getSortBy(),params.getSortOrder());
+        return ok(orderResponse);
     }
 
     @PutMapping("/admin/orders/{orderId}/status")
@@ -49,7 +40,7 @@ public class AdminOrderController {
     public ResponseEntity<OrderDTO> updateOrderStatus(@PathVariable Long orderId,
                                                       @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
        OrderDTO order = orderService.updateOrder(orderId,orderStatusUpdateDto.getStatus());
-       return new ResponseEntity<OrderDTO>(order,HttpStatus.OK);
+       return ok(order);
     }
 
     @PutMapping("/seller/orders/{orderId}/status")
@@ -57,6 +48,6 @@ public class AdminOrderController {
     public ResponseEntity<OrderDTO> updateOrderStatusSeller(@PathVariable Long orderId,
                                                       @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
         OrderDTO order = orderService.updateOrder(orderId,orderStatusUpdateDto.getStatus());
-        return new ResponseEntity<OrderDTO>(order,HttpStatus.OK);
+        return ok(order);
     }
 }

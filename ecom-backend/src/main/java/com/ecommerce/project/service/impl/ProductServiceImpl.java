@@ -18,16 +18,17 @@ import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.cache.EvictProductCaches;
+import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.util.ProductMapper;
 import com.ecommerce.project.util.PaginationUtil;
-import jakarta.persistence.criteria.Predicate;
+import com.ecommerce.project.util.ProductSpecifications;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -56,13 +57,7 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "publicProducts", allEntries = true),
-            @CacheEvict(value = "categoryProducts", allEntries = true),
-            @CacheEvict(value = "productSearch", allEntries = true),
-            @CacheEvict(value = "adminProducts", allEntries = true),
-            @CacheEvict(value = "sellerProducts", allEntries = true)
-    })
+    @EvictProductCaches
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
         // 1. Găsim categoria sau aruncăm excepție
         Category category = categoryRepository.findById(categoryId)
@@ -99,23 +94,10 @@ public class ProductServiceImpl implements ProductService {
     )
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY);
 
-        Specification<Product> spec = (root, query, cb) -> cb.conjunction();
-        if(keyword !=null && !keyword.isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                String likeKeyword = "%" +keyword.toLowerCase() + "%";
-                return cb.or(
-                        cb.like(cb.lower(root.get("productName")),likeKeyword),
-                        cb.like(cb.lower(root.get("description")),likeKeyword),
-                        cb.like(cb.lower(root.get("tags")),likeKeyword)
-                );
-            });
-        }
-
-        if(category !=null && !category.isEmpty()) {
-            spec = spec.and((root,query,cb) -> cb.like(root.get("category").get("categoryName"), category));
-        }
+        Specification<Product> spec = ProductSpecifications.withKeyword(keyword)
+                .and(ProductSpecifications.withCategory(category));
 
 
 
@@ -131,7 +113,7 @@ public class ProductServiceImpl implements ProductService {
             key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY);
         Page<Product> pageProducts = productRepository.findAll(pageDetails);
 
         return productMapper.buildProductResponse(pageProducts);
@@ -143,7 +125,7 @@ public class ProductServiceImpl implements ProductService {
             key = "@authUtil.loggedInUserId() + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY);
         User user = authUtil.loggedInUser();
         Page<Product> pageProducts = productRepository.findByUser(user, pageDetails);
 
@@ -158,14 +140,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "product", key = "#productId"),
-            @CacheEvict(value = "publicProducts", allEntries = true),
-            @CacheEvict(value = "categoryProducts", allEntries = true),
-            @CacheEvict(value = "productSearch", allEntries = true),
-            @CacheEvict(value = "adminProducts", allEntries = true),
-            @CacheEvict(value = "sellerProducts", allEntries = true)
-    })
+    @EvictProductCaches
+    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
 
         // Get the existing product from DB
@@ -210,10 +186,7 @@ public class ProductServiceImpl implements ProductService {
 
         List<CartDTO> cartDTOS = carts.stream().map(cart -> {
             CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
-            List<ProductDTO> products = cart.getCartItems().stream()
-                    .map(p -> modelMapper.map(p.getProduct(), ProductDTO.class))
-                    .collect(Collectors.toList());
-            cartDTO.setProducts(products);
+            cartDTO.setProducts(productMapper.mapCartItemsToProductDTOs(cart.getCartItems()));
             return cartDTO;
         }).collect(Collectors.toList());
 
@@ -223,14 +196,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "product", key = "#productId"),
-            @CacheEvict(value = "publicProducts", allEntries = true),
-            @CacheEvict(value = "categoryProducts", allEntries = true),
-            @CacheEvict(value = "productSearch", allEntries = true),
-            @CacheEvict(value = "adminProducts", allEntries = true),
-            @CacheEvict(value = "sellerProducts", allEntries = true)
-    })
+    @EvictProductCaches
+    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
