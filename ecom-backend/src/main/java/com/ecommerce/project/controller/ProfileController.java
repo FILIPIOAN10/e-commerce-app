@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/users")
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -25,7 +25,7 @@ public class ProfileController {
     /**
      * Returnează informațiile complete ale utilizatorului autentificat (id, username, roluri).
      */
-    @GetMapping("/user")
+    @GetMapping("/profile")
     public ResponseEntity<?> getUserDetails(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("message", "Not authenticated"));

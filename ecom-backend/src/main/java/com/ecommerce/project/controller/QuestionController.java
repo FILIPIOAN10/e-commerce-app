@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/public/products/{productId}/questions")
+@RequestMapping("/api/products/{productId}/questions")
 @RequiredArgsConstructor
 public class QuestionController extends BaseController {
 

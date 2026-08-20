@@ -67,7 +67,7 @@ export const logOutUser = (navigate) => (dispatch) => {
 };
 
 export const fetchUserDetails = () => async (dispatch) => {
-    const { data } = await api.get("/auth/user");
+    const { data } = await api.get("/users/profile");
 
     const authData = {
         id: data.id,

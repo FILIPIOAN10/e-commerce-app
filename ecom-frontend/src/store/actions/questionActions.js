@@ -3,7 +3,7 @@ import api from "../../api/api";
 export const fetchProductQuestions = (productId, pageNumber = 0, pageSize = 10) => async (dispatch) => {
     try {
         dispatch({ type: "questionError", payload: null });
-        const { data } = await api.get(`/public/products/${productId}/questions?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        const { data } = await api.get(`/products/${productId}/questions?pageNumber=${pageNumber}&pageSize=${pageSize}`);
         dispatch({ type: "fetchQuestionsSuccess", payload: data });
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to fetch questions";
@@ -13,7 +13,7 @@ export const fetchProductQuestions = (productId, pageNumber = 0, pageSize = 10) 
 
 export const askQuestion = (productId, question, toast) => async (dispatch) => {
     try {
-        const { data } = await api.post(`/public/products/${productId}/questions`, { question });
+        const { data } = await api.post(`/products/${productId}/questions`, { question });
         toast.success(data.message);
         dispatch(fetchProductQuestions(productId));
     } catch (error) {
@@ -24,7 +24,7 @@ export const askQuestion = (productId, question, toast) => async (dispatch) => {
 
 export const answerQuestion = (productId, questionId, answer, toast) => async (dispatch) => {
     try {
-        const { data } = await api.post(`/public/products/${productId}/questions/${questionId}/answer`, { answer });
+        const { data } = await api.post(`/products/${productId}/questions/${questionId}/answer`, { answer });
         toast.success(data.message);
         dispatch(fetchProductQuestions(productId));
     } catch (error) {

@@ -75,7 +75,7 @@ export const addPaymentMethod = (method) => {
 export const updateProfile = (sendData, toast, setLoader) => async (dispatch, getState) => {
     try {
         setLoader(true);
-        const { data } = await api.put("/auth/profile", sendData);
+        const { data } = await api.put("/users/profile", sendData);
         const currentAuth = getState().auth.user;
         const updatedAuth = {
             ...currentAuth,
@@ -96,7 +96,7 @@ export const updateProfile = (sendData, toast, setLoader) => async (dispatch, ge
 export const changePassword = (sendData, toast, setLoader, reset) => async () => {
     try {
         setLoader(true);
-        const { data } = await api.post("/auth/profile/change-password", sendData);
+        const { data } = await api.post("/users/profile/change-password", sendData);
         toast.success(data.message || "Password changed successfully");
         reset();
     } catch (error) {
@@ -111,7 +111,7 @@ export const uploadAvatar = (file, toast, setLoader) => async (dispatch, getStat
         setLoader(true);
         const formData = new FormData();
         formData.append("file", file);
-        const { data } = await api.post("/auth/profile/avatar", formData, {
+        const { data } = await api.post("/users/profile/avatar", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
         const currentAuth = getState().auth.user;

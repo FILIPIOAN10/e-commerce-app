@@ -28,6 +28,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 
+import org.springframework.http.HttpMethod;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 
@@ -96,13 +97,41 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**",
-                                "/api/public/subscriptions/webhook", "/api/public/webhooks/stripe"))
+                        .ignoringRequestMatchers(
+                                "/api/auth/signin",
+                                "/api/auth/signup",
+                                "/api/auth/refresh",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/api/auth/unlock-request",
+                                "/api/auth/verify-email",
+                                "/api/auth/resend-verification",
+                                "/api/auth/public/verify-2fa-login",
+                                "/api/auth/signout",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
+                                "/ws-notifications/**",
+                                "/api/public/subscriptions/webhook",
+                                "/api/public/webhooks/stripe"
+                        ))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((auth) -> {
-                    auth.requestMatchers("/api/auth/**", "/error").permitAll();
+                    auth.requestMatchers(
+                            "/api/auth/signin",
+                            "/api/auth/signup",
+                            "/api/auth/refresh",
+                            "/api/auth/forgot-password",
+                            "/api/auth/reset-password",
+                            "/api/auth/unlock-request",
+                            "/api/auth/verify-email",
+                            "/api/auth/resend-verification",
+                            "/api/auth/public/verify-2fa-login",
+                            "/api/auth/signout",
+                            "/error"
+                    ).permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/products/*/questions").permitAll();
                     auth.requestMatchers("/ws-notifications/**").permitAll();
                     auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
                     auth.requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER");
