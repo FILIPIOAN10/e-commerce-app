@@ -18,6 +18,7 @@ import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.util.AuthUtil;
+import com.ecommerce.project.util.PaginationUtil;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
 import com.lowagie.text.Document;
@@ -30,9 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -142,10 +141,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
 
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNumber,pageSize,sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         Page<Order> pageOrders = orderRepository.findAllWithDetails(pageDetails);
 
         // Got the order details
@@ -189,10 +185,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse getAllSellerOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
 
         User seller = authUtil.loggedInUser();
 
@@ -215,11 +208,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse getLoggedInUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
 
         // Apelăm metoda nouă din repository filtrată după email
         Page<Order> pageOrders = orderRepository.findByEmailWithDetails(email, pageDetails);

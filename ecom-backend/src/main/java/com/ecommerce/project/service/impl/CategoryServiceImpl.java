@@ -7,15 +7,14 @@ import com.ecommerce.project.payload.CategoryDTO;
 import com.ecommerce.project.payload.CategoryResponse;
 import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.service.CategoryService;
+import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,10 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
     )
     public CategoryResponse getAllCategories(Integer pageNumber, Integer pageSize,String sortBy,String sortOrder) {
 
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize,sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
 
         // how you can get the page from DB
         Page<Category> categoryPage = categoryRepository.findAll(pageDetails);
