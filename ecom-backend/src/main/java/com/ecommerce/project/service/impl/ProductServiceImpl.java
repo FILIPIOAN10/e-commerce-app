@@ -19,6 +19,7 @@ import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.ProductMapper;
+import com.ecommerce.project.util.PaginationUtil;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +29,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.util.*;
@@ -100,11 +99,7 @@ public class ProductServiceImpl implements ProductService {
     )
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
 
-        //Implement pagination
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
 
         Specification<Product> spec = (root, query, cb) -> cb.conjunction();
         if(keyword !=null && !keyword.isEmpty()) {
@@ -136,10 +131,7 @@ public class ProductServiceImpl implements ProductService {
             key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         Page<Product> pageProducts = productRepository.findAll(pageDetails);
 
         return productMapper.buildProductResponse(pageProducts);
@@ -151,10 +143,7 @@ public class ProductServiceImpl implements ProductService {
             key = "@authUtil.loggedInUserId() + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
         User user = authUtil.loggedInUser();
         Page<Product> pageProducts = productRepository.findByUser(user, pageDetails);
 
