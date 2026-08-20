@@ -48,6 +48,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setPassword(encoder.encode(newPassword));
+
+        // Password reset must NOT clear the account lockout. Only admin unlock does that.
         userRepository.save(user);
 
         tokenService.invalidateToken(email);

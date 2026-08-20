@@ -17,6 +17,7 @@ public class UserDTO {
     private String email;
     private String password;
     private Set<Role> roles = new HashSet<>();
+    private boolean locked;
 
     private AddressDTO address;
     private CartDTO cart;

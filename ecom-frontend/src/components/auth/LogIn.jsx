@@ -2,23 +2,28 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineLogin } from "react-icons/ai";
+import { FaLock } from "react-icons/fa";
 import InputField from "../shared/InputField";
 import { useDispatch } from "react-redux";
 import { authenticateSignInUser } from "../../store/actions";
 import toast from "react-hot-toast";
 import Spinners from "../shared/Spinners";
-import { FaGithub } from "react-icons/fa"; 
+import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Verify2FALogin from "./Verify2FALogin";
+import api from "../../api/api";
 
 
 const LogIn = () => {
 
     const navigate = useNavigate();
-    const [loader,setLoader]= useState(false);
+    const [loader, setLoader] = useState(false);
+    const [requestingUnlock, setRequestingUnlock] = useState(false);
     const [needs2FA, setNeeds2FA] = useState(false);
     const [temp2FAToken, setTemp2FAToken] = useState(null);
     const [loginEmail, setLoginEmail] = useState(null);
+    const [lockedUsername, setLockedUsername] = useState(null);
+    const [unlockRequested, setUnlockRequested] = useState(false);
     const dispatch = useDispatch();
     const {
         register,
@@ -31,6 +36,8 @@ const LogIn = () => {
     });
 
     const loginHandler = async (data) => {
+        setLockedUsername(null);
+        setUnlockRequested(false);
         dispatch(authenticateSignInUser(
             data,
             toast,
@@ -39,8 +46,23 @@ const LogIn = () => {
             setLoader,
             setNeeds2FA,
             setTemp2FAToken,
-            setLoginEmail
+            setLoginEmail,
+            setLockedUsername
         ));
+    };
+
+    const handleRequestUnlock = async () => {
+        if (!lockedUsername) return;
+        setRequestingUnlock(true);
+        try {
+            const { data } = await api.post("/auth/unlock-request", { username: lockedUsername });
+            toast.success(data?.message || "Unlock request sent to admin");
+            setUnlockRequested(true);
+        } catch (error) {
+            toast.error(error?.response?.data?.message || "Failed to send unlock request");
+        } finally {
+            setRequestingUnlock(false);
+        }
     };
 
             const handle2FASuccess = (authData) => {
@@ -113,6 +135,30 @@ const LogIn = () => {
                         <>Login</>
                     )}
                 </button>
+
+                {/* ACCOUNT LOCKED NOTICE */}
+                {lockedUsername && (
+                    <div className="flex flex-col gap-2 mt-3 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                        <div className="flex items-center gap-2 text-red-700 dark:text-red-400 text-sm font-medium">
+                            <FaLock />
+                            <span>Your account is temporarily locked due to too many failed attempts.</span>
+                        </div>
+                        {unlockRequested ? (
+                            <p className="text-sm text-green-700 dark:text-green-400">
+                                Unlock request sent. An admin will review it shortly.
+                            </p>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleRequestUnlock}
+                                disabled={requestingUnlock}
+                                className="self-start text-sm font-semibold text-red-700 dark:text-red-400 underline hover:text-red-900 dark:hover:text-red-300 disabled:opacity-60"
+                            >
+                                {requestingUnlock ? "Sending request..." : "Request unlock from admin"}
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {/* FORGOT PASSWORD */}
                 <div className="text-right mt-1">

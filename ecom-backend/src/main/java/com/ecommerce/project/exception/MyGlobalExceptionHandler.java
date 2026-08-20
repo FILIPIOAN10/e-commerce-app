@@ -1,6 +1,5 @@
 package com.ecommerce.project.exception;
 
-
 import com.ecommerce.project.payload.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +73,11 @@ public class MyGlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccountLockedException.class)
-    public ResponseEntity<Map<String, String>> handleAccountLocked(AccountLockedException e) {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(Map.of("message", e.getMessage()));
+    public ResponseEntity<Map<String, Object>> handleAccountLocked(AccountLockedException e) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", e.getMessage());
+        body.put("locked", true);
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
     }
 
     @ExceptionHandler(AccountNotVerifiedException.class)

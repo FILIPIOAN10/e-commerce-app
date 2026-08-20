@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaTrashAlt, FaUsers, FaSearch, FaShieldAlt, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaTrashAlt, FaUsers, FaSearch, FaShieldAlt, FaCheckCircle, FaTimesCircle, FaLock, FaLockOpen } from "react-icons/fa";
 import { DataGrid } from "@mui/x-data-grid";
 import api from "../../../api/api";
 import toast from "react-hot-toast";
@@ -13,6 +13,7 @@ const AdminUsers = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [unlockingId, setUnlockingId] = useState(null);
 
     const fetchUsers = useCallback(async (page, size) => {
         setLoading(true);
@@ -52,6 +53,20 @@ const AdminUsers = () => {
         }
     };
 
+    const handleUnlock = async (userId, username) => {
+        setUnlockingId(userId);
+        try {
+            const resp = await api.post(`/auth/users/${userId}/unlock`);
+            toast.success(resp.data?.message || `User "${username}" unlocked successfully`);
+            fetchUsers(currentPage, pageSize);
+        } catch (err) {
+            const msg = err.response?.data?.message || "Failed to unlock user";
+            toast.error(msg);
+        } finally {
+            setUnlockingId(null);
+        }
+    };
+
     const filteredUsers = search
         ? users.filter(
               (u) =>
@@ -71,6 +86,7 @@ const AdminUsers = () => {
             verified: item.verified,
             twoFactorEnabled: item.twoFactorEnabled,
             phone: item.phone || "-",
+            locked: item.locked,
         };
     });
 
@@ -115,12 +131,38 @@ const AdminUsers = () => {
         },
         { field: "phone", headerName: "Phone", width: 120 },
         {
-            field: "actions",
-            headerName: "Actions",
+            field: "locked",
+            headerName: "Locked",
             width: 100,
-            sortable: false,
             renderCell: (params) => (
                 <div className="flex items-center justify-center h-full">
+                    {params.value ? (
+                        <span className="flex items-center gap-1 text-red-600 dark:text-red-400 text-sm">
+                            <FaLock /> Locked
+                        </span>
+                    ) : (
+                        <span className="text-gray-400 text-sm">No</span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 130,
+            sortable: false,
+            renderCell: (params) => (
+                <div className="flex items-center justify-center gap-1 h-full">
+                    {params.row.locked && (
+                        <button
+                            onClick={() => handleUnlock(params.row.userId, params.row.username)}
+                            disabled={unlockingId === params.row.userId}
+                            className="text-green-600 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-900/20 p-2 rounded-lg transition-colors disabled:opacity-50"
+                            title="Unlock account"
+                        >
+                            <FaLockOpen />
+                        </button>
+                    )}
                     <button
                         onClick={() => setConfirmDelete({ userId: params.row.userId, username: params.row.username })}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors"
