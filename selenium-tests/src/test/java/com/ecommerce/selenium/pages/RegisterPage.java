@@ -23,7 +23,7 @@ public class RegisterPage {
         this.wait = wait;
     }
     public boolean isFieldVisible(By locator) {
-        return driver.findElement(locator).isDisplayed();
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
     }
 
 }
