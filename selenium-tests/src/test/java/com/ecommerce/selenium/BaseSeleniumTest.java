@@ -21,6 +21,10 @@ public abstract class BaseSeleniumTest {
         baseUrl = System.getProperty("base.url", "http://localhost:5173");
         boolean headless = Boolean.parseBoolean(System.getProperty("headless", "true"));
 
+        System.setProperty("webdriver.chrome.driver",
+                System.getProperty("webdriver.chrome.driver",
+                        "drivers/chromedriver-win64/chromedriver.exe"));
+
         ChromeOptions options = new ChromeOptions();
         if (headless) {
             options.addArguments("--headless=new");
