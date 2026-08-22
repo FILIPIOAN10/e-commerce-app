@@ -20,7 +20,7 @@ public class ProductsPage {
     }
 
     public int addToCartButtonCount() {
-        return driver.findElements(ADD_TO_CART_BUTTONS).size();
+        return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(ADD_TO_CART_BUTTONS)).size();
     }
 
     public void addFirstProductToCart() {
