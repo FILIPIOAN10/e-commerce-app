@@ -13,7 +13,8 @@ public class NavbarPage {
     private static final By CONTACT_LINK = By.xpath("//a[normalize-space()='Contact']");
     private static final By LOGIN_LINK = By.xpath("//a[.//span[normalize-space()='Login'] or normalize-space()='Login']");
     private static final By USER_AVATAR = By.cssSelector(".MuiAvatar-root");
-    private static final By LOGOUT_BUTTON = By.xpath("//*[contains(text(),'Logout')]/ancestor::li | //*[normalize-space()='Logout']");
+    private static final By USER_MENU_LIST = By.cssSelector(".MuiMenu-list, .MuiMenu-paper");
+    private static final By LOGOUT_BUTTON = By.xpath("//li[contains(@class,'MuiMenuItem-root') and .//span[normalize-space()='Logout']]");
     private static final By USERNAME_IN_MENU = By.cssSelector(".MuiMenuItem-root .font-bold");
 
     private final WebDriver driver;
@@ -46,6 +47,8 @@ public class NavbarPage {
 
     public void openUserMenu() {
         wait.until(ExpectedConditions.elementToBeClickable(USER_AVATAR)).click();
+        // MUI Menu se randează într-un portal; așteptăm să fie vizibil
+        wait.until(ExpectedConditions.visibilityOfElementLocated(USER_MENU_LIST));
     }
 
     public void clickLogout() {
