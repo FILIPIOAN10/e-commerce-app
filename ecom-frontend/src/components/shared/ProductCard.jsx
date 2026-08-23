@@ -33,7 +33,7 @@ const ProductCard = ({
     const isInCompare = compareList?.some((p) => p.productId === productId);
 
     const handleAddToWishlist = () => {
-        dispatch(addToWishlist(productId));
+        dispatch(addToWishlist(productId, toast));
     };
 
     const handleAddToCompare = () => {

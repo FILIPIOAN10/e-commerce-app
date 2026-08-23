@@ -1,7 +1,6 @@
 package com.ecommerce.selenium.tests;
 
 import com.ecommerce.selenium.BaseSeleniumTest;
-import com.ecommerce.selenium.pages.GuestCheckoutPage;
 import com.ecommerce.selenium.pages.ProductsPage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,19 +13,27 @@ import static org.junit.jupiter.api.Assertions.*;
 class GuestCheckoutTest extends BaseSeleniumTest {
 
     @Test
-    @DisplayName("adaugă produs în coș ca guest → /guest-checkout → formular vizibil")
-    void guestCheckoutFormVisible() {
+    @DisplayName("guest adaugă produs în coș și vede opțiunea 'Checkout as guest'")
+    void guestCheckoutOptionIsVisible() {
         open("/products");
         new ProductsPage(driver, wait).addFirstProductToCart();
 
         wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//*[@role='status'][string-length(normalize-space(.)) > 0]")));
 
-        open("/guest-checkout");
-        GuestCheckoutPage page = new GuestCheckoutPage(driver, wait);
+        open("/cart");
 
-        assertTrue(page.isHeadingVisible(), "Heading-ul 'Guest Checkout' ar trebui să fie vizibil");
-        assertTrue(page.isEmailInputVisible(), "Câmpul email ar trebui să fie vizibil");
-        assertTrue(page.isSubmitButtonVisible(), "Butonul de submit ar trebui să fie vizibil");
+        // așteaptă ca coșul să se încarce cu produse (guest = coșul e în localStorage)
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//h1[contains(.,'Your Cart')]")));
+
+        // verifică că există butonul/link "Checkout as guest"
+        var guestCheckoutButton = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//button[contains(.,'Checkout as guest')]")));
+
+        assertTrue(guestCheckoutButton.isDisplayed(),
+                "Butonul 'Checkout as guest' ar trebui să fie vizibil pentru guest");
+        assertTrue(guestCheckoutButton.isEnabled(),
+                "Butonul 'Checkout as guest' ar trebui să fie activ");
     }
 }

@@ -17,7 +17,7 @@ class LogoutTest extends BaseSeleniumTest {
     void logoutRedirectsToLogin() {
         open("/login");
         new LoginPage(driver, wait).login("user1", "password1");
-        wait.until(ExpectedConditions.urlMatches(".*//$"));
+        wait.until(ExpectedConditions.urlMatches(".*/$"));
 
         NavbarPage navbar = new NavbarPage(driver, wait);
         navbar.openUserMenu();

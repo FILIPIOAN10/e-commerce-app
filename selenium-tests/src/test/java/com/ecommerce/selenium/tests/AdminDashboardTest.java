@@ -17,7 +17,7 @@ class AdminDashboardTest extends BaseSeleniumTest {
     void adminDashboardLoads() {
         open("/login");
         new LoginPage(driver, wait).login("admin", "adminPass");
-        wait.until(ExpectedConditions.urlMatches(".*//$"));
+        wait.until(ExpectedConditions.urlMatches(".*/$"));
 
         open("/admin");
 

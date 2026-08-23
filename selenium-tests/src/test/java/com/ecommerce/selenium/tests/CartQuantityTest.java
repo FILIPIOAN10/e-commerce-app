@@ -18,7 +18,7 @@ class CartQuantityTest extends BaseSeleniumTest {
     void increaseQuantityUpdatesPrice() {
         open("/login");
         new LoginPage(driver, wait).login("user1", "password1");
-        wait.until(ExpectedConditions.urlMatches(".*//$"));
+        wait.until(ExpectedConditions.urlMatches(".*/$"));
 
         open("/products");
         new ProductsPage(driver, wait).addFirstProductToCart();
