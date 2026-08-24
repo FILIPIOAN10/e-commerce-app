@@ -56,7 +56,7 @@ const ItemContent = ({
                 <div className="md:col-span-2 justify-self-start flex flex-col gap-2">
                 <div className="flex md:flex-row flex-col lg:gap-4 sm:gap-3 gap-0 items-start">
 
-                    <h3 className="lg:text-[17px] text-sm font-semibold text-slate-600 dark:text-gray-300">
+                    <h3 data-testid="cart-item-name" className="lg:text-[17px] text-sm font-semibold text-slate-600 dark:text-gray-300">
                 {truncateText(productName)}
                     </h3>
   
@@ -82,6 +82,7 @@ const ItemContent = ({
                                 quantity,
 
                             })}
+                            data-testid="remove-item-button"
                             className="flex items-center font-semibold space-x-2 px-4 py-1 text-xs border border-rose-600 text-rose-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors  duration-200"
                         >
                             <HiOutlineTrash size={16} className="text-rose-600" />

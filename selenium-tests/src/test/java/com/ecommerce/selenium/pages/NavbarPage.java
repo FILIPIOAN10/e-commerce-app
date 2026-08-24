@@ -12,9 +12,9 @@ public class NavbarPage {
     private static final By ABOUT_LINK = By.xpath("//a[normalize-space()='About']");
     private static final By CONTACT_LINK = By.xpath("//a[normalize-space()='Contact']");
     private static final By LOGIN_LINK = By.xpath("//a[.//span[normalize-space()='Login'] or normalize-space()='Login']");
-    private static final By USER_AVATAR = By.cssSelector(".MuiAvatar-root");
+    private static final By USER_AVATAR = By.cssSelector("[data-testid='user-avatar']");
     private static final By USER_MENU_LIST = By.cssSelector(".MuiMenu-list, .MuiMenu-paper");
-    private static final By LOGOUT_BUTTON = By.xpath("//li[contains(@class,'MuiMenuItem-root') and .//span[normalize-space()='Logout']]");
+    private static final By LOGOUT_BUTTON = By.cssSelector("[data-testid='logout-button']");
     private static final By USERNAME_IN_MENU = By.cssSelector(".MuiMenuItem-root .font-bold");
 
     private final WebDriver driver;

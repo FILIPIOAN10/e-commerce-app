@@ -25,11 +25,11 @@ class GuestCheckoutTest extends BaseSeleniumTest {
 
         // așteaptă ca coșul să se încarce cu produse (guest = coșul e în localStorage)
         wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//h1[contains(.,'Your Cart')]")));
+                By.cssSelector("[data-testid='cart-heading']")));
 
         // verifică că există butonul/link "Checkout as guest"
         var guestCheckoutButton = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//button[contains(.,'Checkout as guest')]")));
+                By.cssSelector("[data-testid='guest-checkout-button']")));
 
         assertTrue(guestCheckoutButton.isDisplayed(),
                 "Butonul 'Checkout as guest' ar trebui să fie vizibil pentru guest");

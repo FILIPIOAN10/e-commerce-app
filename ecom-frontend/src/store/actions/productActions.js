@@ -32,10 +32,11 @@ export const fetchProducts = (queryString = "") => async (dispatch) => {
     }
 };
 
-export const fetchCategories = () => async (dispatch) => {
+export const fetchCategories = (queryString = "") => async (dispatch) => {
     try {
         dispatch({ type: "CATEGORY_LOADER" });
-        const { data } = await api.get(`/public/categories`);
+        const requestUrl = queryString ? `/public/categories?${queryString}` : "/public/categories";
+        const { data } = await api.get(requestUrl);
         dispatch({
             type: "FETCH_CATEGORIES",
             payload: data.content,
@@ -117,27 +118,30 @@ export const fetchFrequentlyBoughtTogether = (productId, limit = 4) => async (di
 
 export const fetchBestSellers = (limit = 8) => async (dispatch) => {
     try {
-        const { data } = await api.get(`/public/products/best-sellers?limit=${limit}`);
+        const { data } = await api.get(`/public/products/featured?type=best-sellers&limit=${limit}`);
         dispatch({ type: "SET_BEST_SELLERS", payload: data });
-    } catch {
+    } catch (error) {
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch best sellers" });
         dispatch({ type: "SET_BEST_SELLERS", payload: [] });
     }
 };
 
 export const fetchNewArrivals = (limit = 8) => async (dispatch) => {
     try {
-        const { data } = await api.get(`/public/products/new-arrivals?limit=${limit}`);
+        const { data } = await api.get(`/public/products/featured?type=new-arrivals&limit=${limit}`);
         dispatch({ type: "SET_NEW_ARRIVALS", payload: data });
-    } catch {
+    } catch (error) {
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch new arrivals" });
         dispatch({ type: "SET_NEW_ARRIVALS", payload: [] });
     }
 };
 
 export const fetchOnSaleProducts = (limit = 8) => async (dispatch) => {
     try {
-        const { data } = await api.get(`/public/products/on-sale?limit=${limit}`);
+        const { data } = await api.get(`/public/products/featured?type=on-sale&limit=${limit}`);
         dispatch({ type: "SET_ON_SALE", payload: data });
-    } catch {
+    } catch (error) {
+        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch on-sale products" });
         dispatch({ type: "SET_ON_SALE", payload: [] });
     }
 };
@@ -184,20 +188,3 @@ export const clearCompare = () => (dispatch, getState) => {
     localStorage.setItem("compareItems", JSON.stringify(getState().products.compareList));
 };
 
-export const getFilteredProductsForDisplay = () => async (dispatch) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get("/products/display");
-        dispatch({
-            type: "FETCH_FILTERED_PRODUCTS",
-            payload: data,
-        });
-        dispatch({ type: "IS_SUCCESS" });
-        return data;
-    } catch (error) {
-        dispatch({
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch filtered products",
-        });
-    }
-};

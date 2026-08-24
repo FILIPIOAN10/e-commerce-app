@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
@@ -11,6 +11,7 @@ import InputField from "../../shared/InputField";
 
 const AddCategoryForm = ({ setOpen, open, category, update = false }) => {
   const dispatch = useDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -22,15 +23,20 @@ const AddCategoryForm = ({ setOpen, open, category, update = false }) => {
     mode: "onTouched",
   });
 
-  const addNewCategoryHandler = (data) => {
-    if (!update) {
-      //dispatch createCategoryDashboardAction
-      dispatch(createCategoryDashboardAction(data, setOpen, reset, toast));
-    } else {
-      //dispatch updateCategoryDashboardAction
-      dispatch(
-        updateCategoryDashboardAction(data, setOpen, category.id, reset, toast)
-      );
+  const addNewCategoryHandler = async (data) => {
+    setIsSubmitting(true);
+    try {
+      if (!update) {
+        //dispatch createCategoryDashboardAction
+        await dispatch(createCategoryDashboardAction(data, setOpen, reset, toast));
+      } else {
+        //dispatch updateCategoryDashboardAction
+        await dispatch(
+          updateCategoryDashboardAction(data, setOpen, category.id, reset, toast)
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
   useEffect(() => {
@@ -60,7 +66,7 @@ const AddCategoryForm = ({ setOpen, open, category, update = false }) => {
 
         <div className="flex  w-full justify-between items-center absolute bottom-14">
           <button
-            disabled={open}
+            disabled={isSubmitting}
             onClick={() => setOpen(false)}
             type="button"
             className={`border border-borderColor rounded-[5px] font-metropolis  text-textColor py-[10px] px-4 text-sm font-medium`}
@@ -68,11 +74,11 @@ const AddCategoryForm = ({ setOpen, open, category, update = false }) => {
             Cancel
           </button>
           <button
-            disabled={open}
+            disabled={isSubmitting}
             type="submit"
             className={`font-metropolis rounded-[5px]  bg-custom-blue hover:bg-blue-800 text-white  py-[10px] px-4 text-sm font-medium`}
           >
-            {open ? "Loading.." : update ? "Update" : "Save"}
+            {isSubmitting ? "Loading.." : update ? "Update" : "Save"}
           </button>
         </div>
       </form>

@@ -23,9 +23,10 @@ public abstract class BaseSeleniumTest {
         baseUrl = System.getProperty("base.url", "http://localhost:5173");
         boolean headless = Boolean.parseBoolean(System.getProperty("headless", "true"));
 
-        System.setProperty("webdriver.chrome.driver",
-                System.getProperty("webdriver.chrome.driver",
-                        "drivers/chromedriver-win64/chromedriver.exe"));
+        String chromeDriverPath = System.getProperty("webdriver.chrome.driver");
+        if (chromeDriverPath != null && !chromeDriverPath.isBlank()) {
+            System.setProperty("webdriver.chrome.driver", chromeDriverPath);
+        }
 
         ChromeOptions options = new ChromeOptions();
         if (headless) {

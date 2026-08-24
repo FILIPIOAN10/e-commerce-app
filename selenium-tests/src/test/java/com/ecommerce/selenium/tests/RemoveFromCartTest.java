@@ -29,7 +29,7 @@ class RemoveFromCartTest extends BaseSeleniumTest {
         open("/cart");
 
         wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//button[normalize-space()='Remove']"))).click();
+                By.cssSelector("[data-testid='remove-item-button']"))).click();
 
         wait.until(ExpectedConditions.or(
                 ExpectedConditions.presenceOfElementLocated(

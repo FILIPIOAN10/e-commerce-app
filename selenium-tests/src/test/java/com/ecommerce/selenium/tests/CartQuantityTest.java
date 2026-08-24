@@ -29,7 +29,7 @@ class CartQuantityTest extends BaseSeleniumTest {
         open("/cart");
 
         wait.until(ExpectedConditions.elementToBeClickable(
-                By.cssSelector("button[aria-label='Increase quantity']"))).click();
+                By.cssSelector("[data-testid='increase-quantity']"))).click();
 
         wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//*[@role='status'][string-length(normalize-space(.)) > 0]")));
