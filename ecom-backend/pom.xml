@@ -17,7 +17,7 @@
     <properties>
         <java.version>17</java.version>
         <spring-ai.version>2.0.0</spring-ai.version>
-        <spring-cloud.version>2025.1.2</spring-cloud.version>
+        <spring-cloud.version>2025.1.3</spring-cloud.version>
         <swagger.version>2.2.53</swagger.version>
         <netty.version>4.2.16.Final</netty.version>
         <httpcore5.version>5.4.3</httpcore5.version>
