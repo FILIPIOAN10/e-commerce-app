@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
@@ -54,6 +55,7 @@ class OrderServiceImplTest {
     @Mock private InventoryReservationService inventoryReservationService;
     @Mock private ModelMapper modelMapper;
     @Mock private StripeService stripeService;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -190,8 +192,7 @@ class OrderServiceImplTest {
             verify(orderRepository).save(any(Order.class));
             verify(paymentRepository).save(any(Payment.class));
             verify(orderItemRepository).saveAll(anyList());
-            verify(emailService).sendOrderConfirmationEmail(eq(EMAIL), any(OrderDTO.class));
-            verify(notificationService).notifyAdminNewOrder(eq(1L), eq(EMAIL), eq(100.0));
+            verify(eventPublisher).publishEvent(any(OrderServiceImpl.OrderPlacedEvent.class));
         }
 
         @Test
