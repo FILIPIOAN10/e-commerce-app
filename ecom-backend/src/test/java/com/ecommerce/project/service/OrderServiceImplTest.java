@@ -4,8 +4,10 @@ import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.OrderDTO;
+import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.model.PaymentIntent;
@@ -556,6 +558,44 @@ class OrderServiceImplTest {
 
             // The implementation calls findByCode with toUpperCase()
             verify(couponRepository).findByCode("SAVE10");
+        }
+
+        @Test
+        @DisplayName("shipping is calculated on post-discount total: 105 subtotal, 20% coupon, US address -> 8900 cents")
+        void shippingCalculatedOnTotalAfterDiscount() {
+            Coupon coupon = buildActiveCoupon(20, 100, 0);
+            stubWithCoupon(coupon);
+
+            // US address is not domestic, so shipping is $5 when the chargeable total is below $100.
+            address.setCountry("US");
+
+            // Use the real ShippingCalculator for this scenario.
+            ShippingCalculator realCalculator = new ShippingCalculator();
+            when(shippingCalculator.calculate(any(Address.class), anyDouble()))
+                    .thenAnswer(invocation ->
+                            realCalculator.calculate(invocation.getArgument(0), invocation.getArgument(1, Double.class)));
+
+            cart.setTotalPrice(105.0);
+
+            OrderSummaryDTO preview = orderService.previewOrder(EMAIL, ADDRESS_ID, List.of("SAVE10"));
+
+            assertEquals(105.0, preview.getSubtotal());
+            assertEquals(21.0, preview.getDiscountAmount());
+            assertEquals(5.0, preview.getShippingCost());
+            assertEquals(89.0, preview.getTotalAmount());
+
+            // Stripe PaymentIntent and placeOrder expectedCents must both be 8900.
+            long expectedCents = Money.toCents(preview.getTotalAmount());
+            assertEquals(8900L, expectedCents);
+
+            when(paymentIntent.getAmount()).thenReturn(expectedCents);
+            OrderDTO placed = orderService.placeOrder(
+                    EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
+                    "pi_123", "succeeded", "OK", List.of("SAVE10"));
+
+            assertEquals(89.0, placed.getTotalAmount());
+            assertEquals(5.0, placed.getShippingCost());
+            assertEquals(21.0, placed.getDiscountAmount());
         }
     }
 }

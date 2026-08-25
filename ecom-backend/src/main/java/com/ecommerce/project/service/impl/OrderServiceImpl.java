@@ -112,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
 
         CouponApplicationResult couponResult = calculateDiscount(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
+        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         verifyPayment(paymentMethod, pgName, pgPaymentId, totalAmount);
@@ -253,10 +253,6 @@ public class OrderServiceImpl implements OrderService {
     public double calculateShippingCost(Long addressId, double cartTotal) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-        return calculateShippingCost(address, cartTotal);
-    }
-
-    private double calculateShippingCost(Address address, double cartTotal) {
         return shippingCalculator.calculate(address, cartTotal);
     }
 
@@ -280,7 +276,7 @@ public class OrderServiceImpl implements OrderService {
         // Preview must not mutate coupon usage counters.
         CouponApplicationResult couponResult = calculateDiscount(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
+        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         OrderSummaryDTO summary = new OrderSummaryDTO();
@@ -350,7 +346,7 @@ public class OrderServiceImpl implements OrderService {
 
         CouponApplicationResult couponResult = calculateDiscount(request.getCouponCodes(), subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
+        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         verifyPayment(request.getPaymentMethod(), request.getPgName(),
