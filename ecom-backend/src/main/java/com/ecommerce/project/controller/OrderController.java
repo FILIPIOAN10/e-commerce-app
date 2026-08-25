@@ -3,6 +3,7 @@ package com.ecommerce.project.controller;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.payload.*;
 import com.ecommerce.project.payload.PaginationParams;
+import com.ecommerce.project.service.order.OrderStatus;
 import jakarta.validation.Valid;
 
 import com.ecommerce.project.service.OrderService;
@@ -96,6 +97,17 @@ public class OrderController extends BaseController {
     public ResponseEntity<OrderDTO> trackOrder(@PathVariable Long orderId) {
         String email = authUtil.loggedInEmail();
         OrderDTO order = orderService.getOrderById(orderId, email);
+        return ok(order);
+    }
+
+    @Tag(name = "Order")
+    @PutMapping("/orders/{orderId}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderDTO> cancelOrder(@PathVariable Long orderId) {
+        String email = authUtil.loggedInEmail();
+        // Verify the order belongs to the caller first; throws if it does not.
+        orderService.getOrderById(orderId, email);
+        OrderDTO order = orderService.updateOrder(orderId, OrderStatus.CANCELLED);
         return ok(order);
     }
 

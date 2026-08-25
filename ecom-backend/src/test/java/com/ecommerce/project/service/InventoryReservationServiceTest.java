@@ -71,6 +71,9 @@ class InventoryReservationServiceTest {
 
         when(redisTemplate.opsForHash()).thenReturn(hashOps);
         when(redisTemplate.opsForSet()).thenReturn(setOps);
+        when(redisTemplate.opsForValue()).thenReturn(valueOps);
+        when(valueOps.increment(anyString(), anyLong())).thenReturn(0L);
+        when(valueOps.decrement(anyString(), anyLong())).thenReturn(0L);
     }
 
     @Test
