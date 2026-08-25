@@ -13,6 +13,7 @@ import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.util.ProductMapper;
 import com.ecommerce.project.util.ProductSpecifications;
 import com.ecommerce.project.util.PaginationUtil;
+import com.ecommerce.project.util.SortWhitelist;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -169,7 +170,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     }
 
     private Sort buildProductSort(String sortBy, String sortOrder) {
-        return PaginationUtil.buildSort(sortBy == null || sortBy.isBlank() ? "productId" : sortBy, sortOrder);
+        String safeSortBy = SortWhitelist.sanitize(sortBy, SortWhitelist.PRODUCT, "productId");
+        return PaginationUtil.buildSort(safeSortBy, sortOrder);
     }
 
     private Specification<Product> buildClassicSearchSpec(List<String> terms) {

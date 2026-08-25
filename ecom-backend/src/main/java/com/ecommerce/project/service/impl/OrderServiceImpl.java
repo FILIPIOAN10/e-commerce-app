@@ -51,6 +51,8 @@ import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -166,9 +168,8 @@ public class OrderServiceImpl implements OrderService {
 
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
                 AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
-        Page<Order> pageOrders = orderRepository.findAllWithDetails(pageDetails);
 
-        return buildOrderResponse(pageOrders);
+        return buildOrderResponse(orderRepository.findAllIds(pageDetails));
     }
 
     @Override
@@ -215,9 +216,7 @@ public class OrderServiceImpl implements OrderService {
 
         User seller = authUtil.loggedInUser();
 
-        Page<Order> pageOrders = orderRepository.findOrdersBySellerIdWithDetails(seller.getUserId(), pageDetails);
-
-        return buildOrderResponse(pageOrders);
+        return buildOrderResponse(orderRepository.findIdsBySellerId(seller.getUserId(), pageDetails));
     }
 
     @Override
@@ -225,9 +224,7 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
                 AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
 
-        Page<Order> pageOrders = orderRepository.findByEmailWithDetails(email, pageDetails);
-
-        return buildOrderResponse(pageOrders);
+        return buildOrderResponse(orderRepository.findIdsByEmail(email, pageDetails));
     }
 
     @Override
@@ -381,17 +378,33 @@ public class OrderServiceImpl implements OrderService {
         return guestOrderDTO;
     }
 
-    private OrderResponse buildOrderResponse(Page<Order> pageOrders) {
-        List<OrderDTO> orderDTOS = pageOrders.getContent().stream()
-                .map(order -> modelMapper.map(order, OrderDTO.class))
-                .toList();
+    /**
+     * Phase 2 of two-phase pagination: hydrates one page of order IDs into full
+     * order graphs, preserving the ordering established by the ID query.
+     */
+    private OrderResponse buildOrderResponse(Page<Long> idPage) {
+        List<Long> ids = idPage.getContent();
+
+        List<OrderDTO> orderDTOS;
+        if (ids.isEmpty()) {
+            orderDTOS = List.of();
+        } else {
+            Map<Long, Order> byId = orderRepository.findByIdInWithDetails(ids).stream()
+                    .collect(Collectors.toMap(Order::getId, order -> order));
+            orderDTOS = ids.stream()
+                    .map(byId::get)
+                    .filter(Objects::nonNull)
+                    .map(order -> modelMapper.map(order, OrderDTO.class))
+                    .toList();
+        }
+
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setContent(orderDTOS);
-        orderResponse.setPageNumber(pageOrders.getNumber());
-        orderResponse.setPageSize(pageOrders.getSize());
-        orderResponse.setTotalElements(pageOrders.getTotalElements());
-        orderResponse.setTotalPages(pageOrders.getTotalPages());
-        orderResponse.setLastPage(pageOrders.isLast());
+        orderResponse.setPageNumber(idPage.getNumber());
+        orderResponse.setPageSize(idPage.getSize());
+        orderResponse.setTotalElements(idPage.getTotalElements());
+        orderResponse.setTotalPages(idPage.getTotalPages());
+        orderResponse.setLastPage(idPage.isLast());
         return orderResponse;
     }
 

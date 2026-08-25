@@ -23,6 +23,7 @@ import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.util.ProductMapper;
 import com.ecommerce.project.util.PaginationUtil;
 import com.ecommerce.project.util.ProductSpecifications;
+import com.ecommerce.project.util.SortWhitelist;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -94,7 +95,8 @@ public class ProductServiceImpl implements ProductService {
     )
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_PRODUCTS_BY, SortWhitelist.PRODUCT);
 
         Specification<Product> spec = ProductSpecifications.withKeyword(keyword)
                 .and(ProductSpecifications.withCategory(category));
@@ -113,7 +115,8 @@ public class ProductServiceImpl implements ProductService {
             key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_PRODUCTS_BY, SortWhitelist.PRODUCT);
         Page<Product> pageProducts = productRepository.findAll(pageDetails);
 
         return productMapper.buildProductResponse(pageProducts);
