@@ -25,7 +25,12 @@ public class RateLimitConfig {
         return List.of(
                 new RateLimitRule("auth-signin", "POST", "/api/auth/signin", 5, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("auth-signup", "POST", "/api/auth/signup", 3, oneMinute, RateLimitKeyType.IP),
+                new RateLimitRule("auth-forgot-password", "POST", "/api/auth/forgot-password", 3, oneMinute, RateLimitKeyType.IP),
+                new RateLimitRule("auth-reset-password", "POST", "/api/auth/reset-password", 5, oneMinute, RateLimitKeyType.IP),
+                new RateLimitRule("auth-resend-verification", "POST", "/api/auth/resend-verification", 3, oneMinute, RateLimitKeyType.IP),
+                new RateLimitRule("auth-verify-2fa", "POST", "/api/auth/public/verify-2fa-login", 5, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("order-payment", "POST", "/api/order/users/payments/*", 3, oneMinute, RateLimitKeyType.USER),
+                new RateLimitRule("order-guest", "POST", "/api/public/orders/guest", 10, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("product-search", "GET", "/api/public/products/keyword/*", 30, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("product-search-query", "GET", "/api/public/products/search", 30, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("product-list", "GET", "/api/public/products", 100, oneMinute, RateLimitKeyType.IP),
