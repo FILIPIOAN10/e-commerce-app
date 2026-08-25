@@ -356,6 +356,7 @@ const ProductDetail = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={!isAvailable}
+                  data-testid="add-to-cart-button"
                   className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition ${
                     isAvailable
                       ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/25"
@@ -371,6 +372,7 @@ const ProductDetail = () => {
                 <button
                   onClick={handleAddToWishlist}
                   disabled={isInWishlist}
+                  data-testid="wishlist-button"
                   className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold border transition ${
                     isInWishlist
                       ? "bg-rose-50 border-rose-200 text-rose-500 cursor-default"
@@ -385,6 +387,7 @@ const ProductDetail = () => {
               <button
                 onClick={handleAddToCompare}
                 disabled={isInCompare}
+                data-testid="compare-button"
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold border transition ${
                   isInCompare
                     ? "bg-blue-50 border-blue-200 text-blue-600 cursor-default"

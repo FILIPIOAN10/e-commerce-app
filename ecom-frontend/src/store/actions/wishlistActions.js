@@ -4,10 +4,10 @@ export const addToWishlist = (productId, toast) => async (dispatch) => {
     try {
         const { data } = await api.post(`/users/wishlist/${productId}`);
         dispatch({ type: "addToWishlistSuccess", payload: { productId } });
-        toast.success(data.message);
+        toast?.success(data.message);
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to add to wishlist";
-        toast.error(msg);
+        toast?.error(msg);
     }
 };
 
@@ -15,10 +15,10 @@ export const removeFromWishlist = (productId, toast) => async (dispatch) => {
     try {
         const { data } = await api.delete(`/users/wishlist/${productId}`);
         dispatch({ type: "removeFromWishlistSuccess", payload: productId });
-        toast.success(data.message);
+        toast?.success(data.message);
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to remove from wishlist";
-        toast.error(msg);
+        toast?.error(msg);
     }
 };
 

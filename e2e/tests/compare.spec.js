@@ -26,7 +26,7 @@ test.describe('Compare flow', () => {
     await page.goto(`/products/${product.productId}`)
     await page.waitForSelector('h1', { timeout: 10000 })
 
-    const compareBtn = page.locator('button:has-text("Compare")').first()
+    const compareBtn = page.locator('[data-testid="compare-button"]').first()
     if (await compareBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await compareBtn.click()
       await page.waitForTimeout(1000)

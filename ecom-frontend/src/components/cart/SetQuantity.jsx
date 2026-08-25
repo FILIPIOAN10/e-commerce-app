@@ -17,6 +17,7 @@ const SetQuantity = ({
                 disabled={quantity<=1}
                 className={btnStyles}
                 onClick={handleQtyDecrease}
+                data-testid="decrease-quantity"
                 aria-label="Decrease quantity"
                 type="button"
             >
@@ -27,6 +28,7 @@ const SetQuantity = ({
             <button
                 className={btnStyles}
                 onClick={handleQtyIncrease}
+                data-testid="increase-quantity"
                 aria-label="Increase quantity"
                 type="button"
             >
