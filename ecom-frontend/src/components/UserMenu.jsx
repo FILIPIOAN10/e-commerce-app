@@ -33,6 +33,7 @@ const UserMenu = () => {
   return (
     <div className='relative z-30'>
       <div
+        data-testid='user-avatar'
         className='sm:border-[1px] sm:border-slate-400 flex flex-row items-center gap-1 rounded-full cursor-pointer hover:shadow-md transition text-slate-700'
         onClick={handleClick}
       >
@@ -85,7 +86,7 @@ const UserMenu = () => {
           </Link>
         )}
 
-        <MenuItem className='flex ga-2' onClick={logOutHandler}>
+        <MenuItem data-testid='logout-button' className='flex ga-2' onClick={logOutHandler}>
           <div className='font-semibold w-full flex gap-2 items-center bg-button-gradient px-4 py-1 text-white rounded-sm'>
             <IoExitOutline className="text-xl" />
             <span className='font-semibold'>

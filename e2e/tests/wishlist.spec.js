@@ -26,7 +26,7 @@ test.describe('Wishlist flow', () => {
     await page.goto(`/products/${product.productId}`)
     await page.waitForSelector('h1', { timeout: 10000 })
 
-    const wishlistBtn = page.locator('button:has-text("Wishlist")').first()
+    const wishlistBtn = page.locator('[data-testid="wishlist-button"]').first()
     if (await wishlistBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await wishlistBtn.click()
       await page.waitForTimeout(1000)
@@ -37,11 +37,9 @@ test.describe('Wishlist flow', () => {
     await expect(page.locator('text=My Wishlist')).toBeVisible()
     await expect(page.locator('text=' + product.productName)).toBeVisible({ timeout: 10000 })
 
-    const removeBtn = page.locator('[title="Remove from wishlist"]').first()
-    if (await removeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await removeBtn.click()
-      await page.waitForTimeout(1000)
-      await expect(page.locator('text=Your wishlist is empty')).toBeVisible({ timeout: 10000 })
-    }
+    const removeBtn = page.locator(`[data-testid="wishlist-item"][data-product-id="${product.productId}"] [data-testid="remove-from-wishlist"]`)
+    await expect(removeBtn).toBeVisible({ timeout: 5000 })
+    await removeBtn.click()
+    await expect(page.locator('text=' + product.productName)).toHaveCount(0, { timeout: 10000 })
   })
 })

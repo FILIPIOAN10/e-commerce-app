@@ -33,7 +33,7 @@ const ProductCard = ({
     const isInCompare = compareList?.some((p) => p.productId === productId);
 
     const handleAddToWishlist = () => {
-        dispatch(addToWishlist(productId));
+        dispatch(addToWishlist(productId, toast));
     };
 
     const handleAddToCompare = () => {
@@ -70,6 +70,7 @@ const ProductCard = ({
                         {user?.id && !isAdmin && (
                             <button
                                 onClick={handleAddToWishlist}
+                                data-testid="wishlist-button"
                                 className={`${isInWishlist ? "text-red-500" : "text-gray-300 hover:text-red-400"} transition text-xl`}
                                 title={isInWishlist ? "Already in wishlist" : "Add to wishlist"}
                                 disabled={isInWishlist}
@@ -79,6 +80,7 @@ const ProductCard = ({
                         )}
                         <button
                             onClick={handleAddToCompare}
+                            data-testid="compare-button"
                             className={`${isInCompare ? "text-blue-500" : "text-gray-300 hover:text-blue-400"} transition text-xl`}
                             title={isInCompare ? "In compare list" : "Add to compare"}
                             disabled={isInCompare}
@@ -88,6 +90,7 @@ const ProductCard = ({
                     </div>
                 )}
                 <h2 onClick={handleProductView}
+                    data-testid="product-name"
                     className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
                     {truncateText(productName, 50)}
                 </h2>
@@ -138,6 +141,7 @@ const ProductCard = ({
                         <button
                             disabled={!isAvailable || btnLoader}
                             onClick={(e) => { e.stopPropagation(); addToCartHandler({ image, productName, description, specialPrice, price, productId, quantity }); }}
+                            data-testid="add-to-cart-button"
                             className={`bg-blue-500 ${isAvailable ? "opacity-100 hover:bg-blue-600" : "opacity-70"}
                                 text-white py-2 px-3 rounded-lg items-center transition-colors duration-300 w-36 flex justify-center`}>
                             <FaShoppingCart className="mr-2" />

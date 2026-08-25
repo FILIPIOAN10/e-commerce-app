@@ -3,6 +3,7 @@ package com.ecommerce.project.exception;
 import com.ecommerce.project.payload.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -97,6 +98,18 @@ public class MyGlobalExceptionHandler {
         logger.error("Default role not found", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Internal server error"));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        Throwable root = e.getRootCause() != null ? e.getRootCause() : e.getCause();
+        String message = root != null ? root.getMessage() : e.getMessage();
+        logger.warn("Data integrity violation: {}", message);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "Conflict: duplicate or invalid data. Payment may already have been used for another order.");
+        body.put("status", false);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     @ExceptionHandler(Exception.class)

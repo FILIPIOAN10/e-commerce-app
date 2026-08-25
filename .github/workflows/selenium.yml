@@ -1,0 +1,75 @@
+name: Selenium Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'selenium-tests/**'
+      - 'ecom-frontend/**'
+      - 'ecom-backend/**'
+      - '.github/workflows/selenium.yml'
+
+jobs:
+  selenium-test:
+    name: Selenium Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Create .env
+        run: |
+          echo "POSTGRES_DB=ecommerce" > .env
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=postgres" >> .env
+          echo "VAULT_TOKEN=root" >> .env
+          echo "JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('base64'))")" >> .env
+
+      - name: Start services with Docker Compose
+        run: |
+          docker compose up -d --build
+          sleep 30
+
+      - name: Wait for backend
+        run: |
+          for i in $(seq 1 30); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/public/products || echo "000")
+            if [ "$CODE" = "200" ]; then
+              echo "Backend up"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Backend did not start"
+          exit 1
+
+      - name: Install Selenium tests dependencies
+        working-directory: selenium-tests
+        run: mvn -B dependency:go-offline
+
+      - name: Run Selenium tests
+        working-directory: selenium-tests
+        run: mvn -B test -Dheadless=true
+
+      - name: Upload Selenium test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-results
+          path: selenium-tests/target/surefire-reports/
+          retention-days: 7
