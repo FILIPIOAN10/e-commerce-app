@@ -9,7 +9,7 @@ import {
 } from "../../../store/actions";
 import InputField from "../../shared/InputField";
 
-const AddCategoryForm = ({ setOpen, open, category, update = false }) => {
+const AddCategoryForm = ({ setOpen, category, update = false }) => {
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
