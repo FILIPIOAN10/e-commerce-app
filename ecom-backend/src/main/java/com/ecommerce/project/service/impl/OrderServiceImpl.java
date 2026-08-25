@@ -18,6 +18,8 @@ import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.service.UserActivityLogService;
+import com.ecommerce.project.service.pricing.Money;
+import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
 import com.ecommerce.project.config.AppConstants;
@@ -30,7 +32,10 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.stripe.model.PaymentIntent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -66,6 +71,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final AuthUtil authUtil;
     private final StripeService stripeService;
+    private final ShippingCalculator shippingCalculator;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Override
@@ -99,22 +106,10 @@ public class OrderServiceImpl implements OrderService {
 
         CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(addressId, subtotal);
+        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
-        if (isStripePayment(paymentMethod, pgName)) {
-            if (pgPaymentId == null || pgPaymentId.isBlank()) {
-                throw new APIException("Payment id is required");
-            }
-            PaymentIntent intent = stripeService.retrievePaymentIntent(pgPaymentId);
-            if (!"succeeded".equals(intent.getStatus())) {
-                throw new APIException("Payment has not succeeded");
-            }
-            long expectedCents = Math.round(totalAmount * 100);
-            if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
-                throw new APIException("Payment amount does not match order total");
-            }
-        }
+        verifyPayment(paymentMethod, pgName, pgPaymentId, totalAmount);
 
         order.setTotalAmount(totalAmount);
         order.setDiscountAmount(couponResult.getDiscountAmount());
@@ -148,15 +143,16 @@ public class OrderServiceImpl implements OrderService {
         inventoryReservationService.consumeReservationsForCart(cart.getCartId());
 
         // Clear the cart after the reservation has been consumed
-        cart.getCartItems().forEach(item ->
-            cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId())
+        List<Long> productIds = cart.getCartItems().stream()
+                .map(item -> item.getProduct().getProductId())
+                .collect(Collectors.toList());
+        productIds.forEach(productId ->
+            cartService.deleteProductFromCart(cart.getCartId(), productId)
         );
 
         // Send back the order summary
         OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
-        emailService.sendOrderConfirmationEmail(emailId, orderDTO);
-        notificationService.notifyAdminNewOrder(savedOrder.getId(), emailId, totalAmount);
-        userActivityLogService.log(emailId, "PLACE_ORDER", "Order " + savedOrder.getId() + " placed for $" + totalAmount);
+        eventPublisher.publishEvent(new OrderPlacedEvent(emailId, savedOrder.getId(), totalAmount, orderDTO));
         return orderDTO;
     }
 
@@ -174,6 +170,7 @@ public class OrderServiceImpl implements OrderService {
             "Return Requested", "Returned", "Refunded"
     );
     @Override
+    @Transactional
     public OrderDTO updateOrder(Long orderId, String status) {
         if (status == null || !VALID_STATUSES.contains(status)) {
             throw new APIException("Invalid order status: " + status
@@ -184,8 +181,7 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus(status);
         orderRepository.save(order);
         OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
-        emailService.sendOrderStatusUpdateEmail(order.getEmail(), orderDTO);
-        notificationService.notifyUserOrderStatusChanged(orderId, order.getEmail(), status);
+        eventPublisher.publishEvent(new OrderStatusUpdatedEvent(orderId, order.getEmail(), status, orderDTO));
         return orderDTO;
     }
 
@@ -235,14 +231,11 @@ public class OrderServiceImpl implements OrderService {
     public double calculateShippingCost(Long addressId, double cartTotal) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-        double baseCost = 5.0;
-        if ("RO".equalsIgnoreCase(address.getCountry()) || "Romania".equalsIgnoreCase(address.getCountry())) {
-            baseCost = 3.0;
-        }
-        if (cartTotal >= 100.0) {
-            return 0.0;
-        }
-        return baseCost;
+        return calculateShippingCost(address, cartTotal);
+    }
+
+    private double calculateShippingCost(Address address, double cartTotal) {
+        return shippingCalculator.calculate(address, cartTotal);
     }
 
     @Override
@@ -264,7 +257,7 @@ public class OrderServiceImpl implements OrderService {
         double subtotal = cart.getTotalPrice();
         CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(addressId, totalAfterDiscount);
+        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         OrderSummaryDTO summary = new OrderSummaryDTO();
@@ -325,8 +318,11 @@ public class OrderServiceImpl implements OrderService {
 
         CouponApplicationResult couponResult = applyCoupons(request.getCouponCodes(), subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = calculateShippingCost(address.getAddressId(), totalAfterDiscount);
+        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
+
+        verifyPayment(request.getPaymentMethod(), request.getPgName(),
+                request.getPgPaymentId(), totalAmount);
 
         order.setTotalAmount(totalAmount);
         order.setDiscountAmount(couponResult.getDiscountAmount());
@@ -342,10 +338,10 @@ public class OrderServiceImpl implements OrderService {
         orderItems.forEach(item -> item.setOrder(savedOrder));
         List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
 
-        emailService.sendOrderConfirmationEmail(request.getEmail(), buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount));
-        notificationService.notifyAdminNewOrder(savedOrder.getId(), request.getEmail(), totalAmount);
+        OrderDTO guestOrderDTO = buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount);
+        eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), totalAmount, guestOrderDTO));
 
-        return buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount);
+        return guestOrderDTO;
     }
 
     private OrderResponse buildOrderResponse(Page<Order> pageOrders) {
@@ -431,6 +427,49 @@ public class OrderServiceImpl implements OrderService {
         return "STRIPE".equalsIgnoreCase(paymentMethod)
                 || "online".equalsIgnoreCase(paymentMethod)
                 || "Stripe".equalsIgnoreCase(pgName);
+    }
+
+    private void verifyPayment(String paymentMethod, String pgName,
+                               String pgPaymentId, double expectedTotal) {
+        if (pgPaymentId == null || pgPaymentId.isBlank()) {
+            return;
+        }
+
+        paymentRepository.findByPgPaymentId(pgPaymentId).ifPresent(existing -> {
+            throw new APIException("This payment has already been used for order "
+                    + existing.getOrder().getId());
+        });
+
+        if (isStripePayment(paymentMethod, pgName)) {
+            PaymentIntent intent = stripeService.retrievePaymentIntent(pgPaymentId);
+            if (!"succeeded".equals(intent.getStatus())) {
+                throw new APIException("Payment has not succeeded");
+            }
+
+            long expectedCents = Money.toCents(expectedTotal);
+            if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
+                throw new APIException("Payment amount does not match order total");
+            }
+        }
+    }
+
+    public record OrderPlacedEvent(String email, Long orderId, double totalAmount, OrderDTO orderDTO) {
+    }
+
+    public record OrderStatusUpdatedEvent(Long orderId, String email, String status, OrderDTO orderDTO) {
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onOrderPlaced(OrderPlacedEvent event) {
+        emailService.sendOrderConfirmationEmail(event.email(), event.orderDTO());
+        notificationService.notifyAdminNewOrder(event.orderId(), event.email(), event.totalAmount());
+        userActivityLogService.log(event.email(), "PLACE_ORDER", "Order " + event.orderId() + " placed for $" + event.totalAmount());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onOrderStatusUpdated(OrderStatusUpdatedEvent event) {
+        emailService.sendOrderStatusUpdateEmail(event.email(), event.orderDTO());
+        notificationService.notifyUserOrderStatusChanged(event.orderId(), event.email(), event.status());
     }
 
 }

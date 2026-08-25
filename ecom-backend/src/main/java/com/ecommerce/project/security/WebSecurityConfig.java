@@ -137,6 +137,7 @@ public class WebSecurityConfig {
                     auth.requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER");
                     auth.requestMatchers("/api/public/**").permitAll();
                     auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
+                    auth.requestMatchers("/actuator/**").hasRole("ADMIN");
                     auth.requestMatchers("/images/**").permitAll();
                     auth.requestMatchers("/images/avatars/**").permitAll();
                     auth.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();

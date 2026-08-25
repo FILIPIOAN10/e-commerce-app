@@ -6,6 +6,7 @@ import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.model.PaymentIntent;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
@@ -27,6 +29,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -53,7 +56,9 @@ class OrderServiceImplTest {
     @Mock private UserActivityLogService userActivityLogService;
     @Mock private InventoryReservationService inventoryReservationService;
     @Mock private ModelMapper modelMapper;
+    @Mock private ShippingCalculator shippingCalculator;
     @Mock private StripeService stripeService;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -113,6 +118,14 @@ class OrderServiceImplTest {
     private void stubHappyPath() {
         when(cartRepository.findCartByEmail(EMAIL)).thenReturn(cart);
         when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
+
+        when(paymentRepository.findByPgPaymentId(anyString())).thenReturn(Optional.empty());
+
+        when(shippingCalculator.calculate(any(Address.class), anyDouble()))
+                .thenAnswer(invocation -> {
+                    double cartTotal = invocation.getArgument(1, Double.class);
+                    return cartTotal >= 100.0 ? 0.0 : 3.0;
+                });
 
         paymentIntent = mock(PaymentIntent.class);
         when(paymentIntent.getStatus()).thenReturn("succeeded");
@@ -190,8 +203,7 @@ class OrderServiceImplTest {
             verify(orderRepository).save(any(Order.class));
             verify(paymentRepository).save(any(Payment.class));
             verify(orderItemRepository).saveAll(anyList());
-            verify(emailService).sendOrderConfirmationEmail(eq(EMAIL), any(OrderDTO.class));
-            verify(notificationService).notifyAdminNewOrder(eq(1L), eq(EMAIL), eq(100.0));
+            verify(eventPublisher).publishEvent(any(OrderServiceImpl.OrderPlacedEvent.class));
         }
 
         @Test
@@ -310,6 +322,7 @@ class OrderServiceImplTest {
             product.setQuantity(1); // cart requests 2
             when(cartRepository.findCartByEmail(EMAIL)).thenReturn(cart);
             when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
+            when(paymentRepository.findByPgPaymentId(anyString())).thenReturn(Optional.empty());
             when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
                 Payment p = inv.getArgument(0);
                 p.setPaymentId(1L);
@@ -321,6 +334,12 @@ class OrderServiceImplTest {
                 return o;
             });
             when(orderItemRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+            when(shippingCalculator.calculate(any(Address.class), anyDouble()))
+                    .thenAnswer(invocation -> {
+                        double cartTotal = invocation.getArgument(1, Double.class);
+                        return cartTotal >= 100.0 ? 0.0 : 3.0;
+                    });
 
             PaymentIntent intent = mock(PaymentIntent.class);
             when(intent.getStatus()).thenReturn("succeeded");
@@ -390,14 +409,14 @@ class OrderServiceImplTest {
         void placeOrder_validCoupon() {
             Coupon coupon = buildActiveCoupon(10, 100, 5);
             stubWithCoupon(coupon);
-            when(paymentIntent.getAmount()).thenReturn(9000L);
+            when(paymentIntent.getAmount()).thenReturn(9300L);
 
             OrderDTO result = orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
                     "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
-            // 100 - 10% = 90
-            assertEquals(90.0, result.getTotalAmount());
+            // 100 - 10% = 90, plus 3.0 domestic shipping (Romania) because post-discount total is below 100
+            assertEquals(93.0, result.getTotalAmount());
             verify(couponRepository).save(argThat(c -> c.getUsedCount() == 6));
         }
 
@@ -492,7 +511,7 @@ class OrderServiceImplTest {
         void placeOrder_couponCodeCaseInsensitive() {
             Coupon coupon = buildActiveCoupon(20, 100, 0);
             stubWithCoupon(coupon);
-            when(paymentIntent.getAmount()).thenReturn(8000L);
+            when(paymentIntent.getAmount()).thenReturn(8300L);
 
             orderService.placeOrder(
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",

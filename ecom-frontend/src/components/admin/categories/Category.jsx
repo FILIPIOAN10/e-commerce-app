@@ -136,7 +136,6 @@ const Category = () => {
       >
         <AddCategoryForm
           setOpen={openUpdateModal ? setOpenUpdateModal : setOpenModal}
-          open={categoryLoader}
           category={selectedCategory}
           update={openUpdateModal}
         />

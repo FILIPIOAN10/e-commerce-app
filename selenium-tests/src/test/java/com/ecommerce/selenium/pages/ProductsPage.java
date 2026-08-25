@@ -9,7 +9,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class ProductsPage {
 
     private static final By ADD_TO_CART_BUTTONS =
-            By.xpath("//button[normalize-space()='Add to Cart']");
+            By.cssSelector("[data-testid='add-to-cart-button']");
 
     private final WebDriver driver;
     private final WebDriverWait wait;

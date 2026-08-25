@@ -10,6 +10,8 @@ import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.StripeService;
+import com.ecommerce.project.service.pricing.Money;
+import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -39,6 +41,7 @@ public class StripeServiceImpl implements StripeService {
     private final AddressRepository addressRepository;
     private final CouponRepository couponRepository;
     private final CouponService couponService;
+    private final ShippingCalculator shippingCalculator;
 
     @PostConstruct
     public void init(){
@@ -79,10 +82,10 @@ public class StripeServiceImpl implements StripeService {
             }
         }
 
-        double shippingCost = calculateShippingCost(address, totalAfterDiscount);
+        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
-        long serverCalculatedAmountCents = Math.round(totalAmount * 100);
+        long serverCalculatedAmountCents = Money.toCents(totalAmount);
 
         Customer customer;
         CustomerSearchParams searchParams =
@@ -134,14 +137,4 @@ public class StripeServiceImpl implements StripeService {
         }
     }
 
-    private double calculateShippingCost(Address address, double cartTotal) {
-        double baseCost = 5.0;
-        if (address != null && ("RO".equalsIgnoreCase(address.getCountry()) || "Romania".equalsIgnoreCase(address.getCountry()))) {
-            baseCost = 3.0;
-        }
-        if (cartTotal >= 100.0) {
-            return 0.0;
-        }
-        return baseCost;
-    }
 }
