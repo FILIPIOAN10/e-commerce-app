@@ -75,7 +75,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ecom-frontend
-        run: npm install
+        run: npm ci
 
       - name: Lint
         working-directory: ecom-frontend
@@ -234,7 +234,7 @@ jobs:
       - name: Start frontend
         working-directory: ecom-frontend
         run: |
-          npm install
+          npm ci
           npm run dev &
           sleep 10
 

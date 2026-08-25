@@ -1,0 +1,143 @@
+# ==========================================================
+# Production compose stack
+# ==========================================================
+# Usage:
+#   cp .env.example .env
+#   # edit .env with real values and a strong REDIS_PASSWORD
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Services:
+#   * redis           - password-protected, AOF persistence
+#   * postgres        - self-hosted Postgres (replace with managed DB by
+#                       setting SPRING_DATASOURCE_URL on the backend)
+#   * backend         - Spring Boot JAR, prod profile, health-checked
+#   * frontend        - static Vite build, served by nginx
+#   * nginx           - public edge reverse proxy + SSL termination point
+#
+# Security defaults:
+#   - Redis requires authentication
+#   - Postgres is NOT exposed to the host; only backend can reach it
+#   - JWT secret, DB and Redis passwords, Stripe and mail secrets come
+#     exclusively from the .env file
+#   - actuator endpoints are restricted by Spring Security
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: ecommerce-redis-prod
+    command: >
+      sh -c "redis-server
+      --requirepass \"$$REDIS_PASSWORD\"
+      --appendonly yes
+      --appendfsync everysec
+      --save 60 1"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - backend
+
+  postgres:
+    image: pgvector/pgvector:0.8.2-pg16-trixie
+    container_name: ecommerce-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    # Not published to the host; backend communicates over the backend network.
+    networks:
+      - backend
+
+  backend:
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required (e.g. ghcr.io/owner/ecommerce-backend:v1.0.0)}
+    container_name: ecommerce-backend-prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB}}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-900000}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
+      FRONTEND_URL: ${FRONTEND_URL:-https://localhost}
+      IMAGE_BASE_URL: ${IMAGE_BASE_URL:-https://localhost/images}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      APP_SKIP_VERIFICATION_EMAIL: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health >/dev/null 2>&1 || curl -sf http://localhost:8080/actuator/health >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      - backend
+
+  frontend:
+    build:
+      context: ./ecom-frontend
+      args:
+        VITE_BACK_END_URL: ${VITE_BACK_END_URL:-/api}
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required (e.g. ghcr.io/owner/ecommerce-frontend:v1.0.0)}
+    container_name: ecommerce-frontend-prod
+    depends_on:
+      - backend
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: ecommerce-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - backend
+
+volumes:
+  redis-data:
+  postgres-data:
+
+networks:
+  backend:
+    driver: bridge

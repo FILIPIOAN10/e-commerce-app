@@ -1,6 +1,9 @@
 # ── Build stage ──
 FROM node:22-alpine AS builder
 
+ARG VITE_BACK_END_URL=/api
+ENV VITE_BACK_END_URL=${VITE_BACK_END_URL}
+
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci
