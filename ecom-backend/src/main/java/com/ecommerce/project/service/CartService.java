@@ -13,6 +13,12 @@ public interface CartService {
 
     CartDTO getCart(String emailId, Long cartId);
 
+    /**
+     * Returns the current user's cart, creating an empty one if they do not have
+     * one yet. Prevents the NPE that occurred for newly registered users.
+     */
+    CartDTO getOrCreateCartForCurrentUser();
+
 
     @Transactional
     CartDTO updateProductQuantityInCart(Long productId, Integer quantity);

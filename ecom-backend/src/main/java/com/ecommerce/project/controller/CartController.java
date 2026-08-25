@@ -1,12 +1,10 @@
 package com.ecommerce.project.controller;
 
 
-import com.ecommerce.project.model.Cart;
+import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.payload.CartDTO;
 import com.ecommerce.project.payload.CartItemDTO;
-import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.service.CartService;
-import com.ecommerce.project.util.AuthUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +18,10 @@ import java.util.List;
 @RequestMapping("/api")
 public class CartController {
 
-    private CartService cartService;
+    private final CartService cartService;
 
-    private AuthUtil authUtil;
-
-    private CartRepository cartRepository;
-
-    public CartController(CartService cartService, AuthUtil authUtil, CartRepository cartRepository) {
+    public CartController(CartService cartService) {
         this.cartService = cartService;
-        this.authUtil = authUtil;
-        this.cartRepository = cartRepository;
     }
 
 
@@ -63,23 +55,16 @@ public class CartController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CartDTO>> getCarts() {
         List<CartDTO> cartDTOS = cartService.getAllCarts();
-        return new ResponseEntity<List<CartDTO>>(cartDTOS, HttpStatus.FOUND);
+        return new ResponseEntity<>(cartDTOS, HttpStatus.OK);
     }
 
     @Tag(name = "Cart")
     @GetMapping("/carts/users/cart")
-
     public ResponseEntity<CartDTO> getCartById() {
-
-        // get the email from user section
-        String emailId = authUtil.loggedInEmail();
-        // getting the cart of the user from db
-        Cart cart = cartRepository.findCartByEmail(emailId);
-        // getting the cartId from the cart
-
-        Long cartId = cart.getCartId();
-        CartDTO cartDTO = cartService.getCart(emailId, cartId);
-        return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);
+        // Returns an empty cart for users who do not have one yet instead of
+        // dereferencing a null Cart and returning a 500.
+        CartDTO cartDTO = cartService.getOrCreateCartForCurrentUser();
+        return new ResponseEntity<>(cartDTO, HttpStatus.OK);
     }
 
 
@@ -91,11 +76,11 @@ public class CartController {
         int delta = switch (operation.toLowerCase()) {
             case "plus" -> 1;
             case "minus" -> -1;
-            case "delete" -> -1;
-            default -> 0;
+            default -> throw new APIException(
+                    "Invalid operation '" + operation + "'. Supported operations: plus, minus");
         };
         CartDTO cartDTO = cartService.updateProductQuantityInCart(productId, delta);
-        return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);
+        return new ResponseEntity<>(cartDTO, HttpStatus.OK);
     }
 
     @Tag(name = "Cart")

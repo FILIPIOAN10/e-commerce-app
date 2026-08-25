@@ -134,12 +134,12 @@ class InventoryReservationServiceTest {
                 "expiresAt", String.valueOf(System.currentTimeMillis() + 60000)
         ));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(productRepository.save(any(Product.class))).thenReturn(product);
+        // Atomic conditional decrement succeeds (1 row updated).
+        when(productRepository.decrementStock(1L, 2)).thenReturn(1);
 
         inventoryReservationService.consumeReservationsForCart(1L);
 
-        assertEquals(8, product.getQuantity());
-        verify(productRepository).save(product);
+        verify(productRepository).decrementStock(1L, 2);
         verify(redisTemplate).delete("reservation:res-1");
         verify(setOps).remove("product_reservations:1", "res-1");
         verify(redisTemplate).delete("cart_reservations:1");
@@ -168,6 +168,8 @@ class InventoryReservationServiceTest {
                 "expiresAt", String.valueOf(System.currentTimeMillis() + 60000)
         ));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        // Atomic conditional decrement matched no rows: stock was taken concurrently.
+        when(productRepository.decrementStock(1L, 2)).thenReturn(0);
 
         APIException ex = assertThrows(APIException.class,
                 () -> inventoryReservationService.consumeReservationsForCart(1L));

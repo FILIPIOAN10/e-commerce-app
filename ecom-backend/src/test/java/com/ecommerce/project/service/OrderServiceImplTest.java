@@ -42,6 +42,7 @@ import static org.mockito.Mockito.*;
 class OrderServiceImplTest {
 
     @Mock private CartRepository cartRepository;
+    @Mock private CartItemRepository cartItemRepository;
     @Mock private AddressRepository addressRepository;
     @Mock private PaymentRepository paymentRepository;
     @Mock private OrderRepository orderRepository;
@@ -126,6 +127,9 @@ class OrderServiceImplTest {
                     double cartTotal = invocation.getArgument(1, Double.class);
                     return cartTotal >= 100.0 ? 0.0 : 3.0;
                 });
+
+        // Atomic coupon consumption succeeds by default.
+        when(couponRepository.tryConsume(anyLong())).thenReturn(1);
 
         paymentIntent = mock(PaymentIntent.class);
         when(paymentIntent.getStatus()).thenReturn("succeeded");
@@ -229,7 +233,7 @@ class OrderServiceImplTest {
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
                     "pi_123", "succeeded", "OK", null);
 
-            verify(cartService).deleteProductFromCart(CART_ID, 1L);
+            verify(cartItemRepository).deleteAllByCartId(CART_ID);
         }
 
         @Test
@@ -417,7 +421,8 @@ class OrderServiceImplTest {
 
             // 100 - 10% = 90, plus 3.0 domestic shipping (Romania) because post-discount total is below 100
             assertEquals(93.0, result.getTotalAmount());
-            verify(couponRepository).save(argThat(c -> c.getUsedCount() == 6));
+            // Usage is now consumed atomically in the database, not via a read-modify-write save.
+            verify(couponRepository).tryConsume(coupon.getId());
         }
 
         @Test
@@ -476,6 +481,38 @@ class OrderServiceImplTest {
                             "pi_123", "succeeded", "OK", List.of("SAVE10")));
 
             assertTrue(ex.getMessage().contains("Coupon usage limit reached"));
+        }
+
+        @Test
+        @DisplayName("should reject the order when atomic coupon consumption loses the race")
+        void placeOrder_couponConsumptionRaceLost() {
+            Coupon coupon = buildActiveCoupon(10, 100, 99);
+            stubWithCoupon(coupon);
+            when(paymentIntent.getAmount()).thenReturn(9300L);
+            // Another concurrent checkout consumed the final use first.
+            when(couponRepository.tryConsume(coupon.getId())).thenReturn(0);
+
+            APIException ex = assertThrows(APIException.class, () ->
+                    orderService.placeOrder(
+                            EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
+                            "pi_123", "succeeded", "OK", List.of("SAVE10")));
+
+            assertTrue(ex.getMessage().contains("Coupon usage limit reached"));
+            verify(orderRepository, never()).save(any(Order.class));
+        }
+
+        @Test
+        @DisplayName("previewOrder should not consume coupon usage")
+        void previewOrder_doesNotConsumeCoupon() {
+            Coupon coupon = buildActiveCoupon(10, 100, 5);
+            stubWithCoupon(coupon);
+
+            orderService.previewOrder(EMAIL, ADDRESS_ID, List.of("SAVE10"));
+            orderService.previewOrder(EMAIL, ADDRESS_ID, List.of("SAVE10"));
+            orderService.previewOrder(EMAIL, ADDRESS_ID, List.of("SAVE10"));
+
+            verify(couponRepository, never()).tryConsume(anyLong());
+            verify(couponRepository, never()).save(any(Coupon.class));
         }
 
         @Test

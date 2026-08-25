@@ -18,10 +18,12 @@ import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.service.UserActivityLogService;
+import com.ecommerce.project.service.order.OrderStatus;
 import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
+import com.ecommerce.project.util.SortWhitelist;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
@@ -33,6 +35,7 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.stripe.model.PaymentIntent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -55,6 +58,7 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
@@ -104,12 +108,15 @@ public class OrderServiceImpl implements OrderService {
 
         double subtotal = cart.getTotalPrice();
 
-        CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
+        CouponApplicationResult couponResult = calculateDiscount(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
         double shippingCost = calculateShippingCost(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         verifyPayment(paymentMethod, pgName, pgPaymentId, totalAmount);
+
+        // Coupon usage is only consumed once the order is actually being placed.
+        consumeCoupons(couponResult);
 
         order.setTotalAmount(totalAmount);
         order.setDiscountAmount(couponResult.getDiscountAmount());
@@ -143,12 +150,10 @@ public class OrderServiceImpl implements OrderService {
         inventoryReservationService.consumeReservationsForCart(cart.getCartId());
 
         // Clear the cart after the reservation has been consumed
-        List<Long> productIds = cart.getCartItems().stream()
-                .map(item -> item.getProduct().getProductId())
-                .collect(Collectors.toList());
-        productIds.forEach(productId ->
-            cartService.deleteProductFromCart(cart.getCartId(), productId)
-        );
+        // Single bulk delete instead of one transaction per product (was O(n) queries).
+        cartItemRepository.deleteAllByCartId(cart.getCartId());
+        cart.setTotalPrice(0.0);
+        cartRepository.save(cart);
 
         // Send back the order summary
         OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
@@ -159,25 +164,26 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
         Page<Order> pageOrders = orderRepository.findAllWithDetails(pageDetails);
 
         return buildOrderResponse(pageOrders);
     }
 
-    private static final List<String> VALID_STATUSES = List.of(
-            "Placed", "Packed", "Shipped", "Delivered", "Cancelled",
-            "Return Requested", "Returned", "Refunded"
-    );
     @Override
     @Transactional
     public OrderDTO updateOrder(Long orderId, String status) {
-        if (status == null || !VALID_STATUSES.contains(status)) {
-            throw new APIException("Invalid order status: " + status
-                    + ". Valid statuses: " + VALID_STATUSES);
-        }
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+
+        String previousStatus = order.getOrderStatus();
+        OrderStatus.assertTransitionAllowed(previousStatus, status);
+
+        if (OrderStatus.releasesStock(previousStatus, status)) {
+            restockOrderItems(order);
+        }
+
         order.setOrderStatus(status);
         orderRepository.save(order);
         OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
@@ -185,9 +191,27 @@ public class OrderServiceImpl implements OrderService {
         return orderDTO;
     }
 
+    /**
+     * Returns the stock held by an order back to inventory. Called when an order
+     * moves to a stock-releasing status (Cancelled / Returned) so that cancelled
+     * orders no longer silently destroy inventory.
+     */
+    private void restockOrderItems(Order order) {
+        if (order.getOrderItems() == null) {
+            return;
+        }
+        for (OrderItem item : order.getOrderItems()) {
+            if (item.getProduct() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
+                continue;
+            }
+            productRepository.incrementStock(item.getProduct().getProductId(), item.getQuantity());
+        }
+    }
+
     @Override
     public OrderResponse getAllSellerOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
 
         User seller = authUtil.loggedInUser();
 
@@ -198,9 +222,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse getLoggedInUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_ORDERS_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
 
-        // Apelăm metoda nouă din repository filtrată după email
         Page<Order> pageOrders = orderRepository.findByEmailWithDetails(email, pageDetails);
 
         return buildOrderResponse(pageOrders);
@@ -211,8 +235,9 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
 
-        if (!order.getEmail().equals(email)) {
-            throw new APIException("You can only track your own orders");
+        // Case-insensitive to match the comparison used when the order is placed.
+        if (order.getEmail() == null || !order.getEmail().equalsIgnoreCase(email)) {
+            throw new AccessDeniedException("You can only access your own orders");
         }
 
         OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
@@ -255,7 +280,8 @@ public class OrderServiceImpl implements OrderService {
         inventoryReservationService.reserveCartItems(cart.getCartId(), cart.getCartItems());
 
         double subtotal = cart.getTotalPrice();
-        CouponApplicationResult couponResult = applyCoupons(couponCodes, subtotal);
+        // Preview must not mutate coupon usage counters.
+        CouponApplicationResult couponResult = calculateDiscount(couponCodes, subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
         double shippingCost = calculateShippingCost(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
@@ -291,6 +317,10 @@ public class OrderServiceImpl implements OrderService {
         order.setAddress(address);
 
         for (CartItemDTO dto : request.getItems()) {
+            if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
+                throw new APIException("Quantity must be greater than zero for product " + dto.getProductId());
+            }
+
             Product product = productRepository.findById(dto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", dto.getProductId()));
 
@@ -312,17 +342,24 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setOrder(order);
             orderItems.add(orderItem);
 
-            product.setQuantity(product.getQuantity() - dto.getQuantity());
-            productRepository.save(product);
+            // Atomic conditional decrement: 0 rows updated means another request
+            // took the remaining stock between our read and this write.
+            if (productRepository.decrementStock(product.getProductId(), dto.getQuantity()) == 0) {
+                throw new APIException("Insufficient stock for product: "
+                        + product.getProductName()
+                        + ". Requested: " + dto.getQuantity());
+            }
         }
 
-        CouponApplicationResult couponResult = applyCoupons(request.getCouponCodes(), subtotal);
+        CouponApplicationResult couponResult = calculateDiscount(request.getCouponCodes(), subtotal);
         double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
         double shippingCost = calculateShippingCost(address, totalAfterDiscount);
         double totalAmount = totalAfterDiscount + shippingCost;
 
         verifyPayment(request.getPaymentMethod(), request.getPgName(),
                 request.getPgPaymentId(), totalAmount);
+
+        consumeCoupons(couponResult);
 
         order.setTotalAmount(totalAmount);
         order.setDiscountAmount(couponResult.getDiscountAmount());
@@ -358,13 +395,19 @@ public class OrderServiceImpl implements OrderService {
         return orderResponse;
     }
 
-    private CouponApplicationResult applyCoupons(List<String> couponCodes, double subtotal) {
+    /**
+     * Pure calculation: resolves and validates coupons and computes the discount
+     * without mutating any coupon usage counters. Safe to call from read-only
+     * paths such as {@code previewOrder}.
+     */
+    private CouponApplicationResult calculateDiscount(List<String> couponCodes, double subtotal) {
         double totalAfterDiscount = subtotal;
         double totalDiscount = 0.0;
         List<String> appliedCodes = new ArrayList<>();
+        List<Long> appliedIds = new ArrayList<>();
 
         if (couponCodes == null || couponCodes.isEmpty()) {
-            return new CouponApplicationResult(totalDiscount, appliedCodes);
+            return new CouponApplicationResult(totalDiscount, appliedCodes, appliedIds);
         }
 
         for (String code : couponCodes) {
@@ -379,12 +422,25 @@ public class OrderServiceImpl implements OrderService {
             totalAfterDiscount -= discount;
             totalDiscount += discount;
             appliedCodes.add(coupon.getCode());
-
-            coupon.setUsedCount(coupon.getUsedCount() + 1);
-            couponRepository.save(coupon);
+            appliedIds.add(coupon.getId());
         }
 
-        return new CouponApplicationResult(totalDiscount, appliedCodes);
+        return new CouponApplicationResult(totalDiscount, appliedCodes, appliedIds);
+    }
+
+    /**
+     * Atomically consumes one use of each applied coupon. The conditional UPDATE
+     * enforces the usage limit in the database, so concurrent checkouts can never
+     * push {@code usedCount} past {@code maxUses}.
+     */
+    private void consumeCoupons(CouponApplicationResult result) {
+        List<Long> ids = result.getAppliedCouponIds();
+        List<String> codes = result.getAppliedCodes();
+        for (int i = 0; i < ids.size(); i++) {
+            if (couponRepository.tryConsume(ids.get(i)) == 0) {
+                throw new APIException("Coupon usage limit reached: " + codes.get(i));
+            }
+        }
     }
 
     private OrderDTO buildOrderDTO(Order order, List<OrderItem> orderItems, Long addressId, double totalAmount) {
@@ -408,10 +464,12 @@ public class OrderServiceImpl implements OrderService {
     private static class CouponApplicationResult {
         private final double discountAmount;
         private final List<String> appliedCodes;
+        private final List<Long> appliedCouponIds;
 
-        CouponApplicationResult(double discountAmount, List<String> appliedCodes) {
+        CouponApplicationResult(double discountAmount, List<String> appliedCodes, List<Long> appliedCouponIds) {
             this.discountAmount = discountAmount;
             this.appliedCodes = appliedCodes;
+            this.appliedCouponIds = appliedCouponIds;
         }
 
         public double getDiscountAmount() {
@@ -420,6 +478,10 @@ public class OrderServiceImpl implements OrderService {
 
         public List<String> getAppliedCodes() {
             return appliedCodes;
+        }
+
+        public List<Long> getAppliedCouponIds() {
+            return appliedCouponIds;
         }
     }
 

@@ -112,13 +112,13 @@ public class InventoryReservationService {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new APIException("Product not found for reservation: " + productId));
 
-            if (product.getQuantity() < quantity) {
+            // Atomic conditional decrement. A result of 0 means the stock was taken
+            // by a concurrent request between the reservation and this consumption,
+            // so the reservation cannot be fulfilled.
+            if (productRepository.decrementStock(productId, quantity) == 0) {
                 throw new APIException("Insufficient stock for " + product.getProductName()
                         + ". Reservation could not be fulfilled.");
             }
-
-            product.setQuantity(product.getQuantity() - quantity);
-            productRepository.save(product);
 
             redisTemplate.delete(reservationKey);
             redisTemplate.opsForSet().remove(PRODUCT_RESERVATIONS_PREFIX + productId, reservationId);
