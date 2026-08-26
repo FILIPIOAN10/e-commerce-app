@@ -179,6 +179,11 @@ class ProductServiceImplCacheIntegrationTest {
         }
 
         @Bean
+        public com.ecommerce.project.cache.TransactionAwareCacheEvictor cacheEvictor(CacheManager cacheManager) {
+            return new com.ecommerce.project.cache.TransactionAwareCacheEvictor(cacheManager);
+        }
+
+        @Bean
         public ProductService productService(ProductRepository productRepository,
                                              CategoryRepository categoryRepository,
                                              ModelMapper modelMapper,
@@ -187,12 +192,13 @@ class ProductServiceImplCacheIntegrationTest {
                                              ProductImageService productImageService,
                                              ProductMapper productMapper,
                                              ProductSemanticSearchService productSemanticSearchService,
+                                             com.ecommerce.project.cache.TransactionAwareCacheEvictor cacheEvictor,
                                              AuthUtil authUtil,
                                              AdminAuditLogService adminAuditLogService) {
             return new ProductServiceImpl(
                     productRepository, categoryRepository, modelMapper, cartRepository, cartService,
-                    productImageService, productMapper, productSemanticSearchService, authUtil,
-                    adminAuditLogService);
+                    productImageService, productMapper, productSemanticSearchService, cacheEvictor,
+                    authUtil, adminAuditLogService);
         }
     }
 }
