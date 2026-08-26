@@ -38,8 +38,9 @@ api.interceptors.response.use(
 
         if(status == 401 && !isPublicAuthRequest){
             localStorage.removeItem("auth");
-            if(window.location.pathname !== "/login"){
-                window.location.href = "/login";
+            const lang = i18n.language || "en";
+            if(!window.location.pathname.includes(`/${lang}/login`)){
+                window.location.href = `/${lang}/login`;
             }
         }
 

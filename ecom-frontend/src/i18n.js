@@ -1,7 +1,18 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import HttpBackend from "i18next-http-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
+
+const localeFiles = import.meta.glob("../public/locales/**/*.json", { eager: true });
+
+const resources = {};
+for (const [path, module] of Object.entries(localeFiles)) {
+  const match = path.match(/\/locales\/([^/]+)\/([^/]+)\.json$/);
+  if (match) {
+    const [, lang, ns] = match;
+    if (!resources[lang]) resources[lang] = {};
+    resources[lang][ns] = module.default;
+  }
+}
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -12,7 +23,6 @@ export const SUPPORTED_LANGUAGES = [
 export const DEFAULT_LANGUAGE = "en";
 
 i18n
-  .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
@@ -20,13 +30,13 @@ i18n
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
     ns: ["common", "navbar", "home", "product", "cart", "auth", "about", "contact", "wishlist", "notFound", "userMenu"],
     defaultNS: "common",
-    backend: { loadPath: "/locales/{{lng}}/{{ns}}.json" },
+    resources,
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
     },
     interpolation: { escapeValue: false },
-    react: { useSuspense: true },
+    react: { useSuspense: false },
   });
 
 export default i18n;
