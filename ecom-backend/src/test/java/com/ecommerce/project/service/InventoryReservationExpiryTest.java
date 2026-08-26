@@ -2,6 +2,7 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
+import com.ecommerce.project.payload.ReservationResponse;
 import com.ecommerce.project.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,11 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -163,5 +169,52 @@ class InventoryReservationExpiryTest {
 
         assertEquals(5, reservationService.getReservedForProduct(1L),
                 "the second reservation replaces the first, it does not add to it");
+    }
+
+    @Test
+    @DisplayName("concurrent reservations do not over-sell stock")
+    void concurrentReservationsDoNotOversell() throws InterruptedException {
+        int stock = 5;
+        int requestPerThread = 3;
+        int threadCount = 10;
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch startGate = new CountDownLatch(1);
+        CountDownLatch endGate = new CountDownLatch(threadCount);
+        AtomicInteger successes = new AtomicInteger(0);
+        AtomicInteger failures = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            final long cartId = i + 1;
+            executor.submit(() -> {
+                try {
+                    startGate.await();
+                    List<ReservationResponse> result = reservationService.reserveCartItems(
+                            cartId, List.of(cartItemFor(1L, stock, requestPerThread)));
+                    if (!result.isEmpty()) {
+                        successes.incrementAndGet();
+                    } else {
+                        failures.incrementAndGet();
+                    }
+                } catch (Exception e) {
+                    failures.incrementAndGet();
+                } finally {
+                    endGate.countDown();
+                }
+            });
+        }
+
+        startGate.countDown();
+        assertTrue(endGate.await(10, TimeUnit.SECONDS), "all threads should finish within 10s");
+        executor.shutdown();
+
+        // With stock=5 and each thread requesting 3, only 1 thread can succeed
+        // (3 <= 5, but 6 > 5). Without the atomic Lua script, multiple threads
+        // could read the same reserved total (0), all pass the check, and all
+        // create reservations — over-selling to 30 units.
+        assertEquals(1, successes.get(), "exactly one reservation should succeed");
+        assertEquals(threadCount - 1, failures.get(), "all others should be rejected");
+        assertEquals(requestPerThread, reservationService.getReservedForProduct(1L),
+                "total reserved must not exceed what was actually available");
     }
 }
