@@ -34,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,6 +90,7 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "publicProducts",
             key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder + '/' + (#keyword == null ?'':#keyword.toLowerCase()) + '/' + (#category == null ? '': #category.toLowerCase())"
@@ -110,6 +112,7 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "adminProducts",
             key = "#pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
@@ -123,6 +126,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(
             value = "sellerProducts",
             key = "@authUtil.loggedInUserId() + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
@@ -143,6 +147,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     @EvictProductCaches
     @CacheEvict(value = "product", key = "#productId")
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
@@ -199,6 +204,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     @EvictProductCaches
     @CacheEvict(value = "product", key = "#productId")
     public ProductDTO deleteProduct(Long productId) {
@@ -222,6 +228,7 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "product", key = "#productId")
     public ProductDTO getProductById(Long productId) {
         Product product = productRepository.findById(productId)
