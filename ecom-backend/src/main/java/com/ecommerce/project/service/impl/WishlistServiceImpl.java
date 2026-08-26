@@ -31,6 +31,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final ProductMapper productMapper;
 
     @Override
+    @Transactional
     public String addToWishlist(Long productId) {
         User user = authUtil.loggedInUser();
         Product product = productRepository.findById(productId)
@@ -65,6 +66,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getWishlist(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         User user = authUtil.loggedInUser();
 
