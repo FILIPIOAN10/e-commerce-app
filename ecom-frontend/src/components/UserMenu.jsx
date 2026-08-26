@@ -1,14 +1,12 @@
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BiUser } from 'react-icons/bi';
 import { FaShoppingCart, FaUserShield } from 'react-icons/fa';
 import { IoExitOutline } from 'react-icons/io5';
 import BackDrop from './BackDrop';
 import { logOutUser } from '../store/actions';
-import { useTranslation } from 'react-i18next';
-import LangLink from './shared/LangLink';
 
 const UserMenu = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -16,7 +14,6 @@ const UserMenu = () => {
   const {user} = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation("userMenu");
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -36,7 +33,6 @@ const UserMenu = () => {
   return (
     <div className='relative z-30'>
       <div
-        data-testid='user-avatar'
         className='sm:border-[1px] sm:border-slate-400 flex flex-row items-center gap-1 rounded-full cursor-pointer hover:shadow-md transition text-slate-700'
         onClick={handleClick}
       >
@@ -56,44 +52,44 @@ const UserMenu = () => {
           },
         }}
       >
-        <LangLink to="/profile">
+        <Link to="/profile">
           <MenuItem className='flex ga-2' onClick={handleClose}>
             <BiUser className="text-xl" />
             <span className='font-bold tex-[16px] mt-1'>
               {user?.username}
             </span>
           </MenuItem>
-        </LangLink>
+        </Link>
 
         {/* ✅ Order vizibil doar pentru user normal */}
         {!isAdmin && !isSeller && (
-          <LangLink to="/profile/orders">
+          <Link to="/profile/orders">
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaShoppingCart className="text-xl" />
               <span className='font-semibold'>
-                {t("order")}
+                Order
               </span>
             </MenuItem>
-          </LangLink>
+          </Link>
         )}
 
         {/* ✅ Admin Panel sau Seller Panel */}
         {(isAdmin || isSeller) && (
-          <LangLink to={isAdmin ? "/admin" : "/admin/orders"}>
+          <Link to={isAdmin ? "/admin" : "/admin/orders"}>
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaUserShield className="text-xl" />
               <span className='font-semibold'>
-                {isAdmin ? t("adminPanel") : t("sellerPanel")}
+                {isAdmin ? "Admin Panel" : "Seller Panel"}
               </span>
             </MenuItem>
-          </LangLink>
+          </Link>
         )}
 
-        <MenuItem data-testid='logout-button' className='flex ga-2' onClick={logOutHandler}>
+        <MenuItem className='flex ga-2' onClick={logOutHandler}>
           <div className='font-semibold w-full flex gap-2 items-center bg-button-gradient px-4 py-1 text-white rounded-sm'>
             <IoExitOutline className="text-xl" />
             <span className='font-semibold'>
-              {t("logout")}
+              Logout
             </span>
           </div>
         </MenuItem>

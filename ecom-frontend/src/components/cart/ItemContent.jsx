@@ -1,8 +1,7 @@
 import { HiOutlineTrash } from "react-icons/hi";
 import SetQuantity from "./SetQuantity";
 import { useDispatch } from "react-redux";
-import { removeFromCart, saveItemForLater, moveItemToCart } from "../../store/actions";
-import { useIncreaseCartQuantityMutation, useDecreaseCartQuantityMutation } from "../../store/api/cartApi";
+import { decreaseCartQuantity, increaseCartQuantity, removeFromCart, saveItemForLater, moveItemToCart } from "../../store/actions";
 import toast from "react-hot-toast";
 import { formatPrice } from "../../utils/formatPrice";
 import truncateText from "../../utils/truncateText";
@@ -20,22 +19,14 @@ const ItemContent = ({
 }) => {
     const unitPrice = specialPrice ?? price;
     const dispatch = useDispatch();
-    const [increaseCartQuantity] = useIncreaseCartQuantityMutation();
-    const [decreaseCartQuantity] = useDecreaseCartQuantityMutation();
 
     const handleQtyIncrease = (cartItems) => {
-        increaseCartQuantity(cartItems.productId)
-            .unwrap()
-            .then(() => toast.success("Quantity increased"))
-            .catch((error) => toast.error(error?.data?.message || "Failed to increase quantity"));
+        dispatch(increaseCartQuantity(cartItems, toast));
     };
 
     const handleQtyDecrease = (cartItems) => {
-        if (quantity > 1) {
-            decreaseCartQuantity(cartItems.productId)
-                .unwrap()
-                .then(() => toast.success("Quantity decreased"))
-                .catch((error) => toast.error(error?.data?.message || "Failed to decrease quantity"));
+        if(quantity > 1) {
+            dispatch(decreaseCartQuantity(cartItems, toast));
         }
     };
 
@@ -56,7 +47,7 @@ const ItemContent = ({
                 <div className="md:col-span-2 justify-self-start flex flex-col gap-2">
                 <div className="flex md:flex-row flex-col lg:gap-4 sm:gap-3 gap-0 items-start">
 
-                    <h3 data-testid="cart-item-name" className="lg:text-[17px] text-sm font-semibold text-slate-600 dark:text-gray-300">
+                    <h3 className="lg:text-[17px] text-sm font-semibold text-slate-600 dark:text-gray-300">
                 {truncateText(productName)}
                     </h3>
   
@@ -82,7 +73,6 @@ const ItemContent = ({
                                 quantity,
 
                             })}
-                            data-testid="remove-item-button"
                             className="flex items-center font-semibold space-x-2 px-4 py-1 text-xs border border-rose-600 text-rose-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors  duration-200"
                         >
                             <HiOutlineTrash size={16} className="text-rose-600" />

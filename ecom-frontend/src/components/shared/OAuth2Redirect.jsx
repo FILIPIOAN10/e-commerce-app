@@ -1,24 +1,26 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { fetchUserDetails } from "../../store/actions";
+import { useLazyGetUserDetailsQuery } from "../../store/api/authApi";
 import toast from "react-hot-toast";
 
 const OAuth2Redirect = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const [trigger, { data, error, isSuccess, isError }] = useLazyGetUserDetailsQuery();
 
     useEffect(() => {
-        dispatch(fetchUserDetails())
-            .then(() => {
-                toast.success("Login successful!");
-                navigate("/");
-            })
-            .catch(() => {
-                toast.error("Could not load user data.");
-                navigate("/login");
-            });
-    }, [navigate, dispatch]);
+        trigger();
+    }, [trigger]);
+
+    useEffect(() => {
+        if (isSuccess && data) {
+            toast.success("Login successful!");
+            navigate("/");
+        }
+        if (isError && error) {
+            toast.error("Could not load user data.");
+            navigate("/login");
+        }
+    }, [isSuccess, isError, data, error, navigate]);
 
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">

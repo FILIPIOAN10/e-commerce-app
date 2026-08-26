@@ -1,34 +1,39 @@
 import { FormControl, FormControlLabel, Radio, RadioGroup } from '@mui/material'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addPaymentMethod, createUserCart } from '../../store/actions';
+import { addPaymentMethod } from '../../store/actions';
+import { useCreateCartMutation } from '../../store/api/cartApi';
+import toast from 'react-hot-toast';
 
 const PaymentMethod = () => {
 
     const dispatch = useDispatch();
+    const [createCart, { isLoading: isCreatingCart }] = useCreateCartMutation();
     const {paymentMethod} = useSelector((state) => state.payment);
     const {cart,cartId} = useSelector((state) => state.carts);
     const {errorMessage} = useSelector((state) => state.errors);
 
 
     useEffect( () => {
-      if(cart.length > 0 && !cartId &&  !errorMessage ){
+      if(cart.length > 0 && !cartId &&  !errorMessage && !isCreatingCart ){
         const sendCartItems = cart.map((item) => {
           return{
             productId :item.productId,
             quantity :item.quantity,
           };
         });
-        dispatch(createUserCart(sendCartItems));
+        createCart(sendCartItems)
+            .unwrap()
+            .catch((error) => toast.error(error?.data?.message || "Failed to create cart"));
       }
 
-    },[dispatch,cartId,cart,errorMessage]);
+    },[createCart, isCreatingCart, cartId, cart, errorMessage]);
     const paymentMethodHandler = (method) => {
       dispatch(addPaymentMethod(method));
     }
   return (
-    <div className='max-w-md mx-auto p-5 bg-white dark:bg-gray-800 shadow-md rounded-lg mt-16 border dark:border-gray-700'>
-        <h1 className='text-2xl font-semibold mb-4 text-gray-900 dark:text-white'>Select Payment Method</h1>
+    <div className='max-w-md mx-auto p-5 card mt-16'>
+        <h1 className='text-2xl font-semibold mb-4 text-heading'>Select Payment Method</h1>
         
             <FormControl>
             <RadioGroup
