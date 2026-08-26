@@ -1,0 +1,29 @@
+{
+  "addToCart": "Ajouter au panier",
+  "outOfStock": "Rupture de stock",
+  "inStock": "en stock",
+  "noReviewsYet": "Aucun avis pour le moment",
+  "wishlist": "Liste de souhaits",
+  "saved": "Enregistré",
+  "compare": "Comparer",
+  "inCompare": "Dans Comparer",
+  "addToWishlist": "Ajouter à la liste de souhaits",
+  "alreadyInWishlist": "Déjà dans la liste de souhaits",
+  "addToCompare": "Ajouter à comparer",
+  "inCompareList": "Dans la liste de comparaison",
+  "compareLimit": "Vous pouvez comparer jusqu'à 3 produits",
+  "addedToCompare": "Ajouté à la comparaison",
+  "reviews": "Avis",
+  "qa": "Q&R",
+  "similarProducts": "Produits similaires",
+  "frequentlyBought": "Achats fréquents",
+  "productNotFound": "Produit introuvable",
+  "productNotFoundDesc": "Nous n'avons pas pu trouver le produit que vous cherchiez.",
+  "backToProducts": "Retour aux produits",
+  "trustBadges": {
+    "securePayment": "Paiement sécurisé",
+    "freeShipping": "Livraison gratuite dès 100€",
+    "easyReturns": "Retours sous 30 jours",
+    "qualityGuarantee": "Garantie qualité"
+  }
+}

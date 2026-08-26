@@ -1,0 +1,11 @@
+{
+  "contactUs": "Contactează-ne",
+  "contactDescription": "Ne-ar face plăcere să auzim de tine! Te rugăm să completezi formularul de mai jos sau să ne contactezi direct",
+  "name": "Nume",
+  "email": "Email",
+  "message": "Mesaj",
+  "sendMessage": "Trimite mesajul",
+  "messageSentSuccess": "Mesaj trimis cu succes!",
+  "messageSentFailed": "Trimiterea mesajului a eșuat.",
+  "contactInformation": "Informații de contact"
+}

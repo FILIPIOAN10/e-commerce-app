@@ -58,6 +58,22 @@ jobs:
           echo "Backend did not start"
           exit 1
 
+      - name: Wait for frontend
+        run: |
+          echo "Waiting for frontend..."
+          for i in $(seq 1 30); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ || echo "000")
+            if [ "$CODE" = "200" ]; then
+              echo "Frontend is up (HTTP $CODE)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $CODE, retrying..."
+            sleep 5
+          done
+          echo "Frontend failed to start"
+          docker compose logs frontend
+          exit 1
+
       - name: Install Selenium tests dependencies
         working-directory: selenium-tests
         run: mvn -B dependency:go-offline

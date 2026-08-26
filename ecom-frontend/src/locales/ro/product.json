@@ -1,0 +1,29 @@
+{
+  "addToCart": "Adaugă în coș",
+  "outOfStock": "Stoc epuizat",
+  "inStock": "în stoc",
+  "noReviewsYet": "Nicio recenzie încă",
+  "wishlist": "Favorite",
+  "saved": "Salvat",
+  "compare": "Compară",
+  "inCompare": "În comparare",
+  "addToWishlist": "Adaugă la favorite",
+  "alreadyInWishlist": "Deja în favorite",
+  "addToCompare": "Adaugă la comparare",
+  "inCompareList": "În lista de comparare",
+  "compareLimit": "Poți compara până la 3 produse",
+  "addedToCompare": "Adăugat la comparare",
+  "reviews": "Recenzii",
+  "qa": "Întrebări",
+  "similarProducts": "Produse similare",
+  "frequentlyBought": "Cumpărate frecvent",
+  "productNotFound": "Produs negăsit",
+  "productNotFoundDesc": "Nu am putut găsi produsul pe care îl căutai.",
+  "backToProducts": "Înapoi la produse",
+  "trustBadges": {
+    "securePayment": "Plată securizată",
+    "freeShipping": "Livrare gratuită peste 100 RON",
+    "easyReturns": "Retur în 30 de zile",
+    "qualityGuarantee": "Garanție calitate"
+  }
+}

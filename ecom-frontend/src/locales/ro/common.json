@@ -1,0 +1,17 @@
+{
+  "loading": "Se încarcă...",
+  "sending": "Se trimite...",
+  "save": "Salvează",
+  "cancel": "Anulează",
+  "delete": "Șterge",
+  "edit": "Editează",
+  "search": "Caută",
+  "view": "Vezi",
+  "back": "Înapoi",
+  "continue": "Continuă",
+  "yes": "Da",
+  "no": "Nu",
+  "error": "Eroare",
+  "success": "Succes",
+  "currency": "RON"
+}

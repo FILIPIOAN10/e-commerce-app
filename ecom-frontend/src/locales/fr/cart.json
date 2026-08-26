@@ -1,0 +1,17 @@
+{
+  "yourCart": "Votre panier",
+  "allSelectedItems": "Tous vos articles sélectionnés",
+  "product": "Produit",
+  "price": "Prix",
+  "quantity": "Quantité",
+  "total": "Total",
+  "subtotal": "Sous-total",
+  "taxesAndShipping": "Taxes et livraison calculées au paiement",
+  "checkout": "Paiement",
+  "checkoutAsGuest": "Paiement en tant qu'invité",
+  "continueShopping": "Continuer mes achats",
+  "savedForLater": "Enregistré pour plus tard",
+  "cartEmpty": "Votre panier est vide",
+  "cartEmptyMessage": "Ajoutez des produits pour commencer",
+  "startShopping": "Commencer mes achats"
+}

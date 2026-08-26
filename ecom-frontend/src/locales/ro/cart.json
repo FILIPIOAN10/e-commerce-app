@@ -1,0 +1,17 @@
+{
+  "yourCart": "Coșul tău",
+  "allSelectedItems": "Toate articolele selectate",
+  "product": "Produs",
+  "price": "Preț",
+  "quantity": "Cantitate",
+  "total": "Total",
+  "subtotal": "Subtotal",
+  "taxesAndShipping": "Taxele și transportul se calculează la finalizarea comenzii",
+  "checkout": "Finalizează comanda",
+  "checkoutAsGuest": "Finalizează ca invitat",
+  "continueShopping": "Continuă cumpărăturile",
+  "savedForLater": "Salvat pentru mai târziu",
+  "cartEmpty": "Coșul tău este gol",
+  "cartEmptyMessage": "Adaugă produse pentru a începe",
+  "startShopping": "Începe cumpărăturile"
+}

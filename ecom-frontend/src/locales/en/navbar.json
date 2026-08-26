@@ -1,0 +1,16 @@
+{
+  "home": "Home",
+  "products": "Products",
+  "bundles": "Bundles",
+  "subscriptions": "Subscriptions",
+  "about": "About",
+  "contact": "Contact",
+  "login": "Login",
+  "cart": "Cart",
+  "wishlist": "Wishlist",
+  "compare": "Compare",
+  "trackOrder": "Track Order",
+  "switchToLight": "Switch to light mode",
+  "switchToDark": "Switch to dark mode",
+  "selectLanguage": "Select language"
+}

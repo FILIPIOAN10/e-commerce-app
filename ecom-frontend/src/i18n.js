@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
-const localeFiles = import.meta.glob("../public/locales/**/*.json", { eager: true });
+const localeFiles = import.meta.glob("./locales/**/*.json", { eager: true });
 
 const resources = {};
 for (const [path, module] of Object.entries(localeFiles)) {
