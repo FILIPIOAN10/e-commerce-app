@@ -58,7 +58,9 @@ function App() {
     <React.Fragment>
     <Router>
       <div className="min-h-screen dark:bg-gray-950">
+      <Suspense fallback={<Loader />}>
       <Navbar/>
+      </Suspense>
       <Suspense fallback={<Loader />}>
       <Routes>
         <Route path='/' element={<LanguageRedirect />} />

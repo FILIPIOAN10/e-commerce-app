@@ -204,7 +204,7 @@ const LogIn = () => {
                     {t("dontHaveAccount")}{" "}
                     <LangLink
                         className="font-semibold underline hover:text-black dark:hover:text-white"
-                        to="/Register"
+                        to="/register"
                     >
                         {t("signUp")}
                     </LangLink>

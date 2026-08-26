@@ -133,6 +133,6 @@ describe('logOutUser action', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'LOG_OUT' })
     expect(localStorage.getItem('auth')).toBeNull()
-    expect(mockNavigate).toHaveBeenCalledWith('/login')
+    expect(mockNavigate).toHaveBeenCalledWith('/en/login')
   })
 })
