@@ -18,17 +18,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
 
@@ -43,7 +43,7 @@ jobs:
       - name: Start services with Docker Compose
         run: |
           docker compose up -d --build
-          sleep 30
+          sleep 60
 
       - name: Wait for backend
         run: |
@@ -53,9 +53,16 @@ jobs:
               echo "Backend up"
               exit 0
             fi
+            echo "Attempt $i: HTTP $CODE, retrying..."
             sleep 5
           done
           echo "Backend did not start"
+          echo "=== Docker Compose status ==="
+          docker compose ps
+          echo "=== Backend logs ==="
+          docker compose logs --tail=500 backend
+          echo "=== Dependency logs (postgres, vault, vault-init, redis) ==="
+          docker compose logs --tail=300 postgres vault vault-init redis
           exit 1
 
       - name: Wait for frontend
@@ -84,7 +91,7 @@ jobs:
 
       - name: Upload Selenium test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: selenium-test-results
           path: selenium-tests/target/surefire-reports/
