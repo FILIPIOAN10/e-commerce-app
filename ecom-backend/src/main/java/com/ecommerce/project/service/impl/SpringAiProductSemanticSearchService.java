@@ -13,10 +13,20 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Primary
@@ -33,6 +43,64 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
     @Value("${app.search.semantic.similarity-threshold:0.60}")
     private double similarityThreshold;
 
+    @Value("${app.search.semantic.timeout:5s}")
+    private Duration searchTimeout;
+
+    @Value("${app.search.semantic.bulkhead.max-concurrent:10}")
+    private int maxConcurrent;
+
+    @Value("${app.search.semantic.circuit-breaker.failure-threshold:5}")
+    private int failureThreshold;
+
+    @Value("${app.search.semantic.circuit-breaker.cooldown:30s}")
+    private Duration circuitBreakerCooldown;
+
+    private final ExecutorService searchExecutor = Executors.newCachedThreadPool();
+    private Semaphore bulkhead;
+    private final AtomicInteger consecutiveFailures = new AtomicInteger(0);
+    private final AtomicReference<Long> circuitOpenedAt = new AtomicReference<>(0L);
+
+    private enum CircuitState { CLOSED, OPEN, HALF_OPEN }
+
+    private CircuitState circuitState() {
+        long openedAt = circuitOpenedAt.get();
+        if (openedAt == 0L) {
+            return CircuitState.CLOSED;
+        }
+        if (System.currentTimeMillis() - openedAt >= circuitBreakerCooldown.toMillis()) {
+            return CircuitState.HALF_OPEN;
+        }
+        return CircuitState.OPEN;
+    }
+
+    private boolean tryAcquireCircuit() {
+        CircuitState state = circuitState();
+        if (state == CircuitState.OPEN) {
+            return false;
+        }
+        return true;
+    }
+
+    private void recordSuccess() {
+        consecutiveFailures.set(0);
+        circuitOpenedAt.set(0L);
+    }
+
+    private void recordFailure() {
+        int failures = consecutiveFailures.incrementAndGet();
+        if (failures >= failureThreshold) {
+            circuitOpenedAt.compareAndSet(0L, System.currentTimeMillis());
+            log.warn("Semantic search circuit breaker opened after {} consecutive failures", failures);
+        }
+    }
+
+    private Semaphore bulkhead() {
+        if (bulkhead == null) {
+            bulkhead = new Semaphore(maxConcurrent, true);
+        }
+        return bulkhead;
+    }
+
     @Override
     public boolean isEnabled() {
         return true;
@@ -43,21 +111,53 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
         if (query == null || query.isBlank() || limit <= 0) {
             return List.of();
         }
-        try {
-            SearchRequest searchRequest = SearchRequest.builder()
-                    .query(query)
-                    .topK(limit)
-                    .similarityThreshold(similarityThreshold)
-                    .build();
-            return vectorStore.similaritySearch(searchRequest).stream()
-                    .map(this::extractProductId)
-                    .flatMap(Optional::stream)
-                    .distinct()
-                    .toList();
-        } catch (RuntimeException exception) {
-            log.warn("Semantic product search failed", exception);
+
+        if (!tryAcquireCircuit()) {
+            log.debug("Semantic search circuit breaker is open; returning empty results");
             return List.of();
         }
+
+        if (!bulkhead().tryAcquire()) {
+            log.warn("Semantic search bulkhead is full ({} concurrent calls); returning empty results", maxConcurrent);
+            return List.of();
+        }
+
+        try {
+            CompletableFuture<List<Long>> future = CompletableFuture.supplyAsync(
+                    () -> doSearch(query, limit), searchExecutor);
+
+            List<Long> result = future.get(searchTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            recordSuccess();
+            return result;
+        } catch (TimeoutException e) {
+            recordFailure();
+            log.warn("Semantic search timed out after {}", searchTimeout);
+            return List.of();
+        } catch (ExecutionException e) {
+            recordFailure();
+            log.warn("Semantic search failed", e.getCause());
+            return List.of();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            recordFailure();
+            log.warn("Semantic search interrupted");
+            return List.of();
+        } finally {
+            bulkhead().release();
+        }
+    }
+
+    private List<Long> doSearch(String query, int limit) {
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query(query)
+                .topK(limit)
+                .similarityThreshold(similarityThreshold)
+                .build();
+        return vectorStore.similaritySearch(searchRequest).stream()
+                .map(this::extractProductId)
+                .flatMap(Optional::stream)
+                .distinct()
+                .toList();
     }
 
     @Override
