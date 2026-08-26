@@ -8,10 +8,12 @@ import { getUserOrders } from '../../store/actions';
 import OrderTable from '../admin/orders/OrderTable';
 import Skeleton from '../shared/Skeleton';
 import EmptyState from '../shared/EmptyState';
+import { useLanguage } from '../../context/LanguageContext';
 
 const ProfileOrders = () => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const lang = useLanguage();
 
   const { userOrders, pagination } = useSelector((state) => state.order);
   const { isLoading } = useSelector((state) => state.errors);
@@ -47,7 +49,7 @@ const ProfileOrders = () => {
           icon={FaShoppingCart}
           title="Nu ai plasat nicio comandă încă"
           message="Comenzile tale finalizate vor apărea în această listă."
-          action={{ label: "Start Shopping", path: "/", icon: MdArrowBack }}
+          action={{ label: "Start Shopping", path: `/${lang}`, icon: MdArrowBack }}
         />
       ) : (
         /* Trimitem `userOrders` ca prop-ul `adminOrder` în componenta ta de tabelă.

@@ -13,11 +13,14 @@ import { FcGoogle } from "react-icons/fc";
 import Verify2FALogin from "./Verify2FALogin";
 import api from "../../api/api";
 import { useTranslation } from "react-i18next";
+import LangLink from "../shared/LangLink";
+import { useLanguage } from "../../context/LanguageContext";
 
 
 const LogIn = () => {
 
     const navigate = useNavigate();
+    const lang = useLanguage();
     const [loader, setLoader] = useState(false);
     const [requestingUnlock, setRequestingUnlock] = useState(false);
     const [needs2FA, setNeeds2FA] = useState(false);
@@ -78,7 +81,7 @@ const LogIn = () => {
                 setTemp2FAToken(null);
                 setLoginEmail(null);
                 reset();
-                navigate("/");
+                navigate(`/${lang}`);
             };
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center dark:bg-gray-950">
@@ -164,12 +167,12 @@ const LogIn = () => {
 
                 {/* FORGOT PASSWORD */}
                 <div className="text-right mt-1">
-                    <Link
+                    <LangLink
                         to="/forgot-password"
                         className="text-sm text-blue-600 hover:underline font-medium"
                     >
                         {t("forgotPassword")}
-                    </Link>
+                    </LangLink>
                 </div>
 
                 {/* OAUTH SECTION */}
@@ -199,12 +202,12 @@ const LogIn = () => {
                 {/* REGISTER */}
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     {t("dontHaveAccount")}{" "}
-                    <Link
+                    <LangLink
                         className="font-semibold underline hover:text-black dark:hover:text-white"
-                        to="/register"
+                        to="/Register"
                     >
                         {t("signUp")}
-                    </Link>
+                    </LangLink>
                 </p>
 
             </form>

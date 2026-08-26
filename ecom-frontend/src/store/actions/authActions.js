@@ -1,4 +1,5 @@
 import api from "../../api/api";
+import i18n from "../../i18n";
 
 export const authenticateSignInUser = (
     sendData, toast, reset, navigate, setLoader,
@@ -26,7 +27,7 @@ export const authenticateSignInUser = (
         localStorage.setItem("auth", JSON.stringify(data));
         reset();
         toast.success("Login Success");
-        navigate("/");
+        navigate(`/${i18n.language}`);
 
     } catch (error) {
         const data = error?.response?.data;
@@ -52,7 +53,7 @@ export const registerNewUser
             const { data } = await api.post("/auth/signup", payload);
             reset();
             toast.success(data?.message || "User Registered Successfully");
-            navigate("/login");
+            navigate(`/${i18n.language}/login`);
         } catch (error) {
             toast.error(error?.response?.data?.message || error?.response?.data?.password || "Internal Server Error");
         } finally {
@@ -63,7 +64,7 @@ export const registerNewUser
 export const logOutUser = (navigate) => (dispatch) => {
     dispatch({ type: "LOG_OUT" });
     localStorage.removeItem("auth");
-    navigate("/login");
+    navigate(`/${i18n.language}/login`);
 };
 
 export const fetchUserDetails = () => async (dispatch) => {

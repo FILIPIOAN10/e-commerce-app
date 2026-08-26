@@ -8,6 +8,8 @@ import { IoExitOutline } from 'react-icons/io5';
 import BackDrop from './BackDrop';
 import { logOutUser } from '../store/actions';
 import { useTranslation } from 'react-i18next';
+import LangLink from './shared/LangLink';
+import { useLanguage } from '../context/LanguageContext';
 
 const UserMenu = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -16,6 +18,7 @@ const UserMenu = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation("userMenu");
+  const lang = useLanguage();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -55,37 +58,37 @@ const UserMenu = () => {
           },
         }}
       >
-        <Link to="/profile">
+        <LangLink to="/profile">
           <MenuItem className='flex ga-2' onClick={handleClose}>
             <BiUser className="text-xl" />
             <span className='font-bold tex-[16px] mt-1'>
               {user?.username}
             </span>
           </MenuItem>
-        </Link>
+        </LangLink>
 
         {/* ✅ Order vizibil doar pentru user normal */}
         {!isAdmin && !isSeller && (
-          <Link to="/profile/orders">
+          <LangLink to="/profile/orders">
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaShoppingCart className="text-xl" />
               <span className='font-semibold'>
                 {t("order")}
               </span>
             </MenuItem>
-          </Link>
+          </LangLink>
         )}
 
         {/* ✅ Admin Panel sau Seller Panel */}
         {(isAdmin || isSeller) && (
-          <Link to={isAdmin ? "/admin" : "/admin/orders"}>
+          <LangLink to={isAdmin ? "/admin" : "/admin/orders"}>
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaUserShield className="text-xl" />
               <span className='font-semibold'>
                 {isAdmin ? t("adminPanel") : t("sellerPanel")}
               </span>
             </MenuItem>
-          </Link>
+          </LangLink>
         )}
 
         <MenuItem data-testid='logout-button' className='flex ga-2' onClick={logOutHandler}>

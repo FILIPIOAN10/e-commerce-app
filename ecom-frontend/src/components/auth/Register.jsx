@@ -8,6 +8,7 @@ import { registerNewUser } from '../../store/actions';
 import toast from 'react-hot-toast';
 import Spinners from '../shared/Spinners';
 import { useTranslation } from 'react-i18next';
+import LangLink from '../shared/LangLink';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -130,12 +131,12 @@ const Register = () => {
                 </button>
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     {t("alreadyHaveAccount")}
-                    <Link 
+                    <LangLink 
                     className="font-semibold underline hover:text-black dark:hover:text-white"
                     to="/login"
                     >
                     <span>{t("login")}</span>
-                    </Link>
+                    </LangLink>
                 </p>
             </form>
         </div>

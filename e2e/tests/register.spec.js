@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Registration flow', () => {
   test('register page loads with all required fields', async ({ page }) => {
-    await page.goto('/Register')
+    await page.goto('/en/Register')
 
     await expect(page.locator('h1')).toContainText('Register')
     await expect(page.locator('#username')).toBeVisible()
@@ -13,7 +13,7 @@ test.describe('Registration flow', () => {
   })
 
   test('register page has role selector with User and Seller options', async ({ page }) => {
-    await page.goto('/Register')
+    await page.goto('/en/Register')
 
     const roleSelect = page.locator('select')
     await expect(roleSelect).toBeVisible()
@@ -28,17 +28,17 @@ test.describe('Registration flow', () => {
   })
 
   test('form validation prevents empty submission', async ({ page }) => {
-    await page.goto('/Register')
+    await page.goto('/en/Register')
 
     await page.click('button[type="submit"]')
 
     // Should stay on register page
-    await expect(page).toHaveURL(/\/Register/)
+    await expect(page).toHaveURL(/\/en\/Register/)
   })
 
   test('successful registration redirects to login', async ({ page }) => {
     const uniqueUser = `u_${Date.now()}`
-    await page.goto('/Register')
+    await page.goto('/en/Register')
 
     await page.fill('#username', uniqueUser)
     await page.fill('#email', `${uniqueUser}@test.com`)
@@ -48,6 +48,6 @@ test.describe('Registration flow', () => {
     await page.click('button[type="submit"]')
 
     // Should redirect to login page after successful registration
-    await expect(page).toHaveURL(/\/login/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/en\/login/, { timeout: 15000 })
   })
 })

@@ -29,11 +29,13 @@ import {
   addToWishlist,
   addToCompare,
 } from "../../store/actions";
+import { useLanguage } from "../../context/LanguageContext";
 
 const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const lang = useLanguage();
 
   const product = useSelector((state) => state.products.selectedProduct);
   const { isLoading, errorMessage } = useSelector((state) => state.errors);
@@ -84,7 +86,7 @@ const ProductDetail = () => {
           {errorMessage || "We couldn't find the product you were looking for."}
         </p>
         <Link
-          to="/products"
+          to={`/${lang}/products`}
           className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
         >
           Back to products
@@ -190,13 +192,13 @@ const ProductDetail = () => {
   ];
 
   const breadcrumbItems = [
-    { label: "Home", path: "/" },
-    { label: "Products", path: "/products" },
+    { label: "Home", path: `/${lang}` },
+    { label: "Products", path: `/${lang}/products` },
     ...(categoryName
       ? [
           {
             label: categoryName,
-            path: `/products?category=${encodeURIComponent(categoryName)}`,
+            path: `/${lang}/products?category=${encodeURIComponent(categoryName)}`,
           },
         ]
       : []),
@@ -280,7 +282,7 @@ const ProductDetail = () => {
           <div className="flex flex-col">
             {categoryName && (
               <Link
-                to={`/products?category=${encodeURIComponent(categoryName)}`}
+                to={`/${lang}/products?category=${encodeURIComponent(categoryName)}`}
                 className="text-sm font-medium text-blue-500 hover:text-blue-600 w-fit mb-2"
               >
                 {categoryName}

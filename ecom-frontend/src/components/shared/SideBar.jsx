@@ -6,13 +6,15 @@ import { ClassNames } from '@emotion/react';
 import classNames from 'classnames';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchLowStockCount } from '../../store/actions';
+import { useLanguage } from '../../context/LanguageContext';
 
 const SideBar = () => {
   
-    const pathName = useLocation().pathname;
+    const pathName = useLocation().pathname.replace(/^\/[a-z]{2}/, '') || '/';
     const {user} = useSelector((state) => state.auth);
     const { lowStockCount } = useSelector((state) => state.products);
     const dispatch = useDispatch();
+    const lang = useLanguage();
     
     const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
 
@@ -40,7 +42,7 @@ const SideBar = () => {
                             {sideBarLayout.map((item) => (
                                 <li key={item.name}>
                                     <Link 
-                                    to={item.href}
+                                    to={`/${lang}${item.href}`}
                                     className={classNames(
                                         pathName === item.href ?
                                         "bg-custom-blue text-white"

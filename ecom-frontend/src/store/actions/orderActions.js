@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import api from "../../api/api";
+import i18n from "../../i18n";
 
 export const getOrdersForDashboard = (queryString = "", isAdmin) => async (dispatch, getState) => {
     try {
@@ -118,7 +119,7 @@ export const placeGuestOrder = (payload, setLoading, navigate, toast) => async (
         setLoading(false);
         toast.success(`Order placed: #${data.orderId}`);
         dispatch({ type: "CLEAR_CART" });
-        navigate("/track-order");
+        navigate(`/${i18n.language}/track-order`);
     } catch (error) {
         setLoading(false);
         toast.error(error?.response?.data?.message || "Failed to place guest order");

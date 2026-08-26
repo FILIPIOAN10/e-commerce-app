@@ -9,6 +9,7 @@ import ProductSkeleton from "../shared/ProductSkeleton";
 import Breadcrumb from "../shared/Breadcrumb";
 import Paginations from "../shared/Paginations";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "../../context/LanguageContext";
 
 
 const Products  = () => {
@@ -22,6 +23,7 @@ const Products  = () => {
     )
     const dispatch = useDispatch();
     const { t } = useTranslation();
+    const lang = useLanguage();
     useProductFilter();
 
     useEffect( () => {
@@ -30,7 +32,7 @@ const Products  = () => {
   
     return (
         <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto dark:bg-gray-950 dark:text-white min-h-screen">
-            <Breadcrumb items={[{ label: t("home", { ns: "navbar" }), path: "/" }, { label: t("products", { ns: "navbar" }) }]} />
+            <Breadcrumb items={[{ label: t("home", { ns: "navbar" }), path: `/${lang}` }, { label: t("products", { ns: "navbar" }) }]} />
             <Filter categories = {categories ? categories : []}/>
             { isLoading ? (
                     <ProductSkeleton />

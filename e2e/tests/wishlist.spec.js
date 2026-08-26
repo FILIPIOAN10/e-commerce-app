@@ -23,7 +23,7 @@ test.describe('Wishlist flow', () => {
   test('user can add and remove a product from wishlist', async ({ page }) => {
     await login(page, 'user1', 'password1')
 
-    await page.goto(`/products/${product.productId}`)
+    await page.goto(`/en/products/${product.productId}`)
     await page.waitForSelector('h1', { timeout: 10000 })
 
     const wishlistBtn = page.locator('[data-testid="wishlist-button"]').first()
@@ -32,7 +32,7 @@ test.describe('Wishlist flow', () => {
       await page.waitForTimeout(1000)
     }
 
-    await page.goto('/wishlist')
+    await page.goto('/en/wishlist')
     await expect(page).toHaveURL(/\/wishlist/, { timeout: 10000 })
     await expect(page.locator('text=My Wishlist')).toBeVisible()
     await expect(page.locator('text=' + product.productName)).toBeVisible({ timeout: 10000 })

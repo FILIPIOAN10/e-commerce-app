@@ -10,9 +10,12 @@ import UserMenu from "../UserMenu";
 import { useTheme } from "../../hooks/useTheme";
 import NotificationBell from "./NotificationBell";
 import LanguageSwitcher from "./LanguageSwitcher";
+import LangLink from "./LangLink";
+import { useLanguage } from "../../context/LanguageContext";
 
 const Navbar = () => {
-    const path = useLocation().pathname;
+    const path = useLocation().pathname.replace(/^\/[a-z]{2}/, '') || '/';
+    const lang = useLanguage();
     const [navbarOpen, setNavbarOpen] = useState(false);
     const { cart } = useSelector((state) => state.carts);
     const { user } = useSelector((state) => state.auth);
@@ -26,7 +29,7 @@ const Navbar = () => {
     return (
         <div className="h-17.5 bg-custom-gradient text-white z-50 flex items-center sticky top-0 dark:bg-gray-900">
             <div className="lg:px-14 sm:px-8 px-4 w-full flex justify-between">
-                <Link to="/" className="flex items-center text-2xl font-bold">
+                <Link to={`/${lang}`} className="flex items-center text-2xl font-bold">
                     <FaStore className="mr-2 text-3xl" />
                     <span className="font-[Poppins]">E-Shop</span>
                 </Link>
@@ -36,63 +39,63 @@ const Navbar = () => {
                 } transition-all duration-100 sm:h-fit sm:bg-none bg-custom-gradient text-white sm:w-fit w-full sm:flex-row flex-col px-4 sm:px-0`}>
                     
                     <li className="font-medium transition-all duration-150">
-                        <Link className={`${path === "/" ? "text-white font-semibold" : "text-gray-200"}`} to="/">
+                        <LangLink className={`${path === "/" ? "text-white font-semibold" : "text-gray-200"}`} to="/">
                             {t("home")}
-                        </Link>
+                        </LangLink>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
-                        <Link className={`${path === "/products" ? "text-white font-semibold" : "text-gray-200"}`} to="/products">
+                        <LangLink className={`${path === "/products" ? "text-white font-semibold" : "text-gray-200"}`} to="/products">
                             {t("products")}
-                        </Link>
+                        </LangLink>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
-                        <Link className={`${path === "/bundles" ? "text-white font-semibold" : "text-gray-200"}`} to="/bundles">
+                        <LangLink className={`${path === "/bundles" ? "text-white font-semibold" : "text-gray-200"}`} to="/bundles">
                             {t("bundles")}
-                        </Link>
+                        </LangLink>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
-                        <Link className={`${path === "/subscriptions" ? "text-white font-semibold" : "text-gray-200"}`} to="/subscriptions">
+                        <LangLink className={`${path === "/subscriptions" ? "text-white font-semibold" : "text-gray-200"}`} to="/subscriptions">
                             {t("subscriptions")}
-                        </Link>
+                        </LangLink>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
-                        <Link className={`${path === "/about" ? "text-white font-semibold" : "text-gray-200"}`} to="/about">
+                        <LangLink className={`${path === "/about" ? "text-white font-semibold" : "text-gray-200"}`} to="/about">
                             {t("about")}
-                        </Link>
+                        </LangLink>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
-                        <Link className={`${path === "/contact" ? "text-white font-semibold" : "text-gray-200"}`} to="/contact">
+                        <LangLink className={`${path === "/contact" ? "text-white font-semibold" : "text-gray-200"}`} to="/contact">
                             {t("contact")}
-                        </Link>
+                        </LangLink>
                     </li>
 
                     {/* ✅ track order vizibil doar pentru non-admin logat */}
                     {(user && user.id) && !isAdmin && (
                         <li className="font-medium transition-all duration-150">
-                            <Link className={`${path === "/track-order" ? "text-white font-semibold" : "text-gray-200"}`} to="/track-order">
+                            <LangLink className={`${path === "/track-order" ? "text-white font-semibold" : "text-gray-200"}`} to="/track-order">
                                 <FaTruck size={22} />
-                            </Link>
+                            </LangLink>
                         </li>
                     )}
 
                     {/* ✅ wishlist vizibil doar pentru non-admin logat */}
                     {(user && user.id) && !isAdmin && (
                         <li className="font-medium transition-all duration-150">
-                            <Link className={`${path === "/wishlist" ? "text-white font-semibold" : "text-gray-200"}`} to="/wishlist">
+                            <LangLink className={`${path === "/wishlist" ? "text-white font-semibold" : "text-gray-200"}`} to="/wishlist">
                                 <FaHeart size={22} />
-                            </Link>
+                            </LangLink>
                         </li>
                     )}
 
                     {/* ✅ compare vizibil doar pentru non-admin logat */}
                     {(user && user.id) && !isAdmin && (
                         <li className="font-medium transition-all duration-150">
-                            <Link className={`${path === "/compare" ? "text-white font-semibold" : "text-gray-200"}`} to="/compare">
+                            <LangLink className={`${path === "/compare" ? "text-white font-semibold" : "text-gray-200"}`} to="/compare">
                                 <Badge
                                     badgeContent={compareList?.length || 0}
                                     color="secondary"
@@ -100,14 +103,14 @@ const Navbar = () => {
                                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
                                     <FaBalanceScale size={22} />
                                 </Badge>
-                            </Link>
+                            </LangLink>
                         </li>
                     )}
 
                     {/* ✅ cart vizibil doar pentru non-admin */}
                     {!isAdmin && (
                         <li className="font-medium transition-all duration-150">
-                            <Link className={`${path === "/cart" ? "text-white font-semibold" : "text-gray-200"}`} to="/cart">
+                            <LangLink className={`${path === "/cart" ? "text-white font-semibold" : "text-gray-200"}`} to="/cart">
                                 <Badge
                                     showZero
                                     badgeContent={cart?.length || 0}
@@ -116,7 +119,7 @@ const Navbar = () => {
                                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
                                     <FaShoppingCart size={25} />
                                 </Badge>
-                            </Link>
+                            </LangLink>
                         </li>
                     )}
 
@@ -126,7 +129,7 @@ const Navbar = () => {
                         </li>
                     ) : (
                         <li className="font-medium transition-all duration-150">
-                            <Link className="flex items-center space-x-2 px-4 py-1.5
+                            <LangLink className="flex items-center space-x-2 px-4 py-1.5
                                         bg-linear-to-r from-purple-600 to-red-500
                                         text-white font-semibold rounded-md shadow-lg
                                         hover:from-purple-500 hover:to-red-400 transition
@@ -134,7 +137,7 @@ const Navbar = () => {
                                 to="/login">
                                 <FaSignInAlt />
                                 <span>{t("login")}</span>
-                            </Link>
+                            </LangLink>
                         </li>
                     )}
                 </ul>

@@ -6,10 +6,13 @@ import CartEmpty from "./CartEmpty";
 import { formatPrice } from "../../utils/formatPrice";
 import Breadcrumb from "../shared/Breadcrumb";
 import { useTranslation } from "react-i18next";
+import LangLink from "../shared/LangLink";
+import { useLanguage } from "../../context/LanguageContext";
 
 const Cart = () => {
     const {cart} = useSelector((state) => state.carts);
     const { t } = useTranslation("cart");
+    const lang = useLanguage();
     const activeCart = cart?.filter((item) => !item.savedForLater) || [];
     const savedCart = cart?.filter((item) => item.savedForLater) || [];
     const totalPrice = activeCart?.reduce(
@@ -22,7 +25,7 @@ const Cart = () => {
     return(
         <div className="lg:px-14 sm:px-8 px-4 py-10">
 
-            <Breadcrumb items={[{ label: t("home", { ns: "navbar" }), path: "/" }, { label: t("yourCart") }]} />
+            <Breadcrumb items={[{ label: t("home", { ns: "navbar" }), path: `/${lang}` }, { label: t("yourCart") }]} />
 
             <div className="flex flex-col items-center mb-12">
                 <h1 data-testid="cart-heading" className="text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
@@ -71,7 +74,7 @@ const Cart = () => {
                     <p className="text-slate-500 dark:text-gray-400">
                         {t("taxesAndShipping")}
                     </p>
-                    <Link className="w-full flex justify-end" to="/checkout">
+                    <LangLink className="w-full flex justify-end" to="/checkout">
                     <button
                     disabled={activeCart.length === 0}
                     data-testid="checkout-button"
@@ -81,9 +84,9 @@ const Cart = () => {
 
                         {t("checkout")}
                     </button>
-                    </Link>
+                    </LangLink>
 
-                    <Link className="w-full flex justify-end text-sm" to="/guest-checkout">
+                    <LangLink className="w-full flex justify-end text-sm" to="/guest-checkout">
                     <button
                     disabled={activeCart.length === 0}
                     data-testid="guest-checkout-button"
@@ -91,16 +94,16 @@ const Cart = () => {
                     >
                         {t("checkoutAsGuest")}
                     </button>
-                    </Link>
+                    </LangLink>
 
 
-                    <Link className="flex gap-2 items-center mt-2 text-slate-500 dark:text-gray-400" to="/products">
+                    <LangLink className="flex gap-2 items-center mt-2 text-slate-500 dark:text-gray-400" to="/products">
 
                     <MdArrowBack/>
                     <span>
                         {t("continueShopping")}
                     </span>
-                    </Link>
+                    </LangLink>
                 </div>
             </div>
         </div>

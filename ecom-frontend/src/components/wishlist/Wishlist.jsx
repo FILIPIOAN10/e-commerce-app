@@ -6,12 +6,15 @@ import { Link } from "react-router-dom";
 import Loader from "../shared/Loader";
 import EmptyState from "../shared/EmptyState";
 import { useTranslation } from "react-i18next";
+import LangLink from "../shared/LangLink";
+import { useLanguage } from "../../context/LanguageContext";
 
 const Wishlist = () => {
     const dispatch = useDispatch();
     const { wishlist, error } = useSelector((state) => state.wishlist);
     const { user } = useSelector((state) => state.auth);
     const { t } = useTranslation("wishlist");
+    const lang = useLanguage();
 
     useEffect(() => {
         if (user?.id) {
@@ -29,7 +32,7 @@ const Wishlist = () => {
                 <div className="flex flex-col items-center justify-center min-h-96">
                     <FaHeart className="text-gray-300 text-6xl mb-4" />
                     <p className="text-gray-500 text-lg mb-4">{t("pleaseLogin")}</p>
-                    <Link to="/login" className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
+                    <Link to={`/${lang}/login`} className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
                         {t("login", { ns: "navbar" })}
                     </Link>
                 </div>
@@ -55,7 +58,7 @@ const Wishlist = () => {
                     icon={FaHeart}
                     title={t("wishlistEmpty")}
                     message={t("wishlistEmptyMessage")}
-                    action={{ label: t("browseProducts"), path: "/products", icon: FaHeart }}
+                    action={{ label: t("browseProducts"), path: `/${lang}/products`, icon: FaHeart }}
                 />
             )}
 
@@ -98,12 +101,12 @@ const Wishlist = () => {
                                             ${Number(item.price).toFixed(2)}
                                         </span>
                                     )}
-                                    <Link
+                                    <LangLink
                                         to="/products"
                                         className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition text-sm"
                                     >
                                         {t("view", { ns: "common" })}
-                                    </Link>
+                                    </LangLink>
                                 </div>
                             </div>
                         </div>

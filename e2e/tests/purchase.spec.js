@@ -3,34 +3,34 @@ import { test, expect } from '@playwright/test'
 test.describe('Full purchase flow', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin before each test
-    await page.goto('/login')
+    await page.goto('/en/login')
     await page.fill('#username', 'admin')
     await page.fill('#password', 'adminPass')
     await page.click('button[type="submit"]')
-    await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
+    await expect(page).toHaveURL(/\/en$/, { timeout: 10000 })
   })
 
   test('home page loads and shows product sections', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/en')
 
     // Wait for page to load
     await page.waitForTimeout(3000)
 
     // Should be on home page
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL(/\/en$/)
   })
 
   test('navigate to products page and view product list', async ({ page }) => {
-    await page.goto('/products')
+    await page.goto('/en/products')
 
     await page.waitForTimeout(3000)
 
     // Products page should load
-    await expect(page).toHaveURL(/\/products/)
+    await expect(page).toHaveURL(/\/en\/products/)
   })
 
   test('can add product to cart from products page', async ({ page }) => {
-    await page.goto('/products')
+    await page.goto('/en/products')
     await page.waitForTimeout(3000)
 
     // Look for "Add to Cart" button or similar
@@ -41,18 +41,18 @@ test.describe('Full purchase flow', () => {
       await page.waitForTimeout(2000)
 
       // Navigate to cart
-      await page.goto('/cart')
-      await expect(page).toHaveURL(/\/cart/)
+      await page.goto('/en/cart')
+      await expect(page).toHaveURL(/\/en\/cart/)
     }
   })
 
   test('cart page loads for authenticated user', async ({ page }) => {
-    await page.goto('/cart')
-    await expect(page).toHaveURL(/\/cart/)
+    await page.goto('/en/cart')
+    await expect(page).toHaveURL(/\/en\/cart/)
   })
 
   test('checkout page redirects properly for authenticated user', async ({ page }) => {
-    await page.goto('/checkout')
+    await page.goto('/en/checkout')
     // Should either show checkout page or redirect if cart is empty
     await page.waitForTimeout(2000)
   })
@@ -66,7 +66,7 @@ test.describe('Full purchase flow', () => {
       await page.waitForTimeout(2000)
 
       // Should be redirected to login
-      await expect(page).toHaveURL(/\/login/, { timeout: 10000 })
+      await expect(page).toHaveURL(/\/en\/login/, { timeout: 10000 })
     }
   })
 })

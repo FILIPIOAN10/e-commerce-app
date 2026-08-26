@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { FaHome, FaExclamationTriangle } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "../../context/LanguageContext";
 
 const NotFound = () => {
     const { t } = useTranslation("notFound");
+    const lang = useLanguage();
     return (
         <div className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center dark:bg-gray-950 px-4">
             <FaExclamationTriangle className="text-6xl text-slate-300 dark:text-gray-600 mb-6" />
@@ -12,7 +14,7 @@ const NotFound = () => {
                 {t("notFoundMessage")}
             </p>
             <Link
-                to="/"
+                to={`/${lang}`}
                 className="flex items-center gap-2 bg-button-gradient text-white px-6 py-3 rounded-md font-medium hover:opacity-90 transition"
             >
                 <FaHome /> {t("backToHome")}

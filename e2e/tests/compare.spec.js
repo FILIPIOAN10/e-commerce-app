@@ -23,7 +23,7 @@ test.describe('Compare flow', () => {
   test('user can add a product to compare and view comparison table', async ({ page }) => {
     await login(page, 'user1', 'password1')
 
-    await page.goto(`/products/${product.productId}`)
+    await page.goto(`/en/products/${product.productId}`)
     await page.waitForSelector('h1', { timeout: 10000 })
 
     const compareBtn = page.locator('[data-testid="compare-button"]').first()
@@ -32,7 +32,7 @@ test.describe('Compare flow', () => {
       await page.waitForTimeout(1000)
     }
 
-    await page.goto('/compare')
+    await page.goto('/en/compare')
     await expect(page).toHaveURL(/\/compare/, { timeout: 10000 })
     await expect(page.locator('text=Compare Products')).toBeVisible()
     await expect(page.locator('text=' + product.productName)).toBeVisible({ timeout: 10000 })

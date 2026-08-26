@@ -2,11 +2,13 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import TwoFactorSettings from './TwoFactorSettings';
 import { FaUserCircle, FaCog, FaLaptop } from 'react-icons/fa';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const isAdmin = user?.roles?.includes("ROLE_ADMIN");
   const isSeller = user?.roles?.includes("ROLE_SELLER");
+  const lang = useLanguage();
 
   return (
     <div className="max-w-2xl mx-auto p-6 mt-10 dark:text-white">
@@ -14,13 +16,13 @@ const Profile = () => {
         <h1 className="text-2xl font-bold dark:text-white">Profilul meu</h1>
         <div className="flex items-center gap-2">
           <Link
-            to="/profile/devices"
+            to={`/${lang}/profile/devices`}
             className="flex items-center gap-2 bg-button-gradient text-white px-4 py-2 rounded-md hover:opacity-90 transition"
           >
             <FaLaptop /> Devices
           </Link>
           <Link
-            to="/profile/settings"
+            to={`/${lang}/profile/settings`}
             className="flex items-center gap-2 bg-button-gradient text-white px-4 py-2 rounded-md hover:opacity-90 transition"
           >
             <FaCog /> Settings

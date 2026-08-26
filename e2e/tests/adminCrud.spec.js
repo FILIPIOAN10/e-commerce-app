@@ -19,7 +19,7 @@ async function waitForCategory(page, name) {
 test.describe('Admin category CRUD', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, 'admin', 'adminPass')
-    await page.goto('/admin/categories')
+    await page.goto('/en/admin/categories')
     await page.waitForTimeout(2000)
   })
 
@@ -35,7 +35,7 @@ test.describe('Admin category CRUD', () => {
 
     // Wait for the create request and the subsequent table refresh to complete
     await page.waitForResponse(
-      response => response.url().includes('/admin/categories') && response.request().method() === 'POST',
+      response => response.url().includes('/en/admin/categories') && response.request().method() === 'POST',
       { timeout: 10000 }
     ).catch(() => null)
     await page.waitForTimeout(500)
@@ -53,7 +53,7 @@ test.describe('Admin category CRUD', () => {
     await page.click('button:has-text("Update")')
 
     // Reset to first page after update (the action always refreshes page 0)
-    await page.goto('/admin/categories')
+    await page.goto('/en/admin/categories')
     await page.waitForTimeout(1000)
     await waitForCategory(page, updatedName)
     await expect(page.locator('text=' + updatedName).first()).toBeVisible({ timeout: 5000 })
@@ -67,7 +67,7 @@ test.describe('Admin category CRUD', () => {
     await page.waitForTimeout(1000)
 
     // Reset to first page after delete
-    await page.goto('/admin/categories')
+    await page.goto('/en/admin/categories')
     await page.waitForTimeout(1000)
     await waitForCategory(page, updatedName)
     await expect(page.locator('text=' + updatedName).first()).toHaveCount(0, { timeout: 5000 })

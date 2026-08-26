@@ -7,6 +7,9 @@ import { Toaster } from 'react-hot-toast'
 import React, { Suspense, lazy } from 'react'
 import PrivateRoute from './components/PrivateRoute'
 import Loader from './components/shared/Loader'
+import LanguageLayout from './components/shared/LanguageLayout'
+import LanguageRedirect from './components/shared/LanguageRedirect'
+import LanguageMeta from './components/shared/LanguageMeta'
 
 const Home = lazy(() => import('./components/home/Home'))
 const Products = lazy(() => import('./components/products/Products'))
@@ -58,58 +61,62 @@ function App() {
       <Navbar/>
       <Suspense fallback={<Loader />}>
       <Routes>
-        <Route  path='/' element ={<Home/>} />
-        <Route  path='/products' element ={<Products/>} />
-        <Route  path='/products/:productId' element ={<ProductDetail/>} />
-        <Route  path='/bundles' element ={<Bundles/>} />
-        <Route  path='/subscriptions' element ={<SubscriptionPlans/>} />
-        <Route  path='/about' element ={<About/>} />
-        <Route  path='/contact' element ={<Contact/>} />
-        <Route  path='/cart' element ={<Cart/>} />
-        <Route  path='/guest-checkout' element ={<GuestCheckout/>} />
-        <Route  path='/compare' element={<ComparePage />} />
-        <Route  path='/track-order' element={<TrackOrder />} />
-        <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
-        <Route path='/verify-email' element={<VerifyEmail />} />
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/reset-password' element={<ResetPassword />} />
-        <Route path='/' element={<PrivateRoute />}>
-          <Route path='/profile' element={<Profile />} />
-          <Route path='/profile/settings' element={<ProfileSettings />} />
-          <Route path='/profile/devices' element={<Devices />} />
-          <Route path='/my-subscriptions' element={<MySubscriptions />} />
-          <Route path ="/checkout" element ={<Checkout/>}/>
-          <Route path ="/checkout/order-confirm" element ={<PaymentConfirmation />}/>
-        </Route>
-        <Route path='/' element={<PrivateRoute publicPage/>}>
-             <Route  path='/login' element ={<LogIn/>} />
-              <Route  path='/Register' element ={<Register/>} />
-        </Route>
-
-        <Route path='/' element ={<PrivateRoute adminOnly />}>
-          <Route path='/admin' element={<AdminLayout/>}>
-           <Route path='' element={<Dashboard />}/>
-            <Route path='products' element={<AdminProducts />}/>
-            <Route path='bundles' element={<AdminBundles />}/>
-            <Route path='subscriptions' element={<AdminSubscriptions />}/>
-            <Route path='sellers' element={<Sellers />}/>
-            <Route path='orders' element={<Orders />}/>
-            <Route path='returns' element={<AdminReturns />}/>
-            <Route path='categories' element={<Category />}/>
-            <Route path='coupons' element={<Coupons />}/>
-            <Route path='low-stock' element={<LowStockAlerts />}/>
-            <Route path='activity-logs' element={<UserActivityLog />}/>
-            <Route path='product-import' element={<ProductImport />}/>
-            <Route path='promo-campaigns' element={<PromoCampaigns />}/>
-            <Route path='users' element={<AdminUsers />}/>
+        <Route path='/' element={<LanguageRedirect />} />
+        <Route path='/:lang' element={<LanguageLayout />}>
+          <LanguageMeta />
+          <Route index element={<Home/>} />
+          <Route path='products' element={<Products/>} />
+          <Route path='products/:productId' element={<ProductDetail/>} />
+          <Route path='bundles' element={<Bundles/>} />
+          <Route path='subscriptions' element={<SubscriptionPlans/>} />
+          <Route path='about' element={<About/>} />
+          <Route path='contact' element={<Contact/>} />
+          <Route path='cart' element={<Cart/>} />
+          <Route path='guest-checkout' element={<GuestCheckout/>} />
+          <Route path='compare' element={<ComparePage />} />
+          <Route path='track-order' element={<TrackOrder />} />
+          <Route path='oauth2/redirect' element={<OAuth2Redirect />} />
+          <Route path='verify-email' element={<VerifyEmail />} />
+          <Route path='forgot-password' element={<ForgotPassword />} />
+          <Route path='reset-password' element={<ResetPassword />} />
+          <Route element={<PrivateRoute />}>
+            <Route path='profile' element={<Profile />} />
+            <Route path='profile/settings' element={<ProfileSettings />} />
+            <Route path='profile/devices' element={<Devices />} />
+            <Route path='my-subscriptions' element={<MySubscriptions />} />
+            <Route path="checkout" element={<Checkout/>}/>
+            <Route path="checkout/order-confirm" element={<PaymentConfirmation />}/>
           </Route>
-        </Route>
+          <Route element={<PrivateRoute publicPage/>}>
+             <Route path='login' element={<LogIn/>} />
+              <Route path='Register' element={<Register/>} />
+          </Route>
 
-        <Route path='/' element={<PrivateRoute />}>
-          <Route path='/profile/orders' element={<ProfileOrders />} />
-          <Route path='/wishlist' element={<Wishlist />} />
+          <Route element={<PrivateRoute adminOnly />}>
+            <Route path='admin' element={<AdminLayout/>}>
+             <Route index element={<Dashboard />}/>
+              <Route path='products' element={<AdminProducts />}/>
+              <Route path='bundles' element={<AdminBundles />}/>
+              <Route path='subscriptions' element={<AdminSubscriptions />}/>
+              <Route path='sellers' element={<Sellers />}/>
+              <Route path='orders' element={<Orders />}/>
+              <Route path='returns' element={<AdminReturns />}/>
+              <Route path='categories' element={<Category />}/>
+              <Route path='coupons' element={<Coupons />}/>
+              <Route path='low-stock' element={<LowStockAlerts />}/>
+              <Route path='activity-logs' element={<UserActivityLog />}/>
+              <Route path='product-import' element={<ProductImport />}/>
+              <Route path='promo-campaigns' element={<PromoCampaigns />}/>
+              <Route path='users' element={<AdminUsers />}/>
+            </Route>
+          </Route>
+
+          <Route element={<PrivateRoute />}>
+            <Route path='profile/orders' element={<ProfileOrders />} />
+            <Route path='wishlist' element={<Wishlist />} />
+          </Route>
+          <Route path='*' element={<NotFound />} />
         </Route>
-        <Route path='*' element={<NotFound />} />
       </Routes>
       </Suspense>
       </div>

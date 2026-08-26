@@ -20,7 +20,7 @@ test.describe('Guest checkout flow', () => {
   })
 
   test('guest can add product to cart and complete checkout', async ({ page }) => {
-    await page.goto(`/products/${product.productId}`)
+    await page.goto(`/en/products/${product.productId}`)
     await page.waitForSelector('h1', { timeout: 10000 })
 
     const addToCartBtn = page.locator('button:has-text("Add to Cart")').first()
@@ -29,7 +29,7 @@ test.describe('Guest checkout flow', () => {
       await page.waitForTimeout(1000)
     }
 
-    await page.goto('/guest-checkout')
+    await page.goto('/en/guest-checkout')
     await expect(page).toHaveURL(/\/guest-checkout/, { timeout: 10000 })
     await expect(page.locator('text=Guest Checkout')).toBeVisible()
 

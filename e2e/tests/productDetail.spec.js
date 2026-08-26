@@ -20,7 +20,7 @@ test.describe('Product detail page', () => {
   })
 
   test('loads product information and actions', async ({ page }) => {
-    await page.goto(`/products/${product.productId}`)
+    await page.goto(`/en/products/${product.productId}`)
 
     await expect(page.locator('h1')).toContainText(product.productName, { timeout: 10000 })
     await expect(page.locator('text=E2E product description sample')).toBeVisible()

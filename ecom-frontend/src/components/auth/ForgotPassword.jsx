@@ -6,10 +6,12 @@ import InputField from "../shared/InputField";
 import Spinners from "../shared/Spinners";
 import api from "../../api/api";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../context/LanguageContext";
 
 const ForgotPassword = () => {
     const [loader, setLoader] = useState(false);
     const [sent, setSent] = useState(false);
+    const lang = useLanguage();
 
     const {
         register,
@@ -93,7 +95,7 @@ const ForgotPassword = () => {
                     Remember your password?{" "}
                     <Link
                         className="font-semibold underline hover:text-black dark:hover:text-white"
-                        to="/login"
+                        to={`/${lang}/login`}
                     >
                         Back to Login
                     </Link>

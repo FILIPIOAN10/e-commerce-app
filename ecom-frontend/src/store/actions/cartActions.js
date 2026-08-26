@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import api from "../../api/api";
+import i18n from "../../i18n";
 
 const renderAddedToCartToast = (productName, navigate, toast, t) =>
     createElement(
@@ -11,7 +12,7 @@ const renderAddedToCartToast = (productName, navigate, toast, t) =>
             {
                 type: "button",
                 onClick: () => {
-                    navigate("/cart");
+                    navigate(`/${i18n.language}/cart`);
                     toast.dismiss(t.id);
                 },
                 className:

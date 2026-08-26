@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { FaTimes, FaStar, FaStarHalfAlt, FaBalanceScale, FaShoppingCart } from "react-icons/fa";
 import { removeFromCompare, clearCompare, addToCart } from "../../store/actions";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../context/LanguageContext";
 
 const ComparePage = () => {
     const dispatch = useDispatch();
     const { compareList } = useSelector((state) => state.products);
+    const lang = useLanguage();
 
     const handleRemove = (productId) => {
         dispatch(removeFromCompare(productId));
@@ -46,7 +48,7 @@ const ComparePage = () => {
                         Add products to compare by clicking the balance icon on any product card.
                     </p>
                     <Link
-                        to="/products"
+                        to={`/${lang}/products`}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
                     >
                         Browse Products

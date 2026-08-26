@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { addToCart, addToWishlist, addToCompare } from "../../store/actions";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "../../context/LanguageContext";
 
 const ProductCard = ({
         productId,
@@ -25,6 +26,7 @@ const ProductCard = ({
     const isAvailable = quantity && Number(quantity) > 0;
     const dispatch = useDispatch();
     const { t } = useTranslation("product");
+    const lang = useLanguage();
 
     // ✅ verifică dacă e admin
     const { user } = useSelector((state) => state.auth);
@@ -49,7 +51,7 @@ const ProductCard = ({
 
     const handleProductView = () => {
         if (!about) {
-            navigate(`/products/${productId}`);
+            navigate(`/${lang}/products/${productId}`);
         }
     };
 

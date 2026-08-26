@@ -1,10 +1,13 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { FaGlobe, FaCheck } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SUPPORTED_LANGUAGES } from "../../i18n";
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const current =
     SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language) ??
     SUPPORTED_LANGUAGES[0];
@@ -12,6 +15,9 @@ const LanguageSwitcher = () => {
   const changeLanguage = (code) => {
     if (code === current.code) return;
     i18n.changeLanguage(code);
+    const currentPath = location.pathname;
+    const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}/, "") || "";
+    navigate(`/${code}${pathWithoutLang}`);
   };
 
   return (
