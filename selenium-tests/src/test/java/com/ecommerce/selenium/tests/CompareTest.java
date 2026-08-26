@@ -21,7 +21,7 @@ class CompareTest extends BaseSeleniumTest {
     void compareTwoProducts() {
         open("/login");
         new LoginPage(driver, wait).login("user1", "password1");
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
 
         open("/products");
 

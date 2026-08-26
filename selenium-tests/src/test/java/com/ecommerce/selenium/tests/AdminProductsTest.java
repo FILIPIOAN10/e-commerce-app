@@ -17,7 +17,7 @@ class AdminProductsTest extends BaseSeleniumTest {
     void adminProductsPageLoads() {
         open("/login");
         new LoginPage(driver, wait).login("admin", "adminPass");
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
 
         open("/admin/products");
         wait.until(ExpectedConditions.urlContains("/admin/products"));

@@ -25,10 +25,10 @@ class RegisterTest extends BaseSeleniumTest {
         page.selectRole("ROLE_USER");
         page.submit();
 
-        page.waitForUrlToContain("/login");
+        page.waitForUrlToContain("/en/login");
 
         String currentUrl = driver.getCurrentUrl();
-        assertTrue(currentUrl.contains("/login"), "Expected redirect to /login, but got: " + currentUrl);
+        assertTrue(currentUrl.contains("/en/login"), "Expected redirect to /en/login, but got: " + currentUrl);
     }
 
     @Test
@@ -45,7 +45,7 @@ class RegisterTest extends BaseSeleniumTest {
         assertTrue(toastMessage.contains("already taken"), "Expected duplicate username error, but got: " + toastMessage);
 
         String currentUrl = driver.getCurrentUrl();
-        assertFalse(currentUrl.contains("/login"), "Should stay on /register, but got: " + currentUrl);
-        assertTrue(currentUrl.contains("/register"), "Expected URL to contain /register, but got: " + currentUrl);
+        assertFalse(currentUrl.contains("/en/login"), "Should stay on /en/register, but got: " + currentUrl);
+        assertTrue(currentUrl.contains("/en/register"), "Expected URL to contain /en/register, but got: " + currentUrl);
     }
 }

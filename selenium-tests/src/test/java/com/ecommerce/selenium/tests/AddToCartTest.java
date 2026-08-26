@@ -21,7 +21,7 @@ class AddToCartTest extends BaseSeleniumTest {
     void addFirstProductToCart() {
         open("/login");
         new LoginPage(driver, wait).login(USER, PASS);
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
 
         open("/products");
         ProductsPage products = new ProductsPage(driver, wait);

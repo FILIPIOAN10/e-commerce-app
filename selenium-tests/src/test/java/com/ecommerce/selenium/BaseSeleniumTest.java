@@ -61,6 +61,9 @@ public abstract class BaseSeleniumTest {
     }
 
     protected void open(String path) {
+        if (!path.startsWith("/en")) {
+            path = "/en" + (path.startsWith("/") ? path : "/" + path);
+        }
         driver.get(baseUrl + path);
     }
 }

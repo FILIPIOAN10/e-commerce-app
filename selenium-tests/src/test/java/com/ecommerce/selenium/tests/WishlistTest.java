@@ -20,7 +20,7 @@ class WishlistTest extends BaseSeleniumTest {
     void wishlistButtonIsAvailableForLoggedInUser() {
         open("/login");
         new LoginPage(driver, wait).login("user1", "password1");
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
 
         open("/products");
 

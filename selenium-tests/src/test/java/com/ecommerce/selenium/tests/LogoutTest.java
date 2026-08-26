@@ -17,14 +17,14 @@ class LogoutTest extends BaseSeleniumTest {
     void logoutRedirectsToLogin() {
         open("/login");
         new LoginPage(driver, wait).login("user1", "password1");
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
 
         NavbarPage navbar = new NavbarPage(driver, wait);
         navbar.openUserMenu();
         navbar.clickLogout();
 
-        wait.until(ExpectedConditions.urlContains("/login"));
-        assertTrue(driver.getCurrentUrl().contains("/login"),
-                "Dupa logout ar trebui redirect la /login, URL actual: " + driver.getCurrentUrl());
+        wait.until(ExpectedConditions.urlContains("/en/login"));
+        assertTrue(driver.getCurrentUrl().contains("/en/login"),
+                "Dupa logout ar trebui redirect la /en/login, URL actual: " + driver.getCurrentUrl());
     }
 }

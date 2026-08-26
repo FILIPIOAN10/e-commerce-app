@@ -30,7 +30,7 @@ class NavigationTest extends BaseSeleniumTest {
         assertTrue(driver.getCurrentUrl().contains("/contact"));
 
         navbar.clickHome();
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
-        assertTrue(driver.getCurrentUrl().endsWith("/"));
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
+        assertTrue(driver.getCurrentUrl().endsWith("/en"));
     }
 }

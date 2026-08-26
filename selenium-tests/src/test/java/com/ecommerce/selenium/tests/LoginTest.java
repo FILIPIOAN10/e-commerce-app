@@ -17,8 +17,8 @@ class LoginTest extends BaseSeleniumTest {
         open("/login");
         new LoginPage(driver, wait).login("admin", "adminPass");
 
-        wait.until(ExpectedConditions.urlMatches(".*/$"));
-        assertTrue(driver.getCurrentUrl().endsWith("/"),
+        wait.until(ExpectedConditions.urlMatches(".*/en$"));
+        assertTrue(driver.getCurrentUrl().endsWith("/en"),
                 "Dupa login ar trebui redirect pe home, URL actual: " + driver.getCurrentUrl());
     }
 
@@ -30,6 +30,6 @@ class LoginTest extends BaseSeleniumTest {
         loginPage.login("admin", "parola-greșită");
 
         assertTrue(loginPage.isErrorToastVisible(), "Ar trebui afișat un toast de eroare");
-        assertTrue(driver.getCurrentUrl().contains("/login"), "Ar trebui să rămână pe /login");
+        assertTrue(driver.getCurrentUrl().contains("/en/login"), "Ar trebui să rămână pe /en/login");
     }
 }

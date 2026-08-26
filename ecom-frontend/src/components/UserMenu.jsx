@@ -1,7 +1,7 @@
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BiUser } from 'react-icons/bi';
 import { FaShoppingCart, FaUserShield } from 'react-icons/fa';
 import { IoExitOutline } from 'react-icons/io5';
@@ -9,7 +9,6 @@ import BackDrop from './BackDrop';
 import { logOutUser } from '../store/actions';
 import { useTranslation } from 'react-i18next';
 import LangLink from './shared/LangLink';
-import { useLanguage } from '../context/LanguageContext';
 
 const UserMenu = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -18,7 +17,6 @@ const UserMenu = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation("userMenu");
-  const lang = useLanguage();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
