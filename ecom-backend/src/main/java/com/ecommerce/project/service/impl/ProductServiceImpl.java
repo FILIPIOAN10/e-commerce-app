@@ -18,7 +18,7 @@ import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.util.AuthUtil;
-import com.ecommerce.project.cache.EvictProductCaches;
+import com.ecommerce.project.cache.TransactionAwareCacheEvictor;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.util.ProductMapper;
 import com.ecommerce.project.util.PaginationUtil;
@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +51,10 @@ public class ProductServiceImpl implements ProductService {
     private final ProductImageService productImageService;
     private final ProductMapper productMapper;
     private final ProductSemanticSearchService productSemanticSearchService;
+    private final TransactionAwareCacheEvictor cacheEvictor;
+
+    private static final List<String> PRODUCT_CACHE_NAMES = List.of(
+            "publicProducts", "categoryProducts", "productSearch", "adminProducts", "sellerProducts");
 
     private final AuthUtil authUtil;
     private final AdminAuditLogService adminAuditLogService;
@@ -59,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    @EvictProductCaches
+    @Transactional
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
         // 1. Găsim categoria sau aruncăm excepție
         Category category = categoryRepository.findById(categoryId)
@@ -81,6 +84,8 @@ public class ProductServiceImpl implements ProductService {
         product.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
 
         Product savedProduct = productRepository.save(product);
+
+        cacheEvictor.evictAllAfterCommit(PRODUCT_CACHE_NAMES);
 
         // 4. Indexare semantică și returnare DTO
         productSemanticSearchService.indexProduct(savedProduct);
@@ -148,8 +153,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    @EvictProductCaches
-    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
 
         // Get the existing product from DB
@@ -190,6 +193,9 @@ public class ProductServiceImpl implements ProductService {
         // Save to database
         Product savedProduct = productRepository.save(productFromDB);
 
+        cacheEvictor.evictAllAfterCommit(PRODUCT_CACHE_NAMES);
+        cacheEvictor.evictKeyAfterCommit("product", productId);
+
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
 
         List<CartDTO> cartDTOS = carts.stream().map(cart -> {
@@ -205,8 +211,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    @EvictProductCaches
-    @CacheEvict(value = "product", key = "#productId")
     public ProductDTO deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
@@ -217,6 +221,10 @@ public class ProductServiceImpl implements ProductService {
         carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(),productId));
 
         productRepository.delete(product);
+
+        cacheEvictor.evictAllAfterCommit(PRODUCT_CACHE_NAMES);
+        cacheEvictor.evictKeyAfterCommit("product", productId);
+
         productSemanticSearchService.deleteProduct(productId);
         return productMapper.mapProductToDTO(product);
     }

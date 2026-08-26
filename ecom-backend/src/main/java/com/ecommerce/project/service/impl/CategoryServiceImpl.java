@@ -7,7 +7,7 @@ import com.ecommerce.project.payload.CategoryDTO;
 import com.ecommerce.project.payload.CategoryResponse;
 import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.service.CategoryService;
-import com.ecommerce.project.cache.EvictCategoryCaches;
+import com.ecommerce.project.cache.TransactionAwareCacheEvictor;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +28,11 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     private final ModelMapper modelMapper;
+    private final TransactionAwareCacheEvictor cacheEvictor;
+
+    private static final List<String> CATEGORY_CACHE_NAMES = List.of(
+            "publicCategories", "publicProducts", "categoryProducts", "productSearch",
+            "product", "adminProducts", "sellerProducts");
 
 
 
@@ -63,7 +69,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    @EvictCategoryCaches
+    @Transactional
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
 
         Category category = modelMapper.map(categoryDTO, Category.class);
@@ -75,21 +81,26 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category savedCategory = categoryRepository.save(category);
 
+        cacheEvictor.evictAllAfterCommit(CATEGORY_CACHE_NAMES);
+
         return modelMapper.map(savedCategory, CategoryDTO.class);
     }
 
     @Override
-    @EvictCategoryCaches
+    @Transactional
     public CategoryDTO deleteCategory(Long categoryId) {
 
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", categoryId));
 
         categoryRepository.delete(category);
+
+        cacheEvictor.evictAllAfterCommit(CATEGORY_CACHE_NAMES);
+
         return modelMapper.map(category, CategoryDTO.class);
     }
 
     @Override
-    @EvictCategoryCaches
+    @Transactional
     public CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId) {
 
         Category savedCategory = categoryRepository.findById(categoryId)
@@ -99,6 +110,9 @@ public class CategoryServiceImpl implements CategoryService {
         category.setCategoryId(categoryId);
 
         savedCategory = categoryRepository.save(category);
+
+        cacheEvictor.evictAllAfterCommit(CATEGORY_CACHE_NAMES);
+
         return modelMapper.map(savedCategory, CategoryDTO.class);
     }
 }
