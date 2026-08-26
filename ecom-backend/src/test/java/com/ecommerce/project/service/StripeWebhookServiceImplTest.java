@@ -19,6 +19,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -61,7 +62,7 @@ class StripeWebhookServiceImplTest {
         payment.setPgPaymentId("pi_123");
         payment.setPgStatus("pending");
 
-        when(processedWebhookEventRepository.existsByEventId("evt_123")).thenReturn(false);
+        when(processedWebhookEventRepository.saveAndFlush(any(ProcessedWebhookEvent.class))).thenAnswer(inv -> inv.getArgument(0));
         when(paymentRepository.findByPgPaymentId("pi_123")).thenReturn(Optional.of(payment));
 
         Event event = buildPaymentIntentEvent("evt_123", "payment_intent.succeeded", paymentIntent);
@@ -73,7 +74,7 @@ class StripeWebhookServiceImplTest {
 
         assertEquals("succeeded", payment.getPgStatus());
         verify(paymentRepository).save(payment);
-        verify(processedWebhookEventRepository).save(argThat(p ->
+        verify(processedWebhookEventRepository).saveAndFlush(argThat(p ->
                 "evt_123".equals(p.getEventId()) && "payment_intent.succeeded".equals(p.getEventType())));
     }
 
@@ -84,7 +85,8 @@ class StripeWebhookServiceImplTest {
         PaymentIntent paymentIntent = mock(PaymentIntent.class);
         when(paymentIntent.getId()).thenReturn("pi_123");
 
-        when(processedWebhookEventRepository.existsByEventId("evt_dup")).thenReturn(true);
+        when(processedWebhookEventRepository.saveAndFlush(any(ProcessedWebhookEvent.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate key"));
 
         Event event = buildPaymentIntentEvent("evt_dup", "payment_intent.succeeded", paymentIntent);
 
@@ -95,7 +97,6 @@ class StripeWebhookServiceImplTest {
 
         verify(paymentRepository, never()).findByPgPaymentId(anyString());
         verify(paymentRepository, never()).save(any(Payment.class));
-        verify(processedWebhookEventRepository, never()).save(any(ProcessedWebhookEvent.class));
     }
 
     @Test
@@ -113,7 +114,7 @@ class StripeWebhookServiceImplTest {
         payment.setPaymentId(2L);
         payment.setPgPaymentId("pi_456");
 
-        when(processedWebhookEventRepository.existsByEventId("evt_failed")).thenReturn(false);
+        when(processedWebhookEventRepository.saveAndFlush(any(ProcessedWebhookEvent.class))).thenAnswer(inv -> inv.getArgument(0));
         when(paymentRepository.findByPgPaymentId("pi_456")).thenReturn(Optional.of(payment));
 
         Event event = buildPaymentIntentEvent("evt_failed", "payment_intent.payment_failed", paymentIntent);

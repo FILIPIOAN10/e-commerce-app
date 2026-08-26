@@ -16,6 +16,7 @@ import com.stripe.net.Webhook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,19 +51,26 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
         }
 
         String eventId = event.getId();
-        if (processedWebhookEventRepository.existsByEventId(eventId)) {
-            log.info("Stripe event {} already processed; treating as idempotent no-op", eventId);
-            return;
-        }
 
-        processEvent(event);
-
+        // Insert the dedup record BEFORE processing. The unique constraint on
+        // event_id makes this atomic — if two concurrent webhooks carry the
+        // same event, only one insert succeeds; the other gets a
+        // DataIntegrityViolationException and skips processing.
+        // The previous check-then-process-then-save pattern allowed both
+        // threads to pass the existsByEventId check and double-process.
         ProcessedWebhookEvent record = new ProcessedWebhookEvent();
         record.setEventId(eventId);
         record.setEventType(event.getType());
         record.setPayload(payload);
         record.setProcessedAt(Instant.now());
-        processedWebhookEventRepository.save(record);
+        try {
+            processedWebhookEventRepository.saveAndFlush(record);
+        } catch (DataIntegrityViolationException e) {
+            log.info("Stripe event {} already processed by a concurrent request; skipping", eventId);
+            return;
+        }
+
+        processEvent(event);
 
         log.info("Stripe event {} processed successfully", eventId);
     }
