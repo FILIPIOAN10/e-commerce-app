@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, feat/*]
+    branches: [main, 'feat/**', 'feature/**']
   pull_request:
     branches: [main]
 
@@ -103,21 +103,39 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: [backend-test, frontend-test]
+    timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.49.0-noble
+      options: --user root
+
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.2-pg16-trixie
+        env:
+          POSTGRES_DB: ecommerce
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ecommerce"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install Playwright dependencies
-        working-directory: e2e
-        run: |
-          npm install
-          npx playwright install --with-deps chromium
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -126,10 +144,15 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Create .env for Docker Compose
+      - name: Create .env for frontend
+        working-directory: ecom-frontend
+        run: |
+          echo "VITE_BACK_END_URL=http://localhost:8080" > .env
+
+      - name: Create CI .env
         id: create-env
         run: |
-          JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
+          JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('base64'))")
           echo "jwt_secret=$JWT_SECRET" >> "$GITHUB_OUTPUT"
           echo "POSTGRES_DB=ecommerce" > .env
           echo "POSTGRES_USER=postgres" >> .env
@@ -139,29 +162,25 @@ jobs:
           echo "STRIPE_SECRET_KEY=dummy" >> .env
           echo "STRIPE_WEBHOOK_SECRET=dummy" >> .env
 
-      - name: Create .env for frontend
-        working-directory: ecom-frontend
+      - name: Install e2e deps and pin Playwright version
+        working-directory: e2e
         run: |
-          echo "VITE_BACK_END_URL=http://localhost:8080" > .env
-
-      - name: Start infrastructure (Postgres + Redis)
-        run: |
-          docker compose up -d postgres redis
-          sleep 10
+          npm install
+          npm install --no-save @playwright/test@1.49.0 maildev
 
       - name: Start fake SMTP server
+        working-directory: e2e
         run: |
-          python3 -m pip install aiosmtpd
-          python3 -m aiosmtpd -n -d -l localhost:1025 > smtp.log 2>&1 &
+          npx maildev --smtp 1025 --ip 127.0.0.1 > smtp.log 2>&1 &
           sleep 3
 
       - name: Build and start backend
         working-directory: ecom-backend
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ecommerce
+          SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ecommerce
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
-          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_HOST: redis
           JWT_SECRET: ${{ steps.create-env.outputs.jwt_secret }}
           SPRING_PROFILES_ACTIVE: ci
         run: |
@@ -221,6 +240,8 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: e2e
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
         run: npx playwright test
 
       - name: Upload Playwright report
@@ -238,3 +259,47 @@ jobs:
           name: playwright-videos
           path: e2e/test-results/
           retention-days: 7
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17 + Maven cache
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Download Maven dependencies
+        working-directory: ecom-backend
+        run: ./mvnw -B dependency:go-offline
+
+      - name: Secret scan with gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_CACHE_DIR: /home/runner/.cache/trivy
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          ignore-unfixed: true
+          format: 'table'
+          skip-dirs: 'ecom-frontend/node_modules,ecom-backend/target,e2e/node_modules'
+
+      - name: Dependency review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
