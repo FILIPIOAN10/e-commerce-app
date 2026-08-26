@@ -11,12 +11,24 @@
 -- The index is created CONCURRENTLY to avoid locking the table.
 -- ==========================================================
 
--- Drop the auto-created index if it exists (Spring AI names it
--- product_vector_store_embedding_idx by default).
-DROP INDEX IF EXISTS product_vector_store_embedding_idx;
+-- product_vector_store is only created when Spring AI's pgvector store is
+-- enabled (spring.ai.vectorstore.type=pgvector). In CI it is disabled, so the
+-- table may be missing. Make this migration idempotent to avoid failing on a
+-- fresh database without semantic search.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'product_vector_store'
+    ) THEN
+        -- Drop the auto-created index if it exists (Spring AI names it
+        -- product_vector_store_embedding_idx by default).
+        DROP INDEX IF EXISTS product_vector_store_embedding_idx;
 
--- Create the optimized HNSW index using cosine distance operator.
--- pgvector uses vector_cosine_ops for cosine similarity.
-CREATE INDEX IF NOT EXISTS product_vector_store_embedding_hnsw_idx
-    ON product_vector_store USING hnsw (embedding vector_cosine_ops)
-    WITH (m = 16, ef_construction = 200);
+        -- Create the optimized HNSW index using cosine distance operator.
+        -- pgvector uses vector_cosine_ops for cosine similarity.
+        CREATE INDEX IF NOT EXISTS product_vector_store_embedding_hnsw_idx
+            ON product_vector_store USING hnsw (embedding vector_cosine_ops)
+            WITH (m = 16, ef_construction = 200);
+    END IF;
+END $$;
