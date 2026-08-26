@@ -8,8 +8,9 @@ import com.ecommerce.project.repository.PaymentRepository;
 import com.ecommerce.project.repository.ProcessedWebhookEventRepository;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.StripeWebhookService;
-import com.ecommerce.project.service.order.OrderStatus;
+import com.ecommerce.project.service.payment.PaymentStatus;
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Charge;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -70,79 +72,76 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
     private void processEvent(Event event) {
         String eventType = event.getType();
 
-        if ("payment_intent.succeeded".equals(eventType) || "payment_intent.payment_failed".equals(eventType)) {
-            event.getDataObjectDeserializer().getObject()
-                    .filter(PaymentIntent.class::isInstance)
-                    .map(PaymentIntent.class::cast)
-                    .ifPresent(paymentIntent -> {
-                        if ("payment_intent.succeeded".equals(eventType)) {
-                            updatePayment(paymentIntent.getId(), "succeeded", "Payment succeeded", eventType);
-                        } else {
-                            String failureMessage = paymentIntent.getLastPaymentError() != null
-                                    ? paymentIntent.getLastPaymentError().getMessage()
-                                    : "Payment failed";
-                            updatePayment(paymentIntent.getId(), "failed", failureMessage, eventType);
-                        }
-                    });
-        } else if ("charge.refunded".equals(eventType)) {
-            // Refund can be partial or full. In both cases we move the order to REFUNDED
-            // so the inventory and financial state are consistent with Stripe.
-            event.getDataObjectDeserializer().getObject()
-                    .filter(com.stripe.model.Charge.class::isInstance)
-                    .map(com.stripe.model.Charge.class::cast)
-                    .ifPresent(charge -> updatePaymentAndOrder(
-                            charge.getPaymentIntent(), "refunded", "Payment refunded", eventType));
+        switch (eventType) {
+            case "payment_intent.succeeded" -> onPaymentIntent(event, intent ->
+                    applyPaymentStatus(intent.getId(), PaymentStatus.SUCCEEDED, "Payment succeeded", eventType));
+
+            case "payment_intent.payment_failed" -> onPaymentIntent(event, intent -> {
+                String failureMessage = intent.getLastPaymentError() != null
+                        ? intent.getLastPaymentError().getMessage()
+                        : "Payment failed";
+                applyPaymentStatus(intent.getId(), PaymentStatus.FAILED, failureMessage, eventType);
+            });
+
+            // A refund can be partial or full. In both cases we move the order to
+            // Refunded so the inventory and financial state stay consistent with Stripe.
+            case "charge.refunded" -> event.getDataObjectDeserializer().getObject()
+                    .filter(Charge.class::isInstance)
+                    .map(Charge.class::cast)
+                    .ifPresent(charge -> applyPaymentStatus(
+                            charge.getPaymentIntent(), PaymentStatus.REFUNDED, "Payment refunded", eventType));
+
+            default -> log.debug("Ignoring unhandled Stripe event type {}", eventType);
         }
-
-        // Additional event types can be handled here as the product evolves.
     }
 
-    private void updatePayment(String paymentIntentId, String status, String responseMessage, String eventType) {
+    private void onPaymentIntent(Event event, Consumer<PaymentIntent> handler) {
+        event.getDataObjectDeserializer().getObject()
+                .filter(PaymentIntent.class::isInstance)
+                .map(PaymentIntent.class::cast)
+                .ifPresent(handler);
+    }
+
+    /**
+     * Single write path for every Stripe status transition.
+     * <p>
+     * Previously there were two near-identical methods and only one of them
+     * handled refunds, which is exactly where the "refund never reaches the
+     * order" bug hid. Keeping one path means a new payment status only has to
+     * be mapped in {@link PaymentStatus} to be handled end to end.
+     */
+    private void applyPaymentStatus(String paymentIntentId, PaymentStatus status,
+                                    String responseMessage, String eventType) {
         paymentRepository.findByPgPaymentId(paymentIntentId).ifPresentOrElse(payment -> {
-            payment.setPgStatus(status);
+            payment.setPgStatus(status.value());
             payment.setPgResponseMessage(responseMessage);
             paymentRepository.save(payment);
             log.info("Updated payment {} for Stripe intent {} to {} from event {}",
-                    payment.getPaymentId(), paymentIntentId, status, eventType);
+                    payment.getPaymentId(), paymentIntentId, status.value(), eventType);
 
-            // Webhooks are authoritative: a failed payment cancels the order and restocks.
-            if ("failed".equals(status)) {
-                cancelOrderFromPayment(payment);
-            }
+            // Webhooks are authoritative for the payment outcome, so they drive the order.
+            status.requiredOrderStatus().ifPresent(orderStatus ->
+                    transitionOrder(payment, orderStatus));
         }, () -> log.warn("No local payment found for Stripe payment intent {}", paymentIntentId));
     }
 
-    private void updatePaymentAndOrder(String paymentIntentId, String status, String responseMessage, String eventType) {
-        paymentRepository.findByPgPaymentId(paymentIntentId).ifPresentOrElse(payment -> {
-            payment.setPgStatus(status);
-            payment.setPgResponseMessage(responseMessage);
-            paymentRepository.save(payment);
-            log.info("Updated payment {} for Stripe intent {} to {} from event {}",
-                    payment.getPaymentId(), paymentIntentId, status, eventType);
-
-            Order order = payment.getOrder();
-            if (order != null) {
-                if (OrderStatus.REFUNDED.equals(status)) {
-                    orderService.updateOrder(order.getId(), OrderStatus.REFUNDED);
-                } else if ("failed".equals(status)) {
-                    cancelOrderFromPayment(payment);
-                }
-            }
-        }, () -> log.warn("No local payment found for Stripe payment intent {}", paymentIntentId));
-    }
-
-    private void cancelOrderFromPayment(Payment payment) {
+    private void transitionOrder(Payment payment, String targetStatus) {
         Order order = payment.getOrder();
         if (order == null) {
-            log.warn("Payment {} has no associated order; nothing to cancel", payment.getPaymentId());
+            log.warn("Payment {} has no associated order; cannot move it to {}",
+                    payment.getPaymentId(), targetStatus);
             return;
         }
 
         try {
-            orderService.updateOrder(order.getId(), OrderStatus.CANCELLED);
-            log.info("Cancelled order {} due to failed payment {}", order.getId(), payment.getPaymentId());
+            orderService.updateOrder(order.getId(), targetStatus);
+            log.info("Moved order {} to {} from payment {}",
+                    order.getId(), targetStatus, payment.getPaymentId());
         } catch (Exception e) {
-            log.warn("Could not cancel order {}: {}", order.getId(), e.getMessage());
+            // An illegal transition (e.g. a second partial-refund webhook for an
+            // already refunded order) must not fail the webhook: returning a non-2xx
+            // would make Stripe retry forever.
+            log.warn("Could not move order {} to {}: {}", order.getId(), targetStatus, e.getMessage());
         }
     }
 }

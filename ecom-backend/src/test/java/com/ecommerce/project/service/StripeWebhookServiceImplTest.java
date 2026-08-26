@@ -1,11 +1,14 @@
 package com.ecommerce.project.service;
 
 import com.ecommerce.project.exception.APIException;
+import com.ecommerce.project.model.Order;
 import com.ecommerce.project.model.Payment;
 import com.ecommerce.project.model.ProcessedWebhookEvent;
 import com.ecommerce.project.repository.PaymentRepository;
 import com.ecommerce.project.repository.ProcessedWebhookEventRepository;
 import com.ecommerce.project.service.impl.StripeWebhookServiceImpl;
+import com.ecommerce.project.service.order.OrderStatus;
+import com.stripe.model.Charge;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.PaymentIntent;
@@ -131,5 +134,100 @@ class StripeWebhookServiceImplTest {
     void missingSignature_throwsException() {
         assertThrows(APIException.class, () -> webhookService.handleWebhook("payload", ""));
         assertThrows(APIException.class, () -> webhookService.handleWebhook("payload", null));
+    }
+
+    private Event buildChargeEvent(String eventId, String type, Charge charge) {
+        EventDataObjectDeserializer deserializer = mock(EventDataObjectDeserializer.class);
+        when(deserializer.getObject()).thenReturn(Optional.ofNullable(charge));
+
+        Event event = mock(Event.class);
+        when(event.getId()).thenReturn(eventId);
+        when(event.getType()).thenReturn(type);
+        when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+        return event;
+    }
+
+    @Test
+    void chargeRefunded_transitionsOrderToRefunded() {
+        ReflectionTestUtils.setField(webhookService, "webhookSecret", "whsec_test");
+
+        Charge charge = mock(Charge.class);
+        when(charge.getPaymentIntent()).thenReturn("pi_refund");
+
+        Order order = new Order();
+        order.setId(77L);
+        order.setOrderStatus(OrderStatus.DELIVERED);
+
+        Payment payment = new Payment();
+        payment.setPaymentId(3L);
+        payment.setPgPaymentId("pi_refund");
+        payment.setOrder(order);
+
+        when(processedWebhookEventRepository.existsByEventId("evt_refund")).thenReturn(false);
+        when(paymentRepository.findByPgPaymentId("pi_refund")).thenReturn(Optional.of(payment));
+
+        Event event = buildChargeEvent("evt_refund", "charge.refunded", charge);
+
+        try (MockedStatic<Webhook> mocked = mockStatic(Webhook.class)) {
+            mocked.when(() -> Webhook.constructEvent(anyString(), anyString(), eq("whsec_test"))).thenReturn(event);
+            webhookService.handleWebhook("payload", "sig");
+        }
+
+        assertEquals("refunded", payment.getPgStatus());
+        verify(orderService).updateOrder(77L, OrderStatus.REFUNDED);
+    }
+
+    @Test
+    void chargeRefunded_withoutOrder_doesNotTouchOrderService() {
+        ReflectionTestUtils.setField(webhookService, "webhookSecret", "whsec_test");
+
+        Charge charge = mock(Charge.class);
+        when(charge.getPaymentIntent()).thenReturn("pi_orphan");
+
+        Payment payment = new Payment();
+        payment.setPaymentId(4L);
+        payment.setPgPaymentId("pi_orphan");
+
+        when(processedWebhookEventRepository.existsByEventId("evt_orphan")).thenReturn(false);
+        when(paymentRepository.findByPgPaymentId("pi_orphan")).thenReturn(Optional.of(payment));
+
+        Event event = buildChargeEvent("evt_orphan", "charge.refunded", charge);
+
+        try (MockedStatic<Webhook> mocked = mockStatic(Webhook.class)) {
+            mocked.when(() -> Webhook.constructEvent(anyString(), anyString(), eq("whsec_test"))).thenReturn(event);
+            webhookService.handleWebhook("payload", "sig");
+        }
+
+        assertEquals("refunded", payment.getPgStatus());
+        verify(orderService, never()).updateOrder(anyLong(), anyString());
+    }
+
+    @Test
+    void paymentIntentFailed_cancelsAssociatedOrder() {
+        ReflectionTestUtils.setField(webhookService, "webhookSecret", "whsec_test");
+
+        PaymentIntent paymentIntent = mock(PaymentIntent.class);
+        when(paymentIntent.getId()).thenReturn("pi_fail_order");
+
+        Order order = new Order();
+        order.setId(88L);
+        order.setOrderStatus(OrderStatus.PLACED);
+
+        Payment payment = new Payment();
+        payment.setPaymentId(5L);
+        payment.setPgPaymentId("pi_fail_order");
+        payment.setOrder(order);
+
+        when(processedWebhookEventRepository.existsByEventId("evt_fail_order")).thenReturn(false);
+        when(paymentRepository.findByPgPaymentId("pi_fail_order")).thenReturn(Optional.of(payment));
+
+        Event event = buildPaymentIntentEvent("evt_fail_order", "payment_intent.payment_failed", paymentIntent);
+
+        try (MockedStatic<Webhook> mocked = mockStatic(Webhook.class)) {
+            mocked.when(() -> Webhook.constructEvent(anyString(), anyString(), eq("whsec_test"))).thenReturn(event);
+            webhookService.handleWebhook("payload", "sig");
+        }
+
+        verify(orderService).updateOrder(88L, OrderStatus.CANCELLED);
     }
 }
