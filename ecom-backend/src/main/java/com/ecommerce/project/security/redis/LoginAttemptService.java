@@ -1,8 +1,6 @@
 package com.ecommerce.project.security.redis;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,16 +16,6 @@ public class LoginAttemptService {
     private static final String KEY_PREFIX = "login_attempts:";
 
     private final StringRedisTemplate redisTemplate;
-    private final MeterRegistry meterRegistry;
-
-    private Counter failedLoginCounter;
-
-    @PostConstruct
-    public void init() {
-        failedLoginCounter = Counter.builder("security.failed_logins")
-                .description("Number of failed login attempts")
-                .register(meterRegistry);
-    }
 
     public boolean isLocked(String username) {
         String key = KEY_PREFIX + username;
@@ -44,17 +32,10 @@ public class LoginAttemptService {
         if (attempts != null && attempts == 1) {
             redisTemplate.expire(key, LOCK_DURATION);
         }
-        if (failedLoginCounter != null) {
-            failedLoginCounter.increment();
-        }
     }
 
     public void resetAttempts(String username) {
         redisTemplate.delete(KEY_PREFIX + username);
-    }
-
-    public void unlockUser(String username) {
-        resetAttempts(username);
     }
 
     public int getRemainingAttempts(String username) {
