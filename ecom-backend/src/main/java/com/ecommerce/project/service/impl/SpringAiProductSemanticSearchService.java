@@ -2,9 +2,11 @@ package com.ecommerce.project.service.impl;
 
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.service.ProductSemanticSearchService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -21,7 +23,6 @@ import java.util.Optional;
 @Slf4j
 @Primary
 @Service
-@RequiredArgsConstructor
 @ConditionalOnExpression("'${spring.ai.vectorstore.type:none}' == 'pgvector' and '${app.search.semantic.enabled:false}' == 'true'")
 public class SpringAiProductSemanticSearchService implements ProductSemanticSearchService {
 
@@ -29,9 +30,44 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
     private static final String DOCUMENT_ID_PREFIX = "product-";
 
     private final VectorStore vectorStore;
+    private final MeterRegistry meterRegistry;
+
+    public SpringAiProductSemanticSearchService(VectorStore vectorStore, MeterRegistry meterRegistry) {
+        this.vectorStore = vectorStore;
+        this.meterRegistry = meterRegistry;
+    }
 
     @Value("${app.search.semantic.similarity-threshold:0.60}")
     private double similarityThreshold;
+
+    private Counter searchCounter;
+    private Counter searchFailureCounter;
+    private Counter indexCounter;
+    private Counter deleteCounter;
+    private Timer searchTimer;
+
+    @jakarta.annotation.PostConstruct
+    void initMetrics() {
+        searchCounter = Counter.builder("semantic.search.requests")
+                .description("Total semantic search requests")
+                .tag("operation", "search")
+                .register(meterRegistry);
+        searchFailureCounter = Counter.builder("semantic.search.failures")
+                .description("Semantic search failures")
+                .tag("operation", "search")
+                .register(meterRegistry);
+        indexCounter = Counter.builder("semantic.search.requests")
+                .description("Total semantic search requests")
+                .tag("operation", "index")
+                .register(meterRegistry);
+        deleteCounter = Counter.builder("semantic.search.requests")
+                .description("Total semantic search requests")
+                .tag("operation", "delete")
+                .register(meterRegistry);
+        searchTimer = Timer.builder("semantic.search.duration")
+                .description("Semantic search latency")
+                .register(meterRegistry);
+    }
 
     @Override
     public boolean isEnabled() {
@@ -43,18 +79,22 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
         if (query == null || query.isBlank() || limit <= 0) {
             return List.of();
         }
+        searchCounter.increment();
         try {
             SearchRequest searchRequest = SearchRequest.builder()
                     .query(query)
                     .topK(limit)
                     .similarityThreshold(similarityThreshold)
                     .build();
-            return vectorStore.similaritySearch(searchRequest).stream()
+            List<Long> productIds = searchTimer.record(() -> vectorStore.similaritySearch(searchRequest).stream()
                     .map(this::extractProductId)
                     .flatMap(Optional::stream)
                     .distinct()
-                    .toList();
+                    .toList());
+            meterRegistry.gauge("semantic.search.results", productIds.size());
+            return productIds;
         } catch (RuntimeException exception) {
+            searchFailureCounter.increment();
             log.warn("Semantic product search failed", exception);
             return List.of();
         }
@@ -65,6 +105,7 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
         if (product == null || product.getProductId() == null) {
             return;
         }
+        indexCounter.increment();
         try {
             String documentId = documentId(product.getProductId());
             vectorStore.delete(List.of(documentId));
@@ -80,6 +121,7 @@ public class SpringAiProductSemanticSearchService implements ProductSemanticSear
         if (productId == null) {
             return;
         }
+        deleteCounter.increment();
         try {
             vectorStore.delete(List.of(documentId(productId)));
         } catch (RuntimeException exception) {
