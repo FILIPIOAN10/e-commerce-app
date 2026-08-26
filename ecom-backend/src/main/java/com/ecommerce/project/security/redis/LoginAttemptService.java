@@ -38,6 +38,10 @@ public class LoginAttemptService {
         redisTemplate.delete(KEY_PREFIX + username);
     }
 
+    public void unlockUser(String username) {
+        redisTemplate.delete(KEY_PREFIX + username);
+    }
+
     public int getRemainingAttempts(String username) {
         String key = KEY_PREFIX + username;
         String attempts = redisTemplate.opsForValue().get(key);
