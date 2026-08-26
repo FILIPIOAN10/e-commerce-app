@@ -9,7 +9,6 @@ import PrivateRoute from './components/PrivateRoute'
 import Loader from './components/shared/Loader'
 import LanguageLayout from './components/shared/LanguageLayout'
 import LanguageRedirect from './components/shared/LanguageRedirect'
-import LanguageMeta from './components/shared/LanguageMeta'
 
 const Home = lazy(() => import('./components/home/Home'))
 const Products = lazy(() => import('./components/products/Products'))
@@ -65,7 +64,6 @@ function App() {
       <Routes>
         <Route path='/' element={<LanguageRedirect />} />
         <Route path='/:lang' element={<LanguageLayout />}>
-          <LanguageMeta />
           <Route index element={<Home/>} />
           <Route path='products' element={<Products/>} />
           <Route path='products/:productId' element={<ProductDetail/>} />

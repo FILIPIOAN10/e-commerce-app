@@ -3,6 +3,7 @@ import { Outlet, useParams, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageContext } from "../../context/LanguageContext";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "../../i18n";
+import LanguageMeta from "./LanguageMeta";
 
 const validCodes = SUPPORTED_LANGUAGES.map((l) => l.code);
 
@@ -24,6 +25,7 @@ const LanguageLayout = () => {
 
   return (
     <LanguageContext.Provider value={currentLang}>
+      <LanguageMeta />
       <Outlet />
     </LanguageContext.Provider>
   );
