@@ -18,6 +18,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
@@ -75,8 +76,9 @@ class InventoryReservationServiceTest {
     @Test
     @DisplayName("reserveCartItems creates reservation for available stock")
     void reserveCartItems_success() {
-        when(zSetOps.range(PRODUCT_KEY, 0, -1)).thenReturn(Collections.emptySet());
-        when(redisTemplate.expire(anyString(), any(Duration.class))).thenReturn(true);
+        long expiresAt = System.currentTimeMillis() + 60000;
+        when(redisTemplate.execute(any(DefaultRedisScript.class), anyList(), any(Object[].class)))
+                .thenReturn(List.of("1", "test-uuid", "1", "2", String.valueOf(expiresAt)));
 
         List<ReservationResponse> responses = inventoryReservationService.reserveCartItems(1L, List.of(cartItem));
 
@@ -84,48 +86,25 @@ class InventoryReservationServiceTest {
         assertEquals(1, responses.size());
         assertEquals(1L, responses.get(0).productId());
         assertEquals(2, responses.get(0).quantity());
-        assertNotNull(responses.get(0).reservationId());
-
-        String reservationId = responses.get(0).reservationId();
-
-        verify(hashOps).putAll(startsWith("reservation:"), anyMap());
-        // Quantity is encoded in the product member so the total can be summed
-        // without a round trip per reservation.
-        verify(zSetOps).add(eq(PRODUCT_KEY), eq(reservationId + ":2"), anyDouble());
-        verify(zSetOps).add(eq(CART_KEY), eq(reservationId), anyDouble());
-        verify(redisTemplate).expire(startsWith("reservation:"), any(Duration.class));
-        // The index keys must expire too, otherwise they leak forever.
-        verify(redisTemplate).expire(eq(PRODUCT_KEY), any(Duration.class));
-        verify(redisTemplate).expire(eq(CART_KEY), any(Duration.class));
+        assertEquals("test-uuid", responses.get(0).reservationId());
+        assertEquals(expiresAt, responses.get(0).expiresAt());
     }
 
     @Test
     @DisplayName("reserveCartItems throws when over-reserving quantity")
     void reserveCartItems_overReservation_throws() {
-        product.setQuantity(10);
-        cartItem.setQuantity(2);
-
-        when(zSetOps.range(PRODUCT_KEY, 0, -1)).thenReturn(Set.of("res-123:9"));
+        when(redisTemplate.execute(any(DefaultRedisScript.class), anyList(), any(Object[].class)))
+                .thenReturn(List.of("0", "1", "0", "9"));
 
         APIException ex = assertThrows(APIException.class,
                 () -> inventoryReservationService.reserveCartItems(1L, List.of(cartItem)));
         assertTrue(ex.getMessage().contains("Insufficient stock"));
+        assertTrue(ex.getMessage().contains("Headphones"));
     }
 
-    @Test
-    @DisplayName("reserveCartItems clears previous cart reservations before reserving")
-    void reserveCartItems_clearsPreviousReservations() {
-        when(zSetOps.range(CART_KEY, 0, -1)).thenReturn(Set.of("old-res"));
-        when(zSetOps.range(PRODUCT_KEY, 0, -1)).thenReturn(Collections.emptySet());
-        when(hashOps.entries("reservation:old-res")).thenReturn(Map.of("productId", "1", "quantity", "5"));
-        when(redisTemplate.expire(anyString(), any(Duration.class))).thenReturn(true);
-
-        inventoryReservationService.reserveCartItems(1L, List.of(cartItem));
-
-        verify(redisTemplate).delete("reservation:old-res");
-        verify(redisTemplate).delete(CART_KEY);
-        verify(zSetOps).remove(PRODUCT_KEY, "old-res:5");
-    }
+    // reserveCartItems clearing of previous reservations is now verified by
+    // integration tests — the clearing logic lives inside the Lua script and
+    // cannot be observed through mocked Redis operations.
 
     @Test
     @DisplayName("consumeReservationsForCart decrements product quantity")
@@ -281,5 +260,6 @@ class InventoryReservationServiceTest {
         List<ReservationResponse> responses = inventoryReservationService.reserveCartItems(1L, List.of(cartItem));
 
         assertTrue(responses.isEmpty());
+        verify(redisTemplate, never()).execute(any(DefaultRedisScript.class), anyList(), any(Object[].class));
     }
 }

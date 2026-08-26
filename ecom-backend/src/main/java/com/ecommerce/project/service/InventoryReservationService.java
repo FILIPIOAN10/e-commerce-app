@@ -8,6 +8,7 @@ import com.ecommerce.project.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -27,6 +28,12 @@ import java.util.stream.Collectors;
  * Reservations now live in a sorted set scored by expiry timestamp. Pruning by
  * score before every read makes expiry self-correcting by construction: there
  * is no second representation of the total that can drift away from the first.
+ * <p>
+ * The entire reserve operation — releasing old cart reservations, pruning
+ * expired entries, checking availability, and creating new reservations — is
+ * executed as a single atomic Lua script. Without this, the check-then-act gap
+ * between reading the reserved total and writing the new reservation allowed
+ * concurrent requests to over-sell the same stock.
  */
 @Service
 @RequiredArgsConstructor
@@ -47,75 +54,187 @@ public class InventoryReservationService {
     private static final String PRODUCT_RESERVATIONS_PREFIX = "product_reservations:v2:";
     private static final String CART_RESERVATIONS_PREFIX = "cart_reservations:v2:";
 
+    /*
+     * Lua script that atomically:
+     *   1. Releases any previous reservations for the cart
+     *   2. For each item: prunes expired entries, sums live reservations,
+     *      checks availability, and creates the reservation
+     *   3. On failure: rolls back all reservations created so far
+     *
+     * Without atomicity, two concurrent requests could both read the same
+     * reserved total, both see enough available stock, and both create
+     * reservations — over-selling the product.
+     *
+     * Returns:
+     *   {"1", uuid1, productId1, qty1, expiresAt1, ...} on success
+     *   {"0", failedItemIndex, available, reserved} on failure
+     */
+    private static final String RESERVE_LUA = """
+            local cartKey = KEYS[1]
+            local cartId = ARGV[1]
+            local ttlMs = tonumber(ARGV[2])
+            local now = tonumber(ARGV[3])
+            local itemCount = tonumber(ARGV[4])
+            local expiresAt = now + ttlMs
+
+            -- Release old reservations for this cart
+            local oldReservations = redis.call('ZRANGE', cartKey, 0, -1)
+            for _, resId in ipairs(oldReservations) do
+                local resKey = 'reservation:' .. resId
+                local productId = redis.call('HGET', resKey, 'productId')
+                local quantity = redis.call('HGET', resKey, 'quantity')
+                if productId and quantity then
+                    local productKey = 'product_reservations:v2:' .. productId
+                    redis.call('ZREM', productKey, resId .. ':' .. quantity)
+                end
+                redis.call('DEL', resKey)
+            end
+            redis.call('DEL', cartKey)
+
+            -- Check-and-reserve each item
+            local created = {}
+            for i = 1, itemCount do
+                local baseIdx = 4 + (i - 1) * 4
+                local productId = ARGV[baseIdx + 1]
+                local requested = tonumber(ARGV[baseIdx + 2])
+                local stock = tonumber(ARGV[baseIdx + 3])
+                local uuid = ARGV[baseIdx + 4]
+
+                local productKey = 'product_reservations:v2:' .. productId
+
+                -- Prune expired entries
+                redis.call('ZREMRANGEBYSCORE', productKey, '-inf', now)
+
+                -- Sum live reservations from member-encoded quantities
+                local members = redis.call('ZRANGE', productKey, 0, -1)
+                local reserved = 0
+                for _, m in ipairs(members) do
+                    local sepIdx = string.find(m, ':', 1, true)
+                    if sepIdx then
+                        reserved = reserved + tonumber(string.sub(m, sepIdx + 1))
+                    end
+                end
+
+                local available = stock - reserved
+                if available < requested then
+                    -- Roll back all reservations created so far
+                    for j = 1, #created do
+                        local c = created[j]
+                        local rbProductKey = 'product_reservations:v2:' .. c.productId
+                        redis.call('ZREM', rbProductKey, c.uuid .. ':' .. tostring(c.qty))
+                        redis.call('DEL', 'reservation:' .. c.uuid)
+                    end
+                    redis.call('DEL', cartKey)
+                    return {tostring(0), tostring(i), tostring(available), tostring(reserved)}
+                end
+
+                -- Create reservation hash
+                local resKey = 'reservation:' .. uuid
+                redis.call('HSET', resKey, 'productId', productId, 'quantity', tostring(requested),
+                        'cartId', cartId, 'createdAt', tostring(now), 'expiresAt', tostring(expiresAt))
+                redis.call('PEXPIRE', resKey, ttlMs)
+
+                -- Add to product ZSET with expiry score; quantity encoded in member
+                local member = uuid .. ':' .. tostring(requested)
+                redis.call('ZADD', productKey, expiresAt, member)
+                redis.call('PEXPIRE', productKey, ttlMs)
+
+                -- Add to cart ZSET
+                redis.call('ZADD', cartKey, expiresAt, uuid)
+                redis.call('PEXPIRE', cartKey, ttlMs)
+
+                created[#created + 1] = {productId = productId, qty = requested, uuid = uuid}
+            end
+
+            -- Build success response
+            local response = {tostring(1)}
+            for _, c in ipairs(created) do
+                response[#response + 1] = c.uuid
+                response[#response + 1] = c.productId
+                response[#response + 1] = tostring(c.qty)
+                response[#response + 1] = tostring(expiresAt)
+            end
+            return response
+            """;
+
+    @SuppressWarnings("rawtypes")
+    private static final DefaultRedisScript<List> RESERVE_SCRIPT;
+    static {
+        RESERVE_SCRIPT = new DefaultRedisScript<>();
+        RESERVE_SCRIPT.setScriptText(RESERVE_LUA);
+        RESERVE_SCRIPT.setResultType(List.class);
+    }
+
     public List<ReservationResponse> reserveCartItems(Long cartId, List<CartItem> items) {
         if (cartId == null || items == null || items.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // Release any previous reservations for this cart before re-reserving
-        releaseReservationsForCart(cartId);
-
-        List<ReservationResponse> responses = new ArrayList<>();
-
+        // Filter to valid items before entering the Lua script
+        List<CartItem> validItems = new ArrayList<>();
         for (CartItem item : items) {
             Product product = item.getProduct();
             if (product == null) {
                 continue;
             }
-            Long productId = product.getProductId();
             Integer requested = item.getQuantity();
-
             if (requested == null || requested <= 0) {
                 continue;
             }
-
-            int reserved = getReservedForProduct(productId);
-            int available = product.getQuantity() - reserved;
-
-            if (available < requested) {
-                throw new APIException("Insufficient stock for " + product.getProductName()
-                        + ". Available: " + available
-                        + ", reserved: " + reserved
-                        + ", requested: " + requested);
-            }
-
-            responses.add(createReservation(cartId, productId, requested));
+            validItems.add(item);
+        }
+        if (validItems.isEmpty()) {
+            return Collections.emptyList();
         }
 
-        return responses;
-    }
-
-    private ReservationResponse createReservation(Long cartId, Long productId, int quantity) {
-        String reservationId = UUID.randomUUID().toString();
         long now = System.currentTimeMillis();
-        long expiresAt = now + reservationTtl.toMillis();
+        long ttlMs = reservationTtl.toMillis();
 
-        Map<String, String> fields = new HashMap<>();
-        fields.put("productId", String.valueOf(productId));
-        fields.put("quantity", String.valueOf(quantity));
-        fields.put("cartId", String.valueOf(cartId));
-        fields.put("createdAt", String.valueOf(now));
-        fields.put("expiresAt", String.valueOf(expiresAt));
-
-        String reservationKey = RESERVATION_KEY_PREFIX + reservationId;
-        redisTemplate.opsForHash().putAll(reservationKey, fields);
-        redisTemplate.expire(reservationKey, reservationTtl);
-
-        // The quantity is encoded into the sorted set member so the reserved total
-        // can be summed from a single range read, without a round trip per
-        // reservation to fetch its hash.
-        String productKey = PRODUCT_RESERVATIONS_PREFIX + productId;
-        redisTemplate.opsForZSet().add(productKey, member(reservationId, quantity), expiresAt);
+        List<String> args = new ArrayList<>();
+        args.add(String.valueOf(cartId));
+        args.add(String.valueOf(ttlMs));
+        args.add(String.valueOf(now));
+        args.add(String.valueOf(validItems.size()));
+        for (CartItem item : validItems) {
+            Product product = item.getProduct();
+            args.add(String.valueOf(product.getProductId()));
+            args.add(String.valueOf(item.getQuantity()));
+            args.add(String.valueOf(product.getQuantity()));
+            args.add(UUID.randomUUID().toString());
+        }
 
         String cartKey = CART_RESERVATIONS_PREFIX + cartId;
-        redisTemplate.opsForZSet().add(cartKey, reservationId, expiresAt);
+        @SuppressWarnings("rawtypes")
+        List result = redisTemplate.execute(RESERVE_SCRIPT, List.of(cartKey), args.toArray());
 
-        // The index keys carry a TTL of their own so an index can never outlive the
-        // reservations it points at. The v1 SET keys had no expiry and leaked forever.
-        redisTemplate.expire(productKey, reservationTtl);
-        redisTemplate.expire(cartKey, reservationTtl);
+        if (result == null || result.isEmpty()) {
+            throw new APIException("Reservation failed: no response from Redis");
+        }
 
-        return new ReservationResponse(reservationId, productId, quantity, expiresAt);
+        String status = String.valueOf(result.get(0));
+        if ("0".equals(status)) {
+            int failedIndex = Integer.parseInt(String.valueOf(result.get(1))) - 1;
+            int available = Integer.parseInt(String.valueOf(result.get(2)));
+            int reserved = Integer.parseInt(String.valueOf(result.get(3)));
+            CartItem failedItem = validItems.get(failedIndex);
+            Product failedProduct = failedItem.getProduct();
+            throw new APIException("Insufficient stock for " + failedProduct.getProductName()
+                    + ". Available: " + available
+                    + ", reserved: " + reserved
+                    + ", requested: " + failedItem.getQuantity());
+        }
+
+        // Success: {1, uuid1, productId1, qty1, expiresAt1, ...}
+        List<ReservationResponse> responses = new ArrayList<>();
+        for (int i = 1; i < result.size(); i += 4) {
+            responses.add(new ReservationResponse(
+                    String.valueOf(result.get(i)),
+                    Long.valueOf(String.valueOf(result.get(i + 1))),
+                    Integer.parseInt(String.valueOf(result.get(i + 2))),
+                    Long.parseLong(String.valueOf(result.get(i + 3)))
+            ));
+        }
+        return responses;
     }
 
     public void consumeReservationsForCart(Long cartId) {
