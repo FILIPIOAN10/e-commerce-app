@@ -1,6 +1,5 @@
 import { apiSlice } from "./apiSlice";
 
-<<<<<<< HEAD
 /**
  * Cart mutations backed by RTK Query.
  *
@@ -12,8 +11,6 @@ import { apiSlice } from "./apiSlice";
  * and request de-duplication while preserving the optimistic-update
  * behaviour already relied upon elsewhere in the app.
  */
-=======
->>>>>>> feat/rtk-query-dark-rate-limit
 const syncCartToReducer = (dispatch, cart) => {
     dispatch({
         type: "GET_USER_CART_PRODUCTS",
@@ -21,24 +18,7 @@ const syncCartToReducer = (dispatch, cart) => {
         totalPrice: cart.totalPrice,
         cartId: cart.cartId,
     });
-<<<<<<< HEAD
     localStorage.setItem("cartItems", JSON.stringify(cart.products));
-};
-
-const takeCartSnapshot = (getState) => ({
-    cart: [...getState().carts.cart],
-    totalPrice: getState().carts.totalPrice,
-    cartId: getState().carts.cartId,
-});
-
-const rollbackCart = (dispatch, previousCart) => {
-    dispatch({ type: "ROLLBACK_CART", payload: previousCart });
-    localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
-};
-
-export const cartApi = apiSlice.injectEndpoints({
-    endpoints: (builder) => ({
-=======
 };
 
 const cartApi = apiSlice.injectEndpoints({
@@ -51,7 +31,7 @@ const cartApi = apiSlice.injectEndpoints({
                     const { data } = await queryFulfilled;
                     syncCartToReducer(dispatch, data);
                 } catch {
-                    // error is already handled by the mutation/query hook
+                    // handled by hook
                 }
             },
         }),
@@ -71,26 +51,11 @@ const cartApi = apiSlice.injectEndpoints({
                 }
             },
         }),
->>>>>>> feat/rtk-query-dark-rate-limit
         increaseCartQuantity: builder.mutation({
             query: (productId) => ({
                 url: `/cart/products/${productId}/quantity/plus`,
                 method: "put",
             }),
-<<<<<<< HEAD
-            async onQueryStarted(productId, { dispatch, getState, queryFulfilled }) {
-                const previousCart = takeCartSnapshot(getState);
-                dispatch({ type: "OPTIMISTIC_INCREASE_QTY", payload: { productId } });
-                try {
-                    const { data: cart } = await queryFulfilled;
-                    syncCartToReducer(dispatch, cart);
-                } catch {
-                    rollbackCart(dispatch, previousCart);
-                }
-            },
-        }),
-
-=======
             invalidatesTags: ["Cart"],
             async onQueryStarted(_, { dispatch, queryFulfilled }) {
                 try {
@@ -101,22 +66,11 @@ const cartApi = apiSlice.injectEndpoints({
                 }
             },
         }),
->>>>>>> feat/rtk-query-dark-rate-limit
         decreaseCartQuantity: builder.mutation({
             query: (productId) => ({
                 url: `/cart/products/${productId}/quantity/minus`,
                 method: "put",
             }),
-<<<<<<< HEAD
-            async onQueryStarted(productId, { dispatch, getState, queryFulfilled }) {
-                const previousCart = takeCartSnapshot(getState);
-                dispatch({ type: "OPTIMISTIC_DECREASE_QTY", payload: { productId } });
-                try {
-                    const { data: cart } = await queryFulfilled;
-                    syncCartToReducer(dispatch, cart);
-                } catch {
-                    rollbackCart(dispatch, previousCart);
-=======
             invalidatesTags: ["Cart"],
             async onQueryStarted(_, { dispatch, queryFulfilled }) {
                 try {
@@ -169,7 +123,6 @@ const cartApi = apiSlice.injectEndpoints({
                     syncCartToReducer(dispatch, data);
                 } catch {
                     // handled by hook
->>>>>>> feat/rtk-query-dark-rate-limit
                 }
             },
         }),
@@ -177,9 +130,6 @@ const cartApi = apiSlice.injectEndpoints({
     overrideExisting: false,
 });
 
-<<<<<<< HEAD
-export const { useIncreaseCartQuantityMutation, useDecreaseCartQuantityMutation } = cartApi;
-=======
 export const {
     useGetUserCartQuery,
     useCreateCartMutation,
@@ -189,6 +139,5 @@ export const {
     useMoveItemToCartMutation,
     useRemoveFromCartMutation,
 } = cartApi;
->>>>>>> feat/rtk-query-dark-rate-limit
 
 export default cartApi;

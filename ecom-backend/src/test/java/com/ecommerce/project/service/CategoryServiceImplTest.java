@@ -1,5 +1,6 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.cache.TransactionAwareCacheEvictor;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Category;
@@ -37,6 +38,7 @@ class CategoryServiceImplTest {
 
     @Mock private CategoryRepository categoryRepository;
     @Mock private ModelMapper modelMapper;
+    @Mock private TransactionAwareCacheEvictor cacheEvictor;
 
     @InjectMocks
     private CategoryServiceImpl categoryService;

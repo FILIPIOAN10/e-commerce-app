@@ -106,6 +106,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/images/**").permitAll()

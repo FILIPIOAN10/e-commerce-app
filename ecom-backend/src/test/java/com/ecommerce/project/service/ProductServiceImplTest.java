@@ -7,6 +7,7 @@ import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.*;
+import com.ecommerce.project.cache.TransactionAwareCacheEvictor;
 import com.ecommerce.project.service.impl.ProductServiceImpl;
 import com.ecommerce.project.service.AdminAuditLogService;
 import com.ecommerce.project.service.ProductImageService;
@@ -50,6 +51,7 @@ class ProductServiceImplTest {
     @Mock private ProductSemanticSearchService productSemanticSearchService;
     @Mock private AuthUtil authUtil;
     @Mock private AdminAuditLogService adminAuditLogService;
+    @Mock private TransactionAwareCacheEvictor cacheEvictor;
 
     @InjectMocks
     private ProductServiceImpl productService;
