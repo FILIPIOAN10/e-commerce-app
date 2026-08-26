@@ -10,11 +10,7 @@ permissions:
   packages: write
 
 env:
-<<<<<<< HEAD
-  REGISTRY: ghcr
-=======
   REGISTRY: ghcr.io
->>>>>>> feat/devops-sec-deploy
   IMAGE_PREFIX: ${{ github.repository_owner }}/ecommerce
 
 jobs:
@@ -35,16 +31,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-<<<<<<< HEAD
       - name: Announce deployment
-=======
-      - name: Deploy to production
->>>>>>> feat/devops-sec-deploy
         run: |
           echo "Deploying version ${{ github.ref_name }}"
           echo "Backend image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.ref_name }}"
           echo "Frontend image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.ref_name }}"
-<<<<<<< HEAD
 
       - name: Check deployment secrets
         id: check
@@ -113,10 +104,3 @@ jobs:
         if: steps.check.outputs.configured == 'false'
         run: |
           echo "::warning::DEPLOY_HOST, DEPLOY_USER or DEPLOY_SSH_KEY repo secrets are not configured. Skipping real deployment for ${{ github.ref_name }}. Images were still pushed to GHCR."
-=======
-          # TODO: replace this placeholder with the real deployment command(s).
-          # Examples:
-          #   ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "docker compose pull && docker compose up -d"
-          #   argocd app sync ecommerce-app
-          #   helm upgrade --install ecommerce ./helm/ecommerce --set image.tag=${{ github.ref_name }}
->>>>>>> feat/devops-sec-deploy

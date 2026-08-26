@@ -1,12 +1,7 @@
 name: CodeQL
-
 on:
   push:
-<<<<<<< HEAD
     branches: [main, 'feat/**', 'feature/**']
-=======
-    branches: [main, 'feat/**']
->>>>>>> feat/devops-sec-deploy
   pull_request:
     branches: [main]
   schedule:
@@ -24,24 +19,15 @@ jobs:
       fail-fast: false
       matrix:
         language: [java, javascript]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-<<<<<<< HEAD
       - name: Set up JDK 21
         if: matrix.language == 'java'
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-=======
-      - name: Set up JDK 17
-        if: matrix.language == 'java'
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
->>>>>>> feat/devops-sec-deploy
           distribution: 'temurin'
           cache: 'maven'
 
@@ -50,17 +36,11 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-<<<<<<< HEAD
       - name: Build Java
         if: matrix.language == 'java'
         run: |
           mvn -B -f ecom-backend/pom.xml -DskipTests package
           mvn -B -f selenium-tests/pom.xml -DskipTests test-compile
-=======
-      - name: Autobuild
-        if: matrix.language == 'java'
-        uses: github/codeql-action/autobuild@v3
->>>>>>> feat/devops-sec-deploy
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3
