@@ -166,11 +166,12 @@ class CartServiceImplTest {
     }
 
     @Test
-    @DisplayName("getAllCarts throws when no carts exist")
-    void getAllCarts_empty_throws() {
+    @DisplayName("getAllCarts returns an empty list when no carts exist")
+    void getAllCarts_empty_returnsEmptyList() {
         when(cartRepository.findAll()).thenReturn(List.of());
 
-        assertThrows(APIException.class, () -> cartService.getAllCarts());
+        // An empty collection is a valid result, not an error condition.
+        assertTrue(cartService.getAllCarts().isEmpty());
     }
 
     @Test

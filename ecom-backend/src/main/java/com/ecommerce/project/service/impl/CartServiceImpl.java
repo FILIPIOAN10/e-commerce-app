@@ -43,7 +43,11 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
+    @Transactional
     public CartDTO addProductToCart(Long productId, Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new APIException("Quantity must be greater than zero");
+        }
         //  Find existing cart or create one
         Cart cart = createCart();
         // Retrieve Product Details
@@ -89,15 +93,15 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartDTO> getAllCarts() {
-        List<Cart> carts = cartRepository.findAll();
-
-        if (carts.isEmpty()) {
-            throw new APIException("No carts exist.");
-        }
-
-        return carts.stream()
+        return cartRepository.findAll().stream()
                 .map(this::mapToCartDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public CartDTO getOrCreateCartForCurrentUser() {
+        Cart cart = createCart();
+        return mapToCartDTO(cart);
     }
 
     @Override
@@ -127,10 +131,6 @@ public class CartServiceImpl implements CartService {
             throw new APIException(product.getProductName() + " is not available");
         }
 
-        if (product.getQuantity() < quantity) {
-            throw new APIException("Please, make an order of the " + product.getProductName() + " less than or equal to the quantity " + product.getQuantity() + ".");
-        }
-
         CartItem cartItem = cartItemRepository.findCartItemByProductProductIdAndCartId(cartId, productId);
         if (cartItem == null) {
             throw new APIException("Product " + product.getProductName() + " not available in the cart!!!");
@@ -140,6 +140,13 @@ public class CartServiceImpl implements CartService {
 
         if (newQuantity < 0) {
             throw new APIException("The resulting quantity cannot be negative");
+        }
+
+        // Validate the RESULTING quantity against stock, not just the delta.
+        // Checking only the delta let a client keep incrementing past available stock.
+        if (newQuantity > product.getQuantity()) {
+            throw new APIException("Please, make an order of the " + product.getProductName()
+                    + " less than or equal to the quantity " + product.getQuantity() + ".");
         }
 
         if (newQuantity == 0) {
@@ -228,12 +235,26 @@ public class CartServiceImpl implements CartService {
         for (CartItemDTO cartItemDTO : cartItems) {
             Long productId =cartItemDTO.getProductId();
             Integer quantity = cartItemDTO.getQuantity();
-            // Find the product by ID
 
+            if (quantity == null || quantity <= 0) {
+                throw new APIException("Quantity must be greater than zero for product " + productId);
+            }
+
+            // Find the product by ID
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
-            // Directly update product stock and total price
-            // product.setQuantity(product.getQuantity() - quantity);
+
+            if (product.getQuantity() == null || product.getQuantity() <= 0) {
+                throw new APIException(product.getProductName() + " is not available");
+            }
+
+            // The client controls this payload, so stock must be validated server-side.
+            if (quantity > product.getQuantity()) {
+                throw new APIException("Insufficient stock for " + product.getProductName()
+                        + ". Available: " + product.getQuantity()
+                        + ", requested: " + quantity);
+            }
+
             totalPrice += product.getSpecialPrice() * quantity;
             // Create and save cart item
             CartItem cartItem = new CartItem();
@@ -248,7 +269,7 @@ public class CartServiceImpl implements CartService {
 
         existingCart.setTotalPrice(totalPrice);
         cartRepository.save(existingCart);
-        return "Cart created/updatee with the new items successfully!!!";
+        return "Cart created/updated with the new items successfully!!!";
     }
 
     @Override

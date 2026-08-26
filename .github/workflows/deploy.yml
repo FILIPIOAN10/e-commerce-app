@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: ghcr
   IMAGE_PREFIX: ${{ github.repository_owner }}/ecommerce
 
 jobs:
@@ -58,9 +58,46 @@ jobs:
           envs: REGISTRY,IMAGE_PREFIX
           script: |
             set -e
-            cd "${DEPLOY_PATH:-/opt/ecommerce}"
-            docker compose pull
-            docker compose up -d --remove-orphans
+            DEPLOY_DIR="${DEPLOY_PATH:-/opt/ecommerce}"
+            cd "$DEPLOY_DIR"
+
+            BACKEND_TAG="${REGISTRY}/${IMAGE_PREFIX}-backend:${{ github.ref_name }}"
+            FRONTEND_TAG="${REGISTRY}/${IMAGE_PREFIX}-frontend:${{ github.ref_name }}"
+
+            # Keep a copy of the previous production .env so we can roll back.
+            cp .env .env.previous
+
+            # Point compose to the newly pushed images.
+            sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=${BACKEND_TAG}|" .env
+            sed -i "s|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=${FRONTEND_TAG}|" .env
+
+            # Pull and start the new stack.
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Health gate: wait up to 2 minutes for the backend to report UP.
+            echo "Waiting for /actuator/health ..."
+            HEALTHY=false
+            for i in $(seq 1 24); do
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+              if [ "$CODE" = "200" ]; then
+                HEALTHY=true
+                echo "Health check passed (HTTP 200)"
+                break
+              fi
+              echo "Attempt $i: HTTP $CODE, retrying in 5s ..."
+              sleep 5
+            done
+
+            if [ "$HEALTHY" = "false" ]; then
+              echo "::error::Health check failed. Rolling back to previous images."
+              cp .env.previous .env
+              docker compose -f docker-compose.prod.yml down
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+              exit 1
+            fi
+
+            # Only prune unused images after the deployment is healthy.
             docker image prune -f
 
       - name: Deployment secrets missing

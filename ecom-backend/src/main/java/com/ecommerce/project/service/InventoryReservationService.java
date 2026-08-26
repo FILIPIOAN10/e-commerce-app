@@ -27,6 +27,7 @@ public class InventoryReservationService {
     private static final String RESERVATION_KEY_PREFIX = "reservation:";
     private static final String PRODUCT_RESERVATIONS_PREFIX = "product_reservations:";
     private static final String CART_RESERVATIONS_PREFIX = "cart_reservations:";
+    private static final String RESERVED_COUNT_PREFIX = "reserved_count:";
 
     public List<ReservationResponse> reserveCartItems(Long cartId, List<CartItem> items) {
         if (cartId == null || items == null || items.isEmpty()) {
@@ -78,6 +79,7 @@ public class InventoryReservationService {
 
             redisTemplate.opsForSet().add(PRODUCT_RESERVATIONS_PREFIX + productId, reservationId);
             redisTemplate.opsForSet().add(CART_RESERVATIONS_PREFIX + cartId, reservationId);
+            redisTemplate.opsForValue().increment(RESERVED_COUNT_PREFIX + productId, requested);
 
             responses.add(new ReservationResponse(reservationId, productId, requested, expiresAt));
         }
@@ -112,16 +114,17 @@ public class InventoryReservationService {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new APIException("Product not found for reservation: " + productId));
 
-            if (product.getQuantity() < quantity) {
+            // Atomic conditional decrement. A result of 0 means the stock was taken
+            // by a concurrent request between the reservation and this consumption,
+            // so the reservation cannot be fulfilled.
+            if (productRepository.decrementStock(productId, quantity) == 0) {
                 throw new APIException("Insufficient stock for " + product.getProductName()
                         + ". Reservation could not be fulfilled.");
             }
 
-            product.setQuantity(product.getQuantity() - quantity);
-            productRepository.save(product);
-
             redisTemplate.delete(reservationKey);
             redisTemplate.opsForSet().remove(PRODUCT_RESERVATIONS_PREFIX + productId, reservationId);
+            redisTemplate.opsForValue().decrement(RESERVED_COUNT_PREFIX + productId, quantity);
         }
 
         redisTemplate.delete(cartReservationsKey);
@@ -143,9 +146,14 @@ public class InventoryReservationService {
             String reservationKey = RESERVATION_KEY_PREFIX + reservationId;
             Map<Object, Object> fields = redisTemplate.opsForHash().entries(reservationKey);
             Object productIdObj = fields.get("productId");
+            Object quantityObj = fields.get("quantity");
             if (productIdObj != null) {
                 Long productId = Long.valueOf(String.valueOf(productIdObj));
                 redisTemplate.opsForSet().remove(PRODUCT_RESERVATIONS_PREFIX + productId, reservationId);
+                if (quantityObj != null) {
+                    redisTemplate.opsForValue().decrement(RESERVED_COUNT_PREFIX + productId,
+                            Integer.parseInt(String.valueOf(quantityObj)));
+                }
             }
             redisTemplate.delete(reservationKey);
         }
@@ -161,24 +169,34 @@ public class InventoryReservationService {
         String productReservationsKey = PRODUCT_RESERVATIONS_PREFIX + productId;
         Set<String> reservationIds = redisTemplate.opsForSet().members(productReservationsKey);
 
-        if (reservationIds == null || reservationIds.isEmpty()) {
-            return 0;
-        }
-
-        int total = 0;
-        for (String reservationId : reservationIds) {
-            String reservationKey = RESERVATION_KEY_PREFIX + reservationId;
-            if (!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
-                redisTemplate.opsForSet().remove(productReservationsKey, reservationId);
-                continue;
-            }
-            Object quantity = redisTemplate.opsForHash().get(reservationKey, "quantity");
-            if (quantity != null) {
-                total += Integer.parseInt(String.valueOf(quantity));
+        int liveTotal = 0;
+        if (reservationIds != null) {
+            for (String reservationId : reservationIds) {
+                String reservationKey = RESERVATION_KEY_PREFIX + reservationId;
+                if (!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+                    redisTemplate.opsForSet().remove(productReservationsKey, reservationId);
+                    continue;
+                }
+                Object quantity = redisTemplate.opsForHash().get(reservationKey, "quantity");
+                if (quantity != null) {
+                    liveTotal += Integer.parseInt(String.valueOf(quantity));
+                }
             }
         }
 
-        return total;
+        // Use a fast cached counter. The counter is maintained during create/consume/release
+        // and is used as an upper bound; if it ever falls below the live total (which can
+        // happen if the counter was lost or a reservation expired silently), we reconcile it.
+        String counterKey = RESERVED_COUNT_PREFIX + productId;
+        String counterValue = redisTemplate.opsForValue().get(counterKey);
+        int counter = (counterValue == null) ? 0 : Integer.parseInt(counterValue);
+
+        if (counter < liveTotal) {
+            redisTemplate.opsForValue().set(counterKey, String.valueOf(liveTotal));
+            return liveTotal;
+        }
+
+        return counter;
     }
 
     public List<ReservationResponse> getActiveReservationsForCart(Long cartId) {

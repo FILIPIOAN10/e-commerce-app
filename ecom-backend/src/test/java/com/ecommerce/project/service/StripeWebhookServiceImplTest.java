@@ -33,6 +33,7 @@ class StripeWebhookServiceImplTest {
 
     @Mock private ProcessedWebhookEventRepository processedWebhookEventRepository;
     @Mock private PaymentRepository paymentRepository;
+    @Mock private OrderService orderService;
 
     @InjectMocks
     private StripeWebhookServiceImpl webhookService;

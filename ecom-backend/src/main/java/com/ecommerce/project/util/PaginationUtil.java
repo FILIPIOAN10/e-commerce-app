@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.Set;
+
 public class PaginationUtil {
 
     private static final int MAX_PAGE_SIZE = 100;
@@ -32,6 +34,19 @@ public class PaginationUtil {
             sortOrder = AppConstants.SORT_DIR;
         }
         return buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+    }
+
+    /**
+     * Builds a Pageable whose sort property is validated against a whitelist.
+     * Prefer this overload for any endpoint where {@code sortBy} comes from the client.
+     */
+    public static Pageable buildPageable(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder,
+                                         String defaultSortBy, Set<String> allowedSortProperties) {
+        String safeSortBy = SortWhitelist.sanitize(sortBy, allowedSortProperties, defaultSortBy);
+        if (sortOrder == null || sortOrder.isBlank()) {
+            sortOrder = AppConstants.SORT_DIR;
+        }
+        return buildPageable(pageNumber, pageSize, safeSortBy, sortOrder);
     }
 
     public static Sort buildSort(String sortBy, String sortOrder) {

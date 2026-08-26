@@ -15,10 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -209,6 +211,44 @@ class OrderRepositoryNPlusOneTest {
 
         assertThat(stats.getQueryExecutionCount()).isLessThanOrEqualTo(1);
         assertAssociationsLoaded(order);
+    }
+
+    @Test
+    @DisplayName("two-phase pagination loads only the requested page, not the whole table")
+    void twoPhasePagination_loadsOnlyRequestedPage() {
+        // Add more orders so a page smaller than the total is meaningful.
+        Address address = persist(newAddress(customer));
+        for (int i = 3; i <= 8; i++) {
+            Payment payment = persist(newPayment("pi_page_" + i));
+            Order order = persist(newOrder(customer, address, payment, "user1@example.com"));
+            persist(newOrderItem(order, product, 1));
+        }
+        entityManager.clear();
+
+        Statistics stats = statistics();
+        stats.clear();
+
+        Page<Long> idPage = orderRepository.findAllIds(PageRequest.of(0, 3, Sort.by("id")));
+
+        // Phase 1 must return exactly the page size, never the whole table.
+        assertThat(idPage.getContent()).hasSize(3);
+        assertThat(idPage.getTotalElements()).isGreaterThanOrEqualTo(8);
+
+        List<Order> orders = orderRepository.findByIdInWithDetails(idPage.getContent());
+
+        assertThat(orders).hasSize(3);
+        // One ID query + one count query + one graph fetch.
+        assertThat(stats.getQueryExecutionCount()).isLessThanOrEqualTo(3);
+        orders.forEach(this::assertAssociationsLoaded);
+    }
+
+    @Test
+    @DisplayName("findIdsByEmail paginates in SQL and only returns matching orders")
+    void findIdsByEmail_paginatesInSql() {
+        Page<Long> idPage = orderRepository.findIdsByEmail("user1@example.com", PageRequest.of(0, 1, Sort.by("id")));
+
+        assertThat(idPage.getContent()).hasSize(1);
+        assertThat(idPage.getTotalElements()).isEqualTo(2);
     }
 
     @Test
