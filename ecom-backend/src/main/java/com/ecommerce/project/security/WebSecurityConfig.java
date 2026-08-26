@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,7 +29,6 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 
-import org.springframework.http.HttpMethod;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 
@@ -43,9 +43,6 @@ public class WebSecurityConfig {
 
     @Value("${frontend.url}")
     String frontEndUrl;
-
-    @Value("${spring.profiles.active:prod}")
-    private String activeProfile;
 
     public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthEntryPointJwt unauthorizedHandler) {
         this.userDetailsService = userDetailsService;
@@ -97,63 +94,27 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers(
-                                "/api/auth/signin",
-                                "/api/auth/signup",
-                                "/api/auth/refresh",
-                                "/api/auth/forgot-password",
-                                "/api/auth/reset-password",
-                                "/api/auth/unlock-request",
-                                "/api/auth/verify-email",
-                                "/api/auth/resend-verification",
-                                "/api/auth/public/verify-2fa-login",
-                                "/api/auth/signout",
-                                "/oauth2/**",
-                                "/login/oauth2/**",
-                                "/ws-notifications/**",
-                                "/api/public/subscriptions/webhook",
-                                "/api/public/webhooks/stripe"
-                        ))
+                        .ignoringRequestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests((auth) -> {
-                    auth.requestMatchers(
-                            "/api/auth/signin",
-                            "/api/auth/signup",
-                            "/api/auth/refresh",
-                            "/api/auth/forgot-password",
-                            "/api/auth/reset-password",
-                            "/api/auth/unlock-request",
-                            "/api/auth/verify-email",
-                            "/api/auth/resend-verification",
-                            "/api/auth/public/verify-2fa-login",
-                            "/api/auth/signout",
-                            "/error"
-                    ).permitAll();
-                    auth.requestMatchers(HttpMethod.GET, "/api/products/*/questions").permitAll();
-                    auth.requestMatchers("/ws-notifications/**").permitAll();
-                    auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
-                    auth.requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER");
-                    auth.requestMatchers("/api/public/**").permitAll();
-                    auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
-                    auth.requestMatchers("/actuator/**").hasRole("ADMIN");
-                    auth.requestMatchers("/images/**").permitAll();
-                    auth.requestMatchers("/images/avatars/**").permitAll();
-                    auth.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
-
-                    if (activeProfile != null
-                            && (activeProfile.contains("dev") || activeProfile.contains("test") || activeProfile.contains("ci"))) {
-                        auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll();
-                    } else {
-                        auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**").hasRole("ADMIN");
-                    }
-                    auth.anyRequest().authenticated();
-                })
-                .oauth2Login(oauth2 -> oauth2
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/api/auth/**","/error").permitAll()
+                        .requestMatchers("/ws-notifications/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/images/avatars/**").permitAll()
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
                     .successHandler(oAuth2LoginSuccessHandler)
-                    .failureUrl(frontEndUrl + "/login?error=oauth2")
-                );
+                        .failureUrl(frontEndUrl + "/login?error=oauth2")
+            );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(rateLimitFilter,AuthTokenFilter.class);
@@ -162,6 +123,19 @@ public class WebSecurityConfig {
                 HeadersConfigurer.FrameOptionsConfig::sameOrigin
         ));
         return http.build();
+    }
+
+
+    // use to completely bypass web security
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web -> web.ignoring()
+                .requestMatchers("/v2/api-docs",
+                        "/configuration/ui",
+                        "/swagger-resources/**",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "/webjars/**"));
     }
 
 
