@@ -12,6 +12,7 @@ import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Verify2FALogin from "./Verify2FALogin";
 import api from "../../api/api";
+import { useTranslation } from "react-i18next";
 
 
 const LogIn = () => {
@@ -25,6 +26,7 @@ const LogIn = () => {
     const [lockedUsername, setLockedUsername] = useState(null);
     const [unlockRequested, setUnlockRequested] = useState(false);
     const dispatch = useDispatch();
+    const { t } = useTranslation("auth");
     const {
         register,
         handleSubmit,
@@ -56,10 +58,10 @@ const LogIn = () => {
         setRequestingUnlock(true);
         try {
             const { data } = await api.post("/auth/unlock-request", { username: lockedUsername });
-            toast.success(data?.message || "Unlock request sent to admin");
+            toast.success(data?.message || t("unlockRequestSent"));
             setUnlockRequested(true);
         } catch (error) {
-            toast.error(error?.response?.data?.message || "Failed to send unlock request");
+            toast.error(error?.response?.data?.message || t("requestUnlock"));
         } finally {
             setRequestingUnlock(false);
         }
@@ -71,7 +73,7 @@ const LogIn = () => {
                 console.log("2FA success, authData:", authData); // vezi ce vine de la backend
                 localStorage.setItem("auth", JSON.stringify(authData));
                 dispatch({ type: "LOGIN_USER", payload: authData });
-                toast.success("Login Success");
+                toast.success(t("loginSuccess"));
                 setNeeds2FA(false);
                 setTemp2FAToken(null);
                 setLoginEmail(null);
@@ -90,7 +92,7 @@ const LogIn = () => {
                 <div className="flex flex-col items-center justify-center space-y-4">
                     <AiOutlineLogin className="text-slate-800 text-5xl dark:text-white" />
                     <h1 className="text-slate-800 text-center font-montserrat lg:text-3xl text-2xl font-bold dark:text-white">
-                        Login Here
+                        {t("loginHere")}
                     </h1>
                 </div>
 
@@ -99,23 +101,23 @@ const LogIn = () => {
                 {/* INPUTS */}
                 <div className="flex flex-col gap-3">
                     <InputField
-                        label="UserName"
+                        label={t("userName")}
                         required
                         id="username"
                         type="text"
-                        message="*UserName is required"
-                        placeHolder="Enter your username"
+                        message={t("userNameRequired")}
+                        placeHolder={t("enterUsername")}
                         register={register}
                         errors={errors}
                     />
 
                     <InputField
-                        label="Password"
+                        label={t("password")}
                         required
                         id="password"
                         type="password"
-                        message="*Password is required"
-                        placeHolder="Enter your password"
+                        message={t("passwordRequired")}
+                        placeHolder={t("enterPassword")}
                         register={register}
                         errors={errors}
                     />
@@ -129,10 +131,10 @@ const LogIn = () => {
                 >
                     {loader ? (
                         <>
-                            <Spinners /> Loading...
+                            <Spinners /> {t("loading", { ns: "common" })}
                         </>
                     ) : (
-                        <>Login</>
+                        <>{t("login")}</>
                     )}
                 </button>
 
@@ -141,11 +143,11 @@ const LogIn = () => {
                     <div className="flex flex-col gap-2 mt-3 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                         <div className="flex items-center gap-2 text-red-700 dark:text-red-400 text-sm font-medium">
                             <FaLock />
-                            <span>Your account is temporarily locked due to too many failed attempts.</span>
+                            <span>{t("accountLocked")}</span>
                         </div>
                         {unlockRequested ? (
                             <p className="text-sm text-green-700 dark:text-green-400">
-                                Unlock request sent. An admin will review it shortly.
+                                {t("unlockRequestSent")}
                             </p>
                         ) : (
                             <button
@@ -154,7 +156,7 @@ const LogIn = () => {
                                 disabled={requestingUnlock}
                                 className="self-start text-sm font-semibold text-red-700 dark:text-red-400 underline hover:text-red-900 dark:hover:text-red-300 disabled:opacity-60"
                             >
-                                {requestingUnlock ? "Sending request..." : "Request unlock from admin"}
+                                {requestingUnlock ? t("sendingRequest") : t("requestUnlock")}
                             </button>
                         )}
                     </div>
@@ -166,7 +168,7 @@ const LogIn = () => {
                         to="/forgot-password"
                         className="text-sm text-blue-600 hover:underline font-medium"
                     >
-                        Forgot Password?
+                        {t("forgotPassword")}
                     </Link>
                 </div>
 
@@ -178,7 +180,7 @@ const LogIn = () => {
                         className="w-full flex items-center justify-center gap-2 bg-black text-white py-2 rounded-md hover:opacity-80 transition font-medium"
                     >
                         <FaGithub className="text-xl" />
-                        <span>Login with GitHub</span>
+                        <span>{t("loginWithGithub")}</span>
                     </a>
 
                     <a
@@ -189,19 +191,19 @@ const LogIn = () => {
                         <div className="bg-white p-0.5 rounded-full flex items-center justify-center">
                             <FcGoogle className="text-lg" />
                         </div>
-                        <span>Login with Google</span>
+                        <span>{t("loginWithGoogle")}</span>
                     </a>
 
                 </div>
 
                 {/* REGISTER */}
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
-                    Don't have an account?{" "}
+                    {t("dontHaveAccount")}{" "}
                     <Link
                         className="font-semibold underline hover:text-black dark:hover:text-white"
                         to="/register"
                     >
-                        SignUp
+                        {t("signUp")}
                     </Link>
                 </p>
 

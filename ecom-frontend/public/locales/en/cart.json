@@ -1,0 +1,17 @@
+{
+  "yourCart": "Your Cart",
+  "allSelectedItems": "All your selected items",
+  "product": "Product",
+  "price": "Price",
+  "quantity": "Quantity",
+  "total": "Total",
+  "subtotal": "Subtotal",
+  "taxesAndShipping": "Taxes and shipping calculated at checkout",
+  "checkout": "Checkout",
+  "checkoutAsGuest": "Checkout as guest",
+  "continueShopping": "Continue Shopping",
+  "savedForLater": "Saved for later",
+  "cartEmpty": "Your cart is empty",
+  "cartEmptyMessage": "Add some products to get started",
+  "startShopping": "Start Shopping"
+}

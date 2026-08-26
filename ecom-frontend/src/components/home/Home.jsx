@@ -8,6 +8,7 @@ import { fetchProducts, fetchBestSellers, fetchNewArrivals, fetchOnSaleProducts 
 import ProductCard from "../shared/ProductCard";
 import Loader from "../shared/Loader";
 import { FaExclamationTriangle, FaFireAlt, FaTags, FaBoxOpen } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 
 
@@ -16,7 +17,8 @@ const Home  = () => {
     const {products, bestSellers, newArrivals, onSaleProducts} = useSelector( (state) => state.products);
     const { isLoading, errorMessage} = useSelector(
     (state) => state.errors
-    ); 
+    );
+    const { t } = useTranslation("home");
 
     useEffect( () => {
         dispatch(fetchProducts());
@@ -32,28 +34,28 @@ const Home  = () => {
             <RecentlyViewed />
             <RecommendedProducts />
             <HomeSection
-                title="Best Sellers"
-                subtitle="Our most popular products based on sales"
+                title={t("bestSellers")}
+                subtitle={t("bestSellersSubtitle")}
                 icon={<FaFireAlt className="text-orange-500" />}
                 products={bestSellers}
             />
             <HomeSection
-                title="New Arrivals"
-                subtitle="Fresh products just added to our catalog"
+                title={t("newArrivals")}
+                subtitle={t("newArrivalsSubtitle")}
                 icon={<FaBoxOpen className="text-blue-500" />}
                 products={newArrivals}
             />
             <HomeSection
-                title="On Sale"
-                subtitle="Limited time deals — save big on these products"
+                title={t("onSale")}
+                subtitle={t("onSaleSubtitle")}
                 icon={<FaTags className="text-green-500" />}
                 products={onSaleProducts}
             />
             <div className="py-5">
                 <div className="flex flex-col justify-center items-center space-y-2">
-                    <h1 className="text-slate-800 text-4xl font-bold dark:text-white">Products</h1>
+                    <h1 className="text-slate-800 text-4xl font-bold dark:text-white">{t("products")}</h1>
                         <span className="text-slate-700 dark:text-gray-300">
-                            Discover our handpicked selection of top-rated items just for you!
+                            {t("productsSubtitle")}
                         </span>
                    
                 </div>

@@ -1,0 +1,17 @@
+{
+  "loading": "Loading...",
+  "sending": "Sending...",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "search": "Search",
+  "view": "View",
+  "back": "Back",
+  "continue": "Continue",
+  "yes": "Yes",
+  "no": "No",
+  "error": "Error",
+  "success": "Success",
+  "currency": "USD"
+}

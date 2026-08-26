@@ -7,6 +7,7 @@ import { FaShoppingCart, FaUserShield } from 'react-icons/fa';
 import { IoExitOutline } from 'react-icons/io5';
 import BackDrop from './BackDrop';
 import { logOutUser } from '../store/actions';
+import { useTranslation } from 'react-i18next';
 
 const UserMenu = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -14,6 +15,7 @@ const UserMenu = () => {
   const {user} = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation("userMenu");
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -68,7 +70,7 @@ const UserMenu = () => {
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaShoppingCart className="text-xl" />
               <span className='font-semibold'>
-                Order
+                {t("order")}
               </span>
             </MenuItem>
           </Link>
@@ -80,7 +82,7 @@ const UserMenu = () => {
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaUserShield className="text-xl" />
               <span className='font-semibold'>
-                {isAdmin ? "Admin Panel" : "Seller Panel"}
+                {isAdmin ? t("adminPanel") : t("sellerPanel")}
               </span>
             </MenuItem>
           </Link>
@@ -90,7 +92,7 @@ const UserMenu = () => {
           <div className='font-semibold w-full flex gap-2 items-center bg-button-gradient px-4 py-1 text-white rounded-sm'>
             <IoExitOutline className="text-xl" />
             <span className='font-semibold'>
-              Logout
+              {t("logout")}
             </span>
           </div>
         </MenuItem>

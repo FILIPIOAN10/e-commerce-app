@@ -1,0 +1,11 @@
+{
+  "contactUs": "Contactez-nous",
+  "contactDescription": "Nous serions ravis d'avoir de vos nouvelles ! Veuillez remplir le formulaire ci-dessous ou nous contacter directement",
+  "name": "Nom",
+  "email": "E-mail",
+  "message": "Message",
+  "sendMessage": "Envoyer le message",
+  "messageSentSuccess": "Message envoyé avec succès !",
+  "messageSentFailed": "Échec de l'envoi du message.",
+  "contactInformation": "Coordonnées"
+}

@@ -1,4 +1,5 @@
 import axios from "axios";
+import i18n from "../i18n";
 
 const api = axios.create({
     baseURL: `${import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"}/api`,
@@ -7,6 +8,8 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
     config.headers = config.headers || {};
+
+    config.headers["Accept-Language"] = i18n.language || "en";
 
     const csrfToken = document.cookie
         .split("; ")

@@ -7,11 +7,13 @@ import { useDispatch } from 'react-redux';
 import { registerNewUser } from '../../store/actions';
 import toast from 'react-hot-toast';
 import Spinners from '../shared/Spinners';
+import { useTranslation } from 'react-i18next';
 
 const Register = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [loader,setLoader]= useState(false);
+    const { t } = useTranslation("auth");
 
     const {
         register,
@@ -37,19 +39,19 @@ const Register = () => {
                 <div className=" flex flex-col items-center justify-center space-y-4">
                     <FaUserPlus className="text-slate-800 text-5xl dark:text-white"/>
                     <h1 className="text-slate-800 text-center font-montserrat lg:text-3xl text-2xl font-bold dark:text-white">
-                        Register Here
+                        {t("registerHere")}
                     </h1>
                 </div>
                 <hr className="mt-2 mb-5 text-black dark:border-gray-600"/>
                 <div className="flex flex-col gap-3">
                     <InputField
                     
-                        label="UserName"
+                        label={t("userName")}
                         required
                         id="username"
                         type="text"
-                        message="*UserName is required"
-                        placeHolder="Enter your username"
+                        message={t("userNameRequired")}
+                        placeHolder={t("enterUsername")}
                         register={register}
                         errors={errors}
                     
@@ -57,12 +59,12 @@ const Register = () => {
 
                     <InputField
                     
-                        label="Email"
+                        label={t("email")}
                         required
                         id="email"
                         type="email"
-                        message="*Email is required"
-                        placeHolder="Enter your email"
+                        message={t("emailRequired")}
+                        placeHolder={t("enterEmail")}
                         register={register}
                         errors={errors}
                     
@@ -70,19 +72,19 @@ const Register = () => {
 
                     <InputField
                     
-                        label="Password"
+                        label={t("password")}
                         required
                         id="password"
                         min={6}
                         type="password"
-                        message="*Password is required"
-                        placeHolder="Enter your password"
+                        message={t("passwordRequired")}
+                        placeHolder={t("enterPassword")}
                         register={register}
                         errors={errors}
                     
                     />
                     <InputField 
-                        label="Password Hint"
+                        label={t("passwordHint")}
                         id="passwordHint"
                         type="text"
                         placeHolder="Ex: Numele animalului meu"
@@ -92,17 +94,17 @@ const Register = () => {
                     />
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-slate-700 dark:text-gray-300 font-medium text-sm">Role</label>
+                        <label className="text-slate-700 dark:text-gray-300 font-medium text-sm">{t("role")}</label>
                         <select
                             {...register("role", { required: true })}
                             className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-sm px-3 py-2 text-slate-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400"
                         >
-                            <option value="">Select a role</option>
-                            <option value="ROLE_USER">User</option>
-                            <option value="ROLE_SELLER">Seller</option>
+                            <option value="">{t("selectRole")}</option>
+                            <option value="ROLE_USER">{t("user")}</option>
+                            <option value="ROLE_SELLER">{t("seller")}</option>
                         </select>
                         {errors.role && (
-                            <span className="text-red-500 text-xs">*Role is required</span>
+                            <span className="text-red-500 text-xs">{t("roleRequired")}</span>
                         )}
                     </div>
                 </div>
@@ -116,23 +118,23 @@ const Register = () => {
                     {loader ? (
                     <>
 
-                        <Spinners/> Loading...   </>
+                        <Spinners/> {t("loading", { ns: "common" })}   </>
                         
                         
                        
                     ) : (
-                        <> Register</>
+                        <> {t("register")}</>
                        
                     )}
                   
                 </button>
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
-                    Already have an account?
+                    {t("alreadyHaveAccount")}
                     <Link 
                     className="font-semibold underline hover:text-black dark:hover:text-white"
                     to="/login"
                     >
-                    <span>Login</span>
+                    <span>{t("login")}</span>
                     </Link>
                 </p>
             </form>

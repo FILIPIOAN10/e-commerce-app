@@ -1,0 +1,17 @@
+{
+  "loading": "Chargement...",
+  "sending": "Envoi...",
+  "save": "Enregistrer",
+  "cancel": "Annuler",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "search": "Rechercher",
+  "view": "Voir",
+  "back": "Retour",
+  "continue": "Continuer",
+  "yes": "Oui",
+  "no": "Non",
+  "error": "Erreur",
+  "success": "Succès",
+  "currency": "EUR"
+}

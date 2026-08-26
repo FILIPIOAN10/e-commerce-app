@@ -8,6 +8,7 @@ import useProductFilter from "../../hooks/useProductFilter";
 import ProductSkeleton from "../shared/ProductSkeleton";
 import Breadcrumb from "../shared/Breadcrumb";
 import Paginations from "../shared/Paginations";
+import { useTranslation } from "react-i18next";
 
 
 const Products  = () => {
@@ -20,6 +21,7 @@ const Products  = () => {
         (state) => state.products
     )
     const dispatch = useDispatch();
+    const { t } = useTranslation();
     useProductFilter();
 
     useEffect( () => {
@@ -28,7 +30,7 @@ const Products  = () => {
   
     return (
         <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto dark:bg-gray-950 dark:text-white min-h-screen">
-            <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Products" }]} />
+            <Breadcrumb items={[{ label: t("home", { ns: "navbar" }), path: "/" }, { label: t("products", { ns: "navbar" }) }]} />
             <Filter categories = {categories ? categories : []}/>
             { isLoading ? (
                     <ProductSkeleton />

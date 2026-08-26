@@ -14,6 +14,7 @@ import { Autoplay, Pagination, EffectFade, Navigation } from 'swiper/modules';
 
 import { bannerLists } from '../../utils';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const colors = ["bg-banner-color1","bg-banner-color2","bg-banner-color3"];
@@ -21,6 +22,7 @@ const colors = ["bg-banner-color1","bg-banner-color2","bg-banner-color3"];
 
 
 const HeroBanner = () => {
+    const { t } = useTranslation("home");
     return (
         <div className='py-2 rounded-md'>
             <Swiper
@@ -52,7 +54,7 @@ const HeroBanner = () => {
                                         </p>
                                         <Link className='mt-6 inline-block bg-black text-white py-2 px-4 rounded hover:bg-gray-800'
                                         to ={"/products"}>
-                                        Shop
+                                        {t("shop")}
                                         </Link>
                                     </div>
                                 

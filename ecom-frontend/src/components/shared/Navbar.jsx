@@ -5,9 +5,11 @@ import { Link, useLocation } from "react-router-dom";
 import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import UserMenu from "../UserMenu";
 import { useTheme } from "../../hooks/useTheme";
 import NotificationBell from "./NotificationBell";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
     const path = useLocation().pathname;
@@ -16,6 +18,7 @@ const Navbar = () => {
     const { user } = useSelector((state) => state.auth);
     const { compareList } = useSelector((state) => state.products);
     const { isDark, toggleTheme } = useTheme();
+    const { t } = useTranslation("navbar");
 
     // ✅ verifică rolul
     const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
@@ -34,37 +37,37 @@ const Navbar = () => {
                     
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/" ? "text-white font-semibold" : "text-gray-200"}`} to="/">
-                            Home
+                            {t("home")}
                         </Link>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/products" ? "text-white font-semibold" : "text-gray-200"}`} to="/products">
-                            Products
+                            {t("products")}
                         </Link>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/bundles" ? "text-white font-semibold" : "text-gray-200"}`} to="/bundles">
-                            Bundles
+                            {t("bundles")}
                         </Link>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/subscriptions" ? "text-white font-semibold" : "text-gray-200"}`} to="/subscriptions">
-                            Subscriptions
+                            {t("subscriptions")}
                         </Link>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/about" ? "text-white font-semibold" : "text-gray-200"}`} to="/about">
-                            About
+                            {t("about")}
                         </Link>
                     </li>
 
                     <li className="font-medium transition-all duration-150">
                         <Link className={`${path === "/contact" ? "text-white font-semibold" : "text-gray-200"}`} to="/contact">
-                            Contact
+                            {t("contact")}
                         </Link>
                     </li>
 
@@ -130,7 +133,7 @@ const Navbar = () => {
                                         duration-300 ease-in-out transform"
                                 to="/login">
                                 <FaSignInAlt />
-                                <span>Login</span>
+                                <span>{t("login")}</span>
                             </Link>
                         </li>
                     )}
@@ -138,10 +141,11 @@ const Navbar = () => {
 
                 <div className="flex items-center gap-3">
                     {user?.id && <NotificationBell />}
+                    <LanguageSwitcher />
                     <button
                         onClick={toggleTheme}
                         className="text-white hover:text-yellow-300 transition-colors text-xl"
-                        title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                        title={isDark ? t("switchToLight") : t("switchToDark")}
                     >
                         {isDark ? <FaSun /> : <FaMoon />}
                     </button>

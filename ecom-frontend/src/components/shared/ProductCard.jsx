@@ -4,6 +4,7 @@ import truncateText from "../../utils/truncateText";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { addToCart, addToWishlist, addToCompare } from "../../store/actions";
+import { useTranslation } from "react-i18next";
 
 const ProductCard = ({
         productId,
@@ -23,6 +24,7 @@ const ProductCard = ({
     const btnLoader = false;
     const isAvailable = quantity && Number(quantity) > 0;
     const dispatch = useDispatch();
+    const { t } = useTranslation("product");
 
     // ✅ verifică dacă e admin
     const { user } = useSelector((state) => state.auth);
@@ -38,11 +40,11 @@ const ProductCard = ({
 
     const handleAddToCompare = () => {
         if (compareList.length >= 3) {
-            toast.error("You can compare up to 3 products");
+            toast.error(t("compareLimit"));
             return;
         }
         dispatch(addToCompare({ productId, productName, image, description, quantity, price, discount, specialPrice, averageRating, reviewCount, categoryName }));
-        toast.success("Added to compare");
+        toast.success(t("addedToCompare"));
     };
 
     const handleProductView = () => {
@@ -72,7 +74,7 @@ const ProductCard = ({
                                 onClick={handleAddToWishlist}
                                 data-testid="wishlist-button"
                                 className={`${isInWishlist ? "text-red-500" : "text-gray-300 hover:text-red-400"} transition text-xl`}
-                                title={isInWishlist ? "Already in wishlist" : "Add to wishlist"}
+                                title={isInWishlist ? t("alreadyInWishlist") : t("addToWishlist")}
                                 disabled={isInWishlist}
                             >
                                 <FaHeart />
@@ -82,7 +84,7 @@ const ProductCard = ({
                             onClick={handleAddToCompare}
                             data-testid="compare-button"
                             className={`${isInCompare ? "text-blue-500" : "text-gray-300 hover:text-blue-400"} transition text-xl`}
-                            title={isInCompare ? "In compare list" : "Add to compare"}
+                            title={isInCompare ? t("inCompareList") : t("addToCompare")}
                             disabled={isInCompare}
                         >
                             {isInCompare ? <FaCheck /> : <FaBalanceScale />}
@@ -145,7 +147,7 @@ const ProductCard = ({
                             className={`bg-blue-500 ${isAvailable ? "opacity-100 hover:bg-blue-600" : "opacity-70"}
                                 text-white py-2 px-3 rounded-lg items-center transition-colors duration-300 w-36 flex justify-center`}>
                             <FaShoppingCart className="mr-2" />
-                            {isAvailable ? "Add to Cart" : "Stock Out"}
+                            {isAvailable ? t("addToCart") : t("outOfStock")}
                         </button>
                     </div>
                 )}

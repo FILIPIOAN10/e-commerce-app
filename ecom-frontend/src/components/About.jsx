@@ -3,12 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import ProductCard from "./shared/ProductCard";
 import { fetchBestSellers } from "../store/actions";
 import Loader from "./shared/Loader";
+import { useTranslation } from "react-i18next";
 
 const About = () => {
     const dispatch = useDispatch();
     const { bestSellers } = useSelector((state) => state.products);
     const hasFetched = useRef(false);
     const [fetchDone, setFetchDone] = useState(false);
+    const { t } = useTranslation("about");
 
     useEffect(() => {
         if (!hasFetched.current) {
@@ -20,13 +22,12 @@ const About = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 dark:bg-gray-950 dark:text-white min-h-screen">
             <h1 className="text-slate-800 text-4xl font-bold text-center mb-12 dark:text-white">
-                About Us
+                {t("aboutUs")}
             </h1>
             <div className="flex flex-col lg:flex-row justify-between items-center mb-12">
                 <div className="w-full md:w-1/2 text-center md:text-left">
                     <p className="text-lg mb-4">
-                        Welcome to our e-commerce store! We are dedicated to providing the best products and services to our customers.
-                        Our mission is to offer a seamless shopping experience while ensuring the highest quality of our offerings.
+                        {t("aboutDescription")}
                     </p>
                 </div>
                 <div className="w-full md:w-1/2 mb-6 md:mb-0">
@@ -39,7 +40,7 @@ const About = () => {
             </div>
 
             <div className="py-7 space-y-8">
-                <h1 className="text-slate-800 text-4xl font-bold text-center dark:text-white">Our Products</h1>
+                <h1 className="text-slate-800 text-4xl font-bold text-center dark:text-white">{t("ourProducts")}</h1>
                 {bestSellers && bestSellers.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {bestSellers.slice(0, 3).map((product) => (
@@ -51,7 +52,7 @@ const About = () => {
                         ))}
                     </div>
                 ) : fetchDone ? (
-                    <p className="text-center text-gray-500 dark:text-gray-400 py-10">No products available at the moment.</p>
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-10">{t("noProductsAvailable")}</p>
                 ) : (
                     <div className="flex justify-center py-10">
                         <Loader />

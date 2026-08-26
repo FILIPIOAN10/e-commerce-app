@@ -1,0 +1,11 @@
+{
+  "contactUs": "Contact us",
+  "contactDescription": "We would love to hear from you! Please fill out the form below or contact us directly",
+  "name": "Name",
+  "email": "Email",
+  "message": "Message",
+  "sendMessage": "Send Message",
+  "messageSentSuccess": "Message sent successfully!",
+  "messageSentFailed": "Failed to send message.",
+  "contactInformation": "Contact Information"
+}

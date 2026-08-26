@@ -1,0 +1,16 @@
+{
+  "home": "Accueil",
+  "products": "Produits",
+  "bundles": "Offres groupées",
+  "subscriptions": "Abonnements",
+  "about": "À propos",
+  "contact": "Contact",
+  "login": "Connexion",
+  "cart": "Panier",
+  "wishlist": "Liste de souhaits",
+  "compare": "Comparer",
+  "trackOrder": "Suivre la commande",
+  "switchToLight": "Passer en mode clair",
+  "switchToDark": "Passer en mode sombre",
+  "selectLanguage": "Choisir la langue"
+}

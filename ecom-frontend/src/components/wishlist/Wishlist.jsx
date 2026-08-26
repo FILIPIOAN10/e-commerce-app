@@ -5,11 +5,13 @@ import { FaHeart, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Loader from "../shared/Loader";
 import EmptyState from "../shared/EmptyState";
+import { useTranslation } from "react-i18next";
 
 const Wishlist = () => {
     const dispatch = useDispatch();
     const { wishlist, error } = useSelector((state) => state.wishlist);
     const { user } = useSelector((state) => state.auth);
+    const { t } = useTranslation("wishlist");
 
     useEffect(() => {
         if (user?.id) {
@@ -26,9 +28,9 @@ const Wishlist = () => {
             <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
                 <div className="flex flex-col items-center justify-center min-h-96">
                     <FaHeart className="text-gray-300 text-6xl mb-4" />
-                    <p className="text-gray-500 text-lg mb-4">Please log in to view your wishlist</p>
+                    <p className="text-gray-500 text-lg mb-4">{t("pleaseLogin")}</p>
                     <Link to="/login" className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
-                        Login
+                        {t("login", { ns: "navbar" })}
                     </Link>
                 </div>
             </div>
@@ -39,7 +41,7 @@ const Wishlist = () => {
         <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
             <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-8 flex items-center gap-2">
                 <FaHeart className="text-red-500" />
-                My Wishlist
+                {t("myWishlist")}
             </h1>
 
             {error && (
@@ -51,9 +53,9 @@ const Wishlist = () => {
             {!error && wishlist.length === 0 && (
                 <EmptyState
                     icon={FaHeart}
-                    title="Your wishlist is empty"
-                    message="Save products you love to find them easily later."
-                    action={{ label: "Browse Products", path: "/products", icon: FaHeart }}
+                    title={t("wishlistEmpty")}
+                    message={t("wishlistEmptyMessage")}
+                    action={{ label: t("browseProducts"), path: "/products", icon: FaHeart }}
                 />
             )}
 
@@ -65,7 +67,7 @@ const Wishlist = () => {
                                 onClick={() => handleRemove(item.productId)}
                                 data-testid="remove-from-wishlist"
                                 className="absolute top-2 right-2 bg-white dark:bg-gray-700 rounded-full p-2 shadow-md hover:bg-red-50 dark:hover:bg-red-900/30 transition z-10"
-                                title="Remove from wishlist"
+                                title={t("removeFromWishlist")}
                             >
                                 <FaTrash className="text-red-500 text-sm" />
                             </button>
@@ -100,7 +102,7 @@ const Wishlist = () => {
                                         to="/products"
                                         className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition text-sm"
                                     >
-                                        View
+                                        {t("view", { ns: "common" })}
                                     </Link>
                                 </div>
                             </div>
