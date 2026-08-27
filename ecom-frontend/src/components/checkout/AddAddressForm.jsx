@@ -8,7 +8,15 @@ import toast from 'react-hot-toast';
 import { addUpdateUserAddress } from '../../store/actions';
 import Spinners from "../shared/Spinners";
 
-import { Country, State, City } from 'country-state-city';
+// Lazy-loaded so the (large, non tree-shakeable) country/state/city
+// dataset ships as its own chunk instead of bloating the checkout bundle.
+let countryStateCityModulePromise = null;
+const loadCountryStateCity = () => {
+    if (!countryStateCityModulePromise) {
+        countryStateCityModulePromise = import('country-state-city');
+    }
+    return countryStateCityModulePromise;
+};
 
 const AddAddressForm = ({address, setOpenAddressModal}) => {
     const dispatch = useDispatch();
@@ -65,50 +73,65 @@ const AddAddressForm = ({address, setOpenAddressModal}) => {
     };
 
     useEffect(() => {
-        const allCountries = Country.getAllCountries().map(c => c.name);
-        setCountries(allCountries);
+        let isMounted = true;
+        loadCountryStateCity().then(({ Country }) => {
+            if (isMounted) {
+                setCountries(Country.getAllCountries().map(c => c.name));
+            }
+        });
+        return () => { isMounted = false; };
     }, []);
 
     useEffect(() => {
+        let isMounted = true;
         if (selectedCountryName) {
-            const countryObj = Country.getAllCountries().find(c => c.name === selectedCountryName);
-            if (countryObj) {
-                const countryStates = State.getStatesOfCountry(countryObj.isoCode).map(s => s.name);
-                setStates(countryStates);
-                
-                if (address?.addressId && address.country === selectedCountryName) {
-                    setValue("state", address.state);
-                } else {
-                    setValue("state", "");
-                    setValue("city", "");
-                    setCities([]);
+            loadCountryStateCity().then(({ Country, State }) => {
+                if (!isMounted) return;
+                const countryObj = Country.getAllCountries().find(c => c.name === selectedCountryName);
+                if (countryObj) {
+                    const countryStates = State.getStatesOfCountry(countryObj.isoCode).map(s => s.name);
+                    setStates(countryStates);
+
+                    if (address?.addressId && address.country === selectedCountryName) {
+                        setValue("state", address.state);
+                    } else {
+                        setValue("state", "");
+                        setValue("city", "");
+                        setCities([]);
+                    }
                 }
-            }
+            });
         } else {
             setStates([]);
             setCities([]);
         }
+        return () => { isMounted = false; };
     }, [selectedCountryName, address, setValue]);
 
     useEffect(() => {
+        let isMounted = true;
         if (selectedStateName && selectedCountryName) {
-            const countryObj = Country.getAllCountries().find(c => c.name === selectedCountryName);
-            if (countryObj) {
-                const stateObj = State.getStatesOfCountry(countryObj.isoCode).find(s => s.name === selectedStateName);
-                if (stateObj) {
-                    const stateCities = City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode).map(c => c.name);
-                    setCities(stateCities);
+            loadCountryStateCity().then(({ Country, State, City }) => {
+                if (!isMounted) return;
+                const countryObj = Country.getAllCountries().find(c => c.name === selectedCountryName);
+                if (countryObj) {
+                    const stateObj = State.getStatesOfCountry(countryObj.isoCode).find(s => s.name === selectedStateName);
+                    if (stateObj) {
+                        const stateCities = City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode).map(c => c.name);
+                        setCities(stateCities);
 
-                    if (address?.addressId && address.state === selectedStateName) {
-                        setValue("city", address.city);
-                    } else {
-                        setValue("city", "");
+                        if (address?.addressId && address.state === selectedStateName) {
+                            setValue("city", address.city);
+                        } else {
+                            setValue("city", "");
+                        }
                     }
                 }
-            }
+            });
         } else {
             setCities([]);
         }
+        return () => { isMounted = false; };
     }, [selectedStateName, selectedCountryName, address, setValue]);
 
     useEffect (() => {
