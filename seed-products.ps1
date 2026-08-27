@@ -64,9 +64,18 @@ try {
 
 # 2. Login as admin (auth endpoints are CSRF-exempt, but use session for cookies)
 Write-Host "=== Logging in as admin ===" -ForegroundColor Cyan
-$loginBody = @{ username = "admin"; password = "adminPass" } | ConvertTo-Json
+$adminUser = $env:ADMIN_USERNAME
+$adminPass = $env:ADMIN_PASSWORD
+if (-not $adminUser) { $adminUser = "admin" }
+if (-not $adminPass) { $adminPass = "adminPass" }
+$loginBody = @{ username = $adminUser; password = $adminPass } | ConvertTo-Json
 try {
     $loginResp = Invoke-WebRequest -Uri "$baseUrl/api/auth/signin" -Method Post -Body $loginBody -ContentType "application/json" -WebSession $session -UseBasicParsing
+    $respBody = $loginResp.Content | ConvertFrom-Json
+    if ($respBody.needs2FA) {
+        Write-Host "User has 2FA enabled. Disable it first or use a user without 2FA." -ForegroundColor Red
+        exit 1
+    }
     $setCookieHeader = $loginResp.Headers['Set-Cookie']
     if ($setCookieHeader -is [array]) { $setCookieHeader = $setCookieHeader | Where-Object { $_ -like 'springBootEcom=*' } | Select-Object -First 1 }
     if (-not $setCookieHeader -or $setCookieHeader -notlike 'springBootEcom=*') { Write-Host "No JWT cookie received. Check admin credentials or cookie settings." -ForegroundColor Red; exit 1 }
