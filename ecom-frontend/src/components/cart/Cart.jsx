@@ -23,7 +23,7 @@ const Cart = () => {
             <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Cart" }]} />
 
             <div className="flex flex-col items-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                <h1 data-testid="cart-heading" className="text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                     <MdShoppingCart size={36} className="text-gray-700 dark:text-gray-300"/>
                    Your Cart
                 </h1>
@@ -82,6 +82,7 @@ const Cart = () => {
 
                     <Link className="w-full flex justify-end text-sm" to="/guest-checkout">
                     <button
+                    data-testid="guest-checkout-button"
                     disabled={activeCart.length === 0}
                     className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 underline mt-2 disabled:opacity-50"
                     >

@@ -63,6 +63,7 @@ const ItemContent = ({
                
                     <div className="flex items-start gap-5 mt-3 ">
                         <button
+                            data-testid="remove-item-button"
                             onClick={() =>removeItemFromCart({
                                 image,
                                 productName,
