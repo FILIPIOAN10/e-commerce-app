@@ -39,6 +39,9 @@ jobs:
           echo "POSTGRES_PASSWORD=postgres" >> .env
           echo "VAULT_TOKEN=root" >> .env
           echo "JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('base64'))")" >> .env
+          # Browser suite has no SMTP server and drives login repeatedly.
+          echo "APP_SKIP_VERIFICATION_EMAIL=true" >> .env
+          echo "RATE_LIMIT_ENABLED=false" >> .env
 
       - name: Start services with Docker Compose
         run: |
