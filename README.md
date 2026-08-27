@@ -88,6 +88,13 @@ git-ignored `.env`, forwarded into HashiCorp Vault by `scripts/vault-init.sh`, a
 resolved by Spring Cloud Vault at startup. Required variables have no fallback
 defaults, so Compose fails fast with a clear message if one is missing.
 
+The stack runs under the **`local`** Spring profile. Vault and Spring AI are the
+only things disabled (both incompatible with Spring Boot 4.1 in local Docker) —
+rate limiting and the email-verification signup flow run exactly as in
+production. If you have no SMTP server, run a fake one (`npx maildev --smtp 1025`)
+or set `APP_SKIP_VERIFICATION_EMAIL=true` in `.env`; set `RATE_LIMIT_ENABLED=false`
+only for load tests.
+
 ### Database migrations
 
 The schema is owned by **Flyway**, not by Hibernate. Migrations live in
