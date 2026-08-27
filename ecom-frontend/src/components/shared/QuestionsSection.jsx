@@ -71,7 +71,7 @@ const QuestionsSection = ({ productId }) => {
             )}
 
             {questions.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-sm">No questions yet.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No questions yet</p>
             ) : (
                 <div className="space-y-4 max-h-80 overflow-y-auto">
                     {questions.map((q) => (
