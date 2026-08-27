@@ -1,0 +1,33 @@
+# Normalize all text files to LF inside the repository.
+# Git auto-detects binary content (NUL bytes) and leaves it untouched.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF in the working tree.
+*.ps1  text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Unix shell scripts and the Maven wrapper stay LF everywhere.
+*.sh   text eol=lf
+mvnw   text eol=lf
+gradlew text eol=lf
+
+# Explicit binary types (never diff, never touch line endings).
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.pdf   binary
+*.jar   binary
+*.class binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.zip   binary
+*.gz    binary
+*.mp4   binary
