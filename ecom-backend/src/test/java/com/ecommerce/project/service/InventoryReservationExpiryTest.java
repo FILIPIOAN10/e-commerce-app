@@ -75,7 +75,8 @@ class InventoryReservationExpiryTest {
         redisTemplate.getConnectionFactory().getConnection().serverCommands().flushAll();
 
         ProductRepository productRepository = mock(ProductRepository.class);
-        reservationService = new InventoryReservationService(redisTemplate, productRepository);
+        reservationService = new InventoryReservationService(
+                redisTemplate, productRepository, new com.ecommerce.project.util.AfterCommitExecutor());
         ReflectionTestUtils.setField(reservationService, "reservationTtl", TTL);
     }
 

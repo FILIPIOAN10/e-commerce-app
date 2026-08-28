@@ -180,7 +180,8 @@ class ProductServiceImplCacheIntegrationTest {
 
         @Bean
         public com.ecommerce.project.cache.TransactionAwareCacheEvictor cacheEvictor(CacheManager cacheManager) {
-            return new com.ecommerce.project.cache.TransactionAwareCacheEvictor(cacheManager);
+            return new com.ecommerce.project.cache.TransactionAwareCacheEvictor(
+                    cacheManager, new com.ecommerce.project.util.AfterCommitExecutor());
         }
 
         @Bean

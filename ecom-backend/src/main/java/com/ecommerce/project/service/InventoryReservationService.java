@@ -5,6 +5,7 @@ import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ReservationResponse;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.util.AfterCommitExecutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,6 +42,7 @@ public class InventoryReservationService {
 
     private final StringRedisTemplate redisTemplate;
     private final ProductRepository productRepository;
+    private final AfterCommitExecutor afterCommitExecutor;
 
     @Value("${inventory.reservation.ttl:10m}")
     private Duration reservationTtl;
@@ -237,6 +239,20 @@ public class InventoryReservationService {
         return responses;
     }
 
+    /**
+     * Deducts the reserved stock in Postgres and then frees the Redis
+     * reservations.
+     * <p>
+     * The DB decrements run in the caller's transaction; the Redis cleanup does
+     * not and cannot be rolled back. So the loop only does DB work, collecting
+     * the Redis keys it will free, and the actual purge is deferred to
+     * after-commit. If the caller's transaction rolls back — because this method
+     * threw on an item, or because a later step in {@code placeOrder} failed —
+     * the purge never runs and the reservations survive to be retried or to
+     * lapse through their TTL. An earlier version deleted each reservation
+     * inline, so a failure on item 3 left items 1–2 with their DB decrements
+     * rolled back but their reservations already destroyed.
+     */
     public void consumeReservationsForCart(Long cartId) {
         if (cartId == null) {
             return;
@@ -248,6 +264,9 @@ public class InventoryReservationService {
         if (reservationIds.isEmpty()) {
             throw new APIException("No active stock reservation for this cart. Please start checkout again.");
         }
+
+        List<String> reservationKeysToPurge = new ArrayList<>();
+        List<ZSetMember> productMembersToPurge = new ArrayList<>();
 
         for (String reservationId : reservationIds) {
             String reservationKey = RESERVATION_KEY_PREFIX + reservationId;
@@ -269,12 +288,20 @@ public class InventoryReservationService {
                         + ". Reservation could not be fulfilled.");
             }
 
-            redisTemplate.delete(reservationKey);
-            redisTemplate.opsForZSet().remove(PRODUCT_RESERVATIONS_PREFIX + productId,
-                    member(reservationId, quantity));
+            reservationKeysToPurge.add(reservationKey);
+            productMembersToPurge.add(new ZSetMember(
+                    PRODUCT_RESERVATIONS_PREFIX + productId, member(reservationId, quantity)));
         }
 
-        redisTemplate.delete(cartReservationsKey);
+        afterCommitExecutor.execute(() -> {
+            reservationKeysToPurge.forEach(redisTemplate::delete);
+            productMembersToPurge.forEach(pm -> redisTemplate.opsForZSet().remove(pm.key(), pm.member()));
+            redisTemplate.delete(cartReservationsKey);
+        });
+    }
+
+    /** A ({@code ZSET key}, {@code member}) pair queued for post-commit removal. */
+    private record ZSetMember(String key, String member) {
     }
 
     /**
