@@ -104,4 +104,8 @@ public class User {
     @Size(max = 500)
     @Column(name = "avatar_url")
     private String avatarUrl;
+
+    /** Explicit consent to receive marketing email (e.g. abandoned-cart reminders). */
+    @Column(name = "marketing_opt_in", nullable = false, columnDefinition = "boolean default false")
+    private boolean marketingOptIn = false;
 }

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Your cart is waiting</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; }
+        .button { display: inline-block; background: #1976d2; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 16px 0; }
+        .total { font-size: 15px; color: #333; margin: 8px 0; }
+        .footer { color: #777; font-size: 12px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Still thinking it over?</h2>
+        <p>Hi {{name}},</p>
+        <p>You left <strong>{{itemCount}}</strong> item(s) in your cart. We saved them for you.</p>
+        <p class="total">Cart total: <strong>${{cartTotal}}</strong></p>
+        <a href="{{link}}" class="button">Return to your cart</a>
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <p><a href="{{link}}">{{link}}</a></p>
+        <p class="footer">
+            You're receiving this because you opted in to marketing email.
+            The link above expires after a few days.
+        </p>
+    </div>
+</body>
+</html>

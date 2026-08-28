@@ -14,4 +14,7 @@ public final class OutboxEventTypes {
 
     /** Customer order status-change email. */
     public static final String ORDER_STATUS_EMAIL = "ORDER_STATUS_EMAIL";
+
+    /** Abandoned-cart recovery reminder email. */
+    public static final String CART_ABANDONMENT_REMINDER = "CART_ABANDONMENT_REMINDER";
 }

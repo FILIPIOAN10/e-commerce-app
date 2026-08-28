@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,6 +85,7 @@ public class CartServiceImpl implements CartService {
                 .mapToDouble(item -> item.getProductPrice() * item.getQuantity())
                 .sum();
         cart.setTotalPrice(newTotalPrice);
+        markCartActive(cart);
         cartRepository.save(cart);
 
         // Return updated cart
@@ -156,6 +158,7 @@ public class CartServiceImpl implements CartService {
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
             cartItem.setDiscount(product.getDiscount());
             cart.setTotalPrice(cart.getTotalPrice() + (cartItem.getProductPrice() * quantity));
+            markCartActive(cart);
             cartRepository.save(cart);
         }
 
@@ -181,6 +184,7 @@ public class CartServiceImpl implements CartService {
             throw new ResourceNotFoundException("Product", "productId", productId);
         }
         cart.setTotalPrice(cart.getTotalPrice() - (cartItem.getProductPrice() * cartItem.getQuantity()));
+        markCartActive(cart);
         cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
 
 
@@ -268,6 +272,7 @@ public class CartServiceImpl implements CartService {
         // Update the cart's total prince and save
 
         existingCart.setTotalPrice(totalPrice);
+        markCartActive(existingCart);
         cartRepository.save(existingCart);
         return "Cart created/updated with the new items successfully!!!";
     }
@@ -304,7 +309,17 @@ public class CartServiceImpl implements CartService {
                 .mapToDouble(item -> item.getProductPrice() * item.getQuantity())
                 .sum();
         cart.setTotalPrice(newTotal);
+        markCartActive(cart);
         cartRepository.save(cart);
+    }
+
+    /**
+     * Records that the owner just acted on this cart. Called only from the
+     * user-facing mutators — not from {@link #updateProductsInCarts} (a system
+     * price sync), which must not reset the abandonment clock.
+     */
+    private void markCartActive(Cart cart) {
+        cart.setLastActivityAt(Instant.now());
     }
 
     private void assertCartOwnedByCurrentUser(Cart cart) {
