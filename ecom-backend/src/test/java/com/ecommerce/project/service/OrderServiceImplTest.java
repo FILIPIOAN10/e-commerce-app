@@ -7,6 +7,8 @@ import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.order.OrderDtoAssembler;
+import com.ecommerce.project.service.order.OrderPaymentHandler;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.payment.PaymentAttempt;
 import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
@@ -24,7 +26,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,19 +59,18 @@ class OrderServiceImplTest {
     @Mock private OrderRepository orderRepository;
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private ProductRepository productRepository;
-    @Mock private CartService cartService;
     @Mock private CouponService couponService;
     @Mock private CouponRepository couponRepository;
     @Mock private AuthUtil authUtil;
     @Mock private InventoryReservationService inventoryReservationService;
-    @Mock private ModelMapper modelMapper;
     @Mock private ShippingCalculator shippingCalculator;
     @Mock private StripeService stripeService;
     @Mock private PaymentGatewayRegistry paymentGatewayRegistry;
     @Mock private PricingPipeline pricingPipeline;
     @Mock private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
+    // Built in setUp() with real OrderDtoAssembler / OrderPaymentHandler over the mocks,
+    // the same way the pricing pipeline and gateway registry are exercised for real.
     private OrderServiceImpl orderService;
 
     private static final String EMAIL = "user1@test.com";
@@ -127,19 +127,17 @@ class OrderServiceImplTest {
                 new ShippingRule(shippingCalculator)));
         when(pricingPipeline.price(any()))
                 .thenAnswer(inv -> realPipeline.price(inv.getArgument(0, PricingContext.class)));
+
+        OrderDtoAssembler orderDtoAssembler = new OrderDtoAssembler(orderRepository, new ModelMapper());
+        OrderPaymentHandler orderPaymentHandler = new OrderPaymentHandler(paymentRepository, paymentGatewayRegistry);
+
+        orderService = new OrderServiceImpl(
+                cartRepository, cartItemRepository, addressRepository,
+                orderRepository, orderItemRepository, productRepository,
+                inventoryReservationService, couponRepository, authUtil,
+                pricingPipeline, eventPublisher, orderDtoAssembler, orderPaymentHandler);
     }
 
-    private OrderDTO buildOrderDTO() {
-        OrderDTO dto = new OrderDTO();
-        dto.setOrderId(1L);
-        dto.setEmail(EMAIL);
-        dto.setOrderStatus("Placed");
-        dto.setTotalAmount(100.0);
-        dto.setOrderDate(LocalDate.now());
-        dto.setAddressId(ADDRESS_ID);
-        dto.setItems(new ArrayList<>());
-        return dto;
-    }
 
     private void stubHappyPath() {
         when(cartRepository.findCartByEmail(EMAIL)).thenReturn(cart);
@@ -185,16 +183,6 @@ class OrderServiceImplTest {
 
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        OrderDTO dto = buildOrderDTO();
-        when(modelMapper.map(any(Order.class), eq(OrderDTO.class))).thenAnswer(inv -> {
-            Order o = inv.getArgument(0);
-            dto.setTotalAmount(o.getTotalAmount());
-            return dto;
-        });
-        when(modelMapper.map(any(OrderItem.class), eq(com.ecommerce.project.payload.OrderItemDTO.class)))
-                .thenReturn(new com.ecommerce.project.payload.OrderItemDTO());
-
-        when(cartService.deleteProductFromCart(anyLong(), anyLong())).thenReturn("");
         doAnswer(invocation -> {
             product.setQuantity(product.getQuantity() - cartItem.getQuantity());
             productRepository.save(product);
