@@ -22,4 +22,12 @@ COPY --from=builder /build/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Let the JVM size its heap to the container's memory limit rather than the
+# host's — the usual cause of a Java-in-Docker OOMKill.
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+
+# busybox wget ships in the alpine image; --spider makes a HEAD-style check.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=45s --retries=3 \
+    CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
