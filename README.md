@@ -19,7 +19,7 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 ## Tech Stack
 
 ### Backend
-- Java 17, Spring Boot 4.1.0, Spring Security, Spring AI 2.0.0, Spring Cloud 2025.1.2
+- Java 21, Spring Boot 4.1.0, Spring Security, Spring AI 2.0.0, Spring Cloud 2025.1.2
 - PostgreSQL 16 + pgvector, Spring Data JPA / Hibernate, Flyway
 - Redis 7.4 (caching, rate limiting, recently viewed)
 - HashiCorp Vault (secrets)
@@ -36,7 +36,7 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 - PostgreSQL 16 + pgvector extension
 - Redis 7.4 Alpine
 - HashiCorp Vault
-- Maven Eclipse Temurin 17
+- Maven Eclipse Temurin 21
 
 ## Key Features
 
@@ -62,7 +62,72 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 | Coupon System | Admin-managed discount coupons with expiry and usage limits |
 | Reviews & Ratings | Per-product reviews with pagination |
 | Wishlist | Per-user wishlist with add/remove |
- 
+
+## Engineering decisions
+
+The parts of this codebase worth a second look are the ones where a naive
+implementation is subtly wrong under concurrency or against a hostile client.
+Each decision below is stated as *problem → approach → trade-off*.
+
+**Stock is never over-sold, and lapsed carts never leak it.** Checkout reserves
+stock in Redis while the customer is paying. The reserved total per product is
+*always derived* from the live reservations — a sorted set scored by expiry — so
+a reservation that times out simply stops counting; there is no separate counter
+that can drift. The reserve operation (release old, prune expired, check, create)
+runs as one atomic Lua script, closing the check-then-act gap that let two
+requests both see "enough stock". The authoritative oversell gate is a
+conditional `UPDATE … WHERE quantity >= :qty` at consume time: the loser of a
+race is rejected there. *Trade-off:* the reservation check reads on-hand stock as
+a script argument, not atomically, so an over-optimistic reservation can slip
+through — it is caught at the gate, never sold. The Redis-Lua reservation layer
+is also more machinery than a single `SELECT … FOR UPDATE` would be, chosen so
+the DB is not the contention point for browse-heavy traffic.
+
+**Anything that moves money is idempotent.** The Stripe webhook records each
+`event_id` in `processed_webhook_events` with a unique constraint that is the
+real backstop against concurrent double-delivery (the pre-check is just an
+optimisation). Order-creating endpoints take an `Idempotency-Key` header: the
+same key replays the stored response, the same key with a different body is a
+422, an in-flight key is a 409. A payment reference is unique across orders.
+Before an order is created, the server recomputes the price through its own
+pipeline and confirms the gateway's PaymentIntent is for that exact amount —
+the client's claimed `pgStatus` is never trusted. *Trade-off:* an extra table
+and a client contract for the key; a gateway round-trip on the checkout path.
+
+**Lost updates surface as 409s, not silent last-write-wins.** `@Version` is on
+`Product`, `Coupon` and `Order`; the native stock and coupon UPDATEs bump the
+version too, so an entity save that raced them is rejected rather than clobbering
+their change. The post-commit side effects of checkout (confirmation email,
+notifications, audit) run on a bounded pool *after the transaction commits*, and
+the Redis reservation purge is deferred to after-commit as well — a rolled-back
+checkout keeps its held stock. *Trade-off:* callers must be prepared to retry a
+409; "email may arrive twice" is accepted over "email silently lost" (made
+durable by the transactional outbox — see below).
+
+**`open-in-view` is off**, so every read path resolves its data before the
+transaction closes. That forces three patterns worth naming: list queries use
+JPA **Specifications** (`findAll(spec, pageable)`) for composable filtering;
+sort input is checked against a **`SortWhitelist`** allow-list (an unknown
+property is a 400, not a 500, and `user.password` can't be used to probe an
+ordering); and paginated queries that also need a collection use the **two-phase
+id-then-details** fetch (page over IDs in SQL, then fetch the full graph for that
+page) because a `JOIN FETCH` plus `Pageable` paginates in memory.
+
+**Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
+from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
+**Chain of Responsibility** ordered by `@Order`, not statement order;
+`OrderStatus` is an explicit **state machine** (each status declares its
+successors); the order-lifecycle listeners are **Observers** on
+`@TransactionalEventListener`.
+
+### In flight this iteration
+
+Not yet merged, each on its own branch: gapless fiscal invoice numbering; a
+transactional outbox making the order emails durable (retry + dead-letter);
+abandoned-cart recovery riding on that outbox; an N+1 sweep of the remaining
+list endpoints; and `OrderServiceImpl` trimmed from 447 lines / 15 dependencies
+to 344 / 13.
+
 ## Getting Started
  
 ### Prerequisites
