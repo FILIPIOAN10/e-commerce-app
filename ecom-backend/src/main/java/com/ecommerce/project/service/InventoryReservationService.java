@@ -35,6 +35,13 @@ import java.util.stream.Collectors;
  * executed as a single atomic Lua script. Without this, the check-then-act gap
  * between reading the reserved total and writing the new reservation allowed
  * concurrent requests to over-sell the same stock.
+ * <p>
+ * <strong>No interface (F14):</strong> this is deliberately a concrete
+ * {@code @Service}. There is one implementation, no seam a second provider would
+ * plug into, and its unit tests construct it directly with a real
+ * {@link com.ecommerce.project.util.AfterCommitExecutor} and a mocked
+ * {@code RedisTemplate}. An {@code InventoryReservationService} /
+ * {@code ...Impl} pair here would be ceremony without a caller.
  */
 @Service
 @RequiredArgsConstructor
@@ -201,6 +208,14 @@ public class InventoryReservationService {
             Product product = item.getProduct();
             args.add(String.valueOf(product.getProductId()));
             args.add(String.valueOf(item.getQuantity()));
+            // Accepted race (F12): the on-hand figure is the caller's read of
+            // products.quantity, not an atomic read inside the script. Between
+            // that read and here another checkout can consume stock, so the
+            // reservation check can pass against a stale total. It cannot
+            // oversell — consumeReservationsForCart's conditional decrementStock
+            // (WHERE quantity >= :qty) is the authoritative gate and rejects the
+            // loser there. The window only lets an over-optimistic reservation
+            // through; it never lets stock go negative.
             args.add(String.valueOf(product.getQuantity()));
             args.add(UUID.randomUUID().toString());
         }
@@ -280,12 +295,15 @@ public class InventoryReservationService {
             Long productId = Long.valueOf(String.valueOf(fields.get("productId")));
             int quantity = Integer.parseInt(String.valueOf(fields.get("quantity")));
 
-            // Atomic conditional decrement. A result of 0 means the stock was taken
-            // by a concurrent request between the reservation and this consumption,
-            // so the reservation cannot be fulfilled.
+            // Atomic conditional decrement and the authoritative oversell gate
+            // (see the F12 note in reserveCartItems). A result of 0 means a
+            // concurrent checkout took the stock after this cart reserved it.
             if (productRepository.decrementStock(productId, quantity) == 0) {
-                throw new APIException("Insufficient stock for " + productName(productId)
-                        + ". Reservation could not be fulfilled.");
+                int available = productRepository.findById(productId)
+                        .map(Product::getQuantity).orElse(0);
+                throw new APIException(productName(productId) + " sold out while you were checking out"
+                        + (available > 0 ? " — only " + available + " left" : "")
+                        + ". Please review your cart and try again.");
             }
 
             reservationKeysToPurge.add(reservationKey);

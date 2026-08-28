@@ -30,7 +30,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,11 +146,26 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.buildProductResponse(pageProducts);
     }
 
+    /** Page size for the reindex sweep — bounds how many Product entities are held at once. */
+    private static final int REINDEX_PAGE_SIZE = 200;
+
     @Override
     public int reindexProductSearch() {
-        List<Product> products = productRepository.findAll();
-        products.forEach(productSemanticSearchService::indexProduct);
-        return products.size();
+        // Not @Transactional on purpose: each page is its own repository call and
+        // its own short unit of work, so once the page list goes out of scope its
+        // entities are collectable. A single unbounded findAll() over the whole
+        // catalogue was an OutOfMemoryError waiting to happen.
+        int indexed = 0;
+        int pageNumber = 0;
+        Page<Product> slice;
+        do {
+            slice = productRepository.findAll(PageRequest.of(pageNumber, REINDEX_PAGE_SIZE, Sort.by("productId")));
+            slice.getContent().forEach(productSemanticSearchService::indexProduct);
+            indexed += slice.getNumberOfElements();
+            log.info("Reindex progress: {} / {} products", indexed, slice.getTotalElements());
+            pageNumber++;
+        } while (slice.hasNext());
+        return indexed;
     }
 
     @Override
