@@ -7,6 +7,9 @@ import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.payment.PaymentAttempt;
+import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
+import com.ecommerce.project.service.payment.StripePaymentGateway;
 import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
@@ -61,6 +64,7 @@ class OrderServiceImplTest {
     @Mock private ModelMapper modelMapper;
     @Mock private ShippingCalculator shippingCalculator;
     @Mock private StripeService stripeService;
+    @Mock private PaymentGatewayRegistry paymentGatewayRegistry;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -104,6 +108,13 @@ class OrderServiceImplTest {
         user.setUserName("user1");
         user.setEmail(EMAIL);
         address.setUser(user);
+
+        // Exercise the real gateway-selection logic (Stripe for STRIPE/online/Stripe,
+        // nothing for anything else) while the Stripe SDK stays mocked via stripeService.
+        PaymentGatewayRegistry realRegistry =
+                new PaymentGatewayRegistry(List.of(new StripePaymentGateway(stripeService)));
+        when(paymentGatewayRegistry.select(any()))
+                .thenAnswer(inv -> realRegistry.select(inv.getArgument(0, PaymentAttempt.class)));
     }
 
     private OrderDTO buildOrderDTO() {
