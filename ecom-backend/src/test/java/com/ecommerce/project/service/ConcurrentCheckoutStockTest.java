@@ -62,6 +62,11 @@ class ConcurrentCheckoutStockTest {
                     "delete from OrderItem oi where oi.order.id in " +
                     "(select o.id from Order o where o.email like :tag)")
                     .setParameter("tag", raceTag + "%").executeUpdate();
+            // Each placed order now carries a fiscal invoice (FK to orders.id).
+            entityManager.createQuery(
+                    "delete from Invoice inv where inv.order.id in " +
+                    "(select o.id from Order o where o.email like :tag)")
+                    .setParameter("tag", raceTag + "%").executeUpdate();
             List<Long> paymentIds = entityManager.createQuery(
                     "select o.payment.paymentId from Order o where o.email like :tag and o.payment is not null", Long.class)
                     .setParameter("tag", raceTag + "%").getResultList();
