@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import com.ecommerce.project.util.AfterCommitExecutor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -35,7 +36,7 @@ class TransactionAwareCacheEvictorTest {
 
     @BeforeEach
     void setUp() {
-        evictor = new TransactionAwareCacheEvictor(cacheManager);
+        evictor = new TransactionAwareCacheEvictor(cacheManager, new AfterCommitExecutor());
         when(cacheManager.getCache("publicProducts")).thenReturn(cache);
         when(cacheManager.getCache("adminProducts")).thenReturn(cache);
     }

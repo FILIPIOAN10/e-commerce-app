@@ -5,6 +5,7 @@ import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ReservationResponse;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.util.AfterCommitExecutor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,9 @@ class InventoryReservationServiceTest {
     @SuppressWarnings("unchecked")
     private ZSetOperations<String, String> zSetOps;
 
+    @Mock
+    private AfterCommitExecutor afterCommitExecutor;
+
     @InjectMocks
     private InventoryReservationService inventoryReservationService;
 
@@ -71,6 +75,13 @@ class InventoryReservationServiceTest {
 
         when(redisTemplate.opsForHash()).thenReturn(hashOps);
         when(redisTemplate.opsForZSet()).thenReturn(zSetOps);
+
+        // No transaction in these unit tests, so the real executor would run the
+        // deferred purge immediately; make the mock do the same.
+        doAnswer(inv -> {
+            inv.getArgument(0, Runnable.class).run();
+            return null;
+        }).when(afterCommitExecutor).execute(any());
     }
 
     @Test
