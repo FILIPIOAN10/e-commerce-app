@@ -2,6 +2,15 @@ import toast from "react-hot-toast";
 import api from "../../api/api";
 import i18n from "../../i18n";
 
+// Key a checkout attempt so a double-click or a retried request creates one
+// order, not two. A Stripe retry carries the same PaymentIntent id, which makes
+// the best natural key; fall back to a random id for cash-on-delivery.
+const checkoutIdempotencyKey = (payload) =>
+    payload?.pgPaymentId ||
+    (typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
 export const getOrdersForDashboard = (queryString = "", isAdmin) => async (dispatch, getState) => {
     try {
         dispatch({ type: "IS_FETCHING" });
@@ -115,7 +124,9 @@ export const estimateShipping = (addressId, cartTotal) => async (dispatch) => {
 
 export const placeGuestOrder = (payload, setLoading, navigate, toast) => async (dispatch) => {
     try {
-        const { data } = await api.post("/public/orders/guest", payload);
+        const { data } = await api.post("/public/orders/guest", payload, {
+            headers: { "Idempotency-Key": checkoutIdempotencyKey(payload) },
+        });
         setLoading(false);
         toast.success(`Order placed: #${data.orderId}`);
         dispatch({ type: "CLEAR_CART" });
@@ -145,7 +156,9 @@ export const stripePaymentConfirmation = (sendData, setErrorMesssage, setLoadng,
         if (appliedCoupons && appliedCoupons.length > 0) {
             payload.couponCodes = appliedCoupons;
         }
-        const response = await api.post("/order/users/payments/online", payload);
+        const response = await api.post("/order/users/payments/online", payload, {
+            headers: { "Idempotency-Key": checkoutIdempotencyKey(payload) },
+        });
         if (response.data) {
             localStorage.removeItem("CHECKOUT_ADDRESS");
             localStorage.removeItem("cartItems");

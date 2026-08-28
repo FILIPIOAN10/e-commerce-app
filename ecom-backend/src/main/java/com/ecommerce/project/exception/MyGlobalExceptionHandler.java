@@ -64,6 +64,27 @@ public class MyGlobalExceptionHandler {
                 .body(Map.of("message", e.getMessage()));
     }
 
+    /**
+     * A repeat of a request whose {@code Idempotency-Key} is still being
+     * processed. The client should retry; the original response is replayed once
+     * it is available.
+     */
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ApiResponse> handleIdempotencyConflict(IdempotencyConflictException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse(e.getMessage(), false));
+    }
+
+    /**
+     * The same {@code Idempotency-Key} was reused for a different request body,
+     * so it cannot be treated as a retry.
+     */
+    @ExceptionHandler(IdempotencyKeyReusedException.class)
+    public ResponseEntity<ApiResponse> handleIdempotencyKeyReused(IdempotencyKeyReusedException e) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ApiResponse(e.getMessage(), false));
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

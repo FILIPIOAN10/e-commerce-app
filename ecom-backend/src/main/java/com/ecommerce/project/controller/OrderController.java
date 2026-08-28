@@ -6,6 +6,7 @@ import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.service.order.OrderStatus;
 import jakarta.validation.Valid;
 
+import com.ecommerce.project.service.IdempotencyService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.util.AuthUtil;
@@ -24,31 +25,39 @@ public class OrderController extends BaseController {
     private final OrderService orderService;
     private final AuthUtil authUtil;
     private final StripeService stripeService;
+    private final IdempotencyService idempotencyService;
 
-    public OrderController(OrderService orderService, AuthUtil authUtil, StripeService stripeService) {
+    public OrderController(OrderService orderService, AuthUtil authUtil, StripeService stripeService,
+                          IdempotencyService idempotencyService) {
         this.orderService = orderService;
         this.authUtil = authUtil;
         this.stripeService = stripeService;
+        this.idempotencyService = idempotencyService;
     }
 
 
     @Tag(name = "Order")
     @PostMapping("/order/users/payments/{paymentMethod}")
     public ResponseEntity<OrderDTO> orderProducts(@PathVariable String paymentMethod,
-                                                  @RequestBody OrderRequestDTO orderRequestDTO){
+                                                  @RequestBody OrderRequestDTO orderRequestDTO,
+                                                  @RequestHeader(value = "Idempotency-Key", required = false)
+                                                  String idempotencyKey){
 
         String emailId = authUtil.loggedInEmail();
-        OrderDTO order = orderService.placeOrder(
-                emailId,
-                orderRequestDTO.getAddressId(),
-                paymentMethod,
-                orderRequestDTO.getPgName(),
-                orderRequestDTO.getPgPaymentId(),
-                orderRequestDTO.getPgStatus(),
-                orderRequestDTO.getPgResponseMessage(),
-                orderRequestDTO.getCouponCodes()
-        );
-        return created(order);
+        return idempotencyService.runIdempotent(
+                idempotencyKey,
+                "place-order:" + emailId + ":" + paymentMethod,
+                orderRequestDTO,
+                OrderDTO.class,
+                () -> created(orderService.placeOrder(
+                        emailId,
+                        orderRequestDTO.getAddressId(),
+                        paymentMethod,
+                        orderRequestDTO.getPgName(),
+                        orderRequestDTO.getPgPaymentId(),
+                        orderRequestDTO.getPgStatus(),
+                        orderRequestDTO.getPgResponseMessage(),
+                        orderRequestDTO.getCouponCodes())));
     }
     @PostMapping("/order/stripe-client-secret")
     public ResponseEntity<String> createStripeClientSecret(@RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
@@ -87,9 +96,15 @@ public class OrderController extends BaseController {
 
     @Tag(name = "Order")
     @PostMapping("/public/orders/guest")
-    public ResponseEntity<OrderDTO> placeGuestOrder(@Valid @RequestBody GuestCheckoutRequestDTO request) {
-        OrderDTO order = orderService.placeGuestOrder(request);
-        return created(order);
+    public ResponseEntity<OrderDTO> placeGuestOrder(@Valid @RequestBody GuestCheckoutRequestDTO request,
+                                                   @RequestHeader(value = "Idempotency-Key", required = false)
+                                                   String idempotencyKey) {
+        return idempotencyService.runIdempotent(
+                idempotencyKey,
+                "guest-order:" + request.getEmail(),
+                request,
+                OrderDTO.class,
+                () -> created(orderService.placeGuestOrder(request)));
     }
 
     @GetMapping("/orders/track/{orderId}")
