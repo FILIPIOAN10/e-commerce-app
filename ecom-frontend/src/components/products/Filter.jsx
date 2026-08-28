@@ -233,7 +233,9 @@ const Filter = ({categories}) => {
                         onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); setHighlightedIndex(-1); }}
                         onFocus={() => setShowSuggestions(true)}
                         onKeyDown={handleKeyDown}
-                        className="border border-gray-400 text-slate-800 rounded-md py-2 pl-10 pr-4 w-full focus:outline-none focus:ring-2 focus:ring-[#1976d2] dark:bg-gray-800 dark:text-white dark:border-gray-600" />
+                        className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-slate-800 transition
+                        placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30
+                        dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
                         <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-800 dark:text-gray-400 w-5 h-5" />
 
                         {showSuggestions && suggestions.length > 0 && (
@@ -308,22 +310,26 @@ const Filter = ({categories}) => {
                     </FormControl>
                     { /* SORT BUTTON & CLEAR FILTER*/}
                     <Tooltip title= "Sorted by price:asc">
-                        <Button variant="contained"
-                        onClick={toggleSortOrder} 
-                        color="primary" 
-                        className="flex items-center gap-2 h-10">
-                                    Sort By
-                                    {sortOrder === "asc" ? (<FiArrowUp size={20}/>) : (<FiArrowDown size={20}/>)}
-                                    
-                        </Button>
+                        <button
+                            type="button"
+                            onClick={toggleSortOrder}
+                            className="flex h-10 items-center gap-2 rounded-xl border border-gray-300 bg-white px-4
+                                       text-sm font-semibold text-slate-700 transition hover:border-gray-400 hover:bg-gray-50
+                                       dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
+                            Sort By
+                            {sortOrder === "asc" ? (<FiArrowUp size={16}/>) : (<FiArrowDown size={16}/>)}
+                        </button>
                     
                     </Tooltip>
                     <button
-                    className="flex items-center gap-2 bg-rose-900 text-white px-3 py-2 rounded-md transition duration-300 ease-in shadow-md focus:outline-none"
-                    onClick={handleClearFilters}
+                        type="button"
+                        className="flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-gray-500
+                                   transition hover:bg-gray-100 hover:text-gray-800
+                                   dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                        onClick={handleClearFilters}
                     >
-                        <FiRefreshCw className="font-semibold size ={16}" />
-                        <span className="font-semibold">Clear Filter</span> 
+                        <FiRefreshCw size={16} />
+                        <span>Clear Filter</span>
                     </button>
                   </div>
             </div>
