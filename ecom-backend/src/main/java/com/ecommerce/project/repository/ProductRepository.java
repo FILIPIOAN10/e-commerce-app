@@ -46,7 +46,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
      *         A return value of 0 means the caller must reject the operation.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.quantity = p.quantity - :qty " +
+    @Query("UPDATE Product p SET p.quantity = p.quantity - :qty, p.version = p.version + 1 " +
            "WHERE p.productId = :id AND p.quantity >= :qty")
     int decrementStock(@Param("id") Long id, @Param("qty") int qty);
 
@@ -54,6 +54,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
      * Atomically returns stock to inventory, used when an order is cancelled or returned.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty WHERE p.productId = :id")
+    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty, p.version = p.version + 1 " +
+           "WHERE p.productId = :id")
     int incrementStock(@Param("id") Long id, @Param("qty") int qty);
 }

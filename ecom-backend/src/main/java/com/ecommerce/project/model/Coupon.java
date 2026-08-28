@@ -18,6 +18,9 @@ public class Coupon {
     @Column(name = "coupon_id")
     private Long id;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false, unique = true)
     private String code;
 

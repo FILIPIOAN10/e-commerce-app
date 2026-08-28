@@ -4,6 +4,7 @@ import com.ecommerce.project.payload.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -145,6 +146,17 @@ public class MyGlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleUnreadableMessage(HttpMessageNotReadableException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse("Malformed request body", false));
+    }
+
+    /**
+     * The row was modified by another request between our read and our write
+     * (optimistic locking). The client should reload and retry.
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse> handleOptimisticLock(OptimisticLockingFailureException e) {
+        logger.warn("Optimistic lock conflict: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse("This record was changed by someone else. Reload and try again.", false));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
