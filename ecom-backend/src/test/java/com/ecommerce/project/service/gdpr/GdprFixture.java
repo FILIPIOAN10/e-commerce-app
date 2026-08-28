@@ -212,6 +212,7 @@ class GdprFixture {
             native_("DELETE FROM payments WHERE pg_payment_id LIKE 'pi_' || :t", like);
             native_("DELETE FROM addresses WHERE user_id IN (SELECT user_id FROM users WHERE username LIKE :t) "
                     + "OR street = 'REDACTED'", like);
+            native_("DELETE FROM stock_movement WHERE product_id IN (SELECT product_id FROM products WHERE product_name LIKE :t)", like);
             native_("DELETE FROM products WHERE product_name LIKE :t", like);
             native_("DELETE FROM categories WHERE category_name LIKE :t", like);
             native_("DELETE FROM users WHERE username LIKE :t OR username LIKE 'deleted-%'", like);

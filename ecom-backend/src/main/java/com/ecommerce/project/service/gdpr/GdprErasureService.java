@@ -109,7 +109,7 @@ public class GdprErasureService {
 
         revokeAccess(userId, originalUsername);
         deletePersonalContent(user, originalEmail, originalUsername);
-        anonymiseRetainedRecords(originalEmail, pseudonym);
+        anonymiseRetainedRecords(originalEmail, originalUsername, pseudonym);
         tombstoneAccount(user, pseudonym);
 
         // Nothing below may read a stale pre-erasure copy of what the bulk
@@ -168,7 +168,7 @@ public class GdprErasureService {
     }
 
     /** Everything the tax authority makes us keep, stripped of the person. */
-    private void anonymiseRetainedRecords(String email, String pseudonym) {
+    private void anonymiseRetainedRecords(String email, String username, String pseudonym) {
         String anonymisedEmail = pseudonym + ANONYMISED_DOMAIN;
 
         // Blank the gateway's free-text response first: it is matched through
@@ -198,6 +198,13 @@ public class GdprErasureService {
                 "anonymised", anonymisedEmail, "email", email);
         execute("UPDATE UserSubscription s SET s.email = :anonymised WHERE lower(s.email) = lower(:email)",
                 "anonymised", anonymisedEmail, "email", email);
+
+        // The stock ledger attributes each movement to whoever caused it, and a
+        // signed-in customer's own checkout is recorded under their username. The
+        // movement is a stock record we keep; the person on it is not, and the
+        // order it references already says which sale it was.
+        execute("UPDATE StockMovement m SET m.createdBy = :pseudonym WHERE m.createdBy = :username",
+                "pseudonym", pseudonym, "username", username);
 
         // Last, because every statement above locates its rows through it.
         execute("UPDATE Order o SET o.email = :anonymised WHERE lower(o.email) = lower(:email)",

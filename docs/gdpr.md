@@ -94,6 +94,7 @@ purchase. So the rows stay and the identifiers go:
 | `addresses.*` (order-linked) | real address | `REDACTED`, `user_id` nulled |
 | `payments.pg_response_message` | gateway free text | `''` |
 | `return_requests.user_email`, `user_subscriptions.email` | real email | pseudonym address |
+| `stock_movement.created_by` | real username | pseudonym |
 | `users.username` / `email` | real | pseudonym |
 | `users.password` | hash | hash of a random value nobody holds |
 | `users.phone` / `avatar_url` / `two_factor_secret` / `provider_id` | set | `NULL` |

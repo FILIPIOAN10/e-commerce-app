@@ -63,6 +63,7 @@ class OrderServiceImplTest {
     @Mock private CouponRepository couponRepository;
     @Mock private AuthUtil authUtil;
     @Mock private InventoryReservationService inventoryReservationService;
+    @Mock private com.ecommerce.project.service.stock.StockLedgerService stockLedgerService;
     @Mock private ShippingCalculator shippingCalculator;
     @Mock private StripeService stripeService;
     @Mock private PaymentGatewayRegistry paymentGatewayRegistry;
@@ -134,7 +135,7 @@ class OrderServiceImplTest {
         orderService = new OrderServiceImpl(
                 cartRepository, cartItemRepository, addressRepository,
                 orderRepository, orderItemRepository, productRepository,
-                inventoryReservationService, couponRepository, authUtil,
+                inventoryReservationService, stockLedgerService, couponRepository, authUtil,
                 pricingPipeline, eventPublisher, orderDtoAssembler, orderPaymentHandler);
     }
 

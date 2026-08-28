@@ -33,8 +33,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The correctness layer under load: two guest checkouts race for the one
- * remaining unit. {@code decrementStock}'s conditional {@code WHERE quantity >= :qty}
- * must let exactly one through — never both, never neither.
+ * remaining unit. The ledger's conditional
+ * {@code WHERE quantity + :delta >= 0} must let exactly one through — never
+ * both, never neither.
  * <p>
  * Not {@code @Transactional} (the race needs real commits), so the committed
  * order and product are removed in {@link #cleanUp()} — otherwise other

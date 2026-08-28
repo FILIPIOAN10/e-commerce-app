@@ -16,6 +16,7 @@ import com.ecommerce.project.service.order.OrderPaymentHandler;
 import com.ecommerce.project.service.order.OrderStatus;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
+import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
 import com.ecommerce.project.service.pricing.PricingPipeline;
@@ -46,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final InventoryReservationService inventoryReservationService;
+    private final StockLedgerService stockLedgerService;
     private final CouponRepository couponRepository;
 
     private final AuthUtil authUtil;
@@ -149,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus.assertTransitionAllowed(previousStatus, status);
 
         if (OrderStatus.releasesStock(previousStatus, status)) {
-            restockOrderItems(order);
+            restockOrderItems(order, status);
         }
 
         order.setOrderStatus(status);
@@ -163,16 +165,26 @@ public class OrderServiceImpl implements OrderService {
      * Returns the stock held by an order back to inventory. Called when an order
      * moves to a stock-releasing status (Cancelled / Returned) so that cancelled
      * orders no longer silently destroy inventory.
+     *
+     * <p>The two routes back are recorded distinctly: goods that were never
+     * dispatched are not the same event as goods a customer sent back, and a
+     * ledger that called both "stock went up" would lose the difference.
      */
-    private void restockOrderItems(Order order) {
+    private void restockOrderItems(Order order, String targetStatus) {
         if (order.getOrderItems() == null) {
             return;
         }
+        StockMovementReason reason = OrderStatus.RETURNED.equals(targetStatus)
+                ? StockMovementReason.RETURN
+                : StockMovementReason.CANCELLATION;
+
         for (OrderItem item : order.getOrderItems()) {
             if (item.getProduct() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
                 continue;
             }
-            productRepository.incrementStock(item.getProduct().getProductId(), item.getQuantity());
+            stockLedgerService.applyAndRecord(
+                    item.getProduct().getProductId(), item.getQuantity(), reason,
+                    "ORDER", order.getId(), "Order moved to " + targetStatus);
         }
     }
 
@@ -291,14 +303,6 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setOrderedProductPrice(price);
             orderItem.setOrder(order);
             orderItems.add(orderItem);
-
-            // Atomic conditional decrement: 0 rows updated means another request
-            // took the remaining stock between our read and this write.
-            if (productRepository.decrementStock(product.getProductId(), dto.getQuantity()) == 0) {
-                throw new APIException("Insufficient stock for product: "
-                        + product.getProductName()
-                        + ". Requested: " + dto.getQuantity());
-            }
         }
 
         PriceBreakdown pricing = pricingPipeline.price(
@@ -321,10 +325,36 @@ public class OrderServiceImpl implements OrderService {
         orderItems.forEach(item -> item.setOrder(savedOrder));
         List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
 
+        consumeGuestStock(savedOrderItems, savedOrder.getId());
+
         OrderDTO guestOrderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, savedOrderItems, address.getAddressId(), pricing.total());
         eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), pricing.total(), guestOrderDTO));
 
         return guestOrderDTO;
+    }
+
+    /**
+     * Takes the stock a guest order needs, once the order exists to attribute it
+     * to.
+     *
+     * <p>Deliberately after the order is saved rather than inside the item loop:
+     * a ledger entry has to say <em>which</em> order consumed the stock, and
+     * before the insert there is no id to name. Nothing is lost by waiting —
+     * this is all one transaction, and the conditional update inside the ledger
+     * is still the authoritative gate, so a race that slipped past the earlier
+     * availability read is rejected here and takes the whole order with it.
+     */
+    private void consumeGuestStock(List<OrderItem> orderItems, Long orderId) {
+        for (OrderItem item : orderItems) {
+            Product product = item.getProduct();
+            if (stockLedgerService.tryApplyAndRecord(
+                    product.getProductId(), -item.getQuantity(), StockMovementReason.SALE,
+                    "ORDER", orderId, "Guest checkout").isEmpty()) {
+                throw new APIException("Insufficient stock for product: "
+                        + product.getProductName()
+                        + ". Requested: " + item.getQuantity());
+            }
+        }
     }
 
     /**

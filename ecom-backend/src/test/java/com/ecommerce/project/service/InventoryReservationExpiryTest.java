@@ -76,7 +76,8 @@ class InventoryReservationExpiryTest {
 
         ProductRepository productRepository = mock(ProductRepository.class);
         reservationService = new InventoryReservationService(
-                redisTemplate, productRepository, new com.ecommerce.project.util.AfterCommitExecutor());
+                redisTemplate, productRepository, new com.ecommerce.project.util.AfterCommitExecutor(),
+                mock(com.ecommerce.project.service.stock.StockLedgerService.class));
         ReflectionTestUtils.setField(reservationService, "reservationTtl", TTL);
     }
 

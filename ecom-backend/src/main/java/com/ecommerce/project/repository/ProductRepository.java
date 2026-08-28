@@ -40,24 +40,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
             "ORDER BY SUM(oi.quantity) DESC")
     List<Product> findBestSellingProducts(Pageable pageable);
 
-    /**
-     * Atomically reduces stock only if enough is available.
-     *
-     * @return 1 when the stock was decremented, 0 when there was not enough stock.
-     *         A return value of 0 means the caller must reject the operation.
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.quantity = p.quantity - :qty, p.version = p.version + 1 " +
-           "WHERE p.productId = :id AND p.quantity >= :qty")
-    int decrementStock(@Param("id") Long id, @Param("qty") int qty);
-
-    /**
-     * Atomically returns stock to inventory, used when an order is cancelled or returned.
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty, p.version = p.version + 1 " +
-           "WHERE p.productId = :id")
-    int incrementStock(@Param("id") Long id, @Param("qty") int qty);
+    // Stock is not mutated from here. Every change to products.quantity goes
+    // through StockLedgerService, which applies it and appends the movement that
+    // explains it in one statement; a second door on the repository would be a
+    // stock change with no ledger entry, which is exactly what the reconciliation
+    // sweep exists to catch.
 
     /**
      * Re-derives the denormalised rating columns for the given products from the

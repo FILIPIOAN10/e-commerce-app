@@ -17,6 +17,8 @@ import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.ProductService;
+import com.ecommerce.project.model.StockMovementReason;
+import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.cache.TransactionAwareCacheEvictor;
 import com.ecommerce.project.config.AppConstants;
@@ -60,6 +62,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final AuthUtil authUtil;
     private final AdminAuditLogService adminAuditLogService;
+    private final StockLedgerService stockLedgerService;
 
 
 
@@ -86,6 +89,11 @@ public class ProductServiceImpl implements ProductService {
         product.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
 
         Product savedProduct = productRepository.save(product);
+
+        // The insert already carries the starting quantity, so the ledger records
+        // it rather than applying it — see StockLedgerService.recordOpeningBalance.
+        stockLedgerService.recordOpeningBalance(
+                savedProduct.getProductId(), savedProduct.getQuantity(), "PRODUCT_CREATE");
 
         cacheEvictor.evictAllAfterCommit(PRODUCT_CACHE_NAMES);
 
@@ -178,13 +186,15 @@ public class ProductServiceImpl implements ProductService {
 
         double oldPrice = productFromDB.getPrice();
         double oldSpecialPrice = productFromDB.getSpecialPrice();
+        int oldQuantity = productFromDB.getQuantity() == null ? 0 : productFromDB.getQuantity();
 
         // Update the product info with the one in the request body
         //automatically converts (maps) the productDTO object into a Product object.
         Product product = modelMapper.map(productDTO, Product.class);
         productFromDB.setProductName(product.getProductName());
         productFromDB.setDescription(product.getDescription());
-        productFromDB.setQuantity(product.getQuantity());
+        // Quantity is deliberately NOT set here: a stock change has to go
+        // through the ledger, or the ledger stops explaining the number.
         productFromDB.setDiscount(product.getDiscount());
         productFromDB.setPrice(product.getPrice());
         productFromDB.setSpecialPrice(calculateSpecialPrice(product.getPrice(),product.getDiscount()));
@@ -207,8 +217,21 @@ public class ProductServiceImpl implements ProductService {
         }
 
 
-        // Save to database
-        Product savedProduct = productRepository.save(productFromDB);
+        // Save to database. Flushed here so the ledger's raw UPDATE below lands
+        // on top of these changes rather than racing them within the same
+        // transaction.
+        Product savedProduct = productRepository.saveAndFlush(productFromDB);
+
+        int newQuantity = product.getQuantity() == null ? oldQuantity : product.getQuantity();
+        int quantityDelta = newQuantity - oldQuantity;
+        Integer balanceAfterAdjustment = null;
+        if (quantityDelta != 0) {
+            balanceAfterAdjustment = stockLedgerService.applyAndRecord(
+                    productId, quantityDelta, StockMovementReason.ADJUSTMENT,
+                    "ADMIN_EDIT", productId,
+                    "Stock corrected from " + oldQuantity + " to " + newQuantity)
+                    .getBalanceAfter();
+        }
 
         cacheEvictor.evictAllAfterCommit(PRODUCT_CACHE_NAMES);
         cacheEvictor.evictKeyAfterCommit("product", productId);
@@ -223,7 +246,17 @@ public class ProductServiceImpl implements ProductService {
 
         cartDTOS.forEach(cart -> cartService.updateProductsInCarts(cart.getCartId(),productId));
         productSemanticSearchService.indexProduct(savedProduct);
-        return productMapper.mapProductToDTO(savedProduct);
+
+        ProductDTO response = productMapper.mapProductToDTO(savedProduct);
+        if (balanceAfterAdjustment != null) {
+            // The ledger's update went straight to the row, so the loaded entity
+            // still holds the pre-adjustment figure. Correct the response rather
+            // than the entity: writing it back would dirty a row whose version
+            // the ledger has already moved on, and turn a successful edit into a
+            // spurious 409 at commit.
+            response.setQuantity(balanceAfterAdjustment);
+        }
+        return response;
     }
 
     @Override

@@ -3,6 +3,8 @@ package com.ecommerce.project.service.gdpr;
 import com.ecommerce.project.config.TestcontainersConfiguration;
 import com.ecommerce.project.exception.InvalidCredentialsException;
 import com.ecommerce.project.model.Order;
+import com.ecommerce.project.model.StockMovement;
+import com.ecommerce.project.model.StockMovementReason;
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.AdminAuditLogRepository;
 import com.ecommerce.project.repository.CartRepository;
@@ -30,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -187,7 +190,45 @@ class GdprErasureTest {
         });
     }
 
+    @Test
+    @DisplayName("the stock ledger keeps the movement but loses the name on it")
+    void stockLedgerKeepsTheMovementNotThePerson() {
+        GdprFixture.Customer customer = newCustomer();
+
+        // A signed-in checkout attributes the movement to the customer who caused
+        // it, which is how their username gets into a table nobody thinks of as
+        // personal data.
+        Long movementId = inTx(() -> {
+            StockMovement movement = StockMovement.of(customer.productId(), -1,
+                    StockMovementReason.SALE, "ORDER", customer.orderId(), 4,
+                    null, customer.username());
+            entityManager.persist(movement);
+            entityManager.flush();
+            return movement.getId();
+        });
+
+        eraseFully(customer);
+
+        // Read past the persistence context: the erasure ran as a bulk UPDATE.
+        Object[] row = (Object[]) inTx(() -> entityManager
+                .createNativeQuery("SELECT delta, created_by FROM stock_movement WHERE id = :id")
+                .setParameter("id", movementId)
+                .getSingleResult());
+
+        assertThat(((Number) row[0]).intValue())
+                .as("the stock record itself is kept — it is what the quantity is made of")
+                .isEqualTo(-1);
+        assertThat((String) row[1])
+                .as("but it no longer names the person")
+                .isNotEqualTo(customer.username())
+                .startsWith("deleted-");
+    }
+
     // ── helpers ─────────────────────────────────────────────────────────────
+
+    private <T> T inTx(java.util.function.Supplier<T> work) {
+        return new TransactionTemplate(txManager).execute(status -> work.get());
+    }
 
     private GdprFixture.Customer newCustomer() {
         return fixture.createFullyPopulatedCustomer(passwordEncoder.encode(RAW_PASSWORD), RAW_PASSWORD);
