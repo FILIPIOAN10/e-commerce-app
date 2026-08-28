@@ -29,6 +29,13 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
     @Query("SELECT c FROM Cart c WHERE c.user.email = ?1 AND c.cartId = ?2")
     Cart findCartByEmailAndCartId(String emailId, Long cartId);
 
+    /**
+     * Carts owned by a user. One-to-one in practice, but returned as a list so
+     * the GDPR export and erasure do not assume it — a stray second row must be
+     * exported and erased too, not silently skipped.
+     */
+    List<Cart> findByUserUserIdOrderByCartIdAsc(Long userId);
+
     @Query("SELECT c FROM Cart c JOIN  FETCH c.cartItems ci JOIN  FETCH  ci.product p WHERE  p.productId = ?1")
     List<Cart> findCartsByProductId(Long productId);
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Your data export is ready</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; }
+        .button { display: inline-block; background: #1976d2; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 16px 0; }
+        .notice { background: #fff8e1; border-left: 4px solid #f0ad4e; padding: 12px; font-size: 14px; margin: 16px 0; }
+        .footer { color: #777; font-size: 12px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Your data export is ready</h2>
+        <p>Hi {{name}},</p>
+        <p>
+            We've packaged the personal data we hold about your account into a ZIP archive,
+            with one file per area — your profile, addresses, orders, reviews, cart and more.
+        </p>
+        <a href="{{link}}" class="button">Download your data</a>
+        <div class="notice">
+            This link works <strong>once</strong> and expires in <strong>{{expiryDays}} days</strong>,
+            after which the archive is deleted from our servers. If the link stops working,
+            request a new export from your account settings.
+        </div>
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <p><a href="{{link}}">{{link}}</a></p>
+        <p class="footer">
+            You're receiving this because someone signed in to your account requested a data export.
+            If that wasn't you, change your password — the link above gives access to your personal data.
+        </p>
+    </div>
+</body>
+</html>

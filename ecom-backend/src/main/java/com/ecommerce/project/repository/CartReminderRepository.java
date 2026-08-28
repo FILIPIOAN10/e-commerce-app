@@ -18,4 +18,7 @@ public interface CartReminderRepository extends JpaRepository<CartReminder, Long
     long countByStage(CartReminderStage stage);
 
     long countByStageAndRecoveredAtIsNotNull(CartReminderStage stage);
+
+    /** Reminders sent for a cart — marketing contact history, so the export owes it. */
+    java.util.List<CartReminder> findByCartCartIdOrderBySentAtAsc(Long cartId);
 }

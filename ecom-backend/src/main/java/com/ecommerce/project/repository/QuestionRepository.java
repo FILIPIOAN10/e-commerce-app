@@ -16,4 +16,8 @@ public interface QuestionRepository extends JpaRepository<ProductQuestion, Long>
     Page<ProductQuestion> findByProduct(Product product, Pageable pageable);
 
     long countByProduct(Product product);
+
+    /** Every question this user has asked — read by the GDPR export. */
+    @EntityGraph(attributePaths = {"product"})
+    java.util.List<ProductQuestion> findByUserOrderByIdAsc(com.ecommerce.project.model.User user);
 }

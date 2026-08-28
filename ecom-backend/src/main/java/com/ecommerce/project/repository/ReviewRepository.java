@@ -39,4 +39,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "FROM OrderItem oi JOIN oi.order o " +
             "WHERE o.email = :email AND oi.product = :product")
     boolean hasUserPurchasedProduct(@Param("email") String email, @Param("product") Product product);
+
+    /** Everything this user has written — read by the GDPR export. */
+    @EntityGraph(attributePaths = {"product"})
+    List<Review> findByUserOrderByIdAsc(User user);
 }

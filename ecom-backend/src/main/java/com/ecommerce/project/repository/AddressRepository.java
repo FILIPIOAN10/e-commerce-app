@@ -7,4 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
+
+    /** Every address on the account — the GDPR export reads these. */
+    java.util.List<Address> findByUserUserIdOrderByAddressIdAsc(Long userId);
 }

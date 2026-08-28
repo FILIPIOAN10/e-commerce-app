@@ -78,4 +78,13 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
     /** {@code [orderId, totalAmount]} rows — for resolving many order totals in one query. */
     @Query("SELECT o.id, o.totalAmount FROM Order o WHERE o.id IN :ids")
     List<Object[]> findTotalsByIds(@Param("ids") java.util.Collection<Long> ids);
+
+    /**
+     * Every order placed with this address, fully loaded. Unpaged on purpose:
+     * the GDPR export owes the customer their whole order history in one
+     * archive, and one person's orders are a bounded set.
+     */
+    @EntityGraph(value = "Order.withDetails", type = EntityGraph.EntityGraphType.LOAD)
+    @Query("SELECT DISTINCT o FROM Order o WHERE lower(o.email) = lower(:email) ORDER BY o.id")
+    List<Order> findAllByEmailIgnoreCaseWithDetails(@Param("email") String email);
 }

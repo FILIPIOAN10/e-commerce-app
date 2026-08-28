@@ -17,4 +17,7 @@ public final class OutboxEventTypes {
 
     /** Abandoned-cart recovery reminder email. */
     public static final String CART_ABANDONMENT_REMINDER = "CART_ABANDONMENT_REMINDER";
+
+    /** Build a GDPR Art. 15 data export and email its download link. */
+    public static final String GDPR_EXPORT_REQUESTED = "GDPR_EXPORT_REQUESTED";
 }

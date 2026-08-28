@@ -21,4 +21,8 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     long countByUser(User user);
     void deleteByUserAndProduct(User user, Product product);
     boolean existsByUserAndProduct(User user, Product product);
+
+    /** The whole wishlist, unpaged — read by the GDPR export. */
+    @EntityGraph(attributePaths = {"product"})
+    java.util.List<Wishlist> findByUserOrderByIdAsc(User user);
 }

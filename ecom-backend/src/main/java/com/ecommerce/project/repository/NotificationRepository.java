@@ -21,4 +21,7 @@ public interface NotificationRepository extends JpaRepository<AppNotification, L
     @Modifying
     @Query("UPDATE AppNotification n SET n.read = true WHERE n.recipientEmail = :email AND n.read = false")
     int markAllAsRead(@Param("email") String email);
+
+    /** Every notification ever addressed to this user — read by the GDPR export. */
+    List<AppNotification> findByRecipientEmailOrderByIdAsc(String email);
 }

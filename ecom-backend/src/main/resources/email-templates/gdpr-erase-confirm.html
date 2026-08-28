@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm deleting your account</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; }
+        .button { display: inline-block; background: #c62828; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 16px 0; }
+        .notice { background: #fdecea; border-left: 4px solid #c62828; padding: 12px; font-size: 14px; margin: 16px 0; }
+        ul { font-size: 14px; color: #333; }
+        .footer { color: #777; font-size: 12px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Confirm deleting your account</h2>
+        <p>Hi {{name}},</p>
+        <p>You asked us to delete your account. Nothing has been deleted yet — this link finishes it.</p>
+        <div class="notice">
+            <strong>This cannot be undone.</strong> The link expires in {{expires}} minutes.
+        </div>
+        <p>What happens when you confirm:</p>
+        <ul>
+            <li>Your profile, cart, wishlist, reviews, questions and notifications are deleted.</li>
+            <li>Your past orders and invoices are kept — tax law requires it — but stripped of your
+                name, email and address, so they can no longer be traced back to you.</li>
+            <li>You will be signed out everywhere and will not be able to sign in again.</li>
+        </ul>
+        <a href="{{link}}" class="button">Permanently delete my account</a>
+        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+        <p><a href="{{link}}">{{link}}</a></p>
+        <p class="footer">
+            If you didn't ask for this, ignore this email and your account stays exactly as it is.
+            We'd also suggest changing your password, since whoever asked knew it.
+        </p>
+    </div>
+</body>
+</html>
