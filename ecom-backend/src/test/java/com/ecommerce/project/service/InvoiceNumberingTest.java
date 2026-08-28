@@ -5,6 +5,8 @@ import com.ecommerce.project.model.Invoice;
 import com.ecommerce.project.model.Order;
 import com.ecommerce.project.repository.InvoiceRepository;
 import com.ecommerce.project.repository.OrderRepository;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,10 +45,27 @@ class InvoiceNumberingTest {
     @Autowired private InvoiceRepository invoiceRepository;
     @Autowired private OrderRepository orderRepository;
     @Autowired private PlatformTransactionManager txManager;
+    @Autowired private EntityManager entityManager;
+
+    /** Unique per run so cleanup only removes this test's committed rows. */
+    private final String emailTag = "inv-" + UUID.randomUUID() + "-";
+
+    @AfterEach
+    void cleanUp() {
+        // These tests commit orders + invoices (they need real transactions), so
+        // remove them or later tests that count orders will see the leftovers.
+        new TransactionTemplate(txManager).executeWithoutResult(status -> {
+            entityManager.createNativeQuery(
+                    "DELETE FROM invoices WHERE order_id IN (SELECT id FROM orders WHERE email LIKE :tag)")
+                    .setParameter("tag", emailTag + "%").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM orders WHERE email LIKE :tag")
+                    .setParameter("tag", emailTag + "%").executeUpdate();
+        });
+    }
 
     private Order newOrder() {
         Order order = new Order();
-        order.setEmail("buyer-" + System.nanoTime() + "@example.com");
+        order.setEmail(emailTag + System.nanoTime() + "@example.com");
         order.setOrderDate(LocalDate.now());
         order.setOrderStatus("Placed");
         order.setTotalAmount(42.0);
