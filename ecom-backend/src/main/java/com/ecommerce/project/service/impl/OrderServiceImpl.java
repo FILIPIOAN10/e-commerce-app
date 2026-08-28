@@ -34,7 +34,9 @@ import org.openpdf.text.pdf.PdfPCell;
 import org.openpdf.text.pdf.PdfPTable;
 import org.openpdf.text.pdf.PdfWriter;
 import com.stripe.model.PaymentIntent;
+import com.ecommerce.project.config.AsyncConfig;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
@@ -530,6 +532,15 @@ public class OrderServiceImpl implements OrderService {
     public record OrderStatusUpdatedEvent(Long orderId, String email, String status, OrderDTO orderDTO) {
     }
 
+    // AFTER_COMMIT: only runs once the order is durably persisted, so a rolled-back
+    // checkout never emails the customer. @Async: the send happens on a bounded
+    // pool (see AsyncConfig), not on the request thread that just committed — a
+    // slow SMTP server no longer adds its timeout to the checkout response.
+    // Trade-off: this method now runs with no transaction and no security
+    // context, and an exception here is logged (AsyncConfig's uncaught handler)
+    // but not retried. Durable, recoverable delivery is the transactional-outbox
+    // follow-up.
+    @Async(AsyncConfig.ORDER_EVENT_EXECUTOR)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderPlaced(OrderPlacedEvent event) {
         emailService.sendOrderConfirmationEmail(event.email(), event.orderDTO());
@@ -537,6 +548,7 @@ public class OrderServiceImpl implements OrderService {
         userActivityLogService.log(event.email(), "PLACE_ORDER", "Order " + event.orderId() + " placed for $" + event.totalAmount());
     }
 
+    @Async(AsyncConfig.ORDER_EVENT_EXECUTOR)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderStatusUpdated(OrderStatusUpdatedEvent event) {
         emailService.sendOrderStatusUpdateEmail(event.email(), event.orderDTO());
