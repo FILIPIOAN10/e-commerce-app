@@ -2,16 +2,22 @@ package com.ecommerce.project.service.order;
 
 import com.ecommerce.project.exception.APIException;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * Explicit order status state machine.
+ * Explicit order-status state machine.
  * <p>
- * Previously any status could transition to any other status, which allowed
- * nonsensical flows such as {@code Delivered -> Placed} or reviving a refunded
- * order. Transitions are now validated against an allow-list.
+ * Previously any status could transition to any other, which allowed nonsensical
+ * flows such as {@code Delivered -> Placed} or reviving a refunded order.
+ * <p>
+ * The graph now lives on {@link Node}: each status declares its label, whether
+ * entering it releases reserved stock, and its permitted successors, all on one
+ * line — so the whole machine reads top-to-bottom. The {@code String} constants
+ * and static helpers below are the public surface (order statuses are stored and
+ * carried as plain strings).
  */
 public final class OrderStatus {
 
@@ -24,38 +30,44 @@ public final class OrderStatus {
     public static final String RETURNED = "Returned";
     public static final String REFUNDED = "Refunded";
 
-    public static final List<String> ALL = List.of(
-            PLACED, PACKED, SHIPPED, DELIVERED, CANCELLED,
-            RETURN_REQUESTED, RETURNED, REFUNDED
-    );
+    private enum StockEffect { COMMITTED, RELEASING, NEUTRAL }
 
-    /** Statuses in which the stock is still committed to the customer. */
-    private static final Set<String> STOCK_COMMITTED = Set.of(
-            PLACED, PACKED, SHIPPED, DELIVERED, RETURN_REQUESTED
-    );
+    /**
+     * The state machine. Read each line as: {@code STATE(label, stock effect on
+     * entry, allowed next states...)}.
+     */
+    private enum Node {
+        S_PLACED           (PLACED,           StockEffect.COMMITTED, PACKED, SHIPPED, CANCELLED),
+        S_PACKED           (PACKED,           StockEffect.COMMITTED, SHIPPED, CANCELLED),
+        S_SHIPPED          (SHIPPED,          StockEffect.COMMITTED, DELIVERED, CANCELLED),
+        S_DELIVERED        (DELIVERED,        StockEffect.COMMITTED, RETURN_REQUESTED),
+        S_CANCELLED        (CANCELLED,        StockEffect.RELEASING, REFUNDED),
+        S_RETURN_REQUESTED (RETURN_REQUESTED, StockEffect.COMMITTED, RETURNED, DELIVERED),
+        S_RETURNED         (RETURNED,         StockEffect.RELEASING, REFUNDED),
+        S_REFUNDED         (REFUNDED,         StockEffect.NEUTRAL);
 
-    /** Statuses that release stock back to inventory when entered. */
-    private static final Set<String> STOCK_RELEASING = Set.of(
-            CANCELLED, RETURNED
-    );
+        final String label;
+        final StockEffect stockEffect;
+        final Set<String> allowedNext;
 
-    private static final Map<String, Set<String>> ALLOWED_TRANSITIONS = Map.of(
-            PLACED, Set.of(PACKED, SHIPPED, CANCELLED),
-            PACKED, Set.of(SHIPPED, CANCELLED),
-            SHIPPED, Set.of(DELIVERED, CANCELLED),
-            DELIVERED, Set.of(RETURN_REQUESTED),
-            RETURN_REQUESTED, Set.of(RETURNED, DELIVERED),
-            RETURNED, Set.of(REFUNDED),
-            REFUNDED, Set.of(),
-            CANCELLED, Set.of(REFUNDED)
-    );
+        Node(String label, StockEffect stockEffect, String... allowedNext) {
+            this.label = label;
+            this.stockEffect = stockEffect;
+            this.allowedNext = Set.of(allowedNext);
+        }
+
+        static Optional<Node> of(String label) {
+            return Arrays.stream(values()).filter(n -> n.label.equals(label)).findFirst();
+        }
+    }
+
+    public static final List<String> ALL = Arrays.stream(Node.values()).map(n -> n.label).toList();
 
     private OrderStatus() {
-        // utility class
     }
 
     public static boolean isValid(String status) {
-        return status != null && ALL.contains(status);
+        return status != null && Node.of(status).isPresent();
     }
 
     public static void assertTransitionAllowed(String from, String to) {
@@ -68,7 +80,7 @@ public final class OrderStatus {
         if (from.equals(to)) {
             throw new APIException("Order is already in status: " + to);
         }
-        Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(from, Set.of());
+        Set<String> allowed = Node.of(from).map(n -> n.allowedNext).orElse(Set.of());
         if (!allowed.contains(to)) {
             throw new APIException("Cannot change order status from '" + from + "' to '" + to
                     + "'. Allowed next statuses: " + (allowed.isEmpty() ? "none" : allowed));
@@ -77,9 +89,12 @@ public final class OrderStatus {
 
     /**
      * True when moving from {@code from} to {@code to} must return the reserved
-     * stock to inventory.
+     * stock to inventory: the order currently holds stock and the target status
+     * releases it.
      */
     public static boolean releasesStock(String from, String to) {
-        return STOCK_RELEASING.contains(to) && STOCK_COMMITTED.contains(from);
+        boolean wasHolding = Node.of(from).map(n -> n.stockEffect == StockEffect.COMMITTED).orElse(false);
+        boolean nowReleasing = Node.of(to).map(n -> n.stockEffect == StockEffect.RELEASING).orElse(false);
+        return wasHolding && nowReleasing;
     }
 }

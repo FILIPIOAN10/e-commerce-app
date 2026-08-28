@@ -179,7 +179,8 @@ class InventoryReservationServiceTest {
 
         APIException ex = assertThrows(APIException.class,
                 () -> inventoryReservationService.consumeReservationsForCart(1L));
-        assertTrue(ex.getMessage().contains("Reservation could not be fulfilled"));
+        assertTrue(ex.getMessage().contains("sold out"));
+        assertTrue(ex.getMessage().contains("review your cart"));
         assertTrue(ex.getMessage().contains("Headphones"));
     }
 
