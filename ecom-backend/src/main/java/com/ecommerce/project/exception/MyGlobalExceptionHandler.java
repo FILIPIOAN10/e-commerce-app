@@ -1,6 +1,7 @@
 package com.ecommerce.project.exception;
 
 import com.ecommerce.project.payload.ApiResponse;
+import com.ecommerce.project.security.filter.RequestCorrelationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -174,7 +175,13 @@ public class MyGlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {
         logger.error("Unhandled exception", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Internal server error"));
+        Map<String, String> body = new HashMap<>();
+        body.put("message", "Internal server error");
+        // So a customer-reported failure can be matched to its log entries.
+        String requestId = RequestCorrelationFilter.currentRequestId();
+        if (requestId != null) {
+            body.put("requestId", requestId);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }

@@ -1,11 +1,12 @@
 <configuration>
   <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="sb-ecom"/>
 
-  <!-- Human-readable console appender for dev/test/ci -->
+  <!-- Human-readable console appender for dev/test/ci.
+       %X{requestId} is the per-request correlation id set by RequestCorrelationFilter. -->
   <springProfile name="dev | test | ci | default">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
-        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId:-}] %-5level %logger{36} - %msg%n</pattern>
       </encoder>
     </appender>
   </springProfile>
