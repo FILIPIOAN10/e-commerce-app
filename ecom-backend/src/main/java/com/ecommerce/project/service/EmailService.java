@@ -144,6 +144,29 @@ public class EmailService {
         }
     }
 
+    public void sendCartRecoveryEmail(String toEmail, String name, int itemCount, double cartTotal, String recoveryUrl) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("You left " + (itemCount == 1 ? "an item" : itemCount + " items") + " in your cart");
+
+            String html = emailTemplateService.render("cart-recovery", Map.of(
+                    "name", name != null && !name.isBlank() ? name : "there",
+                    "itemCount", String.valueOf(itemCount),
+                    "cartTotal", String.format("%.2f", cartTotal),
+                    "link", recoveryUrl
+            ));
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
+            log.info("Cart recovery email handed off to SMTP for {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send cart recovery email to {}", toEmail, e);
+            throw new EmailDeliveryException("cart recovery email to " + toEmail, e);
+        }
+    }
+
     public void sendUnlockRequestEmail(String username) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
