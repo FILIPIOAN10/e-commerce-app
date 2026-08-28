@@ -1,5 +1,6 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.exception.EmailDeliveryException;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderItemDTO;
 import lombok.RequiredArgsConstructor;
@@ -106,6 +107,9 @@ public class EmailService {
             log.info("Order confirmation email handed off to SMTP for {}", toEmail);
         } catch (MessagingException e) {
             log.error("Failed to send order confirmation email with invoice to {}", toEmail, e);
+            // Rethrow so the outbox dispatcher backs off and retries rather than
+            // losing the confirmation.
+            throw new EmailDeliveryException("order confirmation email to " + toEmail, e);
         }
     }
 
@@ -136,6 +140,7 @@ public class EmailService {
             log.info("Order status email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
             log.error("Failed to send order status email to {}", toEmail, e);
+            throw new EmailDeliveryException("order status email to " + toEmail, e);
         }
     }
 

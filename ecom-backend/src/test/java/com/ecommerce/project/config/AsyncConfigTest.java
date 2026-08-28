@@ -63,11 +63,12 @@ class AsyncConfigTest {
     }
 
     @Test
-    @DisplayName("every order-lifecycle listener runs after commit AND off the request thread")
-    void orderListenersAreAsyncAfterCommit() {
-        Class<?>[] listeners = {
-                OrderEmailListener.class, OrderNotificationListener.class, OrderActivityLogListener.class
-        };
+    @DisplayName("effect-performing order listeners run after commit AND off the request thread")
+    void effectListenersAreAsyncAfterCommit() {
+        // The notification and activity-log listeners still perform their effect
+        // directly, so they must run after the commit and off the request thread.
+        // (The email listener is different — see enqueueListenerRunsInTransaction.)
+        Class<?>[] listeners = { OrderNotificationListener.class, OrderActivityLogListener.class };
 
         int checked = 0;
         for (Class<?> listener : listeners) {
@@ -91,6 +92,31 @@ class AsyncConfigTest {
             }
         }
 
-        assertThat(checked).as("expected the order listeners to expose event-listener methods").isGreaterThanOrEqualTo(3);
+        assertThat(checked).as("expected the effect listeners to expose event-listener methods").isGreaterThanOrEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("the email listener enqueues in the checkout transaction: BEFORE_COMMIT and synchronous")
+    void enqueueListenerRunsInTransaction() {
+        int checked = 0;
+        for (Method method : OrderEmailListener.class.getDeclaredMethods()) {
+            TransactionalEventListener listener = method.getAnnotation(TransactionalEventListener.class);
+            if (listener == null) {
+                continue;
+            }
+            checked++;
+            String where = "OrderEmailListener." + method.getName();
+
+            // The outbox row must be written in the order's own transaction, so
+            // it commits with the order or not at all.
+            assertThat(listener.phase())
+                    .as("%s must run before the order commits so its outbox row is part of that commit", where)
+                    .isEqualTo(TransactionPhase.BEFORE_COMMIT);
+            assertThat(method.getAnnotation(Async.class))
+                    .as("%s must be synchronous — an async enqueue would not be in the transaction", where)
+                    .isNull();
+        }
+
+        assertThat(checked).as("expected OrderEmailListener to expose event-listener methods").isGreaterThanOrEqualTo(2);
     }
 }
