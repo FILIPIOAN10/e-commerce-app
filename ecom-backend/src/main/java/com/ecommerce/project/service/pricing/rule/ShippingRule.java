@@ -1,5 +1,6 @@
 package com.ecommerce.project.service.pricing.rule;
 
+import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PriceLineType;
 import com.ecommerce.project.service.pricing.PricingContext;
@@ -26,6 +27,6 @@ public class ShippingRule implements PricingRule {
     @Override
     public void apply(PricingContext context, PriceBreakdown breakdown) {
         double shipping = shippingCalculator.calculate(context.address(), breakdown.runningTotal());
-        breakdown.addCharge(PriceLineType.SHIPPING, "Shipping", shipping);
+        breakdown.addCharge(PriceLineType.SHIPPING, "Shipping", Money.of(shipping));
     }
 }
