@@ -141,7 +141,7 @@ class WishlistServiceImplTest {
 
         when(authUtil.loggedInUser()).thenReturn(user);
         when(wishlistRepository.findByUser(user, pageable)).thenReturn(page);
-        when(productMapper.mapProductToDTO(product)).thenReturn(productDTO);
+        when(productMapper.mapProductsToDTOs(List.of(product))).thenReturn(List.of(productDTO));
 
         ProductResponse response = wishlistService.getWishlist(0, 10, "createdAt", "desc");
 

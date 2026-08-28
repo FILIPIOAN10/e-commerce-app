@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -81,15 +84,29 @@ public class ReturnServiceImpl implements ReturnService {
     @Override
     public Page<ReturnRequestDTO> getAllReturnRequests(int page, int size) {
         Pageable pageRequest = PageRequest.of(page, size, PaginationUtil.buildSort("requestedAt", "desc"));
-        Page<ReturnRequest> requests = returnRequestRepository.findAllByOrderByRequestedAtDesc(pageRequest);
-        return requests.map(r -> toDTO(r, getOrderTotal(r.getOrderId())));
+        return mapPage(returnRequestRepository.findAllByOrderByRequestedAtDesc(pageRequest));
     }
 
     @Override
     public Page<ReturnRequestDTO> getMyReturnRequests(String email, int page, int size) {
         Pageable pageRequest = PageRequest.of(page, size, PaginationUtil.buildSort("requestedAt", "desc"));
-        Page<ReturnRequest> requests = returnRequestRepository.findByUserEmailOrderByRequestedAtDesc(email, pageRequest);
-        return requests.map(r -> toDTO(r, getOrderTotal(r.getOrderId())));
+        return mapPage(returnRequestRepository.findByUserEmailOrderByRequestedAtDesc(email, pageRequest));
+    }
+
+    /** Resolves every page row's order total in one query instead of one per row. */
+    private Page<ReturnRequestDTO> mapPage(Page<ReturnRequest> requests) {
+        List<Long> orderIds = requests.getContent().stream()
+                .map(ReturnRequest::getOrderId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, Double> totals = new HashMap<>();
+        if (!orderIds.isEmpty()) {
+            for (Object[] row : orderRepository.findTotalsByIds(orderIds)) {
+                totals.put((Long) row[0], (Double) row[1]);
+            }
+        }
+        return requests.map(r -> toDTO(r, totals.getOrDefault(r.getOrderId(), 0.0)));
     }
 
     @Override

@@ -74,9 +74,10 @@ public class WishlistServiceImpl implements WishlistService {
 
         Page<Wishlist> wishlistPage = wishlistRepository.findByUser(user, pageDetails);
 
-        List<ProductDTO> productDTOs = wishlistPage.getContent().stream()
-                .map(w -> productMapper.mapProductToDTO(w.getProduct()))
-                .toList();
+        // Batch mapper: two review-aggregate queries for the whole page instead
+        // of two per row.
+        List<ProductDTO> productDTOs = productMapper.mapProductsToDTOs(
+                wishlistPage.getContent().stream().map(Wishlist::getProduct).toList());
 
         ProductResponse response = new ProductResponse();
         response.setContent(productDTOs);

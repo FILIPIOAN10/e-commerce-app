@@ -5,6 +5,7 @@ import com.ecommerce.project.model.Review;
 import com.ecommerce.project.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,9 @@ import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    // The DTO mapper reads the reviewer's name and the product name for every
+    // row; without this graph that is one extra query per review.
+    @EntityGraph(attributePaths = {"user", "product"})
     Page<Review> findByProduct(Product product, Pageable pageable);
 
     Optional<Review> findByUserAndProduct(User user, Product product);
