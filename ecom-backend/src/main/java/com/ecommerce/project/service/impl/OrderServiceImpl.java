@@ -16,10 +16,11 @@ import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.InventoryReservationService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
-import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.service.order.OrderStatus;
-import com.ecommerce.project.service.pricing.Money;
+import com.ecommerce.project.service.payment.PaymentAttempt;
+import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
+import com.ecommerce.project.service.payment.PaymentVerification;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
@@ -33,7 +34,6 @@ import org.openpdf.text.Phrase;
 import org.openpdf.text.pdf.PdfPCell;
 import org.openpdf.text.pdf.PdfPTable;
 import org.openpdf.text.pdf.PdfWriter;
-import com.stripe.model.PaymentIntent;
 import com.ecommerce.project.config.AsyncConfig;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
@@ -78,7 +78,7 @@ public class OrderServiceImpl implements OrderService {
     private final CouponRepository couponRepository;
 
     private final AuthUtil authUtil;
-    private final StripeService stripeService;
+    private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final ShippingCalculator shippingCalculator;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -496,34 +496,27 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private boolean isStripePayment(String paymentMethod, String pgName) {
-        return "STRIPE".equalsIgnoreCase(paymentMethod)
-                || "online".equalsIgnoreCase(paymentMethod)
-                || "Stripe".equalsIgnoreCase(pgName);
-    }
-
     private void verifyPayment(String paymentMethod, String pgName,
                                String pgPaymentId, double expectedTotal) {
-        if (pgPaymentId == null || pgPaymentId.isBlank()) {
+        PaymentAttempt attempt = new PaymentAttempt(paymentMethod, pgName, pgPaymentId, expectedTotal);
+        if (!attempt.hasReference()) {
             return;
         }
 
+        // Gateway-agnostic: a payment reference may back exactly one order.
         paymentRepository.findByPgPaymentId(pgPaymentId).ifPresent(existing -> {
             throw new APIException("This payment has already been used for order "
                     + existing.getOrder().getId());
         });
 
-        if (isStripePayment(paymentMethod, pgName)) {
-            PaymentIntent intent = stripeService.retrievePaymentIntent(pgPaymentId);
-            if (!"succeeded".equals(intent.getStatus())) {
-                throw new APIException("Payment has not succeeded");
+        // Gateway-specific: confirm the payment succeeded for the expected amount.
+        // No matching gateway (e.g. cash on delivery) means nothing to verify here.
+        paymentGatewayRegistry.select(attempt).ifPresent(gateway -> {
+            PaymentVerification result = gateway.verify(attempt);
+            if (!result.verified()) {
+                throw new APIException(result.reason());
             }
-
-            long expectedCents = Money.toCents(expectedTotal);
-            if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
-                throw new APIException("Payment amount does not match order total");
-            }
-        }
+        });
     }
 
     public record OrderPlacedEvent(String email, Long orderId, double totalAmount, OrderDTO orderDTO) {
