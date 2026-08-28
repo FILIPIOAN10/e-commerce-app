@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,10 +47,10 @@ class RecommendationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        products.put(1L, createProduct(1L, "Wireless Headphones", electronics, 100.0));
-        products.put(2L, createProduct(2L, "Phone Case", electronics, 20.0));
-        products.put(3L, createProduct(3L, "Screen Protector", electronics, 15.0));
-        products.put(4L, createProduct(4L, "Bluetooth Speaker", electronics, 80.0));
+        products.put(1L, createProduct(1L, "Wireless Headphones", electronics, "100.0"));
+        products.put(2L, createProduct(2L, "Phone Case", electronics, "20.0"));
+        products.put(3L, createProduct(3L, "Screen Protector", electronics, "15.0"));
+        products.put(4L, createProduct(4L, "Bluetooth Speaker", electronics, "80.0"));
 
         when(productRepository.findAllById(anyList())).thenAnswer(invocation -> {
             List<Long> ids = invocation.getArgument(0);
@@ -109,16 +110,16 @@ class RecommendationServiceImplTest {
         assertTrue(recommendationService.getFrequentlyBoughtTogether(1L, 0).isEmpty());
     }
 
-    private Product createProduct(Long id, String name, Category category, double price) {
+    private Product createProduct(Long id, String name, Category category, String price) {
         Product p = new Product();
         p.setProductId(id);
         p.setProductName(name);
         p.setDescription("Test description");
         p.setTags("test");
         p.setQuantity(10);
-        p.setPrice(price);
-        p.setDiscount(0);
-        p.setSpecialPrice(price);
+        p.setPrice(new BigDecimal(price));
+        p.setDiscount(new BigDecimal("0"));
+        p.setSpecialPrice(new BigDecimal(price));
         p.setCategory(category);
         return p;
     }

@@ -2,6 +2,7 @@ package com.ecommerce.project.service.pricing;
 
 import com.ecommerce.project.model.Address;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -12,9 +13,14 @@ import java.util.List;
  * @param address      delivery address (shipping rules need it); may be {@code null}
  * @param couponCodes  coupon codes entered at checkout; may be {@code null} or empty
  */
-public record PricingContext(double subtotal, Address address, List<String> couponCodes) {
+public record PricingContext(Money subtotal, Address address, List<String> couponCodes) {
 
-    public static PricingContext of(double subtotal, Address address, List<String> couponCodes) {
+    public static PricingContext of(Money subtotal, Address address, List<String> couponCodes) {
         return new PricingContext(subtotal, address, couponCodes);
+    }
+
+    /** Convenience for callers holding the amount as a plain decimal. */
+    public static PricingContext of(BigDecimal subtotal, Address address, List<String> couponCodes) {
+        return new PricingContext(Money.of(subtotal), address, couponCodes);
     }
 }

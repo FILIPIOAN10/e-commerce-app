@@ -43,11 +43,25 @@ public final class Money implements Comparable<Money> {
         return new Money(amount.subtract(other.amount));
     }
 
+    /**
+     * This amount counted {@code quantity} times — a line total. Exact: three of
+     * 84.99 is 254.97, where {@code 84.99 * 3} in binary floating point is
+     * 254.96999999999997.
+     */
+    public Money times(int quantity) {
+        return new Money(amount.multiply(BigDecimal.valueOf(quantity)));
+    }
+
     /** {@code percent} percent of this amount, e.g. {@code percentage(10)} is a tenth. */
     public Money percentage(double percent) {
         BigDecimal fraction = BigDecimal.valueOf(percent)
                 .divide(BigDecimal.valueOf(100), SCALE + 6, ROUNDING);
         return new Money(amount.multiply(fraction));
+    }
+
+    /** This amount with the opposite sign — a discount as it appears on a bill. */
+    public Money negated() {
+        return new Money(amount.negate());
     }
 
     public boolean isNegative() {

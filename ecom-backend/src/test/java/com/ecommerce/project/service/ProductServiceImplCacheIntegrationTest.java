@@ -30,6 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,9 +65,9 @@ class ProductServiceImplCacheIntegrationTest {
         product.setDescription("Gaming laptop");
         product.setTags("laptop");
         product.setQuantity(5);
-        product.setPrice(1000.0);
-        product.setDiscount(10.0);
-        product.setSpecialPrice(900.0);
+        product.setPrice(new BigDecimal("1000.0"));
+        product.setDiscount(new BigDecimal("10.0"));
+        product.setSpecialPrice(new BigDecimal("900.0"));
         product.setImage("laptop.png");
 
         reset(productRepository, reviewRepository, productSemanticSearchService);

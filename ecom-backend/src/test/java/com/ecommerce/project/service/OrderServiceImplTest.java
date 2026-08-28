@@ -89,7 +89,7 @@ class OrderServiceImplTest {
     void setUp() {
         cart = new Cart();
         cart.setCartId(CART_ID);
-        cart.setTotalPrice(100.0);
+        cart.setTotalPrice(new BigDecimal("100.0"));
 
         product = new Product();
         product.setProductId(1L);
@@ -101,8 +101,8 @@ class OrderServiceImplTest {
         cartItem.setCart(cart);
         cartItem.setProduct(product);
         cartItem.setQuantity(2);
-        cartItem.setDiscount(0.0);
-        cartItem.setProductPrice(50.0);
+        cartItem.setDiscount(new BigDecimal("0.0"));
+        cartItem.setProductPrice(new BigDecimal("50.0"));
 
         cart.setCartItems(new ArrayList<>(List.of(cartItem)));
 
@@ -147,10 +147,10 @@ class OrderServiceImplTest {
 
         when(paymentRepository.findByPgPaymentId(anyString())).thenReturn(Optional.empty());
 
-        when(shippingCalculator.calculate(any(Address.class), anyDouble()))
+        when(shippingCalculator.calculate(any(Address.class), any(Money.class)))
                 .thenAnswer(invocation -> {
-                    double cartTotal = invocation.getArgument(1, Double.class);
-                    return cartTotal >= 100.0 ? 0.0 : 3.0;
+                    Money cartTotal = invocation.getArgument(1, Money.class);
+                    return cartTotal.compareTo(Money.of(100.0)) >= 0 ? Money.ZERO : Money.of(3.0);
                 });
 
         // Atomic coupon consumption succeeds by default.
@@ -351,10 +351,10 @@ class OrderServiceImplTest {
             });
             when(orderItemRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
 
-            when(shippingCalculator.calculate(any(Address.class), anyDouble()))
+            when(shippingCalculator.calculate(any(Address.class), any(Money.class)))
                     .thenAnswer(invocation -> {
-                        double cartTotal = invocation.getArgument(1, Double.class);
-                        return cartTotal >= 100.0 ? 0.0 : 3.0;
+                        Money cartTotal = invocation.getArgument(1, Money.class);
+                        return cartTotal.compareTo(Money.of(100.0)) >= 0 ? Money.ZERO : Money.of(3.0);
                     });
 
             PaymentIntent intent = mock(PaymentIntent.class);
@@ -581,21 +581,21 @@ class OrderServiceImplTest {
 
             // Use the real ShippingCalculator for this scenario.
             ShippingCalculator realCalculator = new ShippingCalculator();
-            when(shippingCalculator.calculate(any(Address.class), anyDouble()))
-                    .thenAnswer(invocation ->
-                            realCalculator.calculate(invocation.getArgument(0), invocation.getArgument(1, Double.class)));
+            when(shippingCalculator.calculate(any(Address.class), any(Money.class)))
+                    .thenAnswer(invocation -> realCalculator.calculate(
+                            invocation.getArgument(0), invocation.getArgument(1, Money.class)));
 
-            cart.setTotalPrice(105.0);
+            cart.setTotalPrice(new BigDecimal("105.0"));
 
             OrderSummaryDTO preview = orderService.previewOrder(EMAIL, ADDRESS_ID, List.of("SAVE10"));
 
-            assertEquals(105.0, preview.getSubtotal());
-            assertEquals(21.0, preview.getDiscountAmount());
-            assertEquals(5.0, preview.getShippingCost());
-            assertEquals(89.0, preview.getTotalAmount());
+            assertEquals(new BigDecimal("105.00"), preview.getSubtotal());
+            assertEquals(new BigDecimal("21.00"), preview.getDiscountAmount());
+            assertEquals(new BigDecimal("5.00"), preview.getShippingCost());
+            assertEquals(new BigDecimal("89.00"), preview.getTotalAmount());
 
             // Stripe PaymentIntent and placeOrder expectedCents must both be 8900.
-            long expectedCents = Money.toCents(preview.getTotalAmount());
+            long expectedCents = Money.of(preview.getTotalAmount()).toCents();
             assertEquals(8900L, expectedCents);
 
             when(paymentIntent.getAmount()).thenReturn(expectedCents);

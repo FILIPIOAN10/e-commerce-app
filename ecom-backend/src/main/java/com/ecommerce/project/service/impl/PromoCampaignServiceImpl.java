@@ -19,9 +19,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import com.ecommerce.project.service.pricing.Money;
 
 @Service
 @RequiredArgsConstructor
@@ -94,8 +96,11 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
             List<PromoCampaignProduct> links = promoCampaignProductRepository.findByPromoCampaignId(campaign.getId());
             for (PromoCampaignProduct link : links) {
                 Product product = link.getProduct();
-                product.setDiscount(campaign.getDiscountPercent());
-                product.setSpecialPrice(product.getPrice() * (1 - campaign.getDiscountPercent() / 100.0));
+                double percent = campaign.getDiscountPercent() == null ? 0.0 : campaign.getDiscountPercent();
+                product.setDiscount(BigDecimal.valueOf(percent));
+                product.setSpecialPrice(Money.of(product.getPrice())
+                        .percentage(100.0 - percent)
+                        .toBigDecimal());
                 productRepository.save(product);
             }
         }

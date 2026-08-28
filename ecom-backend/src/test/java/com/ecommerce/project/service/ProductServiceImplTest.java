@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,9 +77,9 @@ class ProductServiceImplTest {
         product.setDescription("Noise cancelling headphones");
         product.setTags("audio, headphones");
         product.setQuantity(10);
-        product.setPrice(100.0);
-        product.setDiscount(10.0);
-        product.setSpecialPrice(90.0);
+        product.setPrice(new BigDecimal("100.00"));
+        product.setDiscount(new BigDecimal("10.00"));
+        product.setSpecialPrice(new BigDecimal("90.00"));
         product.setImage("headphones.png");
         product.setCategory(category);
         product.setUser(user);
@@ -211,9 +212,9 @@ class ProductServiceImplTest {
         productDTO.setDescription(product.getDescription());
         productDTO.setTags(product.getTags());
         productDTO.setQuantity(product.getQuantity());
-        productDTO.setPrice(120.0);
-        productDTO.setDiscount(10.0);
-        productDTO.setSpecialPrice(108.0);
+        productDTO.setPrice(new BigDecimal("120.00"));
+        productDTO.setDiscount(new BigDecimal("10.00"));
+        productDTO.setSpecialPrice(new BigDecimal("108.00"));
         productDTO.setImage(product.getImage());
 
         Product mappedProduct = new Product();
@@ -221,8 +222,8 @@ class ProductServiceImplTest {
         mappedProduct.setDescription(product.getDescription());
         mappedProduct.setTags(product.getTags());
         mappedProduct.setQuantity(product.getQuantity());
-        mappedProduct.setPrice(120.0);
-        mappedProduct.setDiscount(10.0);
+        mappedProduct.setPrice(new BigDecimal("120.00"));
+        mappedProduct.setDiscount(new BigDecimal("10.00"));
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(modelMapper.map(productDTO, Product.class)).thenReturn(mappedProduct);
@@ -237,11 +238,80 @@ class ProductServiceImplTest {
                 eq(user.getUserId()),
                 eq(user.getUserName()),
                 eq(1L),
-                eq(100.0),
-                eq(120.0),
-                eq(90.0),
-                eq(108.0)
+                eq(new BigDecimal("100.00")),
+                eq(new BigDecimal("120.00")),
+                eq(new BigDecimal("90.00")),
+                eq(new BigDecimal("108.00"))
         );
+    }
+
+
+    @Test
+    @DisplayName("the special price is exact to the cent, not a float remainder")
+    void specialPriceIsExact() {
+        // 25% off 84.99. The old formula — price - (discount * 0.01 * price) in
+        // double — produced 63.742499999999996, which displayed as 63.74 but
+        // summed as something else.
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setProductName(product.getProductName());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setTags(product.getTags());
+        productDTO.setQuantity(product.getQuantity());
+        productDTO.setPrice(new BigDecimal("84.99"));
+        productDTO.setDiscount(new BigDecimal("25.00"));
+        productDTO.setImage(product.getImage());
+
+        Product mappedProduct = new Product();
+        mappedProduct.setProductName(product.getProductName());
+        mappedProduct.setQuantity(product.getQuantity());
+        mappedProduct.setPrice(new BigDecimal("84.99"));
+        mappedProduct.setDiscount(new BigDecimal("25.00"));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(modelMapper.map(productDTO, Product.class)).thenReturn(mappedProduct);
+        when(authUtil.loggedInUser()).thenReturn(user);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(productRepository.saveAndFlush(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cartRepository.findCartsByProductId(1L)).thenReturn(List.of());
+        when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(inv -> mapToDto(inv.getArgument(0)));
+
+        productService.updateProduct(1L, productDTO);
+
+        assertEquals(0, new BigDecimal("63.74").compareTo(product.getSpecialPrice()),
+                "25% off 84.99 is 63.74, with no remainder to round away later");
+        assertEquals(2, product.getSpecialPrice().scale(), "held to the cent");
+    }
+
+    @Test
+    @DisplayName("a price arrives at whatever scale the client wrote and is pinned to the cent")
+    void incomingPriceIsPinnedToTheCent() {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setProductName(product.getProductName());
+        productDTO.setQuantity(product.getQuantity());
+        // What a JSON body looks like when the client sends a whole number.
+        productDTO.setPrice(new BigDecimal("120"));
+        productDTO.setDiscount(new BigDecimal("0"));
+        productDTO.setImage(product.getImage());
+
+        Product mappedProduct = new Product();
+        mappedProduct.setProductName(product.getProductName());
+        mappedProduct.setQuantity(product.getQuantity());
+        mappedProduct.setPrice(new BigDecimal("120"));
+        mappedProduct.setDiscount(new BigDecimal("0"));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(modelMapper.map(productDTO, Product.class)).thenReturn(mappedProduct);
+        when(authUtil.loggedInUser()).thenReturn(user);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(productRepository.saveAndFlush(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cartRepository.findCartsByProductId(1L)).thenReturn(List.of());
+        when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(inv -> mapToDto(inv.getArgument(0)));
+
+        productService.updateProduct(1L, productDTO);
+
+        assertEquals(2, product.getPrice().scale(),
+                "the entity holds what the NUMERIC(12,2) column would give back");
+        assertEquals(2, product.getDiscount().scale());
     }
 
 }

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api")
@@ -88,10 +89,9 @@ public class OrderController extends BaseController {
 
     @Tag(name = "Order")
     @GetMapping("/order/shipping/{addressId}")
-    public ResponseEntity<Double> estimateShipping(@PathVariable Long addressId,
-                                                   @RequestParam(defaultValue = "0.0") Double cartTotal) {
-        double shipping = orderService.calculateShippingCost(addressId, cartTotal);
-        return ok(shipping);
+    public ResponseEntity<BigDecimal> estimateShipping(@PathVariable Long addressId,
+                                                       @RequestParam(defaultValue = "0.00") BigDecimal cartTotal) {
+        return ok(orderService.calculateShippingCost(addressId, cartTotal));
     }
 
     @Tag(name = "Order")

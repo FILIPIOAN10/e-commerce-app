@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +64,7 @@ class CartServiceImplTest {
 
         cart = new Cart();
         cart.setCartId(1L);
-        cart.setTotalPrice(0.0);
+        cart.setTotalPrice(new BigDecimal("0.0"));
         cart.setUser(user);
         cart.setCartItems(new ArrayList<>());
 
@@ -71,16 +72,16 @@ class CartServiceImplTest {
         product.setProductId(1L);
         product.setProductName("Wireless Headphones");
         product.setQuantity(10);
-        product.setSpecialPrice(99.99);
-        product.setDiscount(0.0);
+        product.setSpecialPrice(new BigDecimal("99.99"));
+        product.setDiscount(new BigDecimal("0.0"));
 
         cartItem = new CartItem();
         cartItem.setCartItemId(1L);
         cartItem.setCart(cart);
         cartItem.setProduct(product);
         cartItem.setQuantity(2);
-        cartItem.setProductPrice(99.99);
-        cartItem.setDiscount(0.0);
+        cartItem.setProductPrice(new BigDecimal("99.99"));
+        cartItem.setDiscount(new BigDecimal("0.0"));
 
         ProductDTO productDTO = new ProductDTO();
         productDTO.setProductId(1L);
@@ -200,7 +201,7 @@ class CartServiceImplTest {
     @Test
     @DisplayName("deleteProductFromCart removes item and returns message")
     void deleteProductFromCart_success() {
-        cart.setTotalPrice(199.98);
+        cart.setTotalPrice(new BigDecimal("199.98"));
         cart.setCartItems(new ArrayList<>(List.of(cartItem)));
 
         when(authUtil.loggedInEmail()).thenReturn("user1@test.com");

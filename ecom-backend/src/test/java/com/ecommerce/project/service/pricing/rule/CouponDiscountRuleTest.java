@@ -46,8 +46,8 @@ class CouponDiscountRuleTest {
     }
 
     private PriceBreakdown apply(List<String> codes, double subtotal) {
-        PriceBreakdown breakdown = new PriceBreakdown(subtotal);
-        rule.apply(new PricingContext(subtotal, null, codes), breakdown);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(subtotal));
+        rule.apply(new PricingContext(Money.of(subtotal), null, codes), breakdown);
         return breakdown;
     }
 

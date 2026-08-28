@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -47,7 +48,7 @@ public class ProductFacetCalculator {
     private static final int MAX_RATING_BUCKET = 5;
 
     private final EntityManager entityManager;
-    private final List<Double> priceThresholds;
+    private final List<BigDecimal> priceThresholds;
 
     public ProductFacetCalculator(EntityManager entityManager,
                                   @Value("${app.search.facets.price-buckets:50,100,200,500}")
@@ -109,8 +110,8 @@ public class ProductFacetCalculator {
         Map<Integer, Long> counts = countsByBand(query);
         List<FacetBucket> buckets = new ArrayList<>();
         for (int i = 0; i <= priceThresholds.size(); i++) {
-            Double from = i == 0 ? null : priceThresholds.get(i - 1);
-            Double to = i == priceThresholds.size() ? null : priceThresholds.get(i);
+            BigDecimal from = i == 0 ? null : priceThresholds.get(i - 1);
+            BigDecimal to = i == priceThresholds.size() ? null : priceThresholds.get(i);
             buckets.add(new FacetBucket(
                     bandValue(from, to), bandLabel(from, to), counts.getOrDefault(i, 0L)));
         }
@@ -183,8 +184,8 @@ public class ProductFacetCalculator {
      * buckets cost a single query.
      */
     private Expression<Integer> bandExpression(CriteriaBuilder cb,
-                                               Expression<Double> value,
-                                               List<Double> thresholds) {
+                                               Expression<? extends Number> value,
+                                               List<? extends Number> thresholds) {
         CriteriaBuilder.Case<Integer> bands = cb.selectCase();
         for (int i = 0; i < thresholds.size(); i++) {
             bands = bands.when(cb.lt(value, thresholds.get(i)), i);
@@ -201,11 +202,11 @@ public class ProductFacetCalculator {
     }
 
     /** {@code "50-100"}, {@code "-50"}, {@code "500-"} — parsed back by the controller. */
-    private String bandValue(Double from, Double to) {
+    private String bandValue(Number from, Number to) {
         return (from == null ? "" : trim(from)) + "-" + (to == null ? "" : trim(to));
     }
 
-    private String bandLabel(Double from, Double to) {
+    private String bandLabel(Number from, Number to) {
         if (from == null) {
             return "Under " + trim(to);
         }
@@ -215,15 +216,25 @@ public class ProductFacetCalculator {
         return trim(from) + " – " + trim(to);
     }
 
-    private String trim(double value) {
-        return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
+    /**
+     * Band edges read back as a customer would write them: {@code 50}, not
+     * {@code 50.0}. Prices arrive as decimals and ratings as doubles, and the
+     * label has to look the same either way.
+     */
+    private String trim(Number value) {
+        if (value instanceof BigDecimal decimal) {
+            return decimal.stripTrailingZeros().toPlainString();
+        }
+        double amount = value.doubleValue();
+        return amount == Math.rint(amount) ? String.valueOf((long) amount) : String.valueOf(amount);
     }
 
-    private List<Double> parseThresholds(String configured) {
+    /** Band edges come from configuration as text, so they are read as exact decimals. */
+    private List<BigDecimal> parseThresholds(String configured) {
         return Arrays.stream(configured.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .map(Double::valueOf)
+                .map(BigDecimal::new)
                 .sorted()
                 .toList();
     }

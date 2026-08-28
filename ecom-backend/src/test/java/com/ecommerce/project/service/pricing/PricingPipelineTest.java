@@ -37,7 +37,7 @@ class PricingPipelineTest {
 
         Address us = new Address(null, null, null, null, "US", null);
         // 110 subtotal -> 20% off -> 88 -> below $100 -> $5 shipping -> 93 total.
-        PriceBreakdown breakdown = pipeline.price(new PricingContext(110.0, us, List.of("SAVE20")));
+        PriceBreakdown breakdown = pipeline.price(new PricingContext(Money.of(110.0), us, List.of("SAVE20")));
 
         assertThat(breakdown.subtotal()).isEqualTo(Money.of(110.0));
         assertThat(breakdown.discountTotal()).isEqualTo(Money.of(22.0));
@@ -57,7 +57,7 @@ class PricingPipelineTest {
                 new CouponDiscountRule(couponRepository, couponService)));
 
         Address us = new Address(null, null, null, null, "US", null);
-        PriceBreakdown breakdown = wrongOrder.price(new PricingContext(110.0, us, List.of("SAVE20")));
+        PriceBreakdown breakdown = wrongOrder.price(new PricingContext(Money.of(110.0), us, List.of("SAVE20")));
 
         assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(0.0));
         assertThat(breakdown.total()).isEqualTo(Money.of(88.0));
@@ -67,7 +67,7 @@ class PricingPipelineTest {
     @DisplayName("no rules: total is just the subtotal")
     void noRules() {
         PricingPipeline pipeline = new PricingPipeline(List.of());
-        PriceBreakdown breakdown = pipeline.price(new PricingContext(42.0, null, List.of()));
+        PriceBreakdown breakdown = pipeline.price(new PricingContext(Money.of(42.0), null, List.of()));
         assertThat(breakdown.total()).isEqualTo(Money.of(42.0));
     }
 }

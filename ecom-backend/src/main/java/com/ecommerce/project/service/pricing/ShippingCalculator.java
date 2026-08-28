@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ShippingCalculator {
 
-    private static final double FREE_SHIPPING_THRESHOLD = 100.0;
-    private static final double BASE_COST = 5.0;
-    private static final double DOMESTIC_COST = 3.0;
+    private static final Money FREE_SHIPPING_THRESHOLD = Money.of(100.0);
+    private static final Money BASE_COST = Money.of(5.0);
+    private static final Money DOMESTIC_COST = Money.of(3.0);
 
-    public double calculate(Address address, double chargeableTotal) {
-        if (chargeableTotal >= FREE_SHIPPING_THRESHOLD) {
-            return 0.0;
+    public Money calculate(Address address, Money chargeableTotal) {
+        if (chargeableTotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0) {
+            return Money.ZERO;
         }
         boolean domestic = address != null
                 && ("RO".equalsIgnoreCase(address.getCountry())

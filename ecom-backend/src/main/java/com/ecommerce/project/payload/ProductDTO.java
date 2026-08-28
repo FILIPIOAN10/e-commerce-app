@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,14 +34,14 @@ public class ProductDTO {
     private Integer lowStockThreshold;
 
     @PositiveOrZero(message = "Price cannot be negative")
-    private double price;
+    private BigDecimal price;
 
 
     @PositiveOrZero(message = "Discount cannot be negative")
     @DecimalMax(value = "100.0",message = "Discount cannot be greater than 100")
-    private double discount;
+    private BigDecimal discount;
     @PositiveOrZero(message = "Special price cannot be negative")
-    private double specialPrice;
+    private BigDecimal specialPrice;
 
     private Double averageRating;
     private Long reviewCount;

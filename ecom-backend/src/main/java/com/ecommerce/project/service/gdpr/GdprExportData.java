@@ -107,7 +107,7 @@ public final class GdprExportData {
             Long productId,
             String productName,
             Integer quantity,
-            Double unitPrice,
+            BigDecimal unitPrice,
             Boolean savedForLater) {
     }
 
@@ -119,7 +119,7 @@ public final class GdprExportData {
 
     public record Cart(
             Long cartId,
-            Double totalPrice,
+            BigDecimal totalPrice,
             Instant lastActivityAt,
             List<CartLine> items,
             List<Reminder> remindersSent) {

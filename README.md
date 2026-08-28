@@ -147,15 +147,17 @@ through the service, so a scheduled sweep asserts
 cannot hold 84.99 exactly. The `Money` value object (`BigDecimal`, scale 2,
 HALF_UP) owns every arithmetic step of the pricing pipeline, and an order now
 stores `NUMERIC(12,2)` rather than `DOUBLE PRECISION`, so that exactness survives
-the last hop into the database instead of being widened away there. It shows at
-two points in particular: the amount confirmed against the Stripe PaymentIntent
-comes from the same exact figure the order carries, and `SUM(total_amount)`
-behind the revenue reports is exact rather than nearly right. *Trade-off:* the
-conversion is going across the codebase one slice per branch — orders and their
-lines are done, products and carts are not — so the seams are still visible as
-explicit `toDouble()` calls, and each one marks a boundary the next slice
-removes. One sweep would have been shorter, at the cost of a single
-unreviewable change through the whole payment path.
+the last hop into the database instead of being widened away there. The
+catalogue and the cart followed, so a price is exact from the product row it
+starts on through to the amount confirmed with Stripe — and `SUM(total_amount)`
+behind the revenue reports is exact rather than nearly right. Two hand-rolled
+roundings went with it: `Math.round(x * 100) / 100` in the bundle pricing and
+`price - (discount * 0.01 * price)` for a special price, both replaced by
+`Money.percentage`, which rounds to the cent at every step so the figures agree
+with each other by construction. *Trade-off:* the conversion is going across the
+codebase one slice per branch rather than in one sweep, because every slice
+touches the payment path; what is left of the old world is visible as explicit
+`toDouble()` calls, and each one marks a boundary a later slice removes.
 
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
@@ -166,13 +168,15 @@ successors); the order-lifecycle listeners are **Observers** on
 
 ### In flight this iteration
 
-Not yet merged: `BigDecimal` on `Order` and `OrderItem` — slice 2 of the money
-migration, on its own branch.
+Not yet merged, stacked in this order: slice 2 of the money migration
+(`BigDecimal` on `Order` / `OrderItem`) and slice 3 (`Product` / `Cart`, and the
+pricing pipeline end to end in `Money`).
 
-The migration's remaining slices, in order: `Product` / `Cart`, then tax, then
-the last entities that still hold a `Double` (`Bundle`, `ReturnRequest`,
-`SubscriptionPlan`, `PromoCampaign`). Each is one branch, because each one
-touches the payment path.
+What is left of the migration: VAT, and then the last entities still holding a
+`Double` (`Bundle`, `ReturnRequest`, `SubscriptionPlan`, `PromoCampaign`). VAT is
+the one that is not a conversion — `PriceLineType.TAX` and
+`PriceBreakdown.taxTotal()` are slots the pipeline is built to accept, but no rule
+fills them yet, so an order currently carries no tax line.
 
 ## Getting Started
  

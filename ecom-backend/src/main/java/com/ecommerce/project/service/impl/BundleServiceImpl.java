@@ -15,11 +15,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import com.ecommerce.project.service.pricing.Money;
 
 @Service
 @RequiredArgsConstructor
@@ -132,16 +134,20 @@ public class BundleServiceImpl implements BundleService {
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList()));
 
-        double bundlePrice = bundle.getProducts().stream()
-                .mapToDouble(Product::getSpecialPrice)
-                .sum();
-        double discountRate = (bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0) / 100.0;
-        double discountedPrice = bundlePrice * (1 - discountRate);
-        double savings = bundlePrice - discountedPrice;
+        // Money rounds to the cent on every operation, so the three figures below
+        // agree by construction — where the hand-rolled Math.round(x * 100) / 100
+        // this replaces could leave savings off the difference by a cent.
+        Money bundlePrice = bundle.getProducts().stream()
+                .map(product -> Money.of(product.getSpecialPrice()))
+                .reduce(Money.ZERO, Money::add);
+        double discountPercent =
+                bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0;
+        Money discountedPrice = bundlePrice.percentage(100.0 - discountPercent);
+        Money savings = bundlePrice.subtract(discountedPrice);
 
-        dto.setBundlePrice(Math.round(bundlePrice * 100.0) / 100.0);
-        dto.setDiscountedPrice(Math.round(discountedPrice * 100.0) / 100.0);
-        dto.setSavings(Math.round(savings * 100.0) / 100.0);
+        dto.setBundlePrice(bundlePrice.toBigDecimal());
+        dto.setDiscountedPrice(discountedPrice.toBigDecimal());
+        dto.setSavings(savings.toBigDecimal());
 
         return dto;
     }

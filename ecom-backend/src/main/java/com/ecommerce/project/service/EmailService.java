@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -144,7 +145,7 @@ public class EmailService {
         }
     }
 
-    public void sendCartRecoveryEmail(String toEmail, String name, int itemCount, double cartTotal, String recoveryUrl) {
+    public void sendCartRecoveryEmail(String toEmail, String name, int itemCount, BigDecimal cartTotal, String recoveryUrl) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");

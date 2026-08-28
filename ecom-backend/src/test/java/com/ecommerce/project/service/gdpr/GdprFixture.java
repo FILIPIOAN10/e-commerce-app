@@ -100,9 +100,9 @@ class GdprFixture {
             product.setProductName(tag + "-widget" + n);
             product.setDescription("a widget for the gdpr fixture");
             product.setQuantity(10);
-            product.setPrice(25.0);
-            product.setSpecialPrice(25.0);
-            product.setDiscount(0.0);
+            product.setPrice(new BigDecimal("25.0"));
+            product.setSpecialPrice(new BigDecimal("25.0"));
+            product.setDiscount(new BigDecimal("0.0"));
             product.setCategory(category);
             entityManager.persist(product);
 
@@ -152,15 +152,15 @@ class GdprFixture {
 
             Cart cart = new Cart();
             cart.setUser(user);
-            cart.setTotalPrice(50.0);
+            cart.setTotalPrice(new BigDecimal("50.0"));
             entityManager.persist(cart);
 
             CartItem cartItem = new CartItem();
             cartItem.setCart(cart);
             cartItem.setProduct(product);
             cartItem.setQuantity(2);
-            cartItem.setDiscount(0.0);
-            cartItem.setProductPrice(25.0);
+            cartItem.setDiscount(new BigDecimal("0.0"));
+            cartItem.setProductPrice(new BigDecimal("25.0"));
             cartItem.setSavedForLater(false);
             entityManager.persist(cartItem);
 

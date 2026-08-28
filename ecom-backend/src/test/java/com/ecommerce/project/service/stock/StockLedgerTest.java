@@ -28,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,9 +73,9 @@ class StockLedgerTest {
             Product product = new Product();
             product.setProductName(tag + "-widget");
             product.setDescription("stock ledger fixture");
-            product.setPrice(20.0);
-            product.setSpecialPrice(20.0);
-            product.setDiscount(0.0);
+            product.setPrice(new BigDecimal("20.0"));
+            product.setSpecialPrice(new BigDecimal("20.0"));
+            product.setDiscount(new BigDecimal("0.0"));
             product.setQuantity(10);
             product.setCategory(category);
             entityManager.persist(product);
@@ -178,8 +179,8 @@ class StockLedgerTest {
         ProductDTO edit = new ProductDTO();
         edit.setProductName(tag + "-widget");
         edit.setDescription("stock ledger fixture");
-        edit.setPrice(20.0);
-        edit.setDiscount(0.0);
+        edit.setPrice(new BigDecimal("20.0"));
+        edit.setDiscount(new BigDecimal("0.0"));
         edit.setQuantity(25);
 
         ProductDTO updated = productService.updateProduct(productId, edit);

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -106,8 +107,8 @@ public class ProductController extends BaseController {
     public ResponseEntity<FacetedProductResponse> searchProductsFaceted(
             @RequestParam(name = "q", required = false) String keyword,
             @RequestParam(name = "categoryId", required = false) List<Long> categoryIds,
-            @RequestParam(name = "minPrice", required = false) Double minPrice,
-            @RequestParam(name = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(name = "minPrice", required = false) BigDecimal minPrice,
+            @RequestParam(name = "maxPrice", required = false) BigDecimal maxPrice,
             @RequestParam(name = "minRating", required = false) Double minRating,
             @RequestParam(name = "inStock", required = false) Boolean inStock,
             @ModelAttribute PaginationParams params) {

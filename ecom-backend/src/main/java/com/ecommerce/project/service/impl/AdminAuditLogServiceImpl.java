@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -19,8 +20,8 @@ public class AdminAuditLogServiceImpl implements AdminAuditLogService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AdminAuditLog logPriceChange(Long adminUserId, String adminUsername, Long productId,
-                                        double oldPrice, double newPrice,
-                                        double oldSpecialPrice, double newSpecialPrice) {
+                                        BigDecimal oldPrice, BigDecimal newPrice,
+                                        BigDecimal oldSpecialPrice, BigDecimal newSpecialPrice) {
         String oldValue = String.format("price=%.2f, specialPrice=%.2f", oldPrice, oldSpecialPrice);
         String newValue = String.format("price=%.2f, specialPrice=%.2f", newPrice, newSpecialPrice);
         String details = String.format("Admin %s changed price for product %d from %s to %s",

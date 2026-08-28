@@ -80,9 +80,9 @@ class OrderRepositoryNPlusOneTest {
         product.setProductName("Wireless Headphones");
         product.setDescription("Noise cancelling headphones");
         product.setQuantity(10);
-        product.setPrice(100.0);
-        product.setDiscount(0.0);
-        product.setSpecialPrice(100.0);
+        product.setPrice(new BigDecimal("100.0"));
+        product.setDiscount(new BigDecimal("0.0"));
+        product.setSpecialPrice(new BigDecimal("100.0"));
         product.setCategory(category);
         product.setUser(seller);
         return product;
@@ -118,14 +118,14 @@ class OrderRepositoryNPlusOneTest {
         item.setProduct(product);
         item.setQuantity(quantity);
         item.setDiscount(BigDecimal.ZERO);
-        item.setOrderedProductPrice(BigDecimal.valueOf(product.getSpecialPrice()));
+        item.setOrderedProductPrice(product.getSpecialPrice());
         return item;
     }
 
     private Cart newCart(User user) {
         Cart cart = new Cart();
         cart.setUser(user);
-        cart.setTotalPrice(200.0);
+        cart.setTotalPrice(new BigDecimal("200.0"));
         return cart;
     }
 
@@ -134,8 +134,8 @@ class OrderRepositoryNPlusOneTest {
         cartItem.setCart(cart);
         cartItem.setProduct(product);
         cartItem.setQuantity(2);
-        cartItem.setDiscount(0.0);
-        cartItem.setProductPrice(100.0);
+        cartItem.setDiscount(new BigDecimal("0.0"));
+        cartItem.setProductPrice(new BigDecimal("100.0"));
         return cartItem;
     }
 

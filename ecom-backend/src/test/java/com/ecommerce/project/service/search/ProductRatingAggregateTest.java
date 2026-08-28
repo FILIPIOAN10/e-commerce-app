@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,9 +63,9 @@ class ProductRatingAggregateTest {
             Product product = new Product();
             product.setProductName(tag + "-widget");
             product.setDescription("rating aggregate fixture");
-            product.setPrice(10.0);
-            product.setSpecialPrice(10.0);
-            product.setDiscount(0.0);
+            product.setPrice(new BigDecimal("10.0"));
+            product.setSpecialPrice(new BigDecimal("10.0"));
+            product.setDiscount(new BigDecimal("0.0"));
             product.setQuantity(5);
             product.setCategory(category);
             entityManager.persist(product);
