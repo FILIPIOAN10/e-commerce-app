@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.within;
 
 @DisplayName("PriceBreakdown")
 class PriceBreakdownTest {
@@ -14,9 +13,9 @@ class PriceBreakdownTest {
     @DisplayName("running total starts at the subtotal")
     void startsAtSubtotal() {
         PriceBreakdown breakdown = new PriceBreakdown(120.0);
-        assertThat(breakdown.subtotal()).isEqualTo(120.0);
-        assertThat(breakdown.runningTotal()).isEqualTo(120.0);
-        assertThat(breakdown.total()).isEqualTo(120.0);
+        assertThat(breakdown.subtotal()).isEqualTo(Money.of(120.0));
+        assertThat(breakdown.runningTotal()).isEqualTo(Money.of(120.0));
+        assertThat(breakdown.total()).isEqualTo(Money.of(120.0));
     }
 
     @Test
@@ -26,8 +25,8 @@ class PriceBreakdownTest {
         breakdown.addDiscount("Coupon A", Money.of(10.0));   // 100 -> 90
         breakdown.addDiscount("Coupon B", Money.of(9.0));    // 90 -> 81
 
-        assertThat(breakdown.runningTotal()).isEqualTo(81.0);
-        assertThat(breakdown.discountTotal()).isEqualTo(19.0);
+        assertThat(breakdown.runningTotal()).isEqualTo(Money.of(81.0));
+        assertThat(breakdown.discountTotal()).isEqualTo(Money.of(19.0));
     }
 
     @Test
@@ -37,9 +36,9 @@ class PriceBreakdownTest {
         breakdown.addCharge(PriceLineType.SHIPPING, "Shipping", Money.of(5.0));
         breakdown.addCharge(PriceLineType.TAX, "VAT", Money.of(11.0));
 
-        assertThat(breakdown.shippingTotal()).isEqualTo(5.0);
-        assertThat(breakdown.taxTotal()).isEqualTo(11.0);
-        assertThat(breakdown.total()).isEqualTo(66.0, within(1e-9));
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(5.0));
+        assertThat(breakdown.taxTotal()).isEqualTo(Money.of(11.0));
+        assertThat(breakdown.total()).isEqualTo(Money.of(66.0));
     }
 
     @Test

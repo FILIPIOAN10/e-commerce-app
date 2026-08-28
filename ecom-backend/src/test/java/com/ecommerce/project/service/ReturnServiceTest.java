@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +61,7 @@ class ReturnServiceTest {
         order.setId(1L);
         order.setEmail("user@test.com");
         order.setOrderStatus("Delivered");
-        order.setTotalAmount(150.0);
+        order.setTotalAmount(new BigDecimal("150.00"));
 
         returnRequest = new ReturnRequest();
         returnRequest.setId(1L);
@@ -94,7 +95,7 @@ class ReturnServiceTest {
         assertEquals("Return Requested", order.getOrderStatus());
         verify(returnRequestRepository).save(any(ReturnRequest.class));
         verify(orderRepository).save(order);
-        verify(notificationService).notifyAdminNewOrder(1L, "user@test.com", 150.0);
+        verify(notificationService).notifyAdminNewOrder(1L, "user@test.com", new BigDecimal("150.00"));
     }
 
     @Test

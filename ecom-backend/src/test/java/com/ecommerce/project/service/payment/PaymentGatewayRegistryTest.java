@@ -1,5 +1,7 @@
 package com.ecommerce.project.service.payment;
 
+import com.ecommerce.project.service.pricing.Money;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PaymentGatewayRegistryTest {
 
     private static PaymentAttempt attempt(String method, String gatewayName) {
-        return new PaymentAttempt(method, gatewayName, "pi_1", 10.0);
+        return new PaymentAttempt(method, gatewayName, "pi_1", Money.of(10.0));
     }
 
     /** Minimal stub gateway that claims one method name. */

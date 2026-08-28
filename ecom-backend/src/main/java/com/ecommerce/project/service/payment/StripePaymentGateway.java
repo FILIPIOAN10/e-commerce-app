@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * <p>
  * The amount comparison lives here rather than in the caller because it is
  * Stripe-specific — Stripe reports amounts as an integer number of the currency's
- * minor unit, and {@link Money#toCents} is what maps the order total onto that.
+ * minor unit, and {@link Money#toCents()} is what maps the order total onto that.
  */
 @Component
 public class StripePaymentGateway implements PaymentGateway {
@@ -42,7 +42,7 @@ public class StripePaymentGateway implements PaymentGateway {
             return PaymentVerification.failed("Payment has not succeeded");
         }
 
-        long expectedCents = Money.toCents(attempt.expectedTotal());
+        long expectedCents = attempt.expectedTotal().toCents();
         if (intent.getAmount() == null || intent.getAmount() != expectedCents) {
             return PaymentVerification.failed("Payment amount does not match order total");
         }

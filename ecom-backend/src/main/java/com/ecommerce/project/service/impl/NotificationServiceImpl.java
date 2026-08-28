@@ -14,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public void notifyAdminNewOrder(Long orderId, String customerEmail, Double totalAmount) {
+    public void notifyAdminNewOrder(Long orderId, String customerEmail, BigDecimal totalAmount) {
         String title = "New Order Received";
         String message = String.format("Order #%d from %s — $%.2f", orderId, customerEmail, totalAmount);
 

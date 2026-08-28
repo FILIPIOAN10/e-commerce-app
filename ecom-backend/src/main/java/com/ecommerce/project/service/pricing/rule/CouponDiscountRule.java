@@ -51,7 +51,7 @@ public class CouponDiscountRule implements PricingRule {
 
             couponService.validateCouponState(coupon, code);
 
-            Money discount = breakdown.currentTotal().percentage(coupon.getDiscountPercent());
+            Money discount = breakdown.runningTotal().percentage(coupon.getDiscountPercent());
             breakdown.addDiscount("Coupon " + coupon.getCode(), discount);
             breakdown.recordCoupon(coupon.getId(), coupon.getCode());
         }

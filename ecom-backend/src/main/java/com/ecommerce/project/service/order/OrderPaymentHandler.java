@@ -7,6 +7,7 @@ import com.ecommerce.project.repository.PaymentRepository;
 import com.ecommerce.project.service.payment.PaymentAttempt;
 import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
 import com.ecommerce.project.service.payment.PaymentVerification;
+import com.ecommerce.project.service.pricing.Money;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,7 @@ public class OrderPaymentHandler {
      * another order, or not confirmed by its gateway for the expected amount. A
      * reference-less attempt (e.g. cash on delivery) is a no-op.
      */
-    public void verify(String paymentMethod, String pgName, String pgPaymentId, double expectedTotal) {
+    public void verify(String paymentMethod, String pgName, String pgPaymentId, Money expectedTotal) {
         PaymentAttempt attempt = new PaymentAttempt(paymentMethod, pgName, pgPaymentId, expectedTotal);
         if (!attempt.hasReference()) {
             return;

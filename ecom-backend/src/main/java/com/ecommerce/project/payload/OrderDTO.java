@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,9 @@ public class OrderDTO {
     private List<OrderItemDTO> items;
     private LocalDate orderDate;
     private PaymentDTO payment;
-    private Double totalAmount;
-    private Double discountAmount;
-    private Double shippingCost;
+    private BigDecimal totalAmount;
+    private BigDecimal discountAmount;
+    private BigDecimal shippingCost;
     private List<String> appliedCoupons = new ArrayList<>();
     private String orderStatus;
     private Long addressId;

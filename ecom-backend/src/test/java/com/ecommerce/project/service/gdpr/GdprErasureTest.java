@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+import java.math.BigDecimal;
 
 /**
  * §3.1 (GDPR Art. 17): a user can be forgotten — as far as the tax authority
@@ -110,7 +111,8 @@ class GdprErasureTest {
                 .isNotEqualTo(customer.email())
                 .startsWith("deleted-")
                 .endsWith("@anonymised.invalid");
-        assertThat(order.getTotalAmount()).as("the amount is not personal data").isEqualTo(25.0);
+        assertThat(order.getTotalAmount()).as("the amount is not personal data")
+                .isEqualByComparingTo("25.00");
         assertThat(order.getOrderStatus()).isEqualTo("Delivered");
         assertThat(order.getOrderItems()).as("the lines are intact").hasSize(1);
         assertThat(order.getAddress().getStreet()).isEqualTo("REDACTED");

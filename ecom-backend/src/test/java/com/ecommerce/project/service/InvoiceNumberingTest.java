@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +69,7 @@ class InvoiceNumberingTest {
         order.setEmail(emailTag + System.nanoTime() + "@example.com");
         order.setOrderDate(LocalDate.now());
         order.setOrderStatus("Placed");
-        order.setTotalAmount(42.0);
+        order.setTotalAmount(new BigDecimal("42.00"));
         return orderRepository.save(order);
     }
 

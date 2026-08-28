@@ -18,6 +18,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -120,17 +121,17 @@ class GdprFixture {
             order.setOrderStatus("Delivered");
             order.setAddress(address);
             order.setPayment(payment);
-            order.setTotalAmount(25.0);
-            order.setDiscountAmount(0.0);
-            order.setShippingCost(0.0);
+            order.setTotalAmount(new BigDecimal("25.00"));
+            order.setDiscountAmount(BigDecimal.ZERO);
+            order.setShippingCost(BigDecimal.ZERO);
             entityManager.persist(order);
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(product);
             orderItem.setQuantity(1);
-            orderItem.setDiscount(0.0);
-            orderItem.setOrderedProductPrice(25.0);
+            orderItem.setDiscount(BigDecimal.ZERO);
+            orderItem.setOrderedProductPrice(new BigDecimal("25.00"));
             entityManager.persist(orderItem);
 
             Review review = Review.builder()

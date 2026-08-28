@@ -5,11 +5,14 @@ import java.util.List;
 
 /**
  * Accumulator threaded through the {@link PricingPipeline}. Each rule reads the
- * {@linkplain #currentTotal() running total} and appends {@link PriceLine}s; the
+ * {@linkplain #runningTotal() running total} and appends {@link PriceLine}s; the
  * totals the order needs are then read back by type.
  * <p>
- * Arithmetic is done in {@link Money} (exact to the cent); the getters return
- * {@code double} because that is still what the entities and DTOs carry.
+ * Every total is a {@link Money} in and out. The getters used to hand back
+ * {@code double} because that is what the entities carried; now that the order
+ * carries {@code BigDecimal}, a caller that still needs a {@code double} says so
+ * with an explicit {@code toDouble()} — and each of those calls marks a place the
+ * migration has not reached yet.
  * <p>
  * Not thread-safe: one instance per pricing call.
  */
@@ -54,34 +57,30 @@ public final class PriceBreakdown {
         appliedCouponCodes.add(code);
     }
 
+    public Money subtotal() {
+        return subtotal;
+    }
+
     /** The running total so far, for rules that compute against it. */
-    public Money currentTotal() {
+    public Money runningTotal() {
         return runningTotal;
     }
 
-    public double subtotal() {
-        return subtotal.toDouble();
-    }
-
-    public double runningTotal() {
-        return runningTotal.toDouble();
-    }
-
-    public double total() {
-        return runningTotal.toDouble();
+    public Money total() {
+        return runningTotal;
     }
 
     /** Total discount as a positive number. */
-    public double discountTotal() {
-        return discountTotal.toDouble();
+    public Money discountTotal() {
+        return discountTotal;
     }
 
-    public double shippingTotal() {
-        return shippingTotal.toDouble();
+    public Money shippingTotal() {
+        return shippingTotal;
     }
 
-    public double taxTotal() {
-        return taxTotal.toDouble();
+    public Money taxTotal() {
+        return taxTotal;
     }
 
     public List<PriceLine> lines() {

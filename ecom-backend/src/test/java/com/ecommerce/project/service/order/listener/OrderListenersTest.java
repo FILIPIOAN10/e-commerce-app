@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import java.math.BigDecimal;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Order event listeners")
@@ -27,7 +28,7 @@ class OrderListenersTest {
 
     private static final OrderDTO ORDER_DTO = new OrderDTO();
     private static final OrderPlacedEvent PLACED =
-            new OrderPlacedEvent("buyer@example.com", 42L, 99.90, ORDER_DTO);
+            new OrderPlacedEvent("buyer@example.com", 42L, new BigDecimal("99.90"), ORDER_DTO);
     private static final OrderStatusUpdatedEvent STATUS_CHANGED =
             new OrderStatusUpdatedEvent(42L, "buyer@example.com", "Shipped", ORDER_DTO);
 
@@ -70,7 +71,7 @@ class OrderListenersTest {
         @DisplayName("notifies admins on OrderPlacedEvent")
         void adminOnPlaced() {
             new OrderNotificationListener(notificationService).onOrderPlaced(PLACED);
-            verify(notificationService).notifyAdminNewOrder(42L, "buyer@example.com", 99.90);
+            verify(notificationService).notifyAdminNewOrder(42L, "buyer@example.com", new BigDecimal("99.90"));
             verifyNoMoreInteractions(notificationService);
         }
 
@@ -92,8 +93,10 @@ class OrderListenersTest {
         @DisplayName("records a PLACE_ORDER entry on OrderPlacedEvent")
         void logsOnPlaced() {
             new OrderActivityLogListener(userActivityLogService).onOrderPlaced(PLACED);
+            // Two decimals, not "$99.9": BigDecimal keeps the scale it was given,
+            // where double printed away the trailing zero on a money figure.
             verify(userActivityLogService).log("buyer@example.com", "PLACE_ORDER",
-                    "Order 42 placed for $99.9");
+                    "Order 42 placed for $99.90");
             verifyNoMoreInteractions(userActivityLogService);
         }
     }

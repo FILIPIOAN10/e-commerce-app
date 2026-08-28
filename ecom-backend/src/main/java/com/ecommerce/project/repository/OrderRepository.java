@@ -11,12 +11,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long> {
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o")
-    Double getTotalRevenue();
+    BigDecimal getTotalRevenue();
 
     @EntityGraph(value = "Order.withDetails", type = EntityGraph.EntityGraphType.LOAD)
     @Query(value = "SELECT DISTINCT o FROM Order o",

@@ -34,8 +34,8 @@ class ShippingRuleTest {
         // Subtotal 110 would be free shipping, but a 20 discount drops it to 90 -> $5.
         PriceBreakdown breakdown = priceAfterDiscountOf(110.0, 20.0, us);
 
-        assertThat(breakdown.shippingTotal()).isEqualTo(5.0);
-        assertThat(breakdown.total()).isEqualTo(95.0);
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(5.0));
+        assertThat(breakdown.total()).isEqualTo(Money.of(95.0));
     }
 
     @Test
@@ -43,7 +43,7 @@ class ShippingRuleTest {
     void freeAboveThreshold() {
         Address us = new Address(null, null, null, null, "US", null);
         PriceBreakdown breakdown = priceAfterDiscountOf(150.0, 0.0, us);
-        assertThat(breakdown.shippingTotal()).isEqualTo(0.0);
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(0.0));
     }
 
     @Test
@@ -51,6 +51,6 @@ class ShippingRuleTest {
     void domesticRate() {
         Address ro = new Address(null, null, null, null, "Romania", null);
         PriceBreakdown breakdown = priceAfterDiscountOf(40.0, 0.0, ro);
-        assertThat(breakdown.shippingTotal()).isEqualTo(3.0);
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(3.0));
     }
 }

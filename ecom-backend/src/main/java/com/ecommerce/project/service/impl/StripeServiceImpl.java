@@ -68,7 +68,7 @@ public class StripeServiceImpl implements StripeService {
         PriceBreakdown pricing = pricingPipeline.price(
                 PricingContext.of(cart.getTotalPrice(), address, stripePaymentDto.getCouponCodes()));
 
-        long serverCalculatedAmountCents = Money.toCents(pricing.total());
+        long serverCalculatedAmountCents = pricing.total().toCents();
 
         Customer customer;
         CustomerSearchParams searchParams =
