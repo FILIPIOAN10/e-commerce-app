@@ -12,7 +12,11 @@ import com.ecommerce.project.service.payment.PaymentAttempt;
 import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
 import com.ecommerce.project.service.payment.StripePaymentGateway;
 import com.ecommerce.project.service.pricing.Money;
+import com.ecommerce.project.service.pricing.PricingContext;
+import com.ecommerce.project.service.pricing.PricingPipeline;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
+import com.ecommerce.project.service.pricing.rule.CouponDiscountRule;
+import com.ecommerce.project.service.pricing.rule.ShippingRule;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.model.PaymentIntent;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +67,7 @@ class OrderServiceImplTest {
     @Mock private ShippingCalculator shippingCalculator;
     @Mock private StripeService stripeService;
     @Mock private PaymentGatewayRegistry paymentGatewayRegistry;
+    @Mock private PricingPipeline pricingPipeline;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -113,6 +118,15 @@ class OrderServiceImplTest {
                 new PaymentGatewayRegistry(List.of(new StripePaymentGateway(stripeService)));
         when(paymentGatewayRegistry.select(any()))
                 .thenAnswer(inv -> realRegistry.select(inv.getArgument(0, PaymentAttempt.class)));
+
+        // Run the real pricing pipeline (coupon stacking then shipping) while its
+        // leaf dependencies — couponRepository, couponService, shippingCalculator —
+        // stay mocked, so every existing coupon/shipping assertion still bites.
+        PricingPipeline realPipeline = new PricingPipeline(List.of(
+                new CouponDiscountRule(couponRepository, couponService),
+                new ShippingRule(shippingCalculator)));
+        when(pricingPipeline.price(any()))
+                .thenAnswer(inv -> realPipeline.price(inv.getArgument(0, PricingContext.class)));
     }
 
     private OrderDTO buildOrderDTO() {
