@@ -19,7 +19,7 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
      * @return 1 when the use was consumed, 0 when the coupon is no longer usable.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Coupon c SET c.usedCount = c.usedCount + 1 " +
+    @Query("UPDATE Coupon c SET c.usedCount = c.usedCount + 1, c.version = c.version + 1 " +
            "WHERE c.id = :id AND c.active = true AND c.expiryDate >= CURRENT_DATE " +
            "AND c.usedCount < c.maxUses")
     int tryConsume(@Param("id") Long id);

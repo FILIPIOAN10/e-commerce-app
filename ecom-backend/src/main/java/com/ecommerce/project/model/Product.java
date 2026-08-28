@@ -24,6 +24,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long productId;
 
+    @Version
+    private Long version;
+
     @NotBlank
     @Size(min = 3, message = "Product name must contain at least 3 characters")
     private String productName;
