@@ -1,6 +1,7 @@
 package com.ecommerce.project.service.pricing.rule;
 
 import com.ecommerce.project.model.Address;
+import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
@@ -19,7 +20,7 @@ class ShippingRuleTest {
     private PriceBreakdown priceAfterDiscountOf(double subtotal, double discount, Address address) {
         PriceBreakdown breakdown = new PriceBreakdown(subtotal);
         if (discount > 0) {
-            breakdown.addDiscount("test discount", discount);
+            breakdown.addDiscount("test discount", Money.of(discount));
         }
         rule.apply(new PricingContext(subtotal, address, List.of()), breakdown);
         return breakdown;

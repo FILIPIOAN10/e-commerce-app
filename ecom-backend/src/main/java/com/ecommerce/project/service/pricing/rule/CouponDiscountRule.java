@@ -4,6 +4,7 @@ import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
+import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
 import com.ecommerce.project.service.pricing.PricingRule;
@@ -50,7 +51,7 @@ public class CouponDiscountRule implements PricingRule {
 
             couponService.validateCouponState(coupon, code);
 
-            double discount = breakdown.runningTotal() * coupon.getDiscountPercent() / 100.0;
+            Money discount = breakdown.currentTotal().percentage(coupon.getDiscountPercent());
             breakdown.addDiscount("Coupon " + coupon.getCode(), discount);
             breakdown.recordCoupon(coupon.getId(), coupon.getCode());
         }

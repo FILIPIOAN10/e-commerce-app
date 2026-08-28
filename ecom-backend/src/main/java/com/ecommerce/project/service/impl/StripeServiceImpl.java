@@ -3,15 +3,14 @@ package com.ecommerce.project.service.impl;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.model.Address;
 import com.ecommerce.project.model.Cart;
-import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.payload.StripePaymentDto;
 import com.ecommerce.project.repository.AddressRepository;
 import com.ecommerce.project.repository.CartRepository;
-import com.ecommerce.project.repository.CouponRepository;
-import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.service.pricing.Money;
-import com.ecommerce.project.service.pricing.ShippingCalculator;
+import com.ecommerce.project.service.pricing.PriceBreakdown;
+import com.ecommerce.project.service.pricing.PricingContext;
+import com.ecommerce.project.service.pricing.PricingPipeline;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -39,9 +38,7 @@ public class StripeServiceImpl implements StripeService {
     private final AuthUtil authUtil;
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
-    private final CouponRepository couponRepository;
-    private final CouponService couponService;
-    private final ShippingCalculator shippingCalculator;
+    private final PricingPipeline pricingPipeline;
 
     @PostConstruct
     public void init(){
@@ -66,26 +63,12 @@ public class StripeServiceImpl implements StripeService {
             }
         }
 
-        double subtotal = cart.getTotalPrice();
-        double totalAfterDiscount = subtotal;
-        List<String> couponCodes = stripePaymentDto.getCouponCodes();
-        if (couponCodes != null) {
-            for (String code : couponCodes) {
-                if (code == null || code.isBlank()) {
-                    continue;
-                }
-                Coupon coupon = couponRepository.findByCode(code.toUpperCase())
-                        .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
-                couponService.validateCouponState(coupon, code);
-                double discount = totalAfterDiscount * coupon.getDiscountPercent() / 100.0;
-                totalAfterDiscount -= discount;
-            }
-        }
+        // Same pricing path as checkout, so the PaymentIntent amount and the
+        // order total verified later (StripePaymentGateway) agree by construction.
+        PriceBreakdown pricing = pricingPipeline.price(
+                PricingContext.of(cart.getTotalPrice(), address, stripePaymentDto.getCouponCodes()));
 
-        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
-        double totalAmount = totalAfterDiscount + shippingCost;
-
-        long serverCalculatedAmountCents = Money.toCents(totalAmount);
+        long serverCalculatedAmountCents = Money.toCents(pricing.total());
 
         Customer customer;
         CustomerSearchParams searchParams =

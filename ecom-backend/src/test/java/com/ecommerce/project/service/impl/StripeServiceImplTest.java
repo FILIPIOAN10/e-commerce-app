@@ -6,7 +6,11 @@ import com.ecommerce.project.repository.AddressRepository;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
+import com.ecommerce.project.service.pricing.PricingContext;
+import com.ecommerce.project.service.pricing.PricingPipeline;
 import com.ecommerce.project.service.pricing.ShippingCalculator;
+import com.ecommerce.project.service.pricing.rule.CouponDiscountRule;
+import com.ecommerce.project.service.pricing.rule.ShippingRule;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -46,6 +50,7 @@ class StripeServiceImplTest {
     @Mock private CouponRepository couponRepository;
     @Mock private CouponService couponService;
     @Mock private ShippingCalculator shippingCalculator;
+    @Mock private PricingPipeline pricingPipeline;
 
     @InjectMocks
     private StripeServiceImpl stripeService;
@@ -56,6 +61,13 @@ class StripeServiceImplTest {
     @BeforeEach
     void setUp() {
         when(authUtil.loggedInEmail()).thenReturn(EMAIL);
+
+        // Exercise the real pricing pipeline; its leaf deps stay mocked.
+        PricingPipeline realPipeline = new PricingPipeline(List.of(
+                new CouponDiscountRule(couponRepository, couponService),
+                new ShippingRule(shippingCalculator)));
+        when(pricingPipeline.price(any()))
+                .thenAnswer(inv -> realPipeline.price(inv.getArgument(0, PricingContext.class)));
     }
 
     @Test
