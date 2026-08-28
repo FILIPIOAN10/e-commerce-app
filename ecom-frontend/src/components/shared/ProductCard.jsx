@@ -59,23 +59,60 @@ const ProductCard = ({
         dispatch(addToCart(cartItems, 1, toast, navigate));
     };
 
+    const hasDiscount = Boolean(specialPrice) && Number(specialPrice) < Number(price);
+    const percentOff = hasDiscount
+        ? Math.round((1 - Number(specialPrice) / Number(price)) * 100)
+        : 0;
+    const displayPrice = Number(specialPrice || price);
+
+    const priceBlock = (
+        <div className="flex flex-col leading-tight">
+            {hasDiscount && (
+                <span className="tabular text-xs text-gray-400 line-through dark:text-gray-500">
+                    ${Number(price).toFixed(2)}
+                </span>
+            )}
+            <span className="tabular text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                ${displayPrice.toFixed(2)}
+            </span>
+        </div>
+    );
+
     return (
-        <div className="card shadow-xl overflow-hidden transition-shadow duration-300">
-            <div onClick={handleProductView}
-                className="w-full overflow-hidden aspect-3/2">
-                <img className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
+        <div className="card group flex flex-col">
+            <div
+                onClick={handleProductView}
+                className="relative w-full overflow-hidden aspect-3/2 bg-gray-100 dark:bg-gray-800">
+                <img
+                    className="w-full h-full object-cover cursor-pointer transition-transform duration-500 ease-out group-hover:scale-105"
                     src={image}
                     alt={productName}
+                    loading="lazy"
                 />
-            </div>
-            <div className="p-4 relative">
+
+                {percentOff > 0 && (
+                    <span className="absolute top-3 left-3 rounded-full bg-sale px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                        -{percentOff}%
+                    </span>
+                )}
+
+                {!isAvailable && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] dark:bg-gray-950/70">
+                        <span className="rounded-full bg-gray-900/90 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
+                            {t("outOfStock")}
+                        </span>
+                    </div>
+                )}
+
                 {!about && (
-                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 max-sm:opacity-100">
                         {user?.id && !isAdmin && (
                             <button
                                 onClick={handleAddToWishlist}
                                 data-testid="wishlist-button"
-                                className={`${isInWishlist ? "text-red-500" : "text-gray-300 hover:text-red-400"} transition text-xl`}
+                                className={`grid h-9 w-9 place-items-center rounded-full bg-white/95 shadow-sm ring-1 ring-black/5 backdrop-blur transition
+                                    ${isInWishlist ? "text-red-500" : "text-gray-500 hover:text-red-500"}
+                                    dark:bg-gray-900/90 dark:ring-white/10`}
                                 title={isInWishlist ? t("alreadyInWishlist") : t("addToWishlist")}
                                 disabled={isInWishlist}
                             >
@@ -85,7 +122,9 @@ const ProductCard = ({
                         <button
                             onClick={handleAddToCompare}
                             data-testid="compare-button"
-                            className={`${isInCompare ? "text-blue-500" : "text-gray-300 hover:text-blue-400"} transition text-xl`}
+                            className={`grid h-9 w-9 place-items-center rounded-full bg-white/95 shadow-sm ring-1 ring-black/5 backdrop-blur transition
+                                ${isInCompare ? "text-brand-600" : "text-gray-500 hover:text-brand-600"}
+                                dark:bg-gray-900/90 dark:ring-white/10`}
                             title={isInCompare ? t("inCompareList") : t("addToCompare")}
                             disabled={isInCompare}
                         >
@@ -93,85 +132,62 @@ const ProductCard = ({
                         </button>
                     </div>
                 )}
-                <h2 onClick={handleProductView}
+            </div>
+
+            <div className="flex flex-1 flex-col gap-2 p-4">
+                {categoryName && (
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                        {categoryName}
+                    </span>
+                )}
+
+                <h2
+                    onClick={handleProductView}
                     data-testid="product-name"
-                    className="text-lg font-semibold mb-2 cursor-pointer pr-8 dark:text-white">
+                    className="cursor-pointer text-base font-semibold leading-snug text-gray-900 transition-colors hover:text-brand-600 dark:text-white dark:hover:text-brand-300">
                     {truncateText(productName, 50)}
                 </h2>
 
                 {reviewCount > 0 && (
-                    <div className="flex items-center gap-1 mb-2">
-                        <div className="flex items-center">
+                    <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-0.5">
                             {[1, 2, 3, 4, 5].map((star) => {
                                 const rating = averageRating || 0;
                                 if (rating >= star) {
-                                    return <FaStar key={star} className="text-amber-400 text-sm" />;
+                                    return <FaStar key={star} className="text-amber-400 text-xs" />;
                                 } else if (rating >= star - 0.5) {
-                                    return <FaStarHalfAlt key={star} className="text-amber-400 text-sm" />;
+                                    return <FaStarHalfAlt key={star} className="text-amber-400 text-xs" />;
                                 } else {
-                                    return <FaStar key={star} className="text-gray-300 text-sm" />;
+                                    return <FaStar key={star} className="text-gray-200 text-xs dark:text-gray-700" />;
                                 }
                             })}
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                        <span className="tabular text-xs text-gray-500 dark:text-gray-400">
                             {averageRating?.toFixed(1)} ({reviewCount})
                         </span>
                     </div>
                 )}
 
-                <div className="min-h-20 max-h-20">
-                    <p className="text-gray-600 text-sm dark:text-gray-300">{truncateText(description, 80)}</p>
-                </div>
+                <p className="line-clamp-2 min-h-10 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                    {truncateText(description, 80)}
+                </p>
 
-                {/* ✅ ascunde toată secțiunea de preț + cart pentru admin */}
                 {!about && !isAdmin && (
-                    <div className="flex items-center justify-between">
-                        {specialPrice ? (
-                            <div className="flex flex-col">
-                                <span className="text-gray-400 line-through">
-                                    ${Number(price).toFixed(2)}
-                                </span>
-                                <span className="text-xl font-bold text-slate-700 dark:text-white">
-                                    ${Number(specialPrice).toFixed(2)}
-                                </span>
-                            </div>
-                        ) : (
-                            <div>
-                                <span className="text-xl font-bold text-slate-700 dark:text-white">
-                                    ${Number(price).toFixed(2)}
-                                </span>
-                            </div>
-                        )}
+                    <div className="mt-auto flex items-end justify-between gap-3 pt-2">
+                        {priceBlock}
                         <button
                             disabled={!isAvailable || btnLoader}
                             onClick={(e) => { e.stopPropagation(); addToCartHandler({ image, productName, description, specialPrice, price, productId, quantity }); }}
                             data-testid="add-to-cart-button"
-                            className={`bg-blue-500 ${isAvailable ? "opacity-100 hover:bg-blue-600" : "opacity-70"}
-                                text-white py-2 px-3 rounded-lg items-center transition-colors duration-300 w-36 flex justify-center`}>
-                            <FaShoppingCart className="mr-2" />
-                            {isAvailable ? t("addToCart") : t("outOfStock")}
+                            className="btn-primary flex items-center justify-center gap-2 px-4 py-2.5 text-sm">
+                            <FaShoppingCart className="text-sm" />
+                            <span>{isAvailable ? t("addToCart") : t("outOfStock")}</span>
                         </button>
                     </div>
                 )}
 
-                {/* ✅ admin vede doar prețul, fără cart */}
                 {!about && isAdmin && (
-                    <div className="flex items-center">
-                        {specialPrice ? (
-                            <div className="flex flex-col">
-                                <span className="text-gray-400 line-through">
-                                    ${Number(price).toFixed(2)}
-                                </span>
-                                <span className="text-xl font-bold text-slate-700 dark:text-white">
-                                    ${Number(specialPrice).toFixed(2)}
-                                </span>
-                            </div>
-                        ) : (
-                            <span className="text-xl font-bold text-slate-700 dark:text-white">
-                                ${Number(price).toFixed(2)}
-                            </span>
-                        )}
-                    </div>
+                    <div className="mt-auto pt-2">{priceBlock}</div>
                 )}
             </div>
         </div>

@@ -27,11 +27,11 @@ const Navbar = () => {
     const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
 
     return (
-        <div className="h-17.5 bg-custom-gradient text-white z-50 flex items-center sticky top-0 dark:bg-gray-900">
+        <div className="h-17.5 bg-custom-gradient text-white z-50 flex items-center sticky top-0 border-b border-white/5 backdrop-blur-sm dark:bg-gray-900">
             <div className="lg:px-14 sm:px-8 px-4 w-full flex justify-between">
                 <Link to={`/${lang}`} className="flex items-center text-2xl font-bold">
                     <FaStore className="mr-2 text-3xl" />
-                    <span className="font-[Poppins]">E-Shop</span>
+                    <span className="font-display tracking-tight">E-Shop</span>
                 </Link>
 
                 <ul className={`flex sm:gap-10 gap-4 sm:items-center text-slate-800 dark:text-gray-200 sm:static absolute left-0 top-17.5 sm:shadow-none shadow-md ${
@@ -129,11 +129,10 @@ const Navbar = () => {
                         </li>
                     ) : (
                         <li className="font-medium transition-all duration-150">
-                            <LangLink className="flex items-center space-x-2 px-4 py-1.5
-                                        bg-linear-to-r from-purple-600 to-red-500
-                                        text-white font-semibold rounded-md shadow-lg
-                                        hover:from-purple-500 hover:to-red-400 transition
-                                        duration-300 ease-in-out transform"
+                            <LangLink className="flex items-center space-x-2 px-4 py-2
+                                        bg-brand-600 hover:bg-brand-500
+                                        text-white font-semibold rounded-xl
+                                        transition-colors duration-200"
                                 to="/login">
                                 <FaSignInAlt />
                                 <span>{t("login")}</span>
