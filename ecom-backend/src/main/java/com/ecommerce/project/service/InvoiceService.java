@@ -2,6 +2,7 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Address;
+import com.ecommerce.project.model.Invoice;
 import com.ecommerce.project.model.Order;
 import com.ecommerce.project.model.OrderItem;
 import com.ecommerce.project.repository.OrderRepository;
@@ -16,10 +17,12 @@ import org.openpdf.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Slf4j
@@ -28,10 +31,20 @@ import java.time.format.DateTimeFormatter;
 public class InvoiceService {
 
     private final OrderRepository orderRepository;
+    private final InvoiceNumberService invoiceNumberService;
 
+    @Transactional
     public byte[] generateInvoicePdf(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        // Fetch the full graph up front: open-in-view is off, so the lazy
+        // orderItems/product walk below would otherwise throw once the
+        // repository call's transaction closed.
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+
+        // Orders placed since fiscal numbering shipped already have an invoice
+        // (issued in the checkout transaction); this covers older orders on first
+        // download. Idempotent either way.
+        Invoice invoice = invoiceNumberService.issueFor(orderId);
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document document = new Document();
@@ -48,7 +61,7 @@ public class InvoiceService {
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
 
-            Paragraph invoiceTitle = new Paragraph("INVOICE #" + order.getId(), headerFont);
+            Paragraph invoiceTitle = new Paragraph("INVOICE " + invoice.getInvoiceNumber(), headerFont);
             invoiceTitle.setAlignment(Element.ALIGN_CENTER);
             invoiceTitle.setSpacingAfter(10f);
             document.add(invoiceTitle);
@@ -59,7 +72,8 @@ public class InvoiceService {
             metaTable.setSpacingBefore(10f);
             metaTable.setSpacingAfter(10f);
 
-            addMetaCell(metaTable, "Invoice Date:", LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE), normalFont);
+            LocalDate issuedOn = invoice.getIssuedAt().atZone(ZoneId.systemDefault()).toLocalDate();
+            addMetaCell(metaTable, "Invoice Date:", issuedOn.format(DateTimeFormatter.ISO_LOCAL_DATE), normalFont);
             addMetaCell(metaTable, "Order Date:", order.getOrderDate() != null ? order.getOrderDate().toString() : "N/A", normalFont);
             addMetaCell(metaTable, "Customer Email:", order.getEmail(), normalFont);
             addMetaCell(metaTable, "Payment Method:", order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A", normalFont);
