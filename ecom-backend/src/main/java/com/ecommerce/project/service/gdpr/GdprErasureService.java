@@ -2,6 +2,7 @@ package com.ecommerce.project.service.gdpr;
 
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.User;
+import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.redis.GdprTokenService;
 import com.ecommerce.project.security.redis.RefreshTokenService;
@@ -18,6 +19,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -58,6 +60,7 @@ public class GdprErasureService {
 
     private final EntityManager entityManager;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final GdprTokenService gdprTokenService;
@@ -66,6 +69,7 @@ public class GdprErasureService {
 
     public GdprErasureService(EntityManager entityManager,
                               UserRepository userRepository,
+                              ProductRepository productRepository,
                               PasswordEncoder passwordEncoder,
                               RefreshTokenService refreshTokenService,
                               GdprTokenService gdprTokenService,
@@ -73,6 +77,7 @@ public class GdprErasureService {
                               AdminAuditLogService adminAuditLogService) {
         this.entityManager = entityManager;
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenService = refreshTokenService;
         this.gdprTokenService = gdprTokenService;
@@ -98,16 +103,23 @@ public class GdprErasureService {
         String originalUsername = user.getUserName();
         String pseudonym = pseudonymFor(userId);
 
+        // Read before the deletion removes the evidence of which products are
+        // affected; re-derived after everything else has settled.
+        List<Long> reviewedProductIds = reviewedProductIds(userId);
+
         revokeAccess(userId, originalUsername);
         deletePersonalContent(user, originalEmail, originalUsername);
         anonymiseRetainedRecords(originalEmail, pseudonym);
         tombstoneAccount(user, pseudonym);
 
         // Nothing below may read a stale pre-erasure copy of what the bulk
-        // statements above rewrote behind the persistence context's back.
+        // statements above rewrote behind the persistence context's back. In
+        // particular the user still holds an eagerly-loaded cart that no longer
+        // exists, and cascading a merge into it would fail.
         entityManager.flush();
         entityManager.clear();
 
+        refreshProductRatings(reviewedProductIds);
         adminAuditLogService.logGdprErasure(userId, pseudonym);
         log.info("GDPR erasure completed for user {} (pseudonym {})", userId, pseudonym);
     }
@@ -211,6 +223,24 @@ public class GdprErasureService {
         user.setErased(true);
         user.setErasedAt(Instant.now());
         userRepository.save(user);
+    }
+
+    private List<Long> reviewedProductIds(Long userId) {
+        return entityManager.createQuery(
+                        "SELECT DISTINCT r.product.productId FROM Review r WHERE r.user.userId = :userId", Long.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    /**
+     * Products the erased reviews were about carry a denormalised average.
+     * Deleting the reviews out from under it would leave that average counting
+     * rows that no longer exist, so it is re-derived from what remains.
+     */
+    private void refreshProductRatings(List<Long> productIds) {
+        if (!productIds.isEmpty()) {
+            productRepository.refreshRatingAggregates(productIds);
+        }
     }
 
     /**

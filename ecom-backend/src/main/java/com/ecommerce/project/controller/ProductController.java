@@ -3,12 +3,15 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.payload.ApiResponse;
+import com.ecommerce.project.payload.FacetedProductResponse;
 import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductSearchService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.service.RecentlyViewedService;
+import com.ecommerce.project.service.search.FacetedProductSearchService;
+import com.ecommerce.project.service.search.ProductFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +28,15 @@ public class ProductController extends BaseController {
 
     private final ProductService productService;
     private final ProductSearchService productSearchService;
+    private final FacetedProductSearchService facetedProductSearchService;
     private final RecentlyViewedService recentlyViewedService;
 
-    public ProductController(ProductService productService, ProductSearchService productSearchService, RecentlyViewedService recentlyViewedService) {
+    public ProductController(ProductService productService, ProductSearchService productSearchService,
+                             FacetedProductSearchService facetedProductSearchService,
+                             RecentlyViewedService recentlyViewedService) {
         this.productService = productService;
         this.productSearchService = productSearchService;
+        this.facetedProductSearchService = facetedProductSearchService;
         this.recentlyViewedService = recentlyViewedService;
     }
     /**
@@ -82,6 +89,34 @@ public class ProductController extends BaseController {
                                                           @ModelAttribute PaginationParams params){
         ProductResponse productResponse = productSearchService.searchProducts(query, params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder(), semantic);
         return ok(productResponse);
+    }
+
+    /**
+     * Structured browsing: narrow the catalogue by category, price, rating and
+     * availability, and get back the counts each further narrowing would yield.
+     *
+     * <p>A sibling of {@code /search} rather than a widening of it. {@code /search}
+     * answers "what is relevant to these words" and already has clients; this
+     * answers "what is left after these filters", and returns a different shape.
+     * Bolting facets onto the existing endpoint would have changed its response
+     * for every caller that never asked for them.
+     */
+    @Tag(name = "Product")
+    @GetMapping("/public/products/search/faceted")
+    public ResponseEntity<FacetedProductResponse> searchProductsFaceted(
+            @RequestParam(name = "q", required = false) String keyword,
+            @RequestParam(name = "categoryId", required = false) List<Long> categoryIds,
+            @RequestParam(name = "minPrice", required = false) Double minPrice,
+            @RequestParam(name = "maxPrice", required = false) Double maxPrice,
+            @RequestParam(name = "minRating", required = false) Double minRating,
+            @RequestParam(name = "inStock", required = false) Boolean inStock,
+            @ModelAttribute PaginationParams params) {
+
+        ProductFilter filter = new ProductFilter(
+                keyword, categoryIds, minPrice, maxPrice, minRating, inStock);
+
+        return ok(facetedProductSearchService.search(filter,
+                params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder()));
     }
 
 

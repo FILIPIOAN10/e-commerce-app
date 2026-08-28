@@ -156,8 +156,8 @@ class ProductServiceImplCacheIntegrationTest {
         }
 
         @Bean
-        public ProductMapper productMapper(ModelMapper modelMapper, ReviewRepository reviewRepository) {
-            ProductMapper mapper = new ProductMapper(modelMapper, reviewRepository);
+        public ProductMapper productMapper(ModelMapper modelMapper) {
+            ProductMapper mapper = new ProductMapper(modelMapper);
             ReflectionTestUtils.setField(mapper, "imageBaseUrl", "http://localhost:8080/images");
             return mapper;
         }
