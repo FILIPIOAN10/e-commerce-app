@@ -11,7 +11,6 @@ import com.ecommerce.project.payload.OrderResponse;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
-import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.InventoryReservationService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.order.OrderStatus;
@@ -20,12 +19,13 @@ import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
 import com.ecommerce.project.service.payment.PaymentAttempt;
 import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
 import com.ecommerce.project.service.payment.PaymentVerification;
-import com.ecommerce.project.service.pricing.ShippingCalculator;
+import com.ecommerce.project.service.pricing.PriceBreakdown;
+import com.ecommerce.project.service.pricing.PricingContext;
+import com.ecommerce.project.service.pricing.PricingPipeline;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
 import com.ecommerce.project.util.SortWhitelist;
 import com.ecommerce.project.config.AppConstants;
-import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
 import org.openpdf.text.Document;
 import org.openpdf.text.Paragraph;
@@ -64,14 +64,13 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final CartService cartService;
-    private final CouponService couponService;
     private final InventoryReservationService inventoryReservationService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
     private final AuthUtil authUtil;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
-    private final ShippingCalculator shippingCalculator;
+    private final PricingPipeline pricingPipeline;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -102,22 +101,18 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus("Placed");
         order.setAddress(address);
 
-        double subtotal = cart.getTotalPrice();
+        PriceBreakdown pricing = pricingPipeline.price(
+                PricingContext.of(cart.getTotalPrice(), address, couponCodes));
 
-        CouponApplicationResult couponResult = calculateDiscount(couponCodes, subtotal);
-        double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
-        double totalAmount = totalAfterDiscount + shippingCost;
-
-        verifyPayment(paymentMethod, pgName, pgPaymentId, totalAmount);
+        verifyPayment(paymentMethod, pgName, pgPaymentId, pricing.total());
 
         // Coupon usage is only consumed once the order is actually being placed.
-        consumeCoupons(couponResult);
+        consumeCoupons(pricing.appliedCouponIds(), pricing.appliedCouponCodes());
 
-        order.setTotalAmount(totalAmount);
-        order.setDiscountAmount(couponResult.getDiscountAmount());
-        order.setShippingCost(shippingCost);
-        order.setAppliedCoupons(String.join(",", couponResult.getAppliedCodes()));
+        order.setTotalAmount(pricing.total());
+        order.setDiscountAmount(pricing.discountTotal());
+        order.setShippingCost(pricing.shippingTotal());
+        order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
         Payment payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
         payment.setOrder(order);
@@ -152,8 +147,8 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.save(cart);
 
         // Send back the order summary
-        OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, totalAmount);
-        eventPublisher.publishEvent(new OrderPlacedEvent(emailId, savedOrder.getId(), totalAmount, orderDTO));
+        OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, pricing.total());
+        eventPublisher.publishEvent(new OrderPlacedEvent(emailId, savedOrder.getId(), pricing.total(), orderDTO));
         return orderDTO;
     }
 
@@ -247,7 +242,8 @@ public class OrderServiceImpl implements OrderService {
     public double calculateShippingCost(Long addressId, double cartTotal) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-        return shippingCalculator.calculate(address, cartTotal);
+        return pricingPipeline.price(PricingContext.of(cartTotal, address, List.of()))
+                .shippingTotal();
     }
 
     @Override
@@ -266,21 +262,18 @@ public class OrderServiceImpl implements OrderService {
         // Reserve stock for 10 minutes (TTL) to prevent race conditions at checkout
         inventoryReservationService.reserveCartItems(cart.getCartId(), cart.getCartItems());
 
-        double subtotal = cart.getTotalPrice();
-        // Preview must not mutate coupon usage counters.
-        CouponApplicationResult couponResult = calculateDiscount(couponCodes, subtotal);
-        double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
-        double totalAmount = totalAfterDiscount + shippingCost;
+        // The pipeline is pure, so preview does not touch coupon usage counters.
+        PriceBreakdown pricing = pricingPipeline.price(
+                PricingContext.of(cart.getTotalPrice(), address, couponCodes));
 
         OrderSummaryDTO summary = new OrderSummaryDTO();
         summary.setEmail(emailId);
         summary.setAddressId(addressId);
-        summary.setSubtotal(subtotal);
-        summary.setDiscountAmount(couponResult.getDiscountAmount());
-        summary.setShippingCost(shippingCost);
-        summary.setTotalAmount(totalAmount);
-        summary.setAppliedCoupons(couponResult.getAppliedCodes());
+        summary.setSubtotal(pricing.subtotal());
+        summary.setDiscountAmount(pricing.discountTotal());
+        summary.setShippingCost(pricing.shippingTotal());
+        summary.setTotalAmount(pricing.total());
+        summary.setAppliedCoupons(pricing.appliedCouponCodes());
         return summary;
     }
 
@@ -338,20 +331,18 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        CouponApplicationResult couponResult = calculateDiscount(request.getCouponCodes(), subtotal);
-        double totalAfterDiscount = subtotal - couponResult.getDiscountAmount();
-        double shippingCost = shippingCalculator.calculate(address, totalAfterDiscount);
-        double totalAmount = totalAfterDiscount + shippingCost;
+        PriceBreakdown pricing = pricingPipeline.price(
+                PricingContext.of(subtotal, address, request.getCouponCodes()));
 
         verifyPayment(request.getPaymentMethod(), request.getPgName(),
-                request.getPgPaymentId(), totalAmount);
+                request.getPgPaymentId(), pricing.total());
 
-        consumeCoupons(couponResult);
+        consumeCoupons(pricing.appliedCouponIds(), pricing.appliedCouponCodes());
 
-        order.setTotalAmount(totalAmount);
-        order.setDiscountAmount(couponResult.getDiscountAmount());
-        order.setShippingCost(shippingCost);
-        order.setAppliedCoupons(String.join(",", couponResult.getAppliedCodes()));
+        order.setTotalAmount(pricing.total());
+        order.setDiscountAmount(pricing.discountTotal());
+        order.setShippingCost(pricing.shippingTotal());
+        order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
         Payment payment = new Payment(request.getPaymentMethod(), request.getPgPaymentId(), request.getPgStatus(), request.getPgResponseMessage(), request.getPgName());
         payment.setOrder(order);
@@ -362,8 +353,8 @@ public class OrderServiceImpl implements OrderService {
         orderItems.forEach(item -> item.setOrder(savedOrder));
         List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
 
-        OrderDTO guestOrderDTO = buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), totalAmount);
-        eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), totalAmount, guestOrderDTO));
+        OrderDTO guestOrderDTO = buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), pricing.total());
+        eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), pricing.total(), guestOrderDTO));
 
         return guestOrderDTO;
     }
@@ -399,49 +390,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Pure calculation: resolves and validates coupons and computes the discount
-     * without mutating any coupon usage counters. Safe to call from read-only
-     * paths such as {@code previewOrder}.
-     */
-    private CouponApplicationResult calculateDiscount(List<String> couponCodes, double subtotal) {
-        double totalAfterDiscount = subtotal;
-        double totalDiscount = 0.0;
-        List<String> appliedCodes = new ArrayList<>();
-        List<Long> appliedIds = new ArrayList<>();
-
-        if (couponCodes == null || couponCodes.isEmpty()) {
-            return new CouponApplicationResult(totalDiscount, appliedCodes, appliedIds);
-        }
-
-        for (String code : couponCodes) {
-            if (code == null || code.isBlank()) continue;
-
-            Coupon coupon = couponRepository.findByCode(code.toUpperCase())
-                    .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
-
-            couponService.validateCouponState(coupon, code);
-
-            double discount = totalAfterDiscount * coupon.getDiscountPercent() / 100.0;
-            totalAfterDiscount -= discount;
-            totalDiscount += discount;
-            appliedCodes.add(coupon.getCode());
-            appliedIds.add(coupon.getId());
-        }
-
-        return new CouponApplicationResult(totalDiscount, appliedCodes, appliedIds);
-    }
-
-    /**
      * Atomically consumes one use of each applied coupon. The conditional UPDATE
      * enforces the usage limit in the database, so concurrent checkouts can never
-     * push {@code usedCount} past {@code maxUses}.
+     * push {@code usedCount} past {@code maxUses}. Called only when an order is
+     * actually being placed — {@code previewOrder} never reaches here.
      */
-    private void consumeCoupons(CouponApplicationResult result) {
-        List<Long> ids = result.getAppliedCouponIds();
-        List<String> codes = result.getAppliedCodes();
-        for (int i = 0; i < ids.size(); i++) {
-            if (couponRepository.tryConsume(ids.get(i)) == 0) {
-                throw new APIException("Coupon usage limit reached: " + codes.get(i));
+    private void consumeCoupons(List<Long> couponIds, List<String> couponCodes) {
+        for (int i = 0; i < couponIds.size(); i++) {
+            if (couponRepository.tryConsume(couponIds.get(i)) == 0) {
+                throw new APIException("Coupon usage limit reached: " + couponCodes.get(i));
             }
         }
     }
@@ -462,30 +419,6 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setItems(itemDTOs);
 
         return orderDTO;
-    }
-
-    private static class CouponApplicationResult {
-        private final double discountAmount;
-        private final List<String> appliedCodes;
-        private final List<Long> appliedCouponIds;
-
-        CouponApplicationResult(double discountAmount, List<String> appliedCodes, List<Long> appliedCouponIds) {
-            this.discountAmount = discountAmount;
-            this.appliedCodes = appliedCodes;
-            this.appliedCouponIds = appliedCouponIds;
-        }
-
-        public double getDiscountAmount() {
-            return discountAmount;
-        }
-
-        public List<String> getAppliedCodes() {
-            return appliedCodes;
-        }
-
-        public List<Long> getAppliedCouponIds() {
-            return appliedCouponIds;
-        }
     }
 
     private void verifyPayment(String paymentMethod, String pgName,
