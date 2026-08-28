@@ -12,12 +12,11 @@ import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.CouponService;
-import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.InventoryReservationService;
-import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.OrderService;
-import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.service.order.OrderStatus;
+import com.ecommerce.project.service.order.event.OrderPlacedEvent;
+import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
 import com.ecommerce.project.service.payment.PaymentAttempt;
 import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
 import com.ecommerce.project.service.payment.PaymentVerification;
@@ -34,13 +33,9 @@ import org.openpdf.text.Phrase;
 import org.openpdf.text.pdf.PdfPCell;
 import org.openpdf.text.pdf.PdfPTable;
 import org.openpdf.text.pdf.PdfWriter;
-import com.ecommerce.project.config.AsyncConfig;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -70,9 +65,6 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final CartService cartService;
     private final CouponService couponService;
-    private final EmailService emailService;
-    private final NotificationService notificationService;
-    private final UserActivityLogService userActivityLogService;
     private final InventoryReservationService inventoryReservationService;
     private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
@@ -517,35 +509,6 @@ public class OrderServiceImpl implements OrderService {
                 throw new APIException(result.reason());
             }
         });
-    }
-
-    public record OrderPlacedEvent(String email, Long orderId, double totalAmount, OrderDTO orderDTO) {
-    }
-
-    public record OrderStatusUpdatedEvent(Long orderId, String email, String status, OrderDTO orderDTO) {
-    }
-
-    // AFTER_COMMIT: only runs once the order is durably persisted, so a rolled-back
-    // checkout never emails the customer. @Async: the send happens on a bounded
-    // pool (see AsyncConfig), not on the request thread that just committed — a
-    // slow SMTP server no longer adds its timeout to the checkout response.
-    // Trade-off: this method now runs with no transaction and no security
-    // context, and an exception here is logged (AsyncConfig's uncaught handler)
-    // but not retried. Durable, recoverable delivery is the transactional-outbox
-    // follow-up.
-    @Async(AsyncConfig.ORDER_EVENT_EXECUTOR)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onOrderPlaced(OrderPlacedEvent event) {
-        emailService.sendOrderConfirmationEmail(event.email(), event.orderDTO());
-        notificationService.notifyAdminNewOrder(event.orderId(), event.email(), event.totalAmount());
-        userActivityLogService.log(event.email(), "PLACE_ORDER", "Order " + event.orderId() + " placed for $" + event.totalAmount());
-    }
-
-    @Async(AsyncConfig.ORDER_EVENT_EXECUTOR)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onOrderStatusUpdated(OrderStatusUpdatedEvent event) {
-        emailService.sendOrderStatusUpdateEmail(event.email(), event.orderDTO());
-        notificationService.notifyUserOrderStatusChanged(event.orderId(), event.email(), event.status());
     }
 
 }
