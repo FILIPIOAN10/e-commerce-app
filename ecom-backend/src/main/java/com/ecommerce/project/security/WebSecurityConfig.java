@@ -86,7 +86,7 @@ public class WebSecurityConfig {
             config.setAllowedMethods(
                     List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
             );
-            config.setAllowedHeaders(List.of("Content-Type", "Accept", "Authorization", "X-XSRF-TOKEN", "X-Requested-With"));
+            config.setAllowedHeaders(List.of("Content-Type", "Accept", "Authorization", "X-XSRF-TOKEN", "X-Requested-With", "Idempotency-Key"));
             config.setAllowCredentials(true);
             config.setMaxAge(3600L);
 
