@@ -1,18 +1,23 @@
 package com.ecommerce.project.service.order.listener;
 
 import com.ecommerce.project.payload.OrderDTO;
-import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.NotificationService;
 import com.ecommerce.project.service.UserActivityLogService;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
+import com.ecommerce.project.service.outbox.OutboxEventPublisher;
+import com.ecommerce.project.service.outbox.OutboxEventTypes;
+import com.ecommerce.project.service.outbox.payload.OrderEmailOutboxPayload;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -29,22 +34,30 @@ class OrderListenersTest {
     @Nested
     @DisplayName("OrderEmailListener")
     class Email {
-        @Mock EmailService emailService;
+        @Mock OutboxEventPublisher outboxEventPublisher;
 
         @Test
-        @DisplayName("sends the confirmation email on OrderPlacedEvent")
+        @DisplayName("enqueues a confirmation-email outbox event on OrderPlacedEvent")
         void confirmation() {
-            new OrderEmailListener(emailService).onOrderPlaced(PLACED);
-            verify(emailService).sendOrderConfirmationEmail("buyer@example.com", ORDER_DTO);
-            verifyNoMoreInteractions(emailService);
+            new OrderEmailListener(outboxEventPublisher).onOrderPlaced(PLACED);
+
+            ArgumentCaptor<OrderEmailOutboxPayload> payload = ArgumentCaptor.forClass(OrderEmailOutboxPayload.class);
+            verify(outboxEventPublisher).publish(eq(OutboxEventTypes.ORDER_CONFIRMATION_EMAIL), payload.capture());
+            assertThat(payload.getValue().recipientEmail()).isEqualTo("buyer@example.com");
+            assertThat(payload.getValue().order()).isSameAs(ORDER_DTO);
+            verifyNoMoreInteractions(outboxEventPublisher);
         }
 
         @Test
-        @DisplayName("sends the status email on OrderStatusUpdatedEvent")
+        @DisplayName("enqueues a status-email outbox event on OrderStatusUpdatedEvent")
         void statusUpdate() {
-            new OrderEmailListener(emailService).onOrderStatusUpdated(STATUS_CHANGED);
-            verify(emailService).sendOrderStatusUpdateEmail("buyer@example.com", ORDER_DTO);
-            verifyNoMoreInteractions(emailService);
+            new OrderEmailListener(outboxEventPublisher).onOrderStatusUpdated(STATUS_CHANGED);
+
+            ArgumentCaptor<OrderEmailOutboxPayload> payload = ArgumentCaptor.forClass(OrderEmailOutboxPayload.class);
+            verify(outboxEventPublisher).publish(eq(OutboxEventTypes.ORDER_STATUS_EMAIL), payload.capture());
+            assertThat(payload.getValue().recipientEmail()).isEqualTo("buyer@example.com");
+            assertThat(payload.getValue().order()).isSameAs(ORDER_DTO);
+            verifyNoMoreInteractions(outboxEventPublisher);
         }
     }
 

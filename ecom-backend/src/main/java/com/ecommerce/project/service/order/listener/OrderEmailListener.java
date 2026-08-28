@@ -1,41 +1,41 @@
 package com.ecommerce.project.service.order.listener;
 
-import com.ecommerce.project.config.AsyncConfig;
-import com.ecommerce.project.service.EmailService;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
-import org.springframework.scheduling.annotation.Async;
+import com.ecommerce.project.service.outbox.OutboxEventPublisher;
+import com.ecommerce.project.service.outbox.OutboxEventTypes;
+import com.ecommerce.project.service.outbox.payload.OrderEmailOutboxPayload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Sends the customer-facing order emails.
- * <p>
- * {@code AFTER_COMMIT} so a rolled-back checkout never emails anyone;
- * {@link Async} so a slow SMTP server does not add its timeout to the request
- * that committed the order (bounded pool in {@link AsyncConfig}). A failure here
- * is logged by AsyncConfig's uncaught handler, not retried — durable delivery is
- * the transactional-outbox follow-up.
+ * Enqueues the customer-facing order emails onto the transactional outbox.
+ *
+ * <p>{@code BEFORE_COMMIT} and synchronous (not {@code @Async}): the outbox row
+ * must be written in the same transaction that commits the order, so it commits
+ * with the order or not at all. Actual delivery — with retry and dead-lettering
+ * if SMTP is down — is done later by
+ * {@link com.ecommerce.project.service.outbox.OutboxDispatcher}.
  */
 @Component
 public class OrderEmailListener {
 
-    private final EmailService emailService;
+    private final OutboxEventPublisher outboxEventPublisher;
 
-    public OrderEmailListener(EmailService emailService) {
-        this.emailService = emailService;
+    public OrderEmailListener(OutboxEventPublisher outboxEventPublisher) {
+        this.outboxEventPublisher = outboxEventPublisher;
     }
 
-    @Async(AsyncConfig.ORDER_EVENT_EXECUTOR)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onOrderPlaced(OrderPlacedEvent event) {
-        emailService.sendOrderConfirmationEmail(event.email(), event.orderDTO());
+        outboxEventPublisher.publish(OutboxEventTypes.ORDER_CONFIRMATION_EMAIL,
+                new OrderEmailOutboxPayload(event.email(), event.orderDTO()));
     }
 
-    @Async(AsyncConfig.ORDER_EVENT_EXECUTOR)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onOrderStatusUpdated(OrderStatusUpdatedEvent event) {
-        emailService.sendOrderStatusUpdateEmail(event.email(), event.orderDTO());
+        outboxEventPublisher.publish(OutboxEventTypes.ORDER_STATUS_EMAIL,
+                new OrderEmailOutboxPayload(event.email(), event.orderDTO()));
     }
 }
