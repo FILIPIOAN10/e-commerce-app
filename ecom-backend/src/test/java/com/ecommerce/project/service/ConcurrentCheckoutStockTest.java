@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -91,7 +92,7 @@ class ConcurrentCheckoutStockTest {
         product.setProductName("Last Unit " + System.nanoTime());
         product.setDescription("Single unit in stock");
         product.setQuantity(1);
-        product.setSpecialPrice(10.0);
+        product.setSpecialPrice(new BigDecimal("10.0"));
         createdProductId = productRepository.saveAndFlush(product).getProductId();
 
         long ordersBefore = orderRepository.count();

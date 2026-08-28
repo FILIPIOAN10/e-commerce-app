@@ -16,12 +16,15 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.ProductMapper;
+import com.ecommerce.project.service.pricing.Money;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -81,10 +84,7 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.save(newCartItem);
         List<CartItem> currentCartItems = cartItemRepository.findByCartCartId(cart.getCartId());
 
-        double newTotalPrice = currentCartItems.stream()
-                .mapToDouble(item -> item.getProductPrice() * item.getQuantity())
-                .sum();
-        cart.setTotalPrice(newTotalPrice);
+        cart.setTotalPrice(sumOf(currentCartItems));
         markCartActive(cart);
         cartRepository.save(cart);
 
@@ -157,7 +157,9 @@ public class CartServiceImpl implements CartService {
             cartItem.setProductPrice(product.getSpecialPrice());
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
             cartItem.setDiscount(product.getDiscount());
-            cart.setTotalPrice(cart.getTotalPrice() + (cartItem.getProductPrice() * quantity));
+            cart.setTotalPrice(Money.of(cart.getTotalPrice())
+                    .add(lineTotal(cartItem.getProductPrice(), quantity))
+                    .toBigDecimal());
             markCartActive(cart);
             cartRepository.save(cart);
         }
@@ -183,7 +185,9 @@ public class CartServiceImpl implements CartService {
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product", "productId", productId);
         }
-        cart.setTotalPrice(cart.getTotalPrice() - (cartItem.getProductPrice() * cartItem.getQuantity()));
+        cart.setTotalPrice(Money.of(cart.getTotalPrice())
+                .subtract(lineTotal(cartItem.getProductPrice(), cartItem.getQuantity()))
+                .toBigDecimal());
         markCartActive(cart);
         cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
 
@@ -205,10 +209,12 @@ public class CartServiceImpl implements CartService {
             throw new APIException("Product " + product.getProductName() + " not available in the cart!!!");
         }
 
-        double cartPrice = cart.getTotalPrice() -
-                (cartItem.getProductPrice() * cartItem.getQuantity());
+        Money withoutThisLine = Money.of(cart.getTotalPrice())
+                .subtract(lineTotal(cartItem.getProductPrice(), cartItem.getQuantity()));
         cartItem.setProductPrice(product.getSpecialPrice());
-        cart.setTotalPrice(cartPrice + (cartItem.getProductPrice() * cartItem.getQuantity()));
+        cart.setTotalPrice(withoutThisLine
+                .add(lineTotal(cartItem.getProductPrice(), cartItem.getQuantity()))
+                .toBigDecimal());
         cartItemRepository.save(cartItem);
     }
 
@@ -223,7 +229,7 @@ public class CartServiceImpl implements CartService {
         Cart existingCart = cartRepository.findCartByEmail(emailId);
         if(existingCart == null) {
             existingCart = new Cart();
-            existingCart.setTotalPrice(0.00);
+            existingCart.setTotalPrice(BigDecimal.ZERO);
             existingCart.setUser(authUtil.loggedInUser());
             existingCart = cartRepository.save(existingCart);
 
@@ -233,7 +239,7 @@ public class CartServiceImpl implements CartService {
 
         }
 
-        double totalPrice = 0.00;
+        Money totalPrice = Money.ZERO;
         // Process each item in the request to add to the cart
 
         for (CartItemDTO cartItemDTO : cartItems) {
@@ -259,7 +265,7 @@ public class CartServiceImpl implements CartService {
                         + ", requested: " + quantity);
             }
 
-            totalPrice += product.getSpecialPrice() * quantity;
+            totalPrice = totalPrice.add(lineTotal(product.getSpecialPrice(), quantity));
             // Create and save cart item
             CartItem cartItem = new CartItem();
             cartItem.setProduct(product);
@@ -271,7 +277,7 @@ public class CartServiceImpl implements CartService {
         }
         // Update the cart's total prince and save
 
-        existingCart.setTotalPrice(totalPrice);
+        existingCart.setTotalPrice(totalPrice.toBigDecimal());
         markCartActive(existingCart);
         cartRepository.save(existingCart);
         return "Cart created/updated with the new items successfully!!!";
@@ -304,11 +310,9 @@ public class CartServiceImpl implements CartService {
     }
 
     private void recalculateCartTotal(Cart cart) {
-        double newTotal = cart.getCartItems().stream()
+        cart.setTotalPrice(sumOf(cart.getCartItems().stream()
                 .filter(item -> Boolean.FALSE.equals(item.getSavedForLater()))
-                .mapToDouble(item -> item.getProductPrice() * item.getQuantity())
-                .sum();
-        cart.setTotalPrice(newTotal);
+                .toList()));
         markCartActive(cart);
         cartRepository.save(cart);
     }
@@ -344,7 +348,8 @@ public class CartServiceImpl implements CartService {
             throw new APIException("Bundle has no products");
         }
 
-        double discountRate = (bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0) / 100.0;
+        double bundleDiscountPercent =
+                bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0;
 
         for (Product product : bundle.getProducts()) {
             if (product.getQuantity() == null || product.getQuantity() <= 0) {
@@ -354,18 +359,16 @@ public class CartServiceImpl implements CartService {
             CartItem existingItem = cartItemRepository.findCartItemByProductProductIdAndCartId(cart.getCartId(), product.getProductId());
             if (existingItem != null) {
                 existingItem.setQuantity(existingItem.getQuantity() + 1);
-                double bundlePrice = product.getSpecialPrice() * (1 - discountRate);
-                existingItem.setProductPrice(bundlePrice);
-                existingItem.setDiscount(product.getDiscount() + bundle.getDiscountPercentage());
+                existingItem.setProductPrice(bundlePrice(product, bundleDiscountPercent));
+                existingItem.setDiscount(bundleDiscount(product, bundleDiscountPercent));
                 cartItemRepository.save(existingItem);
             } else {
                 CartItem newCartItem = new CartItem();
                 newCartItem.setProduct(product);
                 newCartItem.setCart(cart);
                 newCartItem.setQuantity(1);
-                double bundlePrice = product.getSpecialPrice() * (1 - discountRate);
-                newCartItem.setProductPrice(bundlePrice);
-                newCartItem.setDiscount(product.getDiscount() + bundle.getDiscountPercentage());
+                newCartItem.setProductPrice(bundlePrice(product, bundleDiscountPercent));
+                newCartItem.setDiscount(bundleDiscount(product, bundleDiscountPercent));
                 cartItemRepository.save(newCartItem);
             }
         }
@@ -381,10 +384,43 @@ public class CartServiceImpl implements CartService {
             return userCart;
         }
         Cart cart = new Cart();
-        cart.setTotalPrice(0.00);
+        cart.setTotalPrice(BigDecimal.ZERO);
         cart.setUser(authUtil.loggedInUser());
         Cart newCart = cartRepository.save(cart);
         return newCart;
+    }
+
+    /** One line's contribution to the cart total: unit price counted quantity times. */
+    private static Money lineTotal(BigDecimal unitPrice, int quantity) {
+        return Money.of(unitPrice).times(quantity);
+    }
+
+    /**
+     * The cart total is the sum of its lines, added in exact decimal rather than
+     * accumulated in a double — a cart of twenty items at 0.07 has to come to
+     * 1.40, not 1.4000000000000001.
+     */
+    private static BigDecimal sumOf(Collection<CartItem> items) {
+        return items.stream()
+                .map(item -> lineTotal(item.getProductPrice(), item.getQuantity()))
+                .reduce(Money.ZERO, Money::add)
+                .toBigDecimal();
+    }
+
+    /**
+     * The product's own special price, less the bundle's percentage off. Taking
+     * the complement as a percentage keeps it exact: 90% of 84.99 is 76.49, where
+     * {@code 84.99 * (1 - 0.10)} in double arithmetic is 76.491.
+     */
+    private static BigDecimal bundlePrice(Product product, double bundlePercent) {
+        return Money.of(product.getSpecialPrice())
+                .percentage(100.0 - bundlePercent)
+                .toBigDecimal();
+    }
+
+    /** The two percentages a bundled item carries, added. */
+    private static BigDecimal bundleDiscount(Product product, double bundlePercent) {
+        return product.getDiscount().add(BigDecimal.valueOf(bundlePercent));
     }
 
     private CartDTO mapToCartDTO(Cart cart){

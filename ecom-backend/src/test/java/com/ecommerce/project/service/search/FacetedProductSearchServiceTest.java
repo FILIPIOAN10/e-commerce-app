@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,12 +56,12 @@ class FacetedProductSearchServiceTest {
             Category books = category("books");
 
             //       name        category   price  rating  stock
-            product("cheap-pen",  books,      9.99,   4.5,   40);
-            product("notebook",   books,     29.99,   3.0,   12);
-            product("headphones", gadgets,   79.99,   4.8,    5);
-            product("keyboard",   gadgets,  149.00,   2.5,    0);
-            product("monitor",    gadgets,  349.00,   4.2,    3);
-            product("workstation",gadgets,  1499.0,   5.0,    1);
+            product("cheap-pen",  books,      "9.99",   4.5,   40);
+            product("notebook",   books,     "29.99",   3.0,   12);
+            product("headphones", gadgets,   "79.99",   4.8,    5);
+            product("keyboard",   gadgets,  "149.00",   2.5,    0);
+            product("monitor",    gadgets,  "349.00",   4.2,    3);
+            product("workstation",gadgets,  "1499.0",   5.0,    1);
         });
     }
 
@@ -112,7 +113,7 @@ class FacetedProductSearchServiceTest {
         FacetBucket band = bucket(unfiltered.facets().priceRanges(), "50 – 100");
 
         FacetedProductResponse filtered = search(new ProductFilter(
-                null, null, 50.0, 100.0, null, null));
+                null, null, new BigDecimal("50"), new BigDecimal("100"), null, null));
 
         assertThat(filtered.totalElements()).isEqualTo(band.count());
         assertThat(names(filtered)).containsExactly(name("headphones"));
@@ -171,7 +172,8 @@ class FacetedProductSearchServiceTest {
     @DisplayName("combined filters intersect, and the facets keep agreeing with the results")
     void combinedFiltersIntersect() {
         ProductFilter filter = new ProductFilter(
-                null, List.of(categoryIds.get("gadgets")), 50.0, 500.0, 4.0, true);
+                null, List.of(categoryIds.get("gadgets")), new BigDecimal("50"),
+                new BigDecimal("500"), 4.0, true);
 
         FacetedProductResponse response = search(filter);
 
@@ -221,16 +223,16 @@ class FacetedProductSearchServiceTest {
         return category;
     }
 
-    private void product(String name, Category category, double price, double rating, int quantity) {
+    private void product(String name, Category category, String price, double rating, int quantity) {
         Product product = new Product();
         product.setProductName(tag + "-" + name);
         // The keyword filter matches name/description/tags; the tag in the name
         // is what scopes every search in this class to these six rows.
         product.setDescription("faceted search fixture product");
         product.setTags(name);
-        product.setPrice(price);
-        product.setSpecialPrice(price);
-        product.setDiscount(0.0);
+        product.setPrice(new BigDecimal(price));
+        product.setSpecialPrice(new BigDecimal(price));
+        product.setDiscount(new BigDecimal("0.0"));
         product.setQuantity(quantity);
         product.setCategory(category);
         // Set directly rather than through reviews: this class is about the

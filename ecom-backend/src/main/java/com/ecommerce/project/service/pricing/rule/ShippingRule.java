@@ -26,9 +26,7 @@ public class ShippingRule implements PricingRule {
 
     @Override
     public void apply(PricingContext context, PriceBreakdown breakdown) {
-        // The calculator compares against whole-currency thresholds and returns a
-        // flat rate, so double is exact here; Money.of pins the result to the cent.
-        double shipping = shippingCalculator.calculate(context.address(), breakdown.runningTotal().toDouble());
-        breakdown.addCharge(PriceLineType.SHIPPING, "Shipping", Money.of(shipping));
+        Money shipping = shippingCalculator.calculate(context.address(), breakdown.runningTotal());
+        breakdown.addCharge(PriceLineType.SHIPPING, "Shipping", shipping);
     }
 }

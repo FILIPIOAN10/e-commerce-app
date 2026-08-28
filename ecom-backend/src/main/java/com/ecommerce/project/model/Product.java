@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.BatchSize;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +39,18 @@ public class Product {
     private String tags;
     private Integer quantity;
     private Integer lowStockThreshold = 10;
-    private double price; // 100
-    private double discount; // 25
-    private double specialPrice; // 75
+    // Money is BigDecimal at scale 2, never double — see Order for the reasoning
+    // and V25 for the columns. discount is a percentage, held at the same scale
+    // so a 12.5% promotion is expressible.
+    @Column(precision = 12, scale = 2)
+    private BigDecimal price = BigDecimal.ZERO;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal discount = BigDecimal.ZERO;
+
+    /** What the customer is actually charged: price less discount. */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal specialPrice = BigDecimal.ZERO;
 
     /**
      * Denormalised from the reviews table so rating can be filtered, bucketed and

@@ -6,6 +6,7 @@ import com.ecommerce.project.payload.OrderResponse;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface OrderService {
@@ -14,7 +15,7 @@ public interface OrderService {
 
     OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes);
 
-    double calculateShippingCost(Long addressId, double cartTotal);
+    BigDecimal calculateShippingCost(Long addressId, BigDecimal cartTotal);
 
     OrderDTO placeGuestOrder(GuestCheckoutRequestDTO request);
 

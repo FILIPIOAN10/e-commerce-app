@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.ecommerce.project.service.pricing.Money;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -88,11 +90,11 @@ class StripeServiceImplTest {
         CartItem cartItem = new CartItem();
         cartItem.setProduct(product);
         cartItem.setQuantity(1);
-        cartItem.setProductPrice(105.0);
+        cartItem.setProductPrice(new BigDecimal("105.0"));
 
         Cart cart = new Cart();
         cart.setCartId(10L);
-        cart.setTotalPrice(105.0);
+        cart.setTotalPrice(new BigDecimal("105.0"));
         cart.setCartItems(new ArrayList<>(List.of(cartItem)));
 
         Coupon coupon = Coupon.builder()
@@ -116,8 +118,8 @@ class StripeServiceImplTest {
 
         // Real ShippingCalculator for the scenario: 84 after discount, US -> 5.0 shipping.
         ShippingCalculator real = new ShippingCalculator();
-        when(shippingCalculator.calculate(any(Address.class), anyDouble()))
-                .thenAnswer(inv -> real.calculate(inv.getArgument(0), inv.getArgument(1, Double.class)));
+        when(shippingCalculator.calculate(any(Address.class), any(Money.class)))
+                .thenAnswer(inv -> real.calculate(inv.getArgument(0), inv.getArgument(1, Money.class)));
 
         Customer customer = mock(Customer.class);
         when(customer.getId()).thenReturn("cus_123");

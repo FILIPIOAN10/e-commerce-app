@@ -12,7 +12,7 @@ class PriceBreakdownTest {
     @Test
     @DisplayName("running total starts at the subtotal")
     void startsAtSubtotal() {
-        PriceBreakdown breakdown = new PriceBreakdown(120.0);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(120.0));
         assertThat(breakdown.subtotal()).isEqualTo(Money.of(120.0));
         assertThat(breakdown.runningTotal()).isEqualTo(Money.of(120.0));
         assertThat(breakdown.total()).isEqualTo(Money.of(120.0));
@@ -21,7 +21,7 @@ class PriceBreakdownTest {
     @Test
     @DisplayName("discounts lower the running total and are reported as a positive figure")
     void discountsAccumulate() {
-        PriceBreakdown breakdown = new PriceBreakdown(100.0);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(100.0));
         breakdown.addDiscount("Coupon A", Money.of(10.0));   // 100 -> 90
         breakdown.addDiscount("Coupon B", Money.of(9.0));    // 90 -> 81
 
@@ -32,7 +32,7 @@ class PriceBreakdownTest {
     @Test
     @DisplayName("charges raise the running total and are summed by type")
     void chargesByType() {
-        PriceBreakdown breakdown = new PriceBreakdown(50.0);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(50.0));
         breakdown.addCharge(PriceLineType.SHIPPING, "Shipping", Money.of(5.0));
         breakdown.addCharge(PriceLineType.TAX, "VAT", Money.of(11.0));
 
@@ -44,7 +44,7 @@ class PriceBreakdownTest {
     @Test
     @DisplayName("addCharge rejects DISCOUNT so discounts always go through addDiscount")
     void addChargeRejectsDiscountType() {
-        PriceBreakdown breakdown = new PriceBreakdown(10.0);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(10.0));
         assertThatThrownBy(() -> breakdown.addCharge(PriceLineType.DISCOUNT, "x", Money.of(1.0)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
@@ -52,7 +52,7 @@ class PriceBreakdownTest {
     @Test
     @DisplayName("applied coupons are recorded for later consumption; the lists are copies")
     void recordsCoupons() {
-        PriceBreakdown breakdown = new PriceBreakdown(10.0);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(10.0));
         breakdown.recordCoupon(7L, "SAVE10");
 
         assertThat(breakdown.appliedCouponIds()).containsExactly(7L);

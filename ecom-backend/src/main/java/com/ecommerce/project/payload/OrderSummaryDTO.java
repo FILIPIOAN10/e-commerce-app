@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,10 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderSummaryDTO {
-    private Double subtotal;
-    private Double discountAmount;
-    private Double shippingCost;
-    private Double totalAmount;
+    private BigDecimal subtotal;
+    private BigDecimal discountAmount;
+    private BigDecimal shippingCost;
+    private BigDecimal totalAmount;
     private List<String> appliedCoupons = new ArrayList<>();
     private String email;
     private Long addressId;

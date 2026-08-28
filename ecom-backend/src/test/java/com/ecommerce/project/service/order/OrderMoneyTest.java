@@ -66,9 +66,9 @@ class OrderMoneyTest {
             Product product = new Product();
             product.setProductName(tag + "-widget");
             product.setDescription("money fixture");
-            product.setPrice(84.99);
-            product.setSpecialPrice(84.99);
-            product.setDiscount(0.0);
+            product.setPrice(new BigDecimal("84.99"));
+            product.setSpecialPrice(new BigDecimal("84.99"));
+            product.setDiscount(new BigDecimal("0.0"));
             product.setQuantity(50);
             product.setCategory(category);
             entityManager.persist(product);

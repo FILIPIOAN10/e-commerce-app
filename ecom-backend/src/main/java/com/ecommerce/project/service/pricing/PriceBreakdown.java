@@ -28,16 +28,16 @@ public final class PriceBreakdown {
     private final List<Long> appliedCouponIds = new ArrayList<>();
     private final List<String> appliedCouponCodes = new ArrayList<>();
 
-    public PriceBreakdown(double subtotal) {
-        this.subtotal = Money.of(subtotal);
-        this.runningTotal = this.subtotal;
+    public PriceBreakdown(Money subtotal) {
+        this.subtotal = subtotal;
+        this.runningTotal = subtotal;
     }
 
     /** Record a discount (a positive amount). */
     public void addDiscount(String label, Money amount) {
         discountTotal = discountTotal.add(amount);
         runningTotal = runningTotal.subtract(amount);
-        lines.add(new PriceLine(label, PriceLineType.DISCOUNT, -amount.toDouble()));
+        lines.add(new PriceLine(label, PriceLineType.DISCOUNT, amount.negated().toBigDecimal()));
     }
 
     /** Record a charge — shipping, tax, … (a positive amount). */
@@ -48,7 +48,7 @@ public final class PriceBreakdown {
             case DISCOUNT -> throw new IllegalArgumentException("Use addDiscount for discounts");
         }
         runningTotal = runningTotal.add(amount);
-        lines.add(new PriceLine(label, type, amount.toDouble()));
+        lines.add(new PriceLine(label, type, amount.toBigDecimal()));
     }
 
     /** Note a coupon that was applied, so the caller can consume its usage later. */

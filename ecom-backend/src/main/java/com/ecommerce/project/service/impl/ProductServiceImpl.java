@@ -38,8 +38,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.ecommerce.project.service.pricing.Money;
 
 
 @Slf4j
@@ -86,6 +88,8 @@ public class ProductServiceImpl implements ProductService {
         product.setTags(productDTO.getTags());
         product.setCategory(category);
         product.setUser(authUtil.loggedInUser());
+        product.setPrice(toCents(product.getPrice()));
+        product.setDiscount(toCents(product.getDiscount()));
         product.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
 
         Product savedProduct = productRepository.save(product);
@@ -184,8 +188,8 @@ public class ProductServiceImpl implements ProductService {
         Product productFromDB = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
-        double oldPrice = productFromDB.getPrice();
-        double oldSpecialPrice = productFromDB.getSpecialPrice();
+        BigDecimal oldPrice = productFromDB.getPrice();
+        BigDecimal oldSpecialPrice = productFromDB.getSpecialPrice();
         int oldQuantity = productFromDB.getQuantity() == null ? 0 : productFromDB.getQuantity();
 
         // Update the product info with the one in the request body
@@ -195,15 +199,15 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setDescription(product.getDescription());
         // Quantity is deliberately NOT set here: a stock change has to go
         // through the ledger, or the ledger stops explaining the number.
-        productFromDB.setDiscount(product.getDiscount());
-        productFromDB.setPrice(product.getPrice());
+        productFromDB.setDiscount(toCents(product.getDiscount()));
+        productFromDB.setPrice(toCents(product.getPrice()));
         productFromDB.setSpecialPrice(calculateSpecialPrice(product.getPrice(),product.getDiscount()));
         productFromDB.setTags(product.getTags());
         productFromDB.setImage(productDTO.getImage() != null && !productDTO.getImage().isBlank()
                 ? productDTO.getImage() : productFromDB.getImage());
 
-        if (Double.compare(oldPrice, productFromDB.getPrice()) != 0
-                || Double.compare(oldSpecialPrice, productFromDB.getSpecialPrice()) != 0) {
+        if (oldPrice.compareTo(productFromDB.getPrice()) != 0
+                || oldSpecialPrice.compareTo(productFromDB.getSpecialPrice()) != 0) {
             User admin = authUtil.loggedInUser();
             adminAuditLogService.logPriceChange(
                     admin.getUserId(),
@@ -280,8 +284,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-    private double calculateSpecialPrice(double price, double discount) {
-        return price - ((discount * 0.01) * price);
+    /**
+     * A price arrives from JSON with whatever scale the client wrote — {@code 120},
+     * {@code 120.0}, {@code 120.004}. Money pins it to the cent here, so the entity
+     * holds in memory the same figure the {@code NUMERIC(12,2)} column would give
+     * back, and nothing downstream ends up comparing 120.0 with 120.00.
+     */
+    private static BigDecimal toCents(BigDecimal amount) {
+        return amount == null ? BigDecimal.ZERO : Money.of(amount).toBigDecimal();
+    }
+
+    /**
+     * What the customer is actually charged. Taking the complement as a
+     * percentage of the list price keeps it exact: 25% off 84.99 is 63.74, not
+     * 63.742499999999996 rounded at display time.
+     */
+    private BigDecimal calculateSpecialPrice(BigDecimal price, BigDecimal discount) {
+        BigDecimal percent = discount == null ? BigDecimal.ZERO : discount;
+        return Money.of(price).percentage(100.0 - percent.doubleValue()).toBigDecimal();
     }
 
 

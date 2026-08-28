@@ -6,6 +6,7 @@ import com.ecommerce.project.service.search.ProductFilter;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -64,7 +65,7 @@ public class ProductSpecifications {
      * would put a discounted product in the wrong bracket and then fail to return
      * it when the customer clicks that bracket.
      */
-    public static Specification<Product> priceBetween(Double min, Double max) {
+    public static Specification<Product> priceBetween(BigDecimal min, BigDecimal max) {
         return (root, query, cb) -> {
             List<Predicate> bounds = new ArrayList<>();
             if (min != null) {

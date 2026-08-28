@@ -14,9 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import com.ecommerce.project.service.pricing.Money;
 
 @Service
 @RequiredArgsConstructor
@@ -70,9 +72,11 @@ public class ProductImportServiceImpl implements ProductImportService {
                 Product product = new Product();
                 product.setProductName(productName);
                 product.setDescription(description);
-                product.setPrice(price);
-                product.setDiscount(discount);
-                product.setSpecialPrice(price - (price * discount / 100.0));
+                // The CSV carries decimal text; parse it into an exact decimal
+                // rather than through a double that cannot hold most cent values.
+                product.setPrice(BigDecimal.valueOf(price));
+                product.setDiscount(BigDecimal.valueOf(discount));
+                product.setSpecialPrice(Money.of(price).percentage(100.0 - discount).toBigDecimal());
                 product.setQuantity(quantity);
                 product.setImage(image);
                 product.setTags(tags);

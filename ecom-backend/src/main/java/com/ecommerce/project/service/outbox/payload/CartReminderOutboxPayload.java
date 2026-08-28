@@ -1,5 +1,7 @@
 package com.ecommerce.project.service.outbox.payload;
 
+import java.math.BigDecimal;
+
 /**
  * Outbox payload for an abandoned-cart reminder email. Everything the template
  * needs is captured here, so the handler never has to re-load the cart (which
@@ -19,6 +21,6 @@ public record CartReminderOutboxPayload(
         Long cartId,
         String stage,
         int itemCount,
-        double cartTotal,
+        BigDecimal cartTotal,
         String recoveryUrl) {
 }

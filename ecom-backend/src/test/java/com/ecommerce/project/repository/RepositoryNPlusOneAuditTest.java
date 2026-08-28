@@ -103,9 +103,9 @@ class RepositoryNPlusOneAuditTest {
         p.setProductName("np-audit-product-" + i);
         p.setDescription("np audit product description");
         p.setQuantity(50);
-        p.setPrice(30.0);
-        p.setSpecialPrice(25.0);
-        p.setDiscount(0.0);
+        p.setPrice(new BigDecimal("30.0"));
+        p.setSpecialPrice(new BigDecimal("25.0"));
+        p.setDiscount(new BigDecimal("0.0"));
         p.setCategory(category);
         em.persist(p);
         return p;

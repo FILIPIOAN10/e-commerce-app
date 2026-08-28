@@ -1,5 +1,6 @@
 package com.ecommerce.project.service.search;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -17,8 +18,8 @@ import java.util.List;
 public record ProductFilter(
         String keyword,
         List<Long> categoryIds,
-        Double minPrice,
-        Double maxPrice,
+        BigDecimal minPrice,
+        BigDecimal maxPrice,
         Double minRating,
         Boolean inStock) {
 

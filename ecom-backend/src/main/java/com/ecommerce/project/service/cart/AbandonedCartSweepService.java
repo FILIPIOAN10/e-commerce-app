@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -134,7 +135,7 @@ public class AbandonedCartSweepService {
                         cartId,
                         stage.name(),
                         activeItems.size(),
-                        cart.getTotalPrice() != null ? cart.getTotalPrice() : 0.0,
+                        cart.getTotalPrice() != null ? cart.getTotalPrice() : BigDecimal.ZERO,
                         recoveryUrl));
         return true;
     }

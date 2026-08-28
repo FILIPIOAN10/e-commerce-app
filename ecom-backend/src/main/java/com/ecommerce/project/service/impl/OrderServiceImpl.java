@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.ecommerce.project.service.pricing.Money;
 
 @Service
 @RequiredArgsConstructor
@@ -110,8 +111,8 @@ public class OrderServiceImpl implements OrderService {
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setDiscount(money(cartItem.getDiscount()));
-            orderItem.setOrderedProductPrice(money(cartItem.getProductPrice()));
+            orderItem.setDiscount(cartItem.getDiscount());
+            orderItem.setOrderedProductPrice(cartItem.getProductPrice());
             orderItem.setOrder(savedOrder);
             orderItems.add(orderItem);
         }
@@ -124,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
         // Clear the cart after the reservation has been consumed
         // Single bulk delete instead of one transaction per product (was O(n) queries).
         cartItemRepository.deleteAllByCartId(cart.getCartId());
-        cart.setTotalPrice(0.0);
+        cart.setTotalPrice(BigDecimal.ZERO);
         cartRepository.save(cart);
 
         // Send back the order summary
@@ -222,12 +223,12 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public double calculateShippingCost(Long addressId, double cartTotal) {
+    public BigDecimal calculateShippingCost(Long addressId, BigDecimal cartTotal) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
         return pricingPipeline.price(PricingContext.of(cartTotal, address, List.of()))
                 .shippingTotal()
-                .toDouble();
+                .toBigDecimal();
     }
 
     @Override
@@ -253,10 +254,10 @@ public class OrderServiceImpl implements OrderService {
         OrderSummaryDTO summary = new OrderSummaryDTO();
         summary.setEmail(emailId);
         summary.setAddressId(addressId);
-        summary.setSubtotal(pricing.subtotal().toDouble());
-        summary.setDiscountAmount(pricing.discountTotal().toDouble());
-        summary.setShippingCost(pricing.shippingTotal().toDouble());
-        summary.setTotalAmount(pricing.total().toDouble());
+        summary.setSubtotal(pricing.subtotal().toBigDecimal());
+        summary.setDiscountAmount(pricing.discountTotal().toBigDecimal());
+        summary.setShippingCost(pricing.shippingTotal().toBigDecimal());
+        summary.setTotalAmount(pricing.total().toBigDecimal());
         summary.setAppliedCoupons(pricing.appliedCouponCodes());
         return summary;
     }
@@ -271,7 +272,7 @@ public class OrderServiceImpl implements OrderService {
             throw new APIException("Cart is Empty");
         }
 
-        double subtotal = 0.0;
+        Money subtotal = Money.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
         Order order = new Order();
@@ -295,14 +296,14 @@ public class OrderServiceImpl implements OrderService {
                         + ", requested: " + dto.getQuantity());
             }
 
-            double price = product.getSpecialPrice();
-            subtotal += price * dto.getQuantity();
+            BigDecimal price = product.getSpecialPrice();
+            subtotal = subtotal.add(Money.of(price).times(dto.getQuantity()));
 
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
             orderItem.setQuantity(dto.getQuantity());
-            orderItem.setDiscount(money(product.getDiscount()));
-            orderItem.setOrderedProductPrice(money(price));
+            orderItem.setDiscount(product.getDiscount());
+            orderItem.setOrderedProductPrice(price);
             orderItem.setOrder(order);
             orderItems.add(orderItem);
         }
@@ -357,16 +358,6 @@ public class OrderServiceImpl implements OrderService {
                         + ". Requested: " + item.getQuantity());
             }
         }
-    }
-
-    /**
-     * Cart items and products still carry {@code double}; the order no longer
-     * does. Every call to this is a boundary that the next slice of the money
-     * migration removes — when {@code Product} and {@code Cart} become
-     * {@code BigDecimal}, this method has no callers left.
-     */
-    private static BigDecimal money(Double amount) {
-        return amount == null ? BigDecimal.ZERO : BigDecimal.valueOf(amount);
     }
 
     /**

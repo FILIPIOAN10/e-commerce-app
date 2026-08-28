@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,7 +29,8 @@ class AdminAuditLogServiceImplTest {
         when(adminAuditLogRepository.save(any(AdminAuditLog.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
-        adminAuditLogService.logPriceChange(1L, "admin", 5L, 100.0, 120.0, 90.0, 108.0);
+        adminAuditLogService.logPriceChange(1L, "admin", 5L, new BigDecimal("100.00"),
+                new BigDecimal("120.00"), new BigDecimal("90.00"), new BigDecimal("108.00"));
 
         ArgumentCaptor<AdminAuditLog> captor = ArgumentCaptor.forClass(AdminAuditLog.class);
         verify(adminAuditLogRepository).save(captor.capture());

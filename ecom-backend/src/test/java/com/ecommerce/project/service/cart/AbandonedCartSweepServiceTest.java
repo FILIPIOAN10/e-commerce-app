@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,15 +119,15 @@ class AbandonedCartSweepServiceTest {
             product.setProductName(tag + "-widget");
             product.setDescription("widget for the sweep test");
             product.setQuantity(10);
-            product.setPrice(20.0);
-            product.setSpecialPrice(20.0);
-            product.setDiscount(0.0);
+            product.setPrice(new BigDecimal("20.0"));
+            product.setSpecialPrice(new BigDecimal("20.0"));
+            product.setDiscount(new BigDecimal("0.0"));
             product.setCategory(category);
             entityManager.persist(product);
 
             Cart cart = new Cart();
             cart.setUser(user);
-            cart.setTotalPrice(40.0);
+            cart.setTotalPrice(new BigDecimal("40.0"));
             cart.setLastActivityAt(lastActivityAt); // @PrePersist only fills a null value
             entityManager.persist(cart);
 
@@ -134,8 +135,8 @@ class AbandonedCartSweepServiceTest {
             item.setCart(cart);
             item.setProduct(product);
             item.setQuantity(2);
-            item.setDiscount(0.0);
-            item.setProductPrice(20.0);
+            item.setDiscount(new BigDecimal("0.0"));
+            item.setProductPrice(new BigDecimal("20.0"));
             item.setSavedForLater(false);
             entityManager.persist(item);
 

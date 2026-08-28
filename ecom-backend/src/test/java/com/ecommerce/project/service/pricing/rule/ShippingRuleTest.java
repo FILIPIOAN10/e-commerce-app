@@ -18,11 +18,11 @@ class ShippingRuleTest {
     private final ShippingRule rule = new ShippingRule(new ShippingCalculator());
 
     private PriceBreakdown priceAfterDiscountOf(double subtotal, double discount, Address address) {
-        PriceBreakdown breakdown = new PriceBreakdown(subtotal);
+        PriceBreakdown breakdown = new PriceBreakdown(Money.of(subtotal));
         if (discount > 0) {
             breakdown.addDiscount("test discount", Money.of(discount));
         }
-        rule.apply(new PricingContext(subtotal, address, List.of()), breakdown);
+        rule.apply(new PricingContext(Money.of(subtotal), address, List.of()), breakdown);
         return breakdown;
     }
 
