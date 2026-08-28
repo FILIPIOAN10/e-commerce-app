@@ -15,7 +15,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,17 +71,12 @@ public class BundleServiceImpl implements BundleService {
 
     @Override
     public List<BundleDTO> getAllBundles() {
-        return bundleRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return mapBundlesToDTOs(bundleRepository.findAllWithProducts());
     }
 
     @Override
     public List<BundleDTO> getActiveBundles() {
-        return bundleRepository.findByActiveTrue().stream()
-                .filter(Bundle::getActive)
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return mapBundlesToDTOs(bundleRepository.findByActiveTrueWithProducts());
     }
 
     @Override
@@ -105,8 +103,34 @@ public class BundleServiceImpl implements BundleService {
     }
 
     public BundleDTO mapToDTO(Bundle bundle) {
+        return mapBundlesToDTOs(List.of(bundle)).get(0);
+    }
+
+    /**
+     * Maps several bundles in one pass: every product across every bundle is
+     * turned into a DTO once (so {@link ProductMapper}'s two review-aggregate
+     * queries run once for the whole call, not once per bundle).
+     */
+    private List<BundleDTO> mapBundlesToDTOs(List<Bundle> bundles) {
+        Map<Long, Product> productsById = new LinkedHashMap<>();
+        for (Bundle bundle : bundles) {
+            for (Product product : bundle.getProducts()) {
+                productsById.putIfAbsent(product.getProductId(), product);
+            }
+        }
+        Map<Long, ProductDTO> productDtoById = productMapper.mapProductsToDTOs(List.copyOf(productsById.values()))
+                .stream()
+                .collect(Collectors.toMap(ProductDTO::getProductId, Function.identity(), (a, b) -> a));
+
+        return bundles.stream().map(bundle -> buildBundleDTO(bundle, productDtoById)).collect(Collectors.toList());
+    }
+
+    private BundleDTO buildBundleDTO(Bundle bundle, Map<Long, ProductDTO> productDtoById) {
         BundleDTO dto = modelMapper.map(bundle, BundleDTO.class);
-        dto.setProducts(productMapper.mapProductsToDTOs(bundle.getProducts()));
+        dto.setProducts(bundle.getProducts().stream()
+                .map(p -> productDtoById.get(p.getProductId()))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList()));
 
         double bundlePrice = bundle.getProducts().stream()
                 .mapToDouble(Product::getSpecialPrice)

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,10 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private List<CartItem> products = new ArrayList<>();
 
+    // Product lists (catalogue, wishlist, bundle) render image URLs but rarely
+    // fetch-join this collection. @BatchSize turns the resulting one-query-per-
+    // product into one query per 50 products.
+    @BatchSize(size = 50)
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private List<ProductImage> productImages = new ArrayList<>();
 }
