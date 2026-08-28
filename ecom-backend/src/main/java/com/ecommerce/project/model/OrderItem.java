@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+
 @Entity
 @Data
 @Table(name = "order_items")
@@ -29,6 +31,12 @@ public class OrderItem {
     private Order order;
 
     private Integer quantity;
-    private Double discount;
-    private Double orderedProductPrice;
+
+    /** Percent off at the time of ordering, e.g. 25.00 for 25%. */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal discount;
+
+    /** Unit price paid, frozen at checkout. See Order for why not double. */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal orderedProductPrice;
 }

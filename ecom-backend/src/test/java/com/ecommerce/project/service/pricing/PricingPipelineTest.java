@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,10 +39,10 @@ class PricingPipelineTest {
         // 110 subtotal -> 20% off -> 88 -> below $100 -> $5 shipping -> 93 total.
         PriceBreakdown breakdown = pipeline.price(new PricingContext(110.0, us, List.of("SAVE20")));
 
-        assertThat(breakdown.subtotal()).isEqualTo(110.0);
-        assertThat(breakdown.discountTotal()).isEqualTo(22.0, within(1e-9));
-        assertThat(breakdown.shippingTotal()).isEqualTo(5.0);
-        assertThat(breakdown.total()).isEqualTo(93.0, within(1e-9));
+        assertThat(breakdown.subtotal()).isEqualTo(Money.of(110.0));
+        assertThat(breakdown.discountTotal()).isEqualTo(Money.of(22.0));
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(5.0));
+        assertThat(breakdown.total()).isEqualTo(Money.of(93.0));
     }
 
     @Test
@@ -60,8 +59,8 @@ class PricingPipelineTest {
         Address us = new Address(null, null, null, null, "US", null);
         PriceBreakdown breakdown = wrongOrder.price(new PricingContext(110.0, us, List.of("SAVE20")));
 
-        assertThat(breakdown.shippingTotal()).isEqualTo(0.0);
-        assertThat(breakdown.total()).isEqualTo(88.0, within(1e-9));
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(0.0));
+        assertThat(breakdown.total()).isEqualTo(Money.of(88.0));
     }
 
     @Test
@@ -69,6 +68,6 @@ class PricingPipelineTest {
     void noRules() {
         PricingPipeline pipeline = new PricingPipeline(List.of());
         PriceBreakdown breakdown = pipeline.price(new PricingContext(42.0, null, List.of()));
-        assertThat(breakdown.total()).isEqualTo(42.0);
+        assertThat(breakdown.total()).isEqualTo(Money.of(42.0));
     }
 }

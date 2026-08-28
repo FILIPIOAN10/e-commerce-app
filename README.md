@@ -142,6 +142,21 @@ movement; and the trail is only as good as the discipline of routing every write
 through the service, so a scheduled sweep asserts
 `SUM(delta) = products.quantity` per product and logs whatever drifted.
 
+**Money is a decimal, and the database agrees.** Prices and totals were
+`double` throughout — a binary float standing in for a count of cents, which
+cannot hold 84.99 exactly. The `Money` value object (`BigDecimal`, scale 2,
+HALF_UP) owns every arithmetic step of the pricing pipeline, and an order now
+stores `NUMERIC(12,2)` rather than `DOUBLE PRECISION`, so that exactness survives
+the last hop into the database instead of being widened away there. It shows at
+two points in particular: the amount confirmed against the Stripe PaymentIntent
+comes from the same exact figure the order carries, and `SUM(total_amount)`
+behind the revenue reports is exact rather than nearly right. *Trade-off:* the
+conversion is going across the codebase one slice per branch — orders and their
+lines are done, products and carts are not — so the seams are still visible as
+explicit `toDouble()` calls, and each one marks a boundary the next slice
+removes. One sweep would have been shorter, at the cost of a single
+unreviewable change through the whole payment path.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -151,16 +166,13 @@ successors); the order-lifecycle listeners are **Observers** on
 
 ### In flight this iteration
 
-Not yet merged, each on its own branch: an Art. 15 data export and Art. 17
-erasure path for GDPR (see `docs/gdpr.md`); faceted product search with
-drill-down counts; and the stock ledger described above.
+Not yet merged: `BigDecimal` on `Order` and `OrderItem` — slice 2 of the money
+migration, on its own branch.
 
-Money is mid-migration. The `Money` value object — exact `BigDecimal`, scale 2,
-HALF_UP — owns the pricing pipeline and everything handed to Stripe, but the
-entities still store `double`/`Double`. `Order`/`OrderItem`, then
-`Product`/`Cart`, then tax, then the remainder are being moved across one slice
-per branch rather than in one sweep, because every slice touches the payment
-path.
+The migration's remaining slices, in order: `Product` / `Cart`, then tax, then
+the last entities that still hold a `Double` (`Bundle`, `ReturnRequest`,
+`SubscriptionPlan`, `PromoCampaign`). Each is one branch, because each one
+touches the payment path.
 
 ## Getting Started
  

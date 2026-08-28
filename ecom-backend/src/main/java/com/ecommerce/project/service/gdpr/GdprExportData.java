@@ -1,5 +1,6 @@
 package com.ecommerce.project.service.gdpr;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,8 +51,8 @@ public final class GdprExportData {
             Long productId,
             String productName,
             Integer quantity,
-            Double unitPrice,
-            Double discount) {
+            BigDecimal unitPrice,
+            BigDecimal discount) {
     }
 
     public record Payment(
@@ -65,9 +66,9 @@ public final class GdprExportData {
             Long orderId,
             LocalDate orderDate,
             String status,
-            Double totalAmount,
-            Double discountAmount,
-            Double shippingCost,
+            BigDecimal totalAmount,
+            BigDecimal discountAmount,
+            BigDecimal shippingCost,
             String appliedCoupons,
             Address shippingAddress,
             Payment payment,

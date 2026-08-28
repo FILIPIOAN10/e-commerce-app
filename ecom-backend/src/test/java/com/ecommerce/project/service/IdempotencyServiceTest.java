@@ -20,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -58,7 +59,7 @@ class IdempotencyServiceTest {
         actionRuns.incrementAndGet();
         OrderDTO dto = new OrderDTO();
         dto.setOrderId(99L);
-        dto.setTotalAmount(42.0);
+        dto.setTotalAmount(new BigDecimal("42.00"));
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 

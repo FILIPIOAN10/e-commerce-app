@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -225,7 +226,7 @@ class RepositoryNPlusOneAuditTest {
             order.setEmail("npret" + i + "@e.co");
             order.setOrderDate(LocalDate.now());
             order.setOrderStatus("Delivered");
-            order.setTotalAmount(100.0 + i);
+            order.setTotalAmount(BigDecimal.valueOf(100.0 + i));
             em.persist(order);
 
             ReturnRequest rr = new ReturnRequest();

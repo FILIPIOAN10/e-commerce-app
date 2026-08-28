@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,7 +62,7 @@ public class OrderDtoAssembler {
     }
 
     /** DTO for an order that was just placed (customer or guest checkout). */
-    public OrderDTO forPlacedOrder(Order order, List<OrderItem> orderItems, Long addressId, double totalAmount) {
+    public OrderDTO forPlacedOrder(Order order, List<OrderItem> orderItems, Long addressId, BigDecimal totalAmount) {
         OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
         orderDTO.setTotalAmount(totalAmount);
         orderDTO.setDiscountAmount(order.getDiscountAmount());

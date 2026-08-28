@@ -1,5 +1,7 @@
 package com.ecommerce.project.service.payment;
 
+import com.ecommerce.project.service.pricing.Money;
+
 import com.ecommerce.project.service.StripeService;
 import com.stripe.model.PaymentIntent;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +31,7 @@ class StripePaymentGatewayTest {
     }
 
     private PaymentAttempt attempt(String method, String gatewayName, double total) {
-        return new PaymentAttempt(method, gatewayName, "pi_123", total);
+        return new PaymentAttempt(method, gatewayName, "pi_123", Money.of(total));
     }
 
     @Test

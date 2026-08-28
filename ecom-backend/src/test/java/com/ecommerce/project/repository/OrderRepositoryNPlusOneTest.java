@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -102,9 +103,9 @@ class OrderRepositoryNPlusOneTest {
         order.setEmail(email);
         order.setOrderDate(LocalDate.now());
         order.setOrderStatus("Placed");
-        order.setTotalAmount(200.0);
-        order.setDiscountAmount(0.0);
-        order.setShippingCost(5.0);
+        order.setTotalAmount(new BigDecimal("200.00"));
+        order.setDiscountAmount(BigDecimal.ZERO);
+        order.setShippingCost(new BigDecimal("5.00"));
         order.setAppliedCoupons("");
         order.setAddress(address);
         order.setPayment(payment);
@@ -116,8 +117,8 @@ class OrderRepositoryNPlusOneTest {
         item.setOrder(order);
         item.setProduct(product);
         item.setQuantity(quantity);
-        item.setDiscount(0.0);
-        item.setOrderedProductPrice(product.getSpecialPrice());
+        item.setDiscount(BigDecimal.ZERO);
+        item.setOrderedProductPrice(BigDecimal.valueOf(product.getSpecialPrice()));
         return item;
     }
 

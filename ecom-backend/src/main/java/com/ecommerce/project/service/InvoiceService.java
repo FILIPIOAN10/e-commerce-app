@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -112,9 +113,11 @@ public class InvoiceService {
             for (OrderItem item : order.getOrderItems()) {
                 String productName = item.getProduct() != null ? item.getProduct().getProductName() : "N/A";
                 int qty = item.getQuantity();
-                double unitPrice = item.getOrderedProductPrice();
-                double discount = item.getDiscount();
-                double lineTotal = unitPrice * qty;
+                BigDecimal unitPrice = item.getOrderedProductPrice();
+                BigDecimal discount = item.getDiscount();
+                // Exact: a line total is the unit price counted qty times, not a
+                // float multiplication rounded at print time.
+                BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(qty));
 
                 itemTable.addCell(new Phrase(productName, normalFont));
                 itemTable.addCell(new Phrase(String.valueOf(qty), normalFont));

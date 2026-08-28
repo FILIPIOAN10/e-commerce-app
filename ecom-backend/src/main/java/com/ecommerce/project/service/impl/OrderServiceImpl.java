@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,9 +93,9 @@ public class OrderServiceImpl implements OrderService {
         // Coupon usage is only consumed once the order is actually being placed.
         consumeCoupons(pricing.appliedCouponIds(), pricing.appliedCouponCodes());
 
-        order.setTotalAmount(pricing.total());
-        order.setDiscountAmount(pricing.discountTotal());
-        order.setShippingCost(pricing.shippingTotal());
+        order.setTotalAmount(pricing.total().toBigDecimal());
+        order.setDiscountAmount(pricing.discountTotal().toBigDecimal());
+        order.setShippingCost(pricing.shippingTotal().toBigDecimal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
         order.setPayment(orderPaymentHandler.record(order, paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName));
@@ -109,8 +110,8 @@ public class OrderServiceImpl implements OrderService {
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setDiscount(cartItem.getDiscount());
-            orderItem.setOrderedProductPrice(cartItem.getProductPrice());
+            orderItem.setDiscount(money(cartItem.getDiscount()));
+            orderItem.setOrderedProductPrice(money(cartItem.getProductPrice()));
             orderItem.setOrder(savedOrder);
             orderItems.add(orderItem);
         }
@@ -127,8 +128,8 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.save(cart);
 
         // Send back the order summary
-        OrderDTO orderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, orderItems, addressId, pricing.total());
-        eventPublisher.publishEvent(new OrderPlacedEvent(emailId, savedOrder.getId(), pricing.total(), orderDTO));
+        OrderDTO orderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, orderItems, addressId, pricing.total().toBigDecimal());
+        eventPublisher.publishEvent(new OrderPlacedEvent(emailId, savedOrder.getId(), pricing.total().toBigDecimal(), orderDTO));
         return orderDTO;
     }
 
@@ -225,7 +226,8 @@ public class OrderServiceImpl implements OrderService {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
         return pricingPipeline.price(PricingContext.of(cartTotal, address, List.of()))
-                .shippingTotal();
+                .shippingTotal()
+                .toDouble();
     }
 
     @Override
@@ -251,10 +253,10 @@ public class OrderServiceImpl implements OrderService {
         OrderSummaryDTO summary = new OrderSummaryDTO();
         summary.setEmail(emailId);
         summary.setAddressId(addressId);
-        summary.setSubtotal(pricing.subtotal());
-        summary.setDiscountAmount(pricing.discountTotal());
-        summary.setShippingCost(pricing.shippingTotal());
-        summary.setTotalAmount(pricing.total());
+        summary.setSubtotal(pricing.subtotal().toDouble());
+        summary.setDiscountAmount(pricing.discountTotal().toDouble());
+        summary.setShippingCost(pricing.shippingTotal().toDouble());
+        summary.setTotalAmount(pricing.total().toDouble());
         summary.setAppliedCoupons(pricing.appliedCouponCodes());
         return summary;
     }
@@ -299,8 +301,8 @@ public class OrderServiceImpl implements OrderService {
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
             orderItem.setQuantity(dto.getQuantity());
-            orderItem.setDiscount(product.getDiscount());
-            orderItem.setOrderedProductPrice(price);
+            orderItem.setDiscount(money(product.getDiscount()));
+            orderItem.setOrderedProductPrice(money(price));
             orderItem.setOrder(order);
             orderItems.add(orderItem);
         }
@@ -313,9 +315,9 @@ public class OrderServiceImpl implements OrderService {
 
         consumeCoupons(pricing.appliedCouponIds(), pricing.appliedCouponCodes());
 
-        order.setTotalAmount(pricing.total());
-        order.setDiscountAmount(pricing.discountTotal());
-        order.setShippingCost(pricing.shippingTotal());
+        order.setTotalAmount(pricing.total().toBigDecimal());
+        order.setDiscountAmount(pricing.discountTotal().toBigDecimal());
+        order.setShippingCost(pricing.shippingTotal().toBigDecimal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
         order.setPayment(orderPaymentHandler.record(order, request.getPaymentMethod(),
@@ -327,8 +329,8 @@ public class OrderServiceImpl implements OrderService {
 
         consumeGuestStock(savedOrderItems, savedOrder.getId());
 
-        OrderDTO guestOrderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, savedOrderItems, address.getAddressId(), pricing.total());
-        eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), pricing.total(), guestOrderDTO));
+        OrderDTO guestOrderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, savedOrderItems, address.getAddressId(), pricing.total().toBigDecimal());
+        eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), pricing.total().toBigDecimal(), guestOrderDTO));
 
         return guestOrderDTO;
     }
@@ -355,6 +357,16 @@ public class OrderServiceImpl implements OrderService {
                         + ". Requested: " + item.getQuantity());
             }
         }
+    }
+
+    /**
+     * Cart items and products still carry {@code double}; the order no longer
+     * does. Every call to this is a boundary that the next slice of the money
+     * migration removes — when {@code Product} and {@code Cart} become
+     * {@code BigDecimal}, this method has no callers left.
+     */
+    private static BigDecimal money(Double amount) {
+        return amount == null ? BigDecimal.ZERO : BigDecimal.valueOf(amount);
     }
 
     /**

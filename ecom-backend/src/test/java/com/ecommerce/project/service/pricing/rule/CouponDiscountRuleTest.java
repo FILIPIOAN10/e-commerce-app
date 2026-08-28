@@ -6,6 +6,7 @@ import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
+import com.ecommerce.project.service.pricing.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -55,7 +55,7 @@ class CouponDiscountRuleTest {
     @DisplayName("no codes: leaves the total untouched and records nothing")
     void noCodes() {
         PriceBreakdown breakdown = apply(null, 100.0);
-        assertThat(breakdown.runningTotal()).isEqualTo(100.0);
+        assertThat(breakdown.runningTotal()).isEqualTo(Money.of(100.0));
         assertThat(breakdown.appliedCouponIds()).isEmpty();
     }
 
@@ -68,8 +68,8 @@ class CouponDiscountRuleTest {
         PriceBreakdown breakdown = apply(List.of("A", "B"), 100.0);
 
         // 100 - 10% = 90, then 90 - 10% = 81  (two 10% coupons are not 20%)
-        assertThat(breakdown.runningTotal()).isEqualTo(81.0, within(1e-9));
-        assertThat(breakdown.discountTotal()).isEqualTo(19.0, within(1e-9));
+        assertThat(breakdown.runningTotal()).isEqualTo(Money.of(81.0));
+        assertThat(breakdown.discountTotal()).isEqualTo(Money.of(19.0));
         assertThat(breakdown.appliedCouponIds()).containsExactly(1L, 2L);
         assertThat(breakdown.appliedCouponCodes()).containsExactly("A", "B");
     }
@@ -82,7 +82,7 @@ class CouponDiscountRuleTest {
         PriceBreakdown breakdown = apply(List.of("  ", "save10"), 50.0);
 
         verify(couponRepository).findByCode("SAVE10");
-        assertThat(breakdown.discountTotal()).isEqualTo(10.0, within(1e-9));
+        assertThat(breakdown.discountTotal()).isEqualTo(Money.of(10.0));
     }
 
     @Test

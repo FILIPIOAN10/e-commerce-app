@@ -33,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -171,7 +172,7 @@ class OrderServiceImplTest {
         savedOrder.setId(1L);
         savedOrder.setEmail(EMAIL);
         savedOrder.setOrderStatus("Placed");
-        savedOrder.setTotalAmount(100.0);
+        savedOrder.setTotalAmount(new BigDecimal("100.00"));
         savedOrder.setOrderDate(LocalDate.now());
         savedOrder.setAddress(address);
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> {
@@ -213,7 +214,7 @@ class OrderServiceImplTest {
             assertEquals("Placed", result.getOrderStatus());
             assertEquals(EMAIL, result.getEmail());
             assertEquals(ADDRESS_ID, result.getAddressId());
-            assertEquals(100.0, result.getTotalAmount());
+            assertEquals(new BigDecimal("100.00"), result.getTotalAmount());
 
             verify(orderRepository).save(any(Order.class));
             verify(paymentRepository).save(any(Payment.class));
@@ -431,7 +432,7 @@ class OrderServiceImplTest {
                     "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
             // 100 - 10% = 90, plus 3.0 domestic shipping (Romania) because post-discount total is below 100
-            assertEquals(93.0, result.getTotalAmount());
+            assertEquals(new BigDecimal("93.00"), result.getTotalAmount());
             // Usage is now consumed atomically in the database, not via a read-modify-write save.
             verify(couponRepository).tryConsume(coupon.getId());
         }
@@ -602,9 +603,9 @@ class OrderServiceImplTest {
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
                     "pi_123", "succeeded", "OK", List.of("SAVE10"));
 
-            assertEquals(89.0, placed.getTotalAmount());
-            assertEquals(5.0, placed.getShippingCost());
-            assertEquals(21.0, placed.getDiscountAmount());
+            assertEquals(new BigDecimal("89.00"), placed.getTotalAmount());
+            assertEquals(new BigDecimal("5.00"), placed.getShippingCost());
+            assertEquals(new BigDecimal("21.00"), placed.getDiscountAmount());
         }
     }
 }
