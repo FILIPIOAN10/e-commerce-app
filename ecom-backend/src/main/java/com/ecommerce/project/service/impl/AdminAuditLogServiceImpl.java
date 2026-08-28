@@ -81,6 +81,29 @@ public class AdminAuditLogServiceImpl implements AdminAuditLogService {
         return adminAuditLogRepository.save(log);
     }
 
+    /**
+     * The one audit entry written in the caller's transaction rather than a new
+     * one: if the erasure rolls back, the claim that it happened must roll back
+     * with it.
+     */
+    @Override
+    @Transactional
+    public AdminAuditLog logGdprErasure(Long userId, String pseudonym) {
+        AdminAuditLog log = AdminAuditLog.builder()
+                .adminUserId(userId)
+                .adminUsername(pseudonym)
+                .action("GDPR_ERASURE")
+                .entityType("User")
+                .entityId(String.valueOf(userId))
+                .oldValue("ACTIVE")
+                .newValue("ERASED")
+                .details("Account erased on the user's own request under GDPR Art. 17; "
+                        + "retained fiscal records anonymised to " + pseudonym)
+                .build();
+
+        return adminAuditLogRepository.save(log);
+    }
+
     @Override
     public List<AdminAuditLog> getRecentLogs() {
         return adminAuditLogRepository.findTop100ByOrderByCreatedAtDesc();

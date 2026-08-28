@@ -42,6 +42,18 @@ public class Product {
     private double discount; // 25
     private double specialPrice; // 75
 
+    /**
+     * Denormalised from the reviews table so rating can be filtered, bucketed and
+     * sorted with an index instead of an aggregate per row. Recomputed — never
+     * incremented — by {@code ProductRepository.refreshRatingAggregate}, so it
+     * cannot drift away from the reviews it summarises.
+     */
+    @Column(name = "average_rating", nullable = false)
+    private double averageRating = 0.0;
+
+    @Column(name = "review_count", nullable = false)
+    private int reviewCount = 0;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;

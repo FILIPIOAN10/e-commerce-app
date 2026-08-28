@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -39,22 +40,35 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
             "ORDER BY SUM(oi.quantity) DESC")
     List<Product> findBestSellingProducts(Pageable pageable);
 
-    /**
-     * Atomically reduces stock only if enough is available.
-     *
-     * @return 1 when the stock was decremented, 0 when there was not enough stock.
-     *         A return value of 0 means the caller must reject the operation.
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.quantity = p.quantity - :qty, p.version = p.version + 1 " +
-           "WHERE p.productId = :id AND p.quantity >= :qty")
-    int decrementStock(@Param("id") Long id, @Param("qty") int qty);
+    // Stock is not mutated from here. Every change to products.quantity goes
+    // through StockLedgerService, which applies it and appends the movement that
+    // explains it in one statement; a second door on the repository would be a
+    // stock change with no ledger entry, which is exactly what the reconciliation
+    // sweep exists to catch.
 
     /**
-     * Atomically returns stock to inventory, used when an order is cancelled or returned.
+     * Re-derives the denormalised rating columns for the given products from the
+     * reviews table.
+     *
+     * <p>Recomputed rather than adjusted: an incremented average survives one bug
+     * and is wrong forever after, while this statement is correct whatever
+     * happened before it — including a bulk delete of a user's reviews that never
+     * went through {@code ReviewService} at all.
+     *
+     * <p>Deliberately does <em>not</em> bump {@code version}: these columns are
+     * derived, never edited by a user, and an optimistic-lock conflict raised
+     * because somebody left a review would be noise.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Product p SET p.quantity = p.quantity + :qty, p.version = p.version + 1 " +
-           "WHERE p.productId = :id")
-    int incrementStock(@Param("id") Long id, @Param("qty") int qty);
+    @Query(value = """
+            UPDATE products p
+            SET average_rating = COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.product_id = p.product_id), 0),
+                review_count   = (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.product_id)
+            WHERE p.product_id IN (:productIds)
+            """, nativeQuery = true)
+    int refreshRatingAggregates(@Param("productIds") Collection<Long> productIds);
+
+    default int refreshRatingAggregate(Long productId) {
+        return refreshRatingAggregates(List.of(productId));
+    }
 }

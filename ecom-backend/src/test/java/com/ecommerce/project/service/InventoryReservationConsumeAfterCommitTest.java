@@ -2,7 +2,10 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.model.Product;
+import com.ecommerce.project.model.StockMovement;
+import com.ecommerce.project.model.StockMovementReason;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.util.AfterCommitExecutor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,11 +27,15 @@ import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +55,7 @@ class InventoryReservationConsumeAfterCommitTest {
 
     @Mock private StringRedisTemplate redisTemplate;
     @Mock private ProductRepository productRepository;
+    @Mock private StockLedgerService stockLedgerService;
     @Mock @SuppressWarnings("unchecked") private HashOperations<String, Object, Object> hashOps;
     @Mock @SuppressWarnings("unchecked") private ZSetOperations<String, String> zSetOps;
 
@@ -55,7 +63,8 @@ class InventoryReservationConsumeAfterCommitTest {
 
     @BeforeEach
     void setUp() {
-        service = new InventoryReservationService(redisTemplate, productRepository, new AfterCommitExecutor());
+        service = new InventoryReservationService(
+                redisTemplate, productRepository, new AfterCommitExecutor(), stockLedgerService);
         ReflectionTestUtils.setField(service, "reservationTtl", Duration.ofMinutes(10));
         when(redisTemplate.opsForHash()).thenReturn(hashOps);
         when(redisTemplate.opsForZSet()).thenReturn(zSetOps);
@@ -79,17 +88,32 @@ class InventoryReservationConsumeAfterCommitTest {
         return p;
     }
 
+    /** The ledger takes the stock and hands back the movement it recorded. */
+    private void stockTaken(long productId, int qty) {
+        when(stockLedgerService.tryApplyAndRecord(eq(productId), eq(-qty),
+                eq(StockMovementReason.SALE), eq("CART"), anyLong(), any()))
+                .thenReturn(Optional.of(StockMovement.of(productId, -qty, StockMovementReason.SALE,
+                        "CART", 1L, 0, null, "guest")));
+    }
+
+    /** The conditional update found nothing to take. */
+    private void stockUnavailable(long productId, int qty) {
+        when(stockLedgerService.tryApplyAndRecord(eq(productId), eq(-qty),
+                eq(StockMovementReason.SALE), eq("CART"), anyLong(), any()))
+                .thenReturn(Optional.empty());
+    }
+
     @Test
     @DisplayName("DB stock is decremented in-line, but Redis keys are not freed until commit")
     void purgeRunsOnlyAfterCommit() {
         when(zSetOps.range(CART_KEY, 0, -1)).thenReturn(Set.of("res-1"));
         reservation("res-1", 1L, 2);
-        when(productRepository.decrementStock(1L, 2)).thenReturn(1);
+        stockTaken(1L, 2);
 
         service.consumeReservationsForCart(1L);
 
         // DB work happened; Redis cleanup is still pending.
-        verify(productRepository).decrementStock(1L, 2);
+        verify(stockLedgerService).tryApplyAndRecord(1L, -2, StockMovementReason.SALE, "CART", 1L, null);
         verify(redisTemplate, never()).delete(anyString());
         verify(zSetOps, never()).remove(anyString(), anyString());
 
@@ -106,7 +130,7 @@ class InventoryReservationConsumeAfterCommitTest {
     void rollbackKeepsReservations() {
         when(zSetOps.range(CART_KEY, 0, -1)).thenReturn(Set.of("res-1"));
         reservation("res-1", 1L, 2);
-        when(productRepository.decrementStock(1L, 2)).thenReturn(1);
+        stockTaken(1L, 2);
 
         service.consumeReservationsForCart(1L);
         fireAfterCompletionRollback();
@@ -122,9 +146,9 @@ class InventoryReservationConsumeAfterCommitTest {
         when(zSetOps.range(CART_KEY, 0, -1)).thenReturn(ids);
         reservation("res-1", 1L, 2);
         reservation("res-2", 2L, 1);
-        when(productRepository.decrementStock(1L, 2)).thenReturn(1);   // first succeeds
-        when(productRepository.decrementStock(2L, 1)).thenReturn(0);   // second lost the race
-        when(productRepository.findById(2L)).thenReturn(java.util.Optional.of(product(2L, "Widget")));
+        stockTaken(1L, 2);          // first succeeds
+        stockUnavailable(2L, 1);    // second lost the race
+        when(productRepository.findById(2L)).thenReturn(Optional.of(product(2L, "Widget")));
 
         assertThatThrownBy(() -> service.consumeReservationsForCart(1L))
                 .isInstanceOf(APIException.class)

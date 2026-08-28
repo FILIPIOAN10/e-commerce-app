@@ -7,6 +7,7 @@ import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.CategoryRepository;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.service.ProductImportService;
+import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class ProductImportServiceImpl implements ProductImportService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final AuthUtil authUtil;
+    private final StockLedgerService stockLedgerService;
 
     @Override
     @Transactional
@@ -79,6 +81,11 @@ public class ProductImportServiceImpl implements ProductImportService {
                 product.setLowStockThreshold(10);
 
                 productRepository.save(product);
+                // The row already carries the imported quantity; the ledger
+                // records where it came from so an imported figure is as
+                // explicable as a manually entered one.
+                stockLedgerService.recordOpeningBalance(
+                        product.getProductId(), quantity, "CSV_IMPORT");
                 created++;
             }
         } catch (NumberFormatException e) {

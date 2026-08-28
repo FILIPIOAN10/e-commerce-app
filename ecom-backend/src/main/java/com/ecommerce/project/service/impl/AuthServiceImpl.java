@@ -160,6 +160,13 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+        // Erasure revokes every refresh token, so this should be unreachable —
+        // but a token minted a moment before the erasure committed must not be
+        // able to mint a fresh access cookie for a deleted account.
+        if (user.isErased()) {
+            throw new InvalidCredentialsException("Invalid or expired refresh token");
+        }
+
         UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
         ResponseCookie accessCookie = jwtUtils.generateJwtCookie(userDetails);
         ResponseCookie refreshCookie = refreshTokenService.generateRefreshCookie(newRefreshToken);

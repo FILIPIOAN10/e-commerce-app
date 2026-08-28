@@ -61,6 +61,10 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
 
         reviewRepository.save(review);
+        // Flush first: the aggregate is re-derived by a native statement, which
+        // does not see rows still sitting in the persistence context.
+        reviewRepository.flush();
+        productRepository.refreshRatingAggregate(productId);
         return "Review added successfully";
     }
 
@@ -81,6 +85,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setRating(rating);
         review.setComment(comment);
         reviewRepository.save(review);
+        reviewRepository.flush();
+        productRepository.refreshRatingAggregate(productId);
         return "Review updated successfully";
     }
 
@@ -95,6 +101,8 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new APIException("Review not found"));
 
         reviewRepository.delete(review);
+        reviewRepository.flush();
+        productRepository.refreshRatingAggregate(productId);
         return "Review deleted successfully";
     }
 

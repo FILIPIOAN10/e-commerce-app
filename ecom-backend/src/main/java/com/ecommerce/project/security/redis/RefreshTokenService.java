@@ -154,6 +154,24 @@ public class RefreshTokenService {
         redisTemplate.opsForSet().remove(USER_SESSIONS_PREFIX + username, token);
     }
 
+    /**
+     * Revokes every session for a user, the caller's own included. Used by GDPR
+     * erasure — {@link #revokeAllOtherSessions} deliberately keeps one alive, and
+     * an erased account must keep none.
+     */
+    public void revokeAllSessions(String username) {
+        String userSessionsKey = USER_SESSIONS_PREFIX + username;
+        Set<String> tokens = redisTemplate.opsForSet().members(userSessionsKey);
+        if (tokens == null || tokens.isEmpty()) {
+            return;
+        }
+        for (String token : tokens) {
+            delete(token);
+            redisTemplate.delete(SESSION_PREFIX + token);
+        }
+        redisTemplate.delete(userSessionsKey);
+    }
+
     public void revokeAllOtherSessions(String username, String currentToken) {
         String userSessionsKey = USER_SESSIONS_PREFIX + username;
         Set<String> tokens = redisTemplate.opsForSet().members(userSessionsKey);

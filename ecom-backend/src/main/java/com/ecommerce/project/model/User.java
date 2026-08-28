@@ -108,4 +108,16 @@ public class User {
     /** Explicit consent to receive marketing email (e.g. abandoned-cart reminders). */
     @Column(name = "marketing_opt_in", nullable = false, columnDefinition = "boolean default false")
     private boolean marketingOptIn = false;
+
+    /**
+     * Tombstone left by GDPR erasure. The row survives because retained orders
+     * point at it, but every identifying column has been overwritten and the
+     * account can no longer authenticate — see
+     * {@link com.ecommerce.project.service.gdpr.GdprErasureService}.
+     */
+    @Column(name = "erased", nullable = false, columnDefinition = "boolean default false")
+    private boolean erased = false;
+
+    @Column(name = "erased_at")
+    private java.time.Instant erasedAt;
 }

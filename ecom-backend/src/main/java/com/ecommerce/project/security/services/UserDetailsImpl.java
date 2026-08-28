@@ -33,14 +33,26 @@ public class UserDetailsImpl implements UserDetails {
     // collections and group of authorities that are assigned to this user
     private Collection<? extends GrantedAuthority> authorities;
 
+    /**
+     * False for a GDPR-erased account. Checked by Spring Security itself, so
+     * every authentication path — form login, refresh, OAuth2 — is closed by
+     * this one flag rather than by a check each of them has to remember.
+     */
+    private boolean enabled = true;
 
     public UserDetailsImpl(Long id, String username, String email, String password,
                            Collection<? extends GrantedAuthority> authorities) {
+        this(id, username, email, password, authorities, true);
+    }
+
+    public UserDetailsImpl(Long id, String username, String email, String password,
+                           Collection<? extends GrantedAuthority> authorities, boolean enabled) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
+        this.enabled = enabled;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -54,7 +66,8 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUserName(),
                 user.getEmail(),
                 user.getPassword(),
-                authorities
+                authorities,
+                !user.isErased()
         );
     }
 
@@ -90,7 +103,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
     @Override

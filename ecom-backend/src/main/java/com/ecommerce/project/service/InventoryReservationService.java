@@ -3,8 +3,10 @@ package com.ecommerce.project.service;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
+import com.ecommerce.project.model.StockMovementReason;
 import com.ecommerce.project.payload.ReservationResponse;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.util.AfterCommitExecutor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,6 +52,7 @@ public class InventoryReservationService {
     private final StringRedisTemplate redisTemplate;
     private final ProductRepository productRepository;
     private final AfterCommitExecutor afterCommitExecutor;
+    private final StockLedgerService stockLedgerService;
 
     @Value("${inventory.reservation.ttl:10m}")
     private Duration reservationTtl;
@@ -212,9 +215,9 @@ public class InventoryReservationService {
             // products.quantity, not an atomic read inside the script. Between
             // that read and here another checkout can consume stock, so the
             // reservation check can pass against a stale total. It cannot
-            // oversell — consumeReservationsForCart's conditional decrementStock
-            // (WHERE quantity >= :qty) is the authoritative gate and rejects the
-            // loser there. The window only lets an over-optimistic reservation
+            // oversell — the ledger's conditional update at consume time
+            // (WHERE quantity + :delta >= 0) is the authoritative gate and
+            // rejects the loser there. The window only lets an over-optimistic reservation
             // through; it never lets stock go negative.
             args.add(String.valueOf(product.getQuantity()));
             args.add(UUID.randomUUID().toString());
@@ -296,9 +299,11 @@ public class InventoryReservationService {
             int quantity = Integer.parseInt(String.valueOf(fields.get("quantity")));
 
             // Atomic conditional decrement and the authoritative oversell gate
-            // (see the F12 note in reserveCartItems). A result of 0 means a
+            // (see the F12 note in reserveCartItems). An empty result means a
             // concurrent checkout took the stock after this cart reserved it.
-            if (productRepository.decrementStock(productId, quantity) == 0) {
+            // Routed through the ledger so the sale is explicable afterwards.
+            if (stockLedgerService.tryApplyAndRecord(productId, -quantity, StockMovementReason.SALE,
+                    "CART", cartId, null).isEmpty()) {
                 int available = productRepository.findById(productId)
                         .map(Product::getQuantity).orElse(0);
                 throw new APIException(productName(productId) + " sold out while you were checking out"

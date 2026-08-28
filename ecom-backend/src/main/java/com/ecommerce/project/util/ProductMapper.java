@@ -4,7 +4,6 @@ import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
-import com.ecommerce.project.repository.ReviewRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -19,20 +18,24 @@ import java.util.stream.Collectors;
 public class ProductMapper {
 
     private final ModelMapper modelMapper;
-    private final ReviewRepository reviewRepository;
 
     @Value("${image.base.url}")
     private String imageBaseUrl;
 
-    public ProductMapper(ModelMapper modelMapper, ReviewRepository reviewRepository) {
+    public ProductMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
-        this.reviewRepository = reviewRepository;
     }
 
     public ProductDTO mapProductToDTO(Product product) {
         return mapProductToDTO(product, Map.of(), Map.of());
     }
 
+    /**
+     * The rating maps are now only an override: since V22 the average and count
+     * live on the product itself, so a caller that has nothing to supply pays
+     * nothing. Before that, an empty map here meant two extra queries
+     * <em>per product</em> — the N+1 that the denormalised columns exist to kill.
+     */
     public ProductDTO mapProductToDTO(Product product, Map<Long, Double> avgRatings, Map<Long, Long> reviewCounts) {
         ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
         productDTO.setImage(constructImageUrl(product.getImage()));
@@ -45,14 +48,8 @@ public class ProductMapper {
         productDTO.setImages(imageUrls);
 
         Long productId = product.getProductId();
-        Double avgRating = avgRatings.get(productId);
-        if (avgRating == null) {
-            avgRating = reviewRepository.getAverageRatingForProduct(product);
-        }
-        Long reviewCount = reviewCounts.get(productId);
-        if (reviewCount == null) {
-            reviewCount = reviewRepository.countByProduct(product);
-        }
+        Double avgRating = avgRatings.getOrDefault(productId, product.getAverageRating());
+        Long reviewCount = reviewCounts.getOrDefault(productId, (long) product.getReviewCount());
         productDTO.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
         productDTO.setReviewCount(reviewCount);
         productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
@@ -65,21 +62,8 @@ public class ProductMapper {
         if (products == null || products.isEmpty()) {
             return List.of();
         }
-        List<Long> productIds = products.stream()
-                .map(Product::getProductId)
-                .toList();
-        Map<Long, Double> avgRatings = new HashMap<>();
-        Map<Long, Long> reviewCounts = new HashMap<>();
-        for (Long productId : productIds) {
-            avgRatings.put(productId, 0.0);
-            reviewCounts.put(productId, 0L);
-        }
-        reviewRepository.getAverageRatingsForProductIds(productIds)
-                .forEach(row -> avgRatings.put((Long) row[0], (Double) row[1]));
-        reviewRepository.getReviewCountsForProductIds(productIds)
-                .forEach(row -> reviewCounts.put((Long) row[0], (Long) row[1]));
         return products.stream()
-                .map(p -> mapProductToDTO(p, avgRatings, reviewCounts))
+                .map(this::mapProductToDTO)
                 .toList();
     }
 

@@ -113,6 +113,35 @@ ordering); and paginated queries that also need a collection use the **two-phase
 id-then-details** fetch (page over IDs in SQL, then fetch the full graph for that
 page) because a `JOIN FETCH` plus `Pageable` paginates in memory.
 
+**A crash between "order saved" and "email sent" loses neither.** The
+confirmation email is not sent from the checkout transaction; a row is written to
+`outbox_event` inside it, and a poller drains the table with `FOR UPDATE SKIP
+LOCKED` so several instances can work the same queue without stepping on each
+other. A failing event retries with exponential backoff and is dead-lettered
+after 8 attempts rather than retried forever. Fiscal invoice numbers rely on the
+same commit-or-nothing property from the other side: a per-year counter row is
+incremented *inside* the transaction that inserts the invoice, rather than drawn
+from a SEQUENCE, because a rolled-back checkout must not consume number 41 and
+leave a permanent hole in the year. *Trade-off:* the outbox costs a table, a
+poller and at-least-once delivery, so handlers have to be idempotent; the counter
+row serialises concurrent issuers on a lock held at the tail of checkout, which
+is fine at this store's volume and would move behind the outbox if it were not.
+
+**Every change to stock can be explained afterwards.** `products.quantity` was a
+bare mutable number: when it said 3, nothing recorded what sold, what came back,
+or what an admin corrected by hand. Every write now goes through one service that
+applies the change and appends a signed `stock_movement` row — reason, cause,
+resulting balance, actor — via a single
+`UPDATE ... WHERE quantity + :delta >= 0 RETURNING quantity`, which decides and
+reads the new balance in one statement and is itself the oversell gate. The
+service is `Propagation.MANDATORY`: a movement recorded outside a transaction
+could outlive the rolled-back order that caused it, so a caller without one fails
+loudly. *Trade-off:* the raw UPDATE leaves an already-loaded `Product` stale in
+the persistence context, so callers take the new figure from the returned
+movement; and the trail is only as good as the discipline of routing every write
+through the service, so a scheduled sweep asserts
+`SUM(delta) = products.quantity` per product and logs whatever drifted.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -122,11 +151,16 @@ successors); the order-lifecycle listeners are **Observers** on
 
 ### In flight this iteration
 
-Not yet merged, each on its own branch: gapless fiscal invoice numbering; a
-transactional outbox making the order emails durable (retry + dead-letter);
-abandoned-cart recovery riding on that outbox; an N+1 sweep of the remaining
-list endpoints; and `OrderServiceImpl` trimmed from 447 lines / 15 dependencies
-to 344 / 13.
+Not yet merged, each on its own branch: an Art. 15 data export and Art. 17
+erasure path for GDPR (see `docs/gdpr.md`); faceted product search with
+drill-down counts; and the stock ledger described above.
+
+Money is mid-migration. The `Money` value object — exact `BigDecimal`, scale 2,
+HALF_UP — owns the pricing pipeline and everything handed to Stripe, but the
+entities still store `double`/`Double`. `Order`/`OrderItem`, then
+`Product`/`Cart`, then tax, then the remainder are being moved across one slice
+per branch rather than in one sweep, because every slice touches the payment
+path.
 
 ## Getting Started
  

@@ -15,6 +15,13 @@ public interface AdminAuditLogService {
 
     AdminAuditLog logAccountUnlock(Long adminUserId, String adminUsername, Long userId, String targetUsername);
 
+    /**
+     * Records that an account was erased under GDPR Art. 17. Takes only the
+     * pseudonym the erasure assigned — an audit row naming the person we just
+     * promised to forget would undo the erasure it is meant to evidence.
+     */
+    AdminAuditLog logGdprErasure(Long userId, String pseudonym);
+
     List<AdminAuditLog> getRecentLogs();
 
     List<AdminAuditLog> getLogsByAction(String action);

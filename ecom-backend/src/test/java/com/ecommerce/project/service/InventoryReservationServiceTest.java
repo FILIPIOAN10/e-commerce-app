@@ -3,8 +3,11 @@ package com.ecommerce.project.service;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
+import com.ecommerce.project.model.StockMovement;
+import com.ecommerce.project.model.StockMovementReason;
 import com.ecommerce.project.payload.ReservationResponse;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.util.AfterCommitExecutor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,6 +53,9 @@ class InventoryReservationServiceTest {
 
     @Mock
     private AfterCommitExecutor afterCommitExecutor;
+
+    @Mock
+    private StockLedgerService stockLedgerService;
 
     @InjectMocks
     private InventoryReservationService inventoryReservationService;
@@ -127,12 +133,13 @@ class InventoryReservationServiceTest {
                 "cartId", "1",
                 "expiresAt", String.valueOf(System.currentTimeMillis() + 60000)
         ));
-        // Atomic conditional decrement succeeds (1 row updated).
-        when(productRepository.decrementStock(1L, 2)).thenReturn(1);
+        // The ledger's conditional update takes the stock and records the sale.
+        stockTaken(1L, 2);
 
         inventoryReservationService.consumeReservationsForCart(1L);
 
-        verify(productRepository).decrementStock(1L, 2);
+        verify(stockLedgerService)
+                .tryApplyAndRecord(1L, -2, StockMovementReason.SALE, "CART", 1L, null);
         verify(redisTemplate).delete("reservation:res-1");
         verify(zSetOps).remove(PRODUCT_KEY, "res-1:2");
         verify(redisTemplate).delete(CART_KEY);
@@ -144,7 +151,7 @@ class InventoryReservationServiceTest {
         when(zSetOps.range(CART_KEY, 0, -1)).thenReturn(Set.of("res-1"));
         when(hashOps.entries("reservation:res-1")).thenReturn(Map.of(
                 "productId", "1", "quantity", "2", "cartId", "1"));
-        when(productRepository.decrementStock(1L, 2)).thenReturn(1);
+        stockTaken(1L, 2);
 
         inventoryReservationService.consumeReservationsForCart(1L);
 
@@ -174,8 +181,8 @@ class InventoryReservationServiceTest {
                 "expiresAt", String.valueOf(System.currentTimeMillis() + 60000)
         ));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        // Atomic conditional decrement matched no rows: stock was taken concurrently.
-        when(productRepository.decrementStock(1L, 2)).thenReturn(0);
+        // The ledger's guard matched no row: stock was taken concurrently.
+        stockUnavailable(1L, 2);
 
         APIException ex = assertThrows(APIException.class,
                 () -> inventoryReservationService.consumeReservationsForCart(1L));
@@ -273,5 +280,20 @@ class InventoryReservationServiceTest {
 
         assertTrue(responses.isEmpty());
         verify(redisTemplate, never()).execute(any(DefaultRedisScript.class), anyList(), any(Object[].class));
+    }
+
+    /** The ledger takes the stock and hands back the movement it recorded. */
+    private void stockTaken(long productId, int qty) {
+        when(stockLedgerService.tryApplyAndRecord(eq(productId), eq(-qty),
+                eq(StockMovementReason.SALE), eq("CART"), anyLong(), any()))
+                .thenReturn(Optional.of(StockMovement.of(productId, -qty, StockMovementReason.SALE,
+                        "CART", 1L, 0, null, "guest")));
+    }
+
+    /** The ledger's conditional update found nothing to take. */
+    private void stockUnavailable(long productId, int qty) {
+        when(stockLedgerService.tryApplyAndRecord(eq(productId), eq(-qty),
+                eq(StockMovementReason.SALE), eq("CART"), anyLong(), any()))
+                .thenReturn(Optional.empty());
     }
 }

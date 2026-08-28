@@ -18,4 +18,7 @@ public interface ReturnRequestRepository extends JpaRepository<ReturnRequest, Lo
     Optional<ReturnRequest> findByOrderId(Long orderId);
 
     boolean existsByOrderIdAndStatus(Long orderId, String status);
+
+    /** Every return this user has raised — read by the GDPR export. */
+    java.util.List<ReturnRequest> findByUserEmailOrderByIdAsc(String email);
 }

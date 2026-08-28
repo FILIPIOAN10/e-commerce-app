@@ -167,6 +167,59 @@ public class EmailService {
         }
     }
 
+    /**
+     * Tells the customer their Art. 15 archive is ready. Throws on failure so the
+     * outbox retries: a built export nobody was told about is a request we
+     * silently failed to answer.
+     */
+    public void sendGdprExportReadyEmail(String toEmail, String name, String downloadUrl, long expiryDays) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Your data export is ready");
+
+            String html = emailTemplateService.render("gdpr-export-ready", Map.of(
+                    "name", name != null && !name.isBlank() ? name : "there",
+                    "expiryDays", String.valueOf(expiryDays),
+                    "link", downloadUrl
+            ));
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
+            log.info("GDPR export email handed off to SMTP for {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send GDPR export email to {}", toEmail, e);
+            throw new EmailDeliveryException("GDPR export email to " + toEmail, e);
+        }
+    }
+
+    /**
+     * The second factor of account deletion. Swallows failures like the password
+     * reset does — the caller is already told to check their email, and surfacing
+     * SMTP trouble here would only reveal which addresses exist.
+     */
+    public void sendGdprErasureConfirmationEmail(String toEmail, String name, String confirmUrl, long expiryMinutes) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Confirm deleting your account");
+
+            String html = emailTemplateService.render("gdpr-erase-confirm", Map.of(
+                    "name", name != null && !name.isBlank() ? name : "there",
+                    "expires", String.valueOf(expiryMinutes),
+                    "link", confirmUrl
+            ));
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
+            log.info("GDPR erasure confirmation email handed off to SMTP for {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send GDPR erasure confirmation email to {}", toEmail, e);
+        }
+    }
+
     public void sendUnlockRequestEmail(String username) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();

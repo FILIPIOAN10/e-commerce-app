@@ -156,8 +156,8 @@ class ProductServiceImplCacheIntegrationTest {
         }
 
         @Bean
-        public ProductMapper productMapper(ModelMapper modelMapper, ReviewRepository reviewRepository) {
-            ProductMapper mapper = new ProductMapper(modelMapper, reviewRepository);
+        public ProductMapper productMapper(ModelMapper modelMapper) {
+            ProductMapper mapper = new ProductMapper(modelMapper);
             ReflectionTestUtils.setField(mapper, "imageBaseUrl", "http://localhost:8080/images");
             return mapper;
         }
@@ -195,11 +195,17 @@ class ProductServiceImplCacheIntegrationTest {
                                              ProductSemanticSearchService productSemanticSearchService,
                                              com.ecommerce.project.cache.TransactionAwareCacheEvictor cacheEvictor,
                                              AuthUtil authUtil,
-                                             AdminAuditLogService adminAuditLogService) {
+                                             AdminAuditLogService adminAuditLogService,
+                                             com.ecommerce.project.service.stock.StockLedgerService stockLedgerService) {
             return new ProductServiceImpl(
                     productRepository, categoryRepository, modelMapper, cartRepository, cartService,
                     productImageService, productMapper, productSemanticSearchService, cacheEvictor,
-                    authUtil, adminAuditLogService);
+                    authUtil, adminAuditLogService, stockLedgerService);
+        }
+
+        @Bean
+        public com.ecommerce.project.service.stock.StockLedgerService stockLedgerService() {
+            return mock(com.ecommerce.project.service.stock.StockLedgerService.class);
         }
     }
 }
