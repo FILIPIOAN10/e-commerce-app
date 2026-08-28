@@ -6,19 +6,16 @@ import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.CartItemDTO;
 import com.ecommerce.project.payload.GuestCheckoutRequestDTO;
 import com.ecommerce.project.payload.OrderDTO;
-import com.ecommerce.project.payload.OrderItemDTO;
 import com.ecommerce.project.payload.OrderResponse;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
-import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.InventoryReservationService;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.order.OrderDtoAssembler;
+import com.ecommerce.project.service.order.OrderPaymentHandler;
 import com.ecommerce.project.service.order.OrderStatus;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
-import com.ecommerce.project.service.payment.PaymentAttempt;
-import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
-import com.ecommerce.project.service.payment.PaymentVerification;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
 import com.ecommerce.project.service.pricing.PricingPipeline;
@@ -27,30 +24,16 @@ import com.ecommerce.project.util.PaginationUtil;
 import com.ecommerce.project.util.SortWhitelist;
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.repository.CouponRepository;
-import org.openpdf.text.Document;
-import org.openpdf.text.Paragraph;
-import org.openpdf.text.Phrase;
-import org.openpdf.text.pdf.PdfPCell;
-import org.openpdf.text.pdf.PdfPTable;
-import org.openpdf.text.pdf.PdfWriter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,19 +42,17 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
-    private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
-    private final CartService cartService;
     private final InventoryReservationService inventoryReservationService;
-    private final ModelMapper modelMapper;
     private final CouponRepository couponRepository;
 
     private final AuthUtil authUtil;
-    private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final PricingPipeline pricingPipeline;
     private final ApplicationEventPublisher eventPublisher;
+    private final OrderDtoAssembler orderDtoAssembler;
+    private final OrderPaymentHandler orderPaymentHandler;
 
 
     @Override
@@ -104,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
         PriceBreakdown pricing = pricingPipeline.price(
                 PricingContext.of(cart.getTotalPrice(), address, couponCodes));
 
-        verifyPayment(paymentMethod, pgName, pgPaymentId, pricing.total());
+        orderPaymentHandler.verify(paymentMethod, pgName, pgPaymentId, pricing.total());
 
         // Coupon usage is only consumed once the order is actually being placed.
         consumeCoupons(pricing.appliedCouponIds(), pricing.appliedCouponCodes());
@@ -114,10 +95,7 @@ public class OrderServiceImpl implements OrderService {
         order.setShippingCost(pricing.shippingTotal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
-        Payment payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
-        payment.setOrder(order);
-        payment = paymentRepository.save(payment);
-        order.setPayment(payment);
+        order.setPayment(orderPaymentHandler.record(order, paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName));
         Order savedOrder = orderRepository.save(order);
 
         List<OrderItem> orderItems = new ArrayList<>();
@@ -147,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.save(cart);
 
         // Send back the order summary
-        OrderDTO orderDTO = buildOrderDTO(savedOrder, orderItems, addressId, pricing.total());
+        OrderDTO orderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, orderItems, addressId, pricing.total());
         eventPublisher.publishEvent(new OrderPlacedEvent(emailId, savedOrder.getId(), pricing.total(), orderDTO));
         return orderDTO;
     }
@@ -158,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
                 AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
 
-        return buildOrderResponse(orderRepository.findAllIds(pageDetails));
+        return orderDtoAssembler.buildOrderResponse(orderRepository.findAllIds(pageDetails));
     }
 
     @Override
@@ -176,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderStatus(status);
         orderRepository.save(order);
-        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        OrderDTO orderDTO = orderDtoAssembler.forStatusUpdate(order);
         eventPublisher.publishEvent(new OrderStatusUpdatedEvent(orderId, order.getEmail(), status, orderDTO));
         return orderDTO;
     }
@@ -205,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
 
         User seller = authUtil.loggedInUser();
 
-        return buildOrderResponse(orderRepository.findIdsBySellerId(seller.getUserId(), pageDetails));
+        return orderDtoAssembler.buildOrderResponse(orderRepository.findIdsBySellerId(seller.getUserId(), pageDetails));
     }
 
     @Override
@@ -213,7 +191,7 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
                 AppConstants.SORT_ORDERS_BY, SortWhitelist.ORDER);
 
-        return buildOrderResponse(orderRepository.findIdsByEmail(email, pageDetails));
+        return orderDtoAssembler.buildOrderResponse(orderRepository.findIdsByEmail(email, pageDetails));
     }
 
     @Override
@@ -226,15 +204,7 @@ public class OrderServiceImpl implements OrderService {
             throw new AccessDeniedException("You can only access your own orders");
         }
 
-        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
-        orderDTO.setAddressId(order.getAddress().getAddressId());
-
-        List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
-                .map(item -> modelMapper.map(item, OrderItemDTO.class))
-                .toList();
-        orderDTO.setItems(itemDTOs);
-
-        return orderDTO;
+        return orderDtoAssembler.forDetailView(order);
     }
 
 
@@ -280,7 +250,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDTO placeGuestOrder(GuestCheckoutRequestDTO request) {
-        Address address = modelMapper.map(request.getAddress(), Address.class);
+        Address address = orderDtoAssembler.toAddress(request.getAddress());
         address = addressRepository.save(address);
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
@@ -334,7 +304,7 @@ public class OrderServiceImpl implements OrderService {
         PriceBreakdown pricing = pricingPipeline.price(
                 PricingContext.of(subtotal, address, request.getCouponCodes()));
 
-        verifyPayment(request.getPaymentMethod(), request.getPgName(),
+        orderPaymentHandler.verify(request.getPaymentMethod(), request.getPgName(),
                 request.getPgPaymentId(), pricing.total());
 
         consumeCoupons(pricing.appliedCouponIds(), pricing.appliedCouponCodes());
@@ -344,49 +314,17 @@ public class OrderServiceImpl implements OrderService {
         order.setShippingCost(pricing.shippingTotal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
-        Payment payment = new Payment(request.getPaymentMethod(), request.getPgPaymentId(), request.getPgStatus(), request.getPgResponseMessage(), request.getPgName());
-        payment.setOrder(order);
-        payment = paymentRepository.save(payment);
-        order.setPayment(payment);
+        order.setPayment(orderPaymentHandler.record(order, request.getPaymentMethod(),
+                request.getPgPaymentId(), request.getPgStatus(), request.getPgResponseMessage(), request.getPgName()));
         Order savedOrder = orderRepository.save(order);
 
         orderItems.forEach(item -> item.setOrder(savedOrder));
         List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
 
-        OrderDTO guestOrderDTO = buildOrderDTO(savedOrder, savedOrderItems, address.getAddressId(), pricing.total());
+        OrderDTO guestOrderDTO = orderDtoAssembler.forPlacedOrder(savedOrder, savedOrderItems, address.getAddressId(), pricing.total());
         eventPublisher.publishEvent(new OrderPlacedEvent(request.getEmail(), savedOrder.getId(), pricing.total(), guestOrderDTO));
 
         return guestOrderDTO;
-    }
-
-    /**
-     * Phase 2 of two-phase pagination: hydrates one page of order IDs into full
-     * order graphs, preserving the ordering established by the ID query.
-     */
-    private OrderResponse buildOrderResponse(Page<Long> idPage) {
-        List<Long> ids = idPage.getContent();
-
-        List<OrderDTO> orderDTOS;
-        if (ids.isEmpty()) {
-            orderDTOS = List.of();
-        } else {
-            Map<Long, Order> byId = orderRepository.findByIdInWithDetails(ids).stream()
-                    .collect(Collectors.toMap(Order::getId, order -> order));
-            orderDTOS = ids.stream()
-                    .map(byId::get)
-                    .filter(Objects::nonNull)
-                    .map(order -> modelMapper.map(order, OrderDTO.class))
-                    .toList();
-        }
-
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setContent(orderDTOS);
-        orderResponse.setPageNumber(idPage.getNumber());
-        orderResponse.setPageSize(idPage.getSize());
-        orderResponse.setTotalElements(idPage.getTotalElements());
-        orderResponse.setTotalPages(idPage.getTotalPages());
-        orderResponse.setLastPage(idPage.isLast());
-        return orderResponse;
     }
 
     /**
@@ -401,47 +339,6 @@ public class OrderServiceImpl implements OrderService {
                 throw new APIException("Coupon usage limit reached: " + couponCodes.get(i));
             }
         }
-    }
-
-    private OrderDTO buildOrderDTO(Order order, List<OrderItem> orderItems, Long addressId, double totalAmount) {
-        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
-        orderDTO.setTotalAmount(totalAmount);
-        orderDTO.setDiscountAmount(order.getDiscountAmount());
-        orderDTO.setShippingCost(order.getShippingCost());
-        orderDTO.setAddressId(addressId);
-        orderDTO.setAppliedCoupons(order.getAppliedCoupons() != null
-                ? List.of(order.getAppliedCoupons().split(","))
-                : List.of());
-
-        List<OrderItemDTO> itemDTOs = orderItems.stream()
-                .map(item -> modelMapper.map(item, OrderItemDTO.class))
-                .toList();
-        orderDTO.setItems(itemDTOs);
-
-        return orderDTO;
-    }
-
-    private void verifyPayment(String paymentMethod, String pgName,
-                               String pgPaymentId, double expectedTotal) {
-        PaymentAttempt attempt = new PaymentAttempt(paymentMethod, pgName, pgPaymentId, expectedTotal);
-        if (!attempt.hasReference()) {
-            return;
-        }
-
-        // Gateway-agnostic: a payment reference may back exactly one order.
-        paymentRepository.findByPgPaymentId(pgPaymentId).ifPresent(existing -> {
-            throw new APIException("This payment has already been used for order "
-                    + existing.getOrder().getId());
-        });
-
-        // Gateway-specific: confirm the payment succeeded for the expected amount.
-        // No matching gateway (e.g. cash on delivery) means nothing to verify here.
-        paymentGatewayRegistry.select(attempt).ifPresent(gateway -> {
-            PaymentVerification result = gateway.verify(attempt);
-            if (!result.verified()) {
-                throw new APIException(result.reason());
-            }
-        });
     }
 
 }
