@@ -7,6 +7,7 @@ import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.payment.PaymentAttempt;
 import com.ecommerce.project.service.payment.PaymentGatewayRegistry;
 import com.ecommerce.project.service.payment.StripePaymentGateway;
@@ -55,11 +56,8 @@ class OrderServiceImplTest {
     @Mock private ProductRepository productRepository;
     @Mock private CartService cartService;
     @Mock private CouponService couponService;
-    @Mock private EmailService emailService;
-    @Mock private NotificationService notificationService;
     @Mock private CouponRepository couponRepository;
     @Mock private AuthUtil authUtil;
-    @Mock private UserActivityLogService userActivityLogService;
     @Mock private InventoryReservationService inventoryReservationService;
     @Mock private ModelMapper modelMapper;
     @Mock private ShippingCalculator shippingCalculator;
@@ -188,9 +186,6 @@ class OrderServiceImplTest {
             productRepository.save(product);
             return null;
         }).when(inventoryReservationService).consumeReservationsForCart(CART_ID);
-
-        doNothing().when(emailService).sendOrderConfirmationEmail(anyString(), any(OrderDTO.class));
-        doNothing().when(notificationService).notifyAdminNewOrder(anyLong(), anyString(), anyDouble());
     }
 
     // ─────────────────────────────────────────────
@@ -220,7 +215,7 @@ class OrderServiceImplTest {
             verify(orderRepository).save(any(Order.class));
             verify(paymentRepository).save(any(Payment.class));
             verify(orderItemRepository).saveAll(anyList());
-            verify(eventPublisher).publishEvent(any(OrderServiceImpl.OrderPlacedEvent.class));
+            verify(eventPublisher).publishEvent(any(OrderPlacedEvent.class));
         }
 
         @Test

@@ -1,6 +1,8 @@
 package com.ecommerce.project.config;
 
-import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.order.listener.OrderActivityLogListener;
+import com.ecommerce.project.service.order.listener.OrderEmailListener;
+import com.ecommerce.project.service.order.listener.OrderNotificationListener;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.annotation.Async;
@@ -61,31 +63,34 @@ class AsyncConfigTest {
     }
 
     @Test
-    @DisplayName("order-lifecycle listeners run after commit AND off the request thread")
+    @DisplayName("every order-lifecycle listener runs after commit AND off the request thread")
     void orderListenersAreAsyncAfterCommit() {
-        for (String name : new String[]{"onOrderPlaced", "onOrderStatusUpdated"}) {
-            Method method = findMethod(name);
+        Class<?>[] listeners = {
+                OrderEmailListener.class, OrderNotificationListener.class, OrderActivityLogListener.class
+        };
 
-            Async async = method.getAnnotation(Async.class);
-            assertThat(async)
-                    .as("%s must be @Async so a slow SMTP server cannot block checkout", name)
-                    .isNotNull();
-            assertThat(async.value()).isEqualTo(AsyncConfig.ORDER_EVENT_EXECUTOR);
+        int checked = 0;
+        for (Class<?> listener : listeners) {
+            for (Method method : listener.getDeclaredMethods()) {
+                TransactionalEventListener onCommit = method.getAnnotation(TransactionalEventListener.class);
+                if (onCommit == null) {
+                    continue;
+                }
+                checked++;
+                String where = listener.getSimpleName() + "." + method.getName();
 
-            TransactionalEventListener listener = method.getAnnotation(TransactionalEventListener.class);
-            assertThat(listener)
-                    .as("%s must only fire after the order transaction commits", name)
-                    .isNotNull();
-            assertThat(listener.phase()).isEqualTo(TransactionPhase.AFTER_COMMIT);
-        }
-    }
+                assertThat(onCommit.phase())
+                        .as("%s must only fire after the order transaction commits", where)
+                        .isEqualTo(TransactionPhase.AFTER_COMMIT);
 
-    private Method findMethod(String name) {
-        for (Method m : OrderServiceImpl.class.getDeclaredMethods()) {
-            if (m.getName().equals(name)) {
-                return m;
+                Async async = method.getAnnotation(Async.class);
+                assertThat(async)
+                        .as("%s must be @Async so a slow collaborator cannot block checkout", where)
+                        .isNotNull();
+                assertThat(async.value()).isEqualTo(AsyncConfig.ORDER_EVENT_EXECUTOR);
             }
         }
-        throw new AssertionError("method not found: " + name);
+
+        assertThat(checked).as("expected the order listeners to expose event-listener methods").isGreaterThanOrEqualTo(3);
     }
 }
