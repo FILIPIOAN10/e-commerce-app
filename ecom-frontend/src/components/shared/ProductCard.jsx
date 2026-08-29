@@ -108,7 +108,7 @@ const ProductCard = ({
                     <div className="absolute top-3 right-3 flex flex-col gap-2">
                         {user?.id && !isAdmin && (
                             <button
-                                onClick={handleAddToWishlist}
+                                onClick={(e) => { e.stopPropagation(); handleAddToWishlist(); }}
                                 data-testid="wishlist-button"
                                 className={`grid h-9 w-9 place-items-center rounded-full bg-white/95 shadow-sm ring-1 ring-black/5 backdrop-blur transition
                                     ${isInWishlist ? "text-red-500" : "text-gray-500 hover:text-red-500"}
@@ -120,7 +120,7 @@ const ProductCard = ({
                             </button>
                         )}
                         <button
-                            onClick={handleAddToCompare}
+                            onClick={(e) => { e.stopPropagation(); handleAddToCompare(); }}
                             data-testid="compare-button"
                             className={`grid h-9 w-9 place-items-center rounded-full bg-white/95 shadow-sm ring-1 ring-black/5 backdrop-blur transition
                                 ${isInCompare ? "text-brand-600" : "text-gray-500 hover:text-brand-600"}
