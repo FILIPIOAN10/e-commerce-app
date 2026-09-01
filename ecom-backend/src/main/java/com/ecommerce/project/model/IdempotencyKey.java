@@ -46,7 +46,10 @@ public class IdempotencyKey {
     @Column(name = "response_status")
     private Integer responseStatus;
 
-    @Lob
+    // No @Lob: on Postgres, @Lob on a String binds the column as a Large Object (oid),
+    // which requires an active transaction. The idempotency service runs non-transactionally
+    // (auto-commit), so @Lob throws "Large Objects may not be used in auto-commit mode".
+    // A plain TEXT column stores the response body fine without a transaction.
     @Column(name = "response_body", columnDefinition = "TEXT")
     private String responseBody;
 
