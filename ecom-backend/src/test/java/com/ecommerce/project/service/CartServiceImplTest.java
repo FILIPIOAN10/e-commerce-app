@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -156,23 +158,33 @@ class CartServiceImplTest {
         secondCart.setCartId(2L);
         secondCart.setCartItems(new ArrayList<>());
 
-        when(cartRepository.findAll()).thenReturn(List.of(cart, secondCart));
+        // Two-phase fetch: a page of ids, then the graph for those ids only.
+        when(cartRepository.findAllIds(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(1L, 2L)));
+        when(cartRepository.findAllByIdsWithItems(List.of(1L, 2L)))
+                .thenReturn(List.of(cart, secondCart));
         when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
         when(modelMapper.map(secondCart, CartDTO.class)).thenReturn(new CartDTO());
         when(productMapper.mapCartItemsToProductDTOs(any())).thenReturn(List.of());
 
-        List<CartDTO> result = cartService.getAllCarts();
+        List<CartDTO> result = cartService.getAllCarts(0, 10);
 
         assertEquals(2, result.size());
+        // The unbounded scan must not come back: it walked every cart's items
+        // and their products on a single admin request.
+        verify(cartRepository, never()).findAll();
     }
 
     @Test
     @DisplayName("getAllCarts returns an empty list when no carts exist")
     void getAllCarts_empty_returnsEmptyList() {
-        when(cartRepository.findAll()).thenReturn(List.of());
+        when(cartRepository.findAllIds(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
 
         // An empty collection is a valid result, not an error condition.
-        assertTrue(cartService.getAllCarts().isEmpty());
+        assertTrue(cartService.getAllCarts(0, 10).isEmpty());
+        // No ids means no second query at all.
+        verify(cartRepository, never()).findAllByIdsWithItems(any());
     }
 
     @Test

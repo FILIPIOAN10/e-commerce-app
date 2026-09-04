@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.ecommerce.project.payload.PaginationParams;
 
 @RestController
 @RequestMapping("/api")
@@ -53,8 +54,8 @@ public class CartController {
     @Tag(name = "Cart")
     @GetMapping("/carts")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<CartDTO>> getCarts() {
-        List<CartDTO> cartDTOS = cartService.getAllCarts();
+    public ResponseEntity<List<CartDTO>> getCarts(@ModelAttribute PaginationParams params) {
+        List<CartDTO> cartDTOS = cartService.getAllCarts(params.getPageNumber(), params.getPageSize());
         return new ResponseEntity<>(cartDTOS, HttpStatus.OK);
     }
 

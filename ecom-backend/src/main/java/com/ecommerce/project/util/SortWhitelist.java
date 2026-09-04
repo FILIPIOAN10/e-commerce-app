@@ -60,6 +60,11 @@ public final class SortWhitelist {
             "id", "name", "startTime", "endTime", "discountPercent", "active"
     );
 
+    /** {@link com.ecommerce.project.model.Cart}. */
+    public static final Set<String> CART = Set.of(
+            "cartId", "totalPrice", "lastActivityAt"
+    );
+
     /** {@link com.ecommerce.project.model.ReturnRequest}. */
     public static final Set<String> RETURN_REQUEST = Set.of(
             "id", "orderId", "userEmail", "status", "requestedAt", "processedAt"

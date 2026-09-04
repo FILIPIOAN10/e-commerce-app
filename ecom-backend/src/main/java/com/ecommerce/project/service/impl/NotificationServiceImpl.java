@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.ecommerce.project.model.AppRole;
 
 @Slf4j
 @Service
@@ -32,10 +33,10 @@ public class NotificationServiceImpl implements NotificationService {
         String title = "New Order Received";
         String message = String.format("Order #%d from %s — $%.2f", orderId, customerEmail, totalAmount);
 
-        List<User> admins = userRepository.findAll().stream()
-                .filter(u -> u.getRoles().stream()
-                        .anyMatch(r -> r.getRoleName().name().equals("ROLE_ADMIN")))
-                .toList();
+        // Ask the database for the admins rather than loading every user and
+        // filtering in Java: User.roles is EAGER, so findAll() was a full table
+        // scan plus the role join on the checkout path.
+        List<User> admins = userRepository.findAllByRoleName(AppRole.ROLE_ADMIN);
 
         for (User admin : admins) {
             AppNotification notification = saveNotification(admin.getEmail(), title, message, "NEW_ORDER", orderId);

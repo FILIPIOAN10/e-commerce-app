@@ -23,28 +23,55 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// One in-flight rotation shared by every request that 401s at the same moment.
+// Without this, a page firing six parallel calls would trigger six rotations and
+// five of them would lose the race against the newly issued refresh token.
+let refreshing = null;
+
+const signOutAndRedirect = () => {
+    localStorage.removeItem("auth");
+    const lang = i18n.language || "en";
+    if (!window.location.pathname.includes(`/${lang}/login`)) {
+        window.location.assign(`/${lang}/login`);
+    }
+};
+
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         const status = error?.response?.status;
-        const requestUrl = error?.config?.url || "";
-        const isPublicAuthRequest = 
-            requestUrl.includes("/auth/signin") || 
+        const original = error?.config;
+        const requestUrl = original?.url || "";
+
+        // Routes that legitimately answer 401 and must never trigger a refresh —
+        // /auth/refresh included, or a failed rotation would recurse.
+        const isPublicAuthRequest =
+            requestUrl.includes("/auth/signin") ||
             requestUrl.includes("/auth/signup") ||
             requestUrl.includes("/auth/signout") ||
+            requestUrl.includes("/auth/refresh") ||
             requestUrl.includes("/auth/public/") ||
             requestUrl.includes("/auth/forgot-password") ||
             requestUrl.includes("/auth/reset-password");
 
-        if(status == 401 && !isPublicAuthRequest){
-            localStorage.removeItem("auth");
-            const lang = i18n.language || "en";
-            if(!window.location.pathname.includes(`/${lang}/login`)){
-                window.location.href = `/${lang}/login`;
-            }
+        if (status !== 401 || isPublicAuthRequest || !original || original._retried) {
+            return Promise.reject(error);
         }
 
-        return Promise.reject(error);
+        // The access token lasts 15 minutes, the refresh cookie 7 days. Rotate
+        // and replay rather than throwing the customer back to the login page
+        // mid-checkout; only a failed rotation means the session is really over.
+        original._retried = true;
+        try {
+            refreshing = refreshing || api.post("/auth/refresh").finally(() => {
+                refreshing = null;
+            });
+            await refreshing;
+            return api(original);
+        } catch {
+            signOutAndRedirect();
+            return Promise.reject(error);
+        }
     }
 )
 
