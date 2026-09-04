@@ -8,10 +8,10 @@ import EmptyState from '../../shared/EmptyState';
 
 const Orders = () => {
   const {adminOrder,pagination} = useSelector((state) => state.order);
-  const { isLoading } = useSelector((state) => state.errors);
+
 
   // fetching all the orders
-  useOrderFilter();
+  const { isLoading } = useOrderFilter();
 
   if (isLoading) {
     return (

@@ -12,10 +12,11 @@ import SellerTable from "./SellerTab";
 const Sellers = () => {
   const [openModal, setOpenModal] = useState(false);
   const { sellers, pagination } = useSelector((state) => state.seller);
-  const { isLoading, errorMessage } = useSelector((state) => state.errors);
+
 
   // Calling the `useSellerFilter` custom hook to fetch sellers and pagination based on the current URL parameters.
-  useSellerFilter();
+  const { isLoading, error } = useSellerFilter();
+  const errorMessage = error ? error?.data?.message || "Failed to load sellers" : null;
 
   const emptySellers = !sellers || sellers?.length === 0;
 

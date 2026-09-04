@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { DataGrid } from "@mui/x-data-grid";
 import { FaExclamationTriangle, FaBoxOpen } from "react-icons/fa";
 import Loader from "../../shared/Loader";
 import ErrorPage from "../../shared/ErrorPage";
-import { fetchLowStockProducts } from "../../../store/actions";
+import { useGetLowStockProductsQuery } from "../../../store/api/adminApi";
+
 
 const LowStockAlerts = () => {
-    const dispatch = useDispatch();
-    const { isLoading, errorMessage } = useSelector((state) => state.errors);
     const { lowStockProducts, pagination } = useSelector((state) => state.products);
+    const { user } = useSelector((state) => state.auth);
     const [page, setPage] = useState(0);
 
-    useEffect(() => {
-        dispatch(fetchLowStockProducts(page, 10));
-    }, [dispatch, page]);
+    // Admins see every product, sellers only their own - the endpoint differs,
+    // so the role has to reach the query rather than being read inside a thunk.
+    const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
+    const { isLoading, error } = useGetLowStockProductsQuery({ isAdmin, pageNumber: page, pageSize: 10 });
+    const errorMessage = error ? error?.data?.message || "Failed to load low-stock products" : null;
+
 
     const tableRecords = lowStockProducts?.map((item) => ({
         id: item.productId,

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataGrid } from '@mui/x-data-grid';
 import toast from 'react-hot-toast';
 import { FaBullhorn, FaTrash } from 'react-icons/fa';
-import { fetchPromoCampaigns, createPromoCampaign, updatePromoCampaign, deletePromoCampaign } from '../../../store/actions';
-import { fetchProducts } from '../../../store/actions';
+import { createPromoCampaign, updatePromoCampaign, deletePromoCampaign } from '../../../store/actions';
 import Loader from '../../shared/Loader';
 import ErrorPage from '../../shared/ErrorPage';
+import { useGetPromoCampaignsQuery } from '../../../store/api/adminApi';
+import { useGetProductsQuery } from '../../../store/api/productApi';
 
 const emptyCampaign = {
     name: '',
@@ -19,17 +20,24 @@ const emptyCampaign = {
 
 const PromoCampaigns = () => {
     const dispatch = useDispatch();
-    const { isLoading, errorMessage } = useSelector((state) => state.errors);
     const { promoCampaigns, promoCampaignTotal } = useSelector((state) => state.admin);
     const { products } = useSelector((state) => state.products);
     const [form, setForm] = useState(emptyCampaign);
     const [editing, setEditing] = useState(null);
     const [page, setPage] = useState(0);
 
-    useEffect(() => {
-        dispatch(fetchPromoCampaigns(page, 10));
-        dispatch(fetchProducts('?pageNumber=0&pageSize=1000'));
-    }, [dispatch, page]);
+    // As with coupons, the mutations are still thunks writing to the reducer,
+    // so the list must refetch on mount rather than serving a stale cache.
+    const { isLoading, error } = useGetPromoCampaignsQuery(
+        { pageNumber: page, pageSize: 10 },
+        { refetchOnMountOrArgChange: true },
+    );
+    // The product picker. Previously passed '?pageNumber=0&pageSize=1000',
+    // which produced '/public/products??pageNumber=0' - the server read the
+    // first parameter as '?pageNumber' and silently fell back to page 0.
+    useGetProductsQuery('pageNumber=0&pageSize=1000');
+
+    const errorMessage = error ? error?.data?.message || 'Failed to load campaigns' : null;
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

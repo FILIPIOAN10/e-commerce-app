@@ -1,31 +1,11 @@
 import api from "../../api/api";
 import { getAllCategoriesDashboard } from "./productActions";
+import { apiSlice } from "../api/apiSlice";
 
-export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const { user } = getState().auth;
-        const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
-        const endpoint = adminRequest ? "/admin/products" : "/seller/products";
-        const requestUrl = queryString ? `${endpoint}?${queryString}` : endpoint;
-        const { data } = await api.get(requestUrl);
-        dispatch({
-            type: "FETCH_PRODUCTS",
-            payload: data.content,
-            pageNumber: data.pageNumber,
-            pageSize: data.pageSize,
-            totalElements: data.totalElements,
-            totalPages: data.totalPages,
-            lastPage: data.lastPage,
-        });
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        dispatch({
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch dashboard products",
-        });
-    }
-};
+// Mutations stay as thunks for now, but they refresh the list by
+// invalidating the RTK Query cache rather than re-dispatching a read
+// thunk. That keeps one owner of request status and lets the read
+// thunks be deleted.
 
 export const updateProductFromDashboard =
     (sendData, toast, reset, setLoader, setOpen, isAdmin) => async (dispatch) => {
@@ -37,7 +17,7 @@ export const updateProductFromDashboard =
 
             toast.success("Product update successful");
 
-            await dispatch(dashboardProductsAction("", isAdmin));
+            dispatch(apiSlice.util.invalidateTags(["Product"]));
 
             setOpen(false);
             reset();
@@ -48,8 +28,10 @@ export const updateProductFromDashboard =
         }
 };
 
+// queryString is gone from the signature: it only existed to re-fetch the page
+// the operator was on, which invalidating the Product tag now does for us.
 export const deleteProduct =
-    (setLoader, productId, toast, setOpenDeleteModal, isAdmin, queryString = "") => async (dispatch) => {
+    (setLoader, productId, toast, setOpenDeleteModal, isAdmin) => async (dispatch) => {
 
     try {
         setLoader(true);
@@ -59,7 +41,7 @@ export const deleteProduct =
         toast.success("Product deleted successfully");
 
         setOpenDeleteModal(false);
-        await dispatch(dashboardProductsAction(queryString, isAdmin));
+        dispatch(apiSlice.util.invalidateTags(["Product"]));
 
     } catch (error) {
         toast.error(error?.response?.data?.message || "Some Error Occured");
@@ -79,7 +61,7 @@ export const addNewProductFromDashboard =
             toast.success("Product created successfully");
             reset();
             setOpen(false);
-            await dispatch(dashboardProductsAction("", isAdmin));
+            dispatch(apiSlice.util.invalidateTags(["Product"]));
         } catch (error) {
             toast.error(error?.response?.data?.description || "Product creation failed");
         } finally {
@@ -97,7 +79,7 @@ export const updateProductImageFromDashboard =
             toast.success("Image update successful");
             setLoader(false);
             setOpen(false);
-            await dispatch(dashboardProductsAction("", isAdmin));
+            dispatch(apiSlice.util.invalidateTags(["Product"]));
         } catch (error) {
 
             toast.error(error?.response?.data?.description || "Product Image upload failed");
@@ -174,30 +156,6 @@ export const deleteCategoryDashboardAction =
 
     };
 
-export const getAllSellersDashboard =
-    (queryString) => async (dispatch) => {
-        try {
-            dispatch({ type: "IS_FETCHING" });
-            const { data } = await api.get(`/auth/sellers?${queryString}`);
-            dispatch({
-                type: "GET_SELLERS",
-                payload: data["content"],
-                pageNumber: data["pageNumber"],
-                pageSize: data["pageSize"],
-                totalElements: data["totalElements"],
-                totalPages: data["totalPages"],
-                lastPage: data["lastPage"],
-            });
-
-            dispatch({ type: "IS_SUCCESS" });
-        } catch (err) {
-            dispatch({
-                type: "IS_ERROR",
-                payload: err?.response?.data?.message || "Failed to fetch sellers data",
-            });
-        }
-    };
-
 export const addNewDashboardSeller =
     (sendData, toast, reset, setOpen, setLoader) => async (dispatch) => {
         try {
@@ -206,7 +164,7 @@ export const addNewDashboardSeller =
             reset();
             toast.success("Seller registered successfully!");
 
-            await dispatch(getAllSellersDashboard());
+            dispatch(apiSlice.util.invalidateTags(["Seller"]));
         } catch (err) {
             toast.error(
                 err?.response?.data?.message ||
@@ -218,30 +176,6 @@ export const addNewDashboardSeller =
             setOpen(false);
         }
     };
-
-export const fetchLowStockProducts = (pageNumber = 0, pageSize = 10) => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const user = getState().auth.user;
-        const isAdmin = user?.roles?.includes("ROLE_ADMIN");
-        const endpoint = isAdmin
-            ? `/admin/low-stock?pageNumber=${pageNumber}&pageSize=${pageSize}`
-            : `/seller/low-stock?pageNumber=${pageNumber}&pageSize=${pageSize}`;
-        const { data } = await api.get(endpoint);
-        dispatch({
-            type: "FETCH_LOW_STOCK_PRODUCTS",
-            payload: data.content,
-            pageNumber: data.pageNumber,
-            pageSize: data.pageSize,
-            totalElements: data.totalElements,
-            totalPages: data.totalPages,
-            lastPage: data.lastPage,
-        });
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
-    }
-};
 
 export const fetchLowStockCount = () => async (dispatch) => {
     try {
@@ -269,23 +203,11 @@ export const importProducts = (file, toast) => async (dispatch) => {
     }
 };
 
-export const fetchPromoCampaigns = (pageNumber = 0, pageSize = 10) => async (dispatch) => {
-    try {
-        const { data } = await api.get(`/admin/promo-campaigns?pageNumber=${pageNumber}&pageSize=${pageSize}`);
-        dispatch({ type: "FETCH_PROMO_CAMPAIGNS", payload: data });
-    } catch (error) {
-        dispatch({
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch promo campaigns"
-        });
-    }
-};
-
 export const createPromoCampaign = (payload, toast) => async (dispatch) => {
     try {
         const { data } = await api.post('/admin/promo-campaigns', payload);
         toast.success("Campaign created");
-        dispatch(fetchPromoCampaigns());
+        dispatch(apiSlice.util.invalidateTags(["PromoCampaign"]));
         return data;
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to create campaign";
@@ -297,7 +219,7 @@ export const updatePromoCampaign = (id, payload, toast) => async (dispatch) => {
     try {
         const { data } = await api.put(`/admin/promo-campaigns/${id}`, payload);
         toast.success("Campaign updated");
-        dispatch(fetchPromoCampaigns());
+        dispatch(apiSlice.util.invalidateTags(["PromoCampaign"]));
         return data;
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to update campaign";
@@ -309,7 +231,7 @@ export const deletePromoCampaign = (id, toast) => async (dispatch) => {
     try {
         await api.delete(`/admin/promo-campaigns/${id}`);
         toast.success("Campaign deleted");
-        dispatch(fetchPromoCampaigns());
+        dispatch(apiSlice.util.invalidateTags(["PromoCampaign"]));
     } catch (error) {
         const msg = error?.response?.data?.message || "Failed to delete campaign";
         toast.error(msg);

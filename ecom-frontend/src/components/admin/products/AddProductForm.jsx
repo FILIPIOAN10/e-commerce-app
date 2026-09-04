@@ -2,18 +2,21 @@ import React, { useEffect, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import InputField from '../../shared/InputField';
 import { Button, Skeleton } from '@mui/material';
-import {addNewProductFromDashboard, fetchCategories, updateProductFromDashboard } from '../../../store/actions';
+import {addNewProductFromDashboard, updateProductFromDashboard } from '../../../store/actions';
 import { useDispatch, useSelector } from 'react-redux';
 import Spinners from '../../shared/Spinners';
 import toast from 'react-hot-toast';
 import SelectTextField from '../../shared/SelectTextField';
 import ErrorPage from '../../shared/ErrorPage';
+import { useGetCategoriesQuery } from '../../../store/api/productApi';
 
 const AddProductForm = ({setOpen,product,update=false}) => {
   const [loader,setLoader] = useState(false);
   const [selectCategory,setSelectedCategory] = useState();
   const {categories} = useSelector((state) => state.products); 
-  const {categoryLoader,errorMessage} = useSelector((state) => state.errors);
+  // The picker only needs categories when creating; `skip` says so directly.
+  const { isLoading: categoryLoader, error } = useGetCategoriesQuery("", { skip: update });
+  const errorMessage = error ? error?.data?.message || "Failed to load categories" : null;
   const { user } = useSelector((state) => state.auth);
   const isAdmin = user && user?.roles?.includes("ROLE_ADMIN");
   const dispatch = useDispatch();
@@ -92,12 +95,6 @@ const AddProductForm = ({setOpen,product,update=false}) => {
             }
         },[update,product,setValue]);
 
-        useEffect( () => {
-            if(!update){
-                dispatch(fetchCategories());
-            }
-
-        },[dispatch,update] )
 
 
         useEffect(() => {

@@ -1,4 +1,10 @@
 import api from "../../api/api";
+import { apiSlice } from "../api/apiSlice";
+
+// Mutations stay as thunks for now, but they refresh the list by
+// invalidating the RTK Query cache rather than re-dispatching a read
+// thunk. That keeps one owner of request status and lets the read
+// thunks be deleted.
 
 export const validateCoupon = (code, orderAmount, toast) => async (dispatch, getState) => {
     try {
@@ -41,20 +47,6 @@ export const clearCoupon = () => (dispatch) => {
     dispatch({ type: "clearCoupon" });
 };
 
-export const fetchAllCoupons = () => async (dispatch) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get("/admin/coupons");
-        dispatch({ type: "FETCH_COUPONS", payload: data });
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        dispatch({
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch coupons",
-        });
-    }
-};
-
 export const createCouponAction = (couponData, toast, setOpen) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
@@ -62,7 +54,7 @@ export const createCouponAction = (couponData, toast, setOpen) => async (dispatc
         toast.success("Coupon created successfully");
         setOpen(false);
         dispatch({ type: "IS_SUCCESS" });
-        await dispatch(fetchAllCoupons());
+        dispatch(apiSlice.util.invalidateTags(["Coupon"]));
     } catch (error) {
         toast.error(error?.response?.data?.message || "Failed to create coupon");
         dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
@@ -76,7 +68,7 @@ export const updateCouponAction = (couponId, couponData, toast, setOpen) => asyn
         toast.success("Coupon updated successfully");
         setOpen(false);
         dispatch({ type: "IS_SUCCESS" });
-        await dispatch(fetchAllCoupons());
+        dispatch(apiSlice.util.invalidateTags(["Coupon"]));
     } catch (error) {
         toast.error(error?.response?.data?.message || "Failed to update coupon");
         dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });
@@ -90,7 +82,7 @@ export const deleteCouponAction = (couponId, toast, setOpen) => async (dispatch)
         toast.success("Coupon deleted successfully");
         setOpen(false);
         dispatch({ type: "IS_SUCCESS" });
-        await dispatch(fetchAllCoupons());
+        dispatch(apiSlice.util.invalidateTags(["Coupon"]));
     } catch (error) {
         toast.error(error?.response?.data?.message || "Failed to delete coupon");
         dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message });

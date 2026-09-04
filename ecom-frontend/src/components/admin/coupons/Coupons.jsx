@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DataGrid } from "@mui/x-data-grid";
 import { FaFolderOpen, FaTag, FaEdit, FaTrash } from "react-icons/fa";
@@ -10,7 +10,8 @@ import AddCouponForm from "./AddCouponForm";
 import Loader from "../../shared/Loader";
 import { DeleteModal } from "../../shared/DeleteModal";
 import ErrorPage from "../../shared/ErrorPage";
-import { fetchAllCoupons, deleteCouponAction } from "../../../store/actions";
+import { deleteCouponAction } from "../../../store/actions";
+import { useGetCouponsQuery } from "../../../store/api/adminApi";
 
 const Coupons = () => {
     const dispatch = useDispatch();
@@ -19,12 +20,15 @@ const Coupons = () => {
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
     const [selectedCoupon, setSelectedCoupon] = useState(null);
 
-    const { isLoading, errorMessage } = useSelector((state) => state.errors);
     const { coupons } = useSelector((state) => state.coupon);
 
-    useEffect(() => {
-        dispatch(fetchAllCoupons());
-    }, [dispatch]);
+    // refetchOnMountOrArgChange because create/update/delete still go through
+    // thunks that write straight to the reducer. Without it, leaving the page
+    // and returning would serve a cached list and sync a deleted coupon back in.
+    const { isLoading, error } = useGetCouponsQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+    });
+    const errorMessage = error ? error?.data?.message || "Failed to load coupons" : null;
 
     const tableRecords = coupons?.map((item) => ({
         id: item.couponId,

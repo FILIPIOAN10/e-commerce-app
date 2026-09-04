@@ -1,30 +1,28 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
 import { MdArrowBack } from 'react-icons/md';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
-import { getUserOrders } from '../../store/actions';
 import OrderTable from '../admin/orders/OrderTable';
 import Skeleton from '../shared/Skeleton';
 import EmptyState from '../shared/EmptyState';
 import { useLanguage } from '../../context/LanguageContext';
+import { useGetMyOrdersQuery } from '../../store/api/adminApi';
 
 const ProfileOrders = () => {
-  const dispatch = useDispatch();
   const location = useLocation();
   const lang = useLanguage();
 
   const { userOrders, pagination } = useSelector((state) => state.order);
-  const { isLoading } = useSelector((state) => state.errors);
 
-  useEffect(() => {
-    const queryString = location.search.startsWith('?')
-      ? location.search.substring(1)
-      : location.search;
+  const queryString = location.search.startsWith('?')
+    ? location.search.substring(1)
+    : location.search;
 
-    dispatch(getUserOrders(queryString));
-  }, [dispatch, location.search]);
+  // Own status: a failure elsewhere in the app no longer leaves this page
+  // stuck on its skeleton.
+  const { isLoading } = useGetMyOrdersQuery(queryString);
 
   if (isLoading) {
     return (
