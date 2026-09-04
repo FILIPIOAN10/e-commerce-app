@@ -13,22 +13,14 @@ import questionReducer from "./questionReducer";
 import couponReducer from "./couponReducer";
 import { notificationReducer } from "./notificationReducer";
 import { apiSlice } from "../api/apiSlice";
+import { readJson } from "../../utils/safeStorage";
 
-const user = localStorage.getItem("auth")
-    ? JSON.parse(localStorage.getItem("auth"))
-    : null;
-
-const cartItems = localStorage.getItem("cartItems")
-    ? JSON.parse(localStorage.getItem("cartItems"))
-    : [];
-
-const compareItems = localStorage.getItem("compareItems")
-    ? JSON.parse(localStorage.getItem("compareItems"))
-    : [];
-
-const selectedUserCheckoutAddress = localStorage.getItem("CHECKOUT_ADDRESS")
-    ? JSON.parse(localStorage.getItem("CHECKOUT_ADDRESS"))
-    : null;
+// Runs at module scope, before React mounts: a throw here leaves a blank page
+// that no error boundary can catch. readJson degrades to the fallback instead.
+const user = readJson("auth", null);
+const cartItems = readJson("cartItems", []);
+const compareItems = readJson("compareItems", []);
+const selectedUserCheckoutAddress = readJson("CHECKOUT_ADDRESS", null);
 
 const initialState = {
     auth: { user: user, selectedUserCheckoutAddress },

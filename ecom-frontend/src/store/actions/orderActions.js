@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 import api from "../../api/api";
 import i18n from "../../i18n";
+import { removeKey, writeJson } from "../../utils/safeStorage";
 
 // Key a checkout attempt so a double-click or a retried request creates one
 // order, not two. A Stripe retry carries the same PaymentIntent id, which makes
@@ -142,7 +143,7 @@ export const createStripePaymentSecret = (sendData) => async (dispatch) => {
         dispatch({ type: "IS_FETCHING" });
         const { data } = await api.post("/order/stripe-client-secret", sendData);
         dispatch({ type: "CLIENT_SECRET", payload: data });
-        localStorage.setItem("client-secret", JSON.stringify(data));
+        writeJson("client-secret", data);
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
         toast.error(error?.response?.data?.message || "Failed to create client secret");
@@ -160,9 +161,9 @@ export const stripePaymentConfirmation = (sendData, setErrorMesssage, setLoadng,
             headers: { "Idempotency-Key": checkoutIdempotencyKey(payload) },
         });
         if (response.data) {
-            localStorage.removeItem("CHECKOUT_ADDRESS");
-            localStorage.removeItem("cartItems");
-            localStorage.removeItem("client-secret");
+            removeKey("CHECKOUT_ADDRESS");
+            removeKey("cartItems");
+            removeKey("client-secret");
             dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS" });
             dispatch({ type: "CLEAR_CART" });
             dispatch({ type: "clearCoupon" });

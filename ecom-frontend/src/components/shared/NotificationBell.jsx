@@ -19,15 +19,21 @@ const NotificationBell = () => {
 
     // Connect WebSocket when user logs in
     useEffect(() => {
-        if (user?.id) {
-            connectWebSocket((notification) => {
+        if (!user?.id) return undefined;
+
+        let cancelled = false;
+        connectWebSocket((notification) => {
+            // A frame arriving after unmount belongs to a session we have left.
+            if (!cancelled) {
                 dispatch(addNotification(notification));
-            });
-            dispatch(fetchNotifications());
-            dispatch(fetchUnreadNotificationCount());
-        }
+            }
+        });
+        dispatch(fetchNotifications());
+        dispatch(fetchUnreadNotificationCount());
+
         return () => {
-            disconnectWebSocket();
+            cancelled = true;
+            void disconnectWebSocket();
         };
     }, [user?.id, dispatch]);
 

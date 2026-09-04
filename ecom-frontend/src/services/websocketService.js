@@ -7,23 +7,31 @@ let stompClient = null;
 let onNotificationCallback = null;
 
 export const connectWebSocket = (onNotification) => {
+    // Always take the latest callback: a caller that reconnects with a new
+    // handler must not be left wired to the previous one.
+    onNotificationCallback = onNotification;
+
     if (stompClient && stompClient.active) {
         return;
     }
 
-    onNotificationCallback = onNotification;
-
-    stompClient = new Client({
+    const client = new Client({
         webSocketFactory: () => new SockJS(`${BACKEND_URL}/ws-notifications`),
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
         onConnect: () => {
-            stompClient.subscribe("/user/queue/notifications", (message) => {
-                const notification = JSON.parse(message.body);
-                if (onNotificationCallback) {
-                    onNotificationCallback(notification);
+            client.subscribe("/user/queue/notifications", (message) => {
+                let notification;
+                try {
+                    notification = JSON.parse(message.body);
+                } catch {
+                    // A malformed frame must not throw inside the STOMP handler,
+                    // which would tear down the subscription for every later one.
+                    console.warn("Discarded malformed notification frame");
+                    return;
                 }
+                onNotificationCallback?.(notification);
             });
         },
         onStompError: (frame) => {
@@ -31,13 +39,28 @@ export const connectWebSocket = (onNotification) => {
         },
     });
 
-    stompClient.activate();
+    stompClient = client;
+    client.activate();
 };
 
-export const disconnectWebSocket = () => {
-    if (stompClient) {
-        stompClient.deactivate();
-        stompClient = null;
-        onNotificationCallback = null;
+/**
+ * Closes the connection and resolves only once the socket is actually gone.
+ *
+ * deactivate() is asynchronous. Clearing the module reference before it settles
+ * made the guard in connectWebSocket read false while the old socket was still
+ * closing, so a mount → cleanup → mount cycle (React StrictMode does exactly
+ * this) left two live SockJS connections, two subscriptions, and every
+ * notification dispatched twice.
+ */
+export const disconnectWebSocket = async () => {
+    const client = stompClient;
+    stompClient = null;
+    onNotificationCallback = null;
+    if (client) {
+        try {
+            await client.deactivate();
+        } catch {
+            // Already closing or never connected; nothing to unwind.
+        }
     }
 };

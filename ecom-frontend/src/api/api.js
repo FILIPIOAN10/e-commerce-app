@@ -1,5 +1,6 @@
 import axios from "axios";
 import i18n from "../i18n";
+import { removeKey } from "../utils/safeStorage";
 
 const api = axios.create({
     baseURL: `${import.meta.env.VITE_BACK_END_URL || "http://localhost:8080"}/api`,
@@ -29,7 +30,7 @@ api.interceptors.request.use((config) => {
 let refreshing = null;
 
 const signOutAndRedirect = () => {
-    localStorage.removeItem("auth");
+    removeKey("auth");
     const lang = i18n.language || "en";
     if (!window.location.pathname.includes(`/${lang}/login`)) {
         window.location.assign(`/${lang}/login`);

@@ -1,5 +1,6 @@
 import api from "../../api/api";
 import i18n from "../../i18n";
+import { removeKey, writeJson } from "../../utils/safeStorage";
 
 export const authenticateSignInUser = (
     sendData, toast, reset, navigate, setLoader,
@@ -7,7 +8,7 @@ export const authenticateSignInUser = (
 ) => async (dispatch) => {
     try {
         setLoader(true);
-        localStorage.removeItem("auth");
+        removeKey("auth");
 
         const loginData = {
             ...sendData,
@@ -24,7 +25,7 @@ export const authenticateSignInUser = (
         }
 
         dispatch({ type: "LOGIN_USER", payload: data });
-        localStorage.setItem("auth", JSON.stringify(data));
+        writeJson("auth", data);
         reset();
         toast.success("Login Success");
         navigate(`/${i18n.language}`);
@@ -63,7 +64,7 @@ export const registerNewUser
 
 export const logOutUser = (navigate) => (dispatch) => {
     dispatch({ type: "LOG_OUT" });
-    localStorage.removeItem("auth");
+    removeKey("auth");
     navigate(`/${i18n.language}/login`);
 };
 
@@ -80,5 +81,5 @@ export const fetchUserDetails = () => async (dispatch) => {
     };
 
     dispatch({ type: "LOGIN_USER", payload: authData });
-    localStorage.setItem("auth", JSON.stringify(authData));
+    writeJson("auth", authData);
 };

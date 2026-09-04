@@ -1,4 +1,5 @@
 import api from "../../api/api";
+import { writeJson } from "../../utils/safeStorage";
 
 export const addUpdateUserAddress =
     (sendData, toast, addressId, setOpenAddressModal) => async (dispatch) => {
@@ -57,7 +58,7 @@ export const getUserAddresses = () => async (dispatch) => {
 };
 
 export const selectedUserCheckoutAddress = (address) => {
-    localStorage.setItem("CHECKOUT_ADDRESS", JSON.stringify(address));
+    writeJson("CHECKOUT_ADDRESS", address);
 
     return {
         type: "SELECT_CHECKOUT_ADDRESS",
@@ -84,7 +85,7 @@ export const updateProfile = (sendData, toast, setLoader) => async (dispatch, ge
             avatarUrl: data.avatarUrl,
         };
         dispatch({ type: "LOGIN_USER", payload: updatedAuth });
-        localStorage.setItem("auth", JSON.stringify(updatedAuth));
+        writeJson("auth", updatedAuth);
         toast.success("Profile updated successfully");
     } catch (error) {
         toast.error(error?.response?.data?.message || "Failed to update profile");
@@ -120,7 +121,7 @@ export const uploadAvatar = (file, toast, setLoader) => async (dispatch, getStat
             avatarUrl: data.avatarUrl,
         };
         dispatch({ type: "LOGIN_USER", payload: updatedAuth });
-        localStorage.setItem("auth", JSON.stringify(updatedAuth));
+        writeJson("auth", updatedAuth);
         toast.success("Avatar uploaded successfully");
         return data.avatarUrl;
     } catch (error) {

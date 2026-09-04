@@ -1,4 +1,5 @@
 import api from "../../api/api";
+import { writeJson } from "../../utils/safeStorage";
 
 export const fetchProducts = (queryString = "") => async (dispatch) => {
     try {
@@ -175,16 +176,16 @@ export const addToCompare = (product) => (dispatch, getState) => {
     if (compareList.length >= 3) return;
     if (compareList.some((p) => p.productId === product.productId)) return;
     dispatch({ type: "ADD_TO_COMPARE", payload: product });
-    localStorage.setItem("compareItems", JSON.stringify(getState().products.compareList));
+    writeJson("compareItems", getState().products.compareList);
 };
 
 export const removeFromCompare = (productId) => (dispatch, getState) => {
     dispatch({ type: "REMOVE_FROM_COMPARE", payload: productId });
-    localStorage.setItem("compareItems", JSON.stringify(getState().products.compareList));
+    writeJson("compareItems", getState().products.compareList);
 };
 
 export const clearCompare = () => (dispatch, getState) => {
     dispatch({ type: "CLEAR_COMPARE" });
-    localStorage.setItem("compareItems", JSON.stringify(getState().products.compareList));
+    writeJson("compareItems", getState().products.compareList);
 };
 

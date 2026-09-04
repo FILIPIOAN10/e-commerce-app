@@ -10,6 +10,7 @@ import Spinners from "../shared/Spinners";
 import { FaGithub } from "react-icons/fa"; 
 import { FcGoogle } from "react-icons/fc";
 import Verify2FALogin from "./Verify2FALogin";
+import { writeJson } from "../../utils/safeStorage";
 
 
 const LogIn = () => {
@@ -44,7 +45,7 @@ const LogIn = () => {
     };
 
             const handle2FASuccess = (authData) => {
-                localStorage.setItem("auth", JSON.stringify(authData));
+                writeJson("auth", authData);
                 dispatch({ type: "LOGIN_USER", payload: authData });
                 toast.success("Login Success");
                 setNeeds2FA(false);

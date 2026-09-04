@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import api from "../../api/api";
 import i18n from "../../i18n";
+import { writeJson } from "../../utils/safeStorage";
 
 const renderAddedToCartToast = (productName, navigate, toast, t) =>
     createElement(
@@ -41,7 +42,7 @@ export const addToCart = (data, qty = 1, toast, navigate) =>
                     toast.success(`${data?.productName} added to the cart`);
                 }
             }
-            localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+            writeJson("cartItems", getState().carts.cart);
         } else {
             if (toast) toast.error("Out of stock");
         }
@@ -69,14 +70,14 @@ export const increaseCartQuantity =
                 totalPrice: cart.totalPrice,
                 cartId: cart.cartId,
             });
-            localStorage.setItem("cartItems", JSON.stringify(cart.products));
+            writeJson("cartItems", cart.products);
             toast?.success("Quantity increased");
         } catch (error) {
             dispatch({
                 type: "ROLLBACK_CART",
                 payload: previousCart,
             });
-            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+            writeJson("cartItems", previousCart.cart);
             toast?.error(error?.response?.data?.message || "Failed to increase quantity");
         }
     };
@@ -97,14 +98,14 @@ export const decreaseCartQuantity =
                 totalPrice: cart.totalPrice,
                 cartId: cart.cartId,
             });
-            localStorage.setItem("cartItems", JSON.stringify(cart.products));
+            writeJson("cartItems", cart.products);
             toast?.success("Quantity decreased");
         } catch (error) {
             dispatch({
                 type: "ROLLBACK_CART",
                 payload: previousCart,
             });
-            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+            writeJson("cartItems", previousCart.cart);
             toast?.error(error?.response?.data?.message || "Failed to decrease quantity");
         }
     };
@@ -114,7 +115,7 @@ export const removeFromCart = (data, toast) => async (dispatch, getState) => {
     const previousCart = takeCartSnapshot(getState);
 
     dispatch({ type: "OPTIMISTIC_REMOVE_CART_ITEM", payload: { productId: data.productId } });
-    localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+    writeJson("cartItems", getState().carts.cart);
 
     if (!cartId) {
         toast.success(`${data.productName} removed from cart`);
@@ -126,7 +127,7 @@ export const removeFromCart = (data, toast) => async (dispatch, getState) => {
         toast.success(`${data.productName} removed from cart`);
     } catch (error) {
         dispatch({ type: "ROLLBACK_CART", payload: previousCart });
-        localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+        writeJson("cartItems", previousCart.cart);
         toast?.error(error?.response?.data?.message || "Failed to remove item");
     }
 };
@@ -155,7 +156,7 @@ export const getUserCart = () => async (dispatch, getState) => {
             totalPrice: data.totalPrice,
             cartId: data.cartId
         });
-        localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
+        writeJson("cartItems", getState().carts.cart);
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
         dispatch({
@@ -184,12 +185,12 @@ export const saveItemForLater = (cartItemId, toast) => async (dispatch, getState
             totalPrice: data.totalPrice,
             cartId: data.cartId,
         });
-        localStorage.setItem("cartItems", JSON.stringify(data.products));
+        writeJson("cartItems", data.products);
         if (toast) toast.success("Item saved for later");
     } catch (error) {
         if (item) {
             dispatch({ type: "ROLLBACK_CART", payload: previousCart });
-            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+            writeJson("cartItems", previousCart.cart);
         }
         if (toast) toast.error(error?.response?.data?.message || "Failed to save item");
     }
@@ -214,12 +215,12 @@ export const moveItemToCart = (cartItemId, toast) => async (dispatch, getState) 
             totalPrice: data.totalPrice,
             cartId: data.cartId,
         });
-        localStorage.setItem("cartItems", JSON.stringify(data.products));
+        writeJson("cartItems", data.products);
         if (toast) toast.success("Item moved to cart");
     } catch (error) {
         if (item) {
             dispatch({ type: "ROLLBACK_CART", payload: previousCart });
-            localStorage.setItem("cartItems", JSON.stringify(previousCart.cart));
+            writeJson("cartItems", previousCart.cart);
         }
         if (toast) toast.error(error?.response?.data?.message || "Failed to move item");
     }

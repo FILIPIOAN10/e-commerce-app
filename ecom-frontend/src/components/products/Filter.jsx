@@ -3,6 +3,7 @@ import { Button, FormControl, IconButton, InputLabel,MenuItem,Select, Tooltip } 
 import { FiArrowDown, FiArrowUp, FiRefreshCw, FiSearch, FiClock, FiX } from "react-icons/fi";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
+import { readJson, writeJson } from "../../utils/safeStorage";
 
 const SEARCH_HISTORY_KEY = "productSearchHistory";
 const MAX_HISTORY = 10;
@@ -11,22 +12,9 @@ const MAX_SUGGESTIONS = 10;
 const SEARCH_DEBOUNCE_MS = 700;
 const SUGGESTION_DEBOUNCE_MS = 200;
 
-const loadSearchHistory = () => {
-    try {
-        const saved = localStorage.getItem(SEARCH_HISTORY_KEY);
-        return saved ? JSON.parse(saved) : [];
-    } catch {
-        return [];
-    }
-};
+const loadSearchHistory = () => readJson(SEARCH_HISTORY_KEY, []);
 
-const saveSearchHistory = (history) => {
-    try {
-        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-    } catch {
-        // ignore storage errors
-    }
-};
+const saveSearchHistory = (history) => writeJson(SEARCH_HISTORY_KEY, history);
 
 const Filter = ({categories}) => {
 

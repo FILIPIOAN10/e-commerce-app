@@ -1,12 +1,13 @@
 
 
 import './App.css'
-import { BrowserRouter as Router,Routes,Route } from 'react-router-dom'
+import { BrowserRouter as Router,Routes,Route,useLocation } from 'react-router-dom'
 import Navbar from './components/shared/Navbar'
 import { Toaster } from 'react-hot-toast'
 import React, { Suspense, lazy } from 'react'
 import PrivateRoute from './components/PrivateRoute'
 import Loader from './components/shared/Loader'
+import ErrorBoundary from './components/shared/ErrorBoundary'
 import LanguageLayout from './components/shared/LanguageLayout'
 import LanguageRedirect from './components/shared/LanguageRedirect'
 
@@ -52,6 +53,16 @@ const OAuth2Redirect = lazy(() => import('./components/shared/OAuth2Redirect'))
 const NotFound = lazy(() => import('./components/shared/NotFound'))
 const AdminUsers = lazy(() => import('./components/admin/users/AdminUsers'))
 
+/**
+ * Keys the boundary on the current path so navigating away from a page that
+ * threw clears the error automatically, instead of stranding the user on the
+ * fallback until they press Try again.
+ */
+const RoutedErrorBoundary = ({ children }) => {
+  const location = useLocation()
+  return <ErrorBoundary resetKey={location.pathname}>{children}</ErrorBoundary>
+}
+
 function App() {
   return (
     <React.Fragment>
@@ -61,6 +72,7 @@ function App() {
       <Navbar/>
       </Suspense>
       <Suspense fallback={<Loader />}>
+      <RoutedErrorBoundary>
       <Routes>
         <Route path='/' element={<LanguageRedirect />} />
         <Route path='/:lang' element={<LanguageLayout />}>
@@ -118,6 +130,7 @@ function App() {
           <Route path='*' element={<NotFound />} />
         </Route>
       </Routes>
+      </RoutedErrorBoundary>
       </Suspense>
       </div>
     </Router>

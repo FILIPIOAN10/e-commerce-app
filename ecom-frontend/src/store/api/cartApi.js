@@ -1,4 +1,5 @@
 import { apiSlice } from "./apiSlice";
+import { writeJson } from "../../utils/safeStorage";
 
 /**
  * Cart mutations backed by RTK Query.
@@ -18,7 +19,7 @@ const syncCartToReducer = (dispatch, cart) => {
         totalPrice: cart.totalPrice,
         cartId: cart.cartId,
     });
-    localStorage.setItem("cartItems", JSON.stringify(cart.products));
+    writeJson("cartItems", cart.products);
 };
 
 const cartApi = apiSlice.injectEndpoints({

@@ -1,8 +1,7 @@
+import { readJson } from "../../utils/safeStorage";
 
-// 1. Verificăm dacă avem deja user-ul salvat în browser
-const savedAuth = localStorage.getItem("auth") 
-    ? JSON.parse(localStorage.getItem("auth")) 
-    : null;
+// Rehydrate the session from the browser. Module scope, so it must not throw.
+const savedAuth = readJson("auth", null);
 
 const initialState = {
     user: savedAuth, // 🟢 Acum, la refresh, își ia datele înapoi din localStorage

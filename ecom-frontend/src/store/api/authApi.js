@@ -1,4 +1,5 @@
 import { apiSlice } from "./apiSlice";
+import { removeKey, writeJson } from "../../utils/safeStorage";
 
 const authApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -13,7 +14,7 @@ const authApi = apiSlice.injectEndpoints({
                     const { data } = await queryFulfilled;
                     if (!data.needs2FA) {
                         dispatch({ type: "LOGIN_USER", payload: data });
-                        localStorage.setItem("auth", JSON.stringify(data));
+                        writeJson("auth", data);
                     }
                 } catch {
                     // handled by hook
@@ -36,7 +37,7 @@ const authApi = apiSlice.injectEndpoints({
                 try {
                     const { data } = await queryFulfilled;
                     dispatch({ type: "LOGIN_USER", payload: data });
-                    localStorage.setItem("auth", JSON.stringify(data));
+                    writeJson("auth", data);
                 } catch {
                     // handled by hook
                 }
@@ -49,7 +50,7 @@ const authApi = apiSlice.injectEndpoints({
                     await queryFulfilled;
                 } finally {
                     dispatch({ type: "LOG_OUT" });
-                    localStorage.removeItem("auth");
+                    removeKey("auth");
                 }
             },
             invalidatesTags: ["Auth"],
