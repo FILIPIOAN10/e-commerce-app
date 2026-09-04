@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildProductsUrl } from '../../store/api/productApi'
+import { buildProductsUrl, buildFeaturedUrl, FEATURED_TYPES } from '../../store/api/productApi'
 import { buildProductQuery } from '../../hooks/useProductQuery'
 
 describe('buildProductsUrl', () => {
@@ -57,5 +57,32 @@ describe('buildProductQuery', () => {
     const q = query('category=Books&keyword=java')
     expect(q.get('category')).toBe('Books')
     expect(q.get('keyword')).toBe('java')
+  })
+})
+
+describe('buildFeaturedUrl', () => {
+  it('builds a typed featured request', () => {
+    expect(buildFeaturedUrl({ type: 'best-sellers', limit: 8 })).toBe(
+      '/public/products/featured?type=best-sellers&limit=8'
+    )
+  })
+
+  it('defaults the limit', () => {
+    expect(buildFeaturedUrl({ type: 'on-sale' })).toContain('limit=8')
+  })
+
+  it('encodes the type rather than interpolating it raw', () => {
+    expect(buildFeaturedUrl({ type: 'a&b=c', limit: 1 })).toContain('type=a%26b%3Dc')
+  })
+})
+
+describe('FEATURED_TYPES', () => {
+  it('maps each carousel to its own reducer action', () => {
+    // Home renders three carousels; a missing entry would silently drop one.
+    expect(FEATURED_TYPES).toEqual({
+      'best-sellers': 'SET_BEST_SELLERS',
+      'new-arrivals': 'SET_NEW_ARRIVALS',
+      'on-sale': 'SET_ON_SALE',
+    })
   })
 })

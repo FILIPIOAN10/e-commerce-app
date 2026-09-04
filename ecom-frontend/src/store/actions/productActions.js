@@ -127,25 +127,7 @@ export const fetchBestSellers = (limit = 8) => async (dispatch) => {
     }
 };
 
-export const fetchNewArrivals = (limit = 8) => async (dispatch) => {
-    try {
-        const { data } = await api.get(`/public/products/featured?type=new-arrivals&limit=${limit}`);
-        dispatch({ type: "SET_NEW_ARRIVALS", payload: data });
-    } catch (error) {
-        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch new arrivals" });
-        dispatch({ type: "SET_NEW_ARRIVALS", payload: [] });
-    }
-};
 
-export const fetchOnSaleProducts = (limit = 8) => async (dispatch) => {
-    try {
-        const { data } = await api.get(`/public/products/featured?type=on-sale&limit=${limit}`);
-        dispatch({ type: "SET_ON_SALE", payload: data });
-    } catch (error) {
-        dispatch({ type: "IS_ERROR", payload: error?.response?.data?.message || "Failed to fetch on-sale products" });
-        dispatch({ type: "SET_ON_SALE", payload: [] });
-    }
-};
 
 export const getAllCategoriesDashboard = (queryString = "") => async (dispatch) => {
     dispatch({ type: "CATEGORY_LOADER" });
