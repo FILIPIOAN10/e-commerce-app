@@ -10,6 +10,8 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import com.ecommerce.project.util.SortWhitelist;
+import com.ecommerce.project.config.AppConstants;
 
 @Controller
 public class AdminGraphQLController {
@@ -72,7 +74,8 @@ public class AdminGraphQLController {
                                    @Argument Integer size,
                                    @Argument String sortBy,
                                    @Argument String sortOrder) {
-        Pageable pageable = PaginationUtil.buildPageable(page, size, sortBy, sortOrder);
+        Pageable pageable = PaginationUtil.buildPageable(page, size, sortBy, sortOrder,
+                AppConstants.SORT_USERS_BY, SortWhitelist.USER);
         return userManagementService.getAllUsers(pageable);
     }
 

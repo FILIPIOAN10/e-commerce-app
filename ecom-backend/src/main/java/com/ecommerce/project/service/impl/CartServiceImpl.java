@@ -82,11 +82,13 @@ public class CartServiceImpl implements CartService {
         newCartItem.setProductPrice(product.getSpecialPrice());
         // Save Cart Item
         cartItemRepository.save(newCartItem);
-        List<CartItem> currentCartItems = cartItemRepository.findByCartCartId(cart.getCartId());
 
-        cart.setTotalPrice(sumOf(currentCartItems));
-        markCartActive(cart);
-        cartRepository.save(cart);
+        // Keep the in-memory collection in step with the row just inserted: the
+        // DTO below renders from it, and Hibernate does not populate the inverse
+        // side of an association we only saved through the item repository.
+        cart.getCartItems().add(newCartItem);
+
+        recalculateCartTotal(cart);
 
         // Return updated cart
 
@@ -152,23 +154,18 @@ public class CartServiceImpl implements CartService {
         }
 
         if (newQuantity == 0) {
+            // Removes the row and recalculates the total; saving cartItem after
+            // this point would re-insert the line we just deleted.
             deleteProductFromCart(cartId, productId);
-        } else {
-            cartItem.setProductPrice(product.getSpecialPrice());
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
-            cartItem.setDiscount(product.getDiscount());
-            cart.setTotalPrice(Money.of(cart.getTotalPrice())
-                    .add(lineTotal(cartItem.getProductPrice(), quantity))
-                    .toBigDecimal());
-            markCartActive(cart);
-            cartRepository.save(cart);
+            return mapToCartDTO(cart);
         }
 
-        CartItem updatedItem = cartItemRepository.save(cartItem);
+        cartItem.setQuantity(newQuantity);
+        cartItem.setProductPrice(product.getSpecialPrice());
+        cartItem.setDiscount(product.getDiscount());
+        cartItemRepository.save(cartItem);
 
-        if (updatedItem.getQuantity() == 0) {
-            cartItemRepository.deleteById(updatedItem.getCartItemId());
-        }
+        recalculateCartTotal(cart);
 
         return mapToCartDTO(cart);
     }
@@ -185,11 +182,10 @@ public class CartServiceImpl implements CartService {
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product", "productId", productId);
         }
-        cart.setTotalPrice(Money.of(cart.getTotalPrice())
-                .subtract(lineTotal(cartItem.getProductPrice(), cartItem.getQuantity()))
-                .toBigDecimal());
-        markCartActive(cart);
         cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
+        cart.getCartItems().removeIf(ci -> ci.getProduct().getProductId().equals(productId));
+
+        recalculateCartTotal(cart);
 
 
         return "Product " + cartItem.getProduct().getProductName() + " removed from cart !!!";
@@ -309,10 +305,19 @@ public class CartServiceImpl implements CartService {
         return mapToCartDTO(cart);
     }
 
+    /**
+     * The single writer of {@code carts.total_price}. Sums the lines the customer
+     * is actually buying — saved-for-later is excluded, and a legacy {@code NULL}
+     * flag counts as active. Reads through the repository rather than
+     * {@code cart.getCartItems()} so a pending insert or bulk delete is flushed
+     * and reflected: the total can never disagree with the rows behind it.
+     */
     private void recalculateCartTotal(Cart cart) {
-        cart.setTotalPrice(sumOf(cart.getCartItems().stream()
-                .filter(item -> Boolean.FALSE.equals(item.getSavedForLater()))
-                .toList()));
+        List<CartItem> activeItems = cartItemRepository.findByCartCartId(cart.getCartId()).stream()
+                .filter(item -> !Boolean.TRUE.equals(item.getSavedForLater()))
+                .toList();
+
+        cart.setTotalPrice(sumOf(activeItems));
         markCartActive(cart);
         cartRepository.save(cart);
     }

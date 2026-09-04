@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import com.ecommerce.project.util.SortWhitelist;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +71,8 @@ public class WishlistServiceImpl implements WishlistService {
     public ProductResponse getWishlist(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         User user = authUtil.loggedInUser();
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, "createdAt");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                "createdAt", SortWhitelist.WISHLIST);
 
         Page<Wishlist> wishlistPage = wishlistRepository.findByUser(user, pageDetails);
 

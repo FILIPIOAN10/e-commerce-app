@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -26,5 +29,8 @@ public interface CartItemRepository extends JpaRepository<CartItem,Long> {
     @Modifying
     @Query("DELETE FROM CartItem  ci WHERE ci.cart.cartId=?1")
     void deleteAllByCartId(Long cartId);
+    @Modifying
+    @Query("DELETE FROM CartItem ci WHERE ci.cart.cartId = :cartId AND (ci.savedForLater = false OR ci.savedForLater IS NULL)")
+    void deleteByCartIdAndSavedForLaterFalseOrNull(@Param("cartId") Long cartId);
 
 }

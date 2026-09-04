@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import com.ecommerce.project.service.pricing.Money;
 
@@ -68,11 +69,12 @@ public class OrderServiceImpl implements OrderService {
             throw new ResourceNotFoundException("Cart", "email", emailId);
         }
 
-        List<CartItem> cartItems = cart.getCartItems();
+        // Saved-for-later items are excluded from cart.totalPrice, so they must be
+        // excluded from order creation to prevent shipping uncharged items.
+        List<CartItem> cartItems = getActiveCartItems(cart);
         if (cartItems.isEmpty()) {
-            throw new APIException("Cart is Empty");
+            throw new APIException("Cart has no active items to purchase");
         }
-
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
 
@@ -124,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Clear the cart after the reservation has been consumed
         // Single bulk delete instead of one transaction per product (was O(n) queries).
-        cartItemRepository.deleteAllByCartId(cart.getCartId());
+        cartItemRepository.deleteByCartIdAndSavedForLaterFalseOrNull(cart.getCartId());
         cart.setTotalPrice(BigDecimal.ZERO);
         cartRepository.save(cart);
 
@@ -234,8 +236,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes) {
         Cart cart = cartRepository.findCartByEmail(emailId);
-        if (cart == null || cart.getCartItems().isEmpty()) {
-            throw new APIException("Cart is Empty");
+        // A cart holding nothing but saved-for-later lines has nothing to preview:
+        // checkout would reject it, so preview must agree rather than quote zero.
+        if (cart == null || getActiveCartItems(cart).isEmpty()) {
+            throw new APIException("Cart has no active items to purchase");
         }
 
         Address address = addressRepository.findById(addressId)
@@ -245,7 +249,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // Reserve stock for 10 minutes (TTL) to prevent race conditions at checkout
-        inventoryReservationService.reserveCartItems(cart.getCartId(), cart.getCartItems());
+        inventoryReservationService.reserveCartItems(cart.getCartId(), getActiveCartItems(cart));
 
         // The pipeline is pure, so preview does not touch coupon usage counters.
         PriceBreakdown pricing = pricingPipeline.price(
@@ -372,6 +376,14 @@ public class OrderServiceImpl implements OrderService {
                 throw new APIException("Coupon usage limit reached: " + couponCodes.get(i));
             }
         }
+    }
+    private List<CartItem> getActiveCartItems(Cart cart) {
+        if (cart.getCartItems() == null) {
+            return Collections.emptyList();
+        }
+        return cart.getCartItems().stream()
+                .filter(item -> !Boolean.TRUE.equals(item.getSavedForLater()))
+                .toList();
     }
 
 }

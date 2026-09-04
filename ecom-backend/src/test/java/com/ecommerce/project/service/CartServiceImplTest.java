@@ -235,4 +235,83 @@ class CartServiceImplTest {
         assertTrue(result.contains("successfully"));
         verify(cartItemRepository).deleteAllByCartId(1L);
     }
+    // ─────────────────────────────────────────────
+    //  Save-for-later and the cart total
+    // ─────────────────────────────────────────────
+
+    @Test
+    @DisplayName("removing a saved-for-later line leaves the total alone instead of driving it negative")
+    void deleteProductFromCart_whenItemIsSavedForLater_doesNotGoNegative() {
+        Product saved = new Product();
+        saved.setProductId(2L);
+        saved.setProductName("Espresso Machine");
+        saved.setSpecialPrice(new BigDecimal("500.00"));
+
+        CartItem activeItem = new CartItem();
+        activeItem.setCartItemId(10L);
+        activeItem.setCart(cart);
+        activeItem.setProduct(product);
+        activeItem.setProductPrice(new BigDecimal("100.00"));
+        activeItem.setQuantity(1);
+        activeItem.setSavedForLater(false);
+
+        CartItem savedItem = new CartItem();
+        savedItem.setCartItemId(20L);
+        savedItem.setCart(cart);
+        savedItem.setProduct(saved);
+        savedItem.setProductPrice(new BigDecimal("500.00"));
+        savedItem.setQuantity(1);
+        savedItem.setSavedForLater(true);
+
+        cart.setCartItems(new ArrayList<>(List.of(activeItem, savedItem)));
+        // The saved line was never counted, so the stored total is the active line alone.
+        cart.setTotalPrice(new BigDecimal("100.00"));
+
+        when(authUtil.loggedInEmail()).thenReturn("user1@test.com");
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findCartItemByProductProductIdAndCartId(1L, 2L)).thenReturn(savedItem);
+        // What the table holds once the saved line has been deleted.
+        when(cartItemRepository.findByCartCartId(1L)).thenReturn(List.of(activeItem));
+
+        cartService.deleteProductFromCart(1L, 2L);
+
+        assertEquals(0, new BigDecimal("100.00").compareTo(cart.getTotalPrice()),
+                "removing a line that was never in the total must not subtract from it");
+    }
+
+    @Test
+    @DisplayName("a legacy row with a NULL saved-for-later flag still counts toward the total")
+    void recalculate_withNullSavedForLaterFlag_treatsLineAsActive() {
+        Product other = new Product();
+        other.setProductId(2L);
+        other.setProductName("USB-C Hub");
+
+        CartItem legacyItem = new CartItem();
+        legacyItem.setCartItemId(30L);
+        legacyItem.setCart(cart);
+        legacyItem.setProduct(product);
+        legacyItem.setProductPrice(new BigDecimal("50.00"));
+        legacyItem.setQuantity(2);
+        legacyItem.setSavedForLater(null);   // row that predates the column default
+
+        CartItem removed = new CartItem();
+        removed.setCartItemId(31L);
+        removed.setCart(cart);
+        removed.setProduct(other);
+        removed.setProductPrice(new BigDecimal("10.00"));
+        removed.setQuantity(1);
+        removed.setSavedForLater(false);
+
+        cart.setCartItems(new ArrayList<>(List.of(legacyItem, removed)));
+
+        when(authUtil.loggedInEmail()).thenReturn("user1@test.com");
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findCartItemByProductProductIdAndCartId(1L, 2L)).thenReturn(removed);
+        when(cartItemRepository.findByCartCartId(1L)).thenReturn(List.of(legacyItem));
+
+        cartService.deleteProductFromCart(1L, 2L);
+
+        assertEquals(0, new BigDecimal("100.00").compareTo(cart.getTotalPrice()),
+                "a NULL flag means the line was never saved for later, so it is active");
+    }
 }

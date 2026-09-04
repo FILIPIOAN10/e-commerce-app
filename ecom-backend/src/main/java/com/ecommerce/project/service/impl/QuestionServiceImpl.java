@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import com.ecommerce.project.util.SortWhitelist;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +81,8 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponse getProductQuestions(Long productId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, "createdAt");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                "createdAt", SortWhitelist.QUESTION);
         Page<ProductQuestion> page = questionRepository.findByProduct(product, pageDetails);
         List<QuestionDTO> dtos = page.getContent().stream().map(this::mapToDTO).toList();
         QuestionResponse response = new QuestionResponse();

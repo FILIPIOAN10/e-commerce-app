@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.ecommerce.project.util.SortWhitelist;
 
 @RestController
 @RequestMapping("/api")
@@ -40,7 +41,8 @@ public class LowStockAlertController {
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder
     ) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_PRODUCTS_BY, SortWhitelist.PRODUCT);
 
         Page<Product> pageProducts = productRepository.findLowStockProducts(pageDetails);
 
@@ -56,7 +58,8 @@ public class LowStockAlertController {
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder
     ) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_PRODUCTS_BY, SortWhitelist.PRODUCT);
 
         var seller = authUtil.loggedInUser();
         Page<Product> pageProducts = productRepository.findLowStockProductsBySeller(seller, pageDetails);

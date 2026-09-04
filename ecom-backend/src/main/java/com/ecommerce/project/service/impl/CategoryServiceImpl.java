@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import com.ecommerce.project.util.SortWhitelist;
 
 
 @Service
@@ -43,7 +44,8 @@ public class CategoryServiceImpl implements CategoryService {
     )
     public CategoryResponse getAllCategories(Integer pageNumber, Integer pageSize,String sortBy,String sortOrder) {
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_CATEGORIES_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_CATEGORIES_BY, SortWhitelist.CATEGORY);
 
         // how you can get the page from DB
         Page<Category> categoryPage = categoryRepository.findAll(pageDetails);

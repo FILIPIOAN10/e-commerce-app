@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import com.ecommerce.project.service.pricing.Money;
+import com.ecommerce.project.util.SortWhitelist;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +72,8 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
 
     @Override
     public PromoCampaignResponse getCampaigns(Integer pageNumber, Integer pageSize) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, "startTime", "desc");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, "startTime", "desc",
+                "startTime", SortWhitelist.PROMO_CAMPAIGN);
         Page<PromoCampaign> page = promoCampaignRepository.findAll(pageDetails);
         PromoCampaignResponse response = new PromoCampaignResponse();
         response.setContent(page.getContent().stream().map(this::mapToDTO).toList());

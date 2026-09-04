@@ -35,6 +35,46 @@ public final class SortWhitelist {
             "userId", "userName", "email"
     );
 
+    // The names below are JPA *property* names, not column names: Spring Data
+    // resolves them against the entity, so `reviewId` (the column) is not
+    // sortable — `id` (the field) is. Getting this wrong turns a working list
+    // endpoint into a 400, so each set mirrors the entity it belongs to.
+
+    /** {@link com.ecommerce.project.model.Review}. */
+    public static final Set<String> REVIEW = Set.of(
+            "id", "rating", "helpfulCount", "createdAt"
+    );
+
+    /** {@link com.ecommerce.project.model.ProductQuestion}. */
+    public static final Set<String> QUESTION = Set.of(
+            "id", "createdAt", "answeredAt"
+    );
+
+    /** {@link com.ecommerce.project.model.Wishlist}. */
+    public static final Set<String> WISHLIST = Set.of(
+            "id", "createdAt"
+    );
+
+    /** {@link com.ecommerce.project.model.PromoCampaign}. */
+    public static final Set<String> PROMO_CAMPAIGN = Set.of(
+            "id", "name", "startTime", "endTime", "discountPercent", "active"
+    );
+
+    /** {@link com.ecommerce.project.model.ReturnRequest}. */
+    public static final Set<String> RETURN_REQUEST = Set.of(
+            "id", "orderId", "userEmail", "status", "requestedAt", "processedAt"
+    );
+
+    /** {@link com.ecommerce.project.model.StockMovement}. */
+    public static final Set<String> STOCK_MOVEMENT = Set.of(
+            "id", "productId", "delta", "balanceAfter", "reason", "createdAt"
+    );
+
+    /** {@link com.ecommerce.project.model.UserActivityLog}. */
+    public static final Set<String> ACTIVITY_LOG = Set.of(
+            "id", "username", "action", "createdAt"
+    );
+
     private SortWhitelist() {
         // utility class
     }
