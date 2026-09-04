@@ -29,6 +29,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.ecommerce.project.payload.request.UnlockRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -190,11 +191,9 @@ public class AuthController {
      */
     @Tag(name = "Authentication")
     @PostMapping("/unlock-request")
-    public ResponseEntity<?> requestUnlock(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        if (username == null || username.isBlank()) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Username is required"));
-        }
+    public ResponseEntity<?> requestUnlock(@Valid @RequestBody UnlockRequest body) {
+        // Presence is enforced by @NotBlank, which answers 400 naming the field.
+        String username = body.username();
         if (!loginAttemptService.isLocked(username)) {
             return ResponseEntity.ok(new MessageResponse("This account is not currently locked."));
         }

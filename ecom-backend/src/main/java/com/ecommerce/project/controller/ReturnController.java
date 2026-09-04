@@ -12,6 +12,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.ecommerce.project.payload.request.ReturnReasonRequest;
+import com.ecommerce.project.payload.request.AdminNoteRequest;
+import com.ecommerce.project.payload.request.TrackingRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -26,9 +30,9 @@ public class ReturnController extends BaseController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReturnRequestDTO> requestReturn(
             @PathVariable Long orderId,
-            @RequestBody Map<String, String> body) {
+            @Valid @RequestBody(required = false) ReturnReasonRequest body) {
         String email = authUtil.loggedInEmail();
-        String reason = body.getOrDefault("reason", "No reason provided");
+        String reason = body == null ? "No reason provided" : body.reasonOrDefault();
         ReturnRequestDTO dto = returnService.requestReturn(orderId, email, reason);
         return created(dto);
     }
@@ -57,8 +61,8 @@ public class ReturnController extends BaseController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReturnRequestDTO> approveReturn(
             @PathVariable Long returnId,
-            @RequestBody(required = false) Map<String, String> body) {
-        String adminNote = body != null ? body.getOrDefault("adminNote", "") : "";
+            @Valid @RequestBody(required = false) AdminNoteRequest body) {
+        String adminNote = body == null ? "" : body.noteOrEmpty();
         return ResponseEntity.ok(returnService.approveReturn(returnId, adminNote));
     }
 
@@ -67,8 +71,8 @@ public class ReturnController extends BaseController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReturnRequestDTO> rejectReturn(
             @PathVariable Long returnId,
-            @RequestBody(required = false) Map<String, String> body) {
-        String adminNote = body != null ? body.getOrDefault("adminNote", "") : "";
+            @Valid @RequestBody(required = false) AdminNoteRequest body) {
+        String adminNote = body == null ? "" : body.noteOrEmpty();
         return ResponseEntity.ok(returnService.rejectReturn(returnId, adminNote));
     }
 
@@ -84,11 +88,10 @@ public class ReturnController extends BaseController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReturnRequestDTO> provideTracking(
             @PathVariable Long returnId,
-            @RequestBody Map<String, String> body) {
+            @Valid @RequestBody TrackingRequest body) {
         String email = authUtil.loggedInEmail();
-        String carrierName = body.getOrDefault("carrierName", "");
-        String trackingNumber = body.getOrDefault("trackingNumber", "");
-        return ResponseEntity.ok(returnService.provideTracking(returnId, email, carrierName, trackingNumber));
+        return ResponseEntity.ok(returnService.provideTracking(
+                returnId, email, body.carrierName(), body.trackingNumber()));
     }
 
     @Tag(name = "Returns")

@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.ecommerce.project.payload.request.ReviewRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -19,20 +21,16 @@ public class ReviewController extends BaseController {
     @PostMapping("/users/reviews/{productId}")
     public ResponseEntity<?> addReview(
             @PathVariable Long productId,
-            @RequestBody Map<String, Object> body) {
-        Integer rating = (Integer) body.get("rating");
-        String comment = (String) body.get("comment");
-        String message = reviewService.addReview(productId, rating, comment);
+            @Valid @RequestBody ReviewRequest body) {
+        String message = reviewService.addReview(productId, body.rating(), body.comment());
         return ResponseEntity.ok(Map.of("message", message));
     }
 
     @PutMapping("/users/reviews/{productId}")
     public ResponseEntity<?> updateReview(
             @PathVariable Long productId,
-            @RequestBody Map<String, Object> body) {
-        Integer rating = (Integer) body.get("rating");
-        String comment = (String) body.get("comment");
-        String message = reviewService.updateReview(productId, rating, comment);
+            @Valid @RequestBody ReviewRequest body) {
+        String message = reviewService.updateReview(productId, body.rating(), body.comment());
         return ResponseEntity.ok(Map.of("message", message));
     }
 

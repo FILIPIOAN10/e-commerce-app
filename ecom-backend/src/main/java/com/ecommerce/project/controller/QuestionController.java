@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.ecommerce.project.payload.request.QuestionRequest;
+import com.ecommerce.project.payload.request.AnswerRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products/{productId}/questions")
@@ -26,8 +29,8 @@ public class QuestionController extends BaseController {
     @PostMapping
     public ResponseEntity<?> askQuestion(
             @PathVariable Long productId,
-            @RequestBody Map<String, Object> body) {
-        String question = (String) body.get("question");
+            @Valid @RequestBody QuestionRequest body) {
+        String question = body.question();
         String message = questionService.askQuestion(productId, question);
         return ResponseEntity.ok(Map.of("message", message));
     }
@@ -36,8 +39,8 @@ public class QuestionController extends BaseController {
     public ResponseEntity<?> answerQuestion(
             @PathVariable Long productId,
             @PathVariable Long questionId,
-            @RequestBody Map<String, Object> body) {
-        String answer = (String) body.get("answer");
+            @Valid @RequestBody AnswerRequest body) {
+        String answer = body.answer();
         String message = questionService.answerQuestion(questionId, answer);
         return ResponseEntity.ok(Map.of("message", message));
     }

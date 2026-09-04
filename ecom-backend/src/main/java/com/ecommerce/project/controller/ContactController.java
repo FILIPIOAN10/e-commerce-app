@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.ecommerce.project.payload.request.ContactRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -19,19 +21,11 @@ public class ContactController {
 
     @Tag(name = "Contact")
     @PostMapping("/public/contact")
-    public ResponseEntity<?> submitContact(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> submitContact(@Valid @RequestBody ContactRequest body) {
+        // Presence and shape are enforced by the record's constraints, which
+        // answer 400 with the offending field rather than one blanket message.
         try {
-            String name = body.get("name");
-            String email = body.get("email");
-            String message = body.get("message");
-
-            if (name == null || name.trim().isEmpty() ||
-                email == null || email.trim().isEmpty() ||
-                message == null || message.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "All fields are required"));
-            }
-
-            emailService.sendContactMessage(name, email, message);
+            emailService.sendContactMessage(body.name(), body.email(), body.message());
             return ResponseEntity.ok(Map.of("message", "Your message has been sent successfully!"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("message", "Failed to send message. Please try again later."));

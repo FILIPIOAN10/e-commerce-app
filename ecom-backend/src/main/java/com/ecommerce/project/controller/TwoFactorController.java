@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.ecommerce.project.payload.request.TwoFactorLoginRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -65,11 +67,10 @@ public class TwoFactorController {
     }
 
     @PostMapping("/public/verify-2fa-login")
-    public ResponseEntity<?> verify2FALogin(@RequestBody Map<String, Object> requestBody) {
-        int code = (Integer) requestBody.get("code");
-        String jwtToken = (String) requestBody.get("jwtToken");
+    public ResponseEntity<?> verify2FALogin(@Valid @RequestBody TwoFactorLoginRequest requestBody) {
         try {
-            AuthenticationResult result = twoFactorService.complete2FALogin(jwtToken, code);
+            AuthenticationResult result =
+                    twoFactorService.complete2FALogin(requestBody.jwtToken(), requestBody.code());
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
                     .body(result.getResponse());

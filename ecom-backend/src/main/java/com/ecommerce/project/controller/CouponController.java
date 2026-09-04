@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import com.ecommerce.project.payload.request.CouponValidationRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -43,9 +45,9 @@ public class CouponController extends BaseController {
     }
 
     @PostMapping("/coupons/validate")
-    public ResponseEntity<?> validateCoupon(@RequestBody Map<String, Object> body) {
-        String code = (String) body.get("code");
-        Double orderAmount = ((Number) body.get("orderAmount")).doubleValue();
+    public ResponseEntity<?> validateCoupon(@Valid @RequestBody CouponValidationRequest body) {
+        String code = body.code();
+        Double orderAmount = body.orderAmount().doubleValue();
         CouponDTO coupon = couponService.validateCoupon(code, orderAmount);
         double discountAmount = orderAmount * coupon.getDiscountPercent() / 100.0;
         double finalAmount = orderAmount - discountAmount;

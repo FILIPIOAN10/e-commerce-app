@@ -160,14 +160,39 @@ public class MyGlobalExceptionHandler {
                 .body(new ApiResponse("This record was changed by someone else. Reload and try again.", false));
     }
 
+    /**
+     * Names the constraint the caller actually hit. This handler fires for every
+     * unique constraint in the schema, so a single hard-coded message told a
+     * customer who double-clicked "submit review" that their payment had already
+     * been used - and they reasonably concluded something was wrong with their
+     * card. The fallback stays generic on purpose: echoing the raw constraint
+     * text would leak schema names to the client.
+     */
+    private static final Map<String, String> CONSTRAINT_MESSAGES = Map.of(
+            "uk_reviews_user_product",     "You have already reviewed this product.",
+            "uk_wishlists_user_product",   "This product is already in your wishlist.",
+            "uk_users_email",              "An account with that email already exists.",
+            "uk_users_username",           "That username is already taken.",
+            "uk_coupons_code",             "A coupon with that code already exists.",
+            "uk_payments_pg_payment_id",   "That payment has already been used for another order.",
+            "uk_orders_payment",           "That payment has already been used for another order.",
+            "uk_cart_reminder_cart_stage", "That reminder has already been sent.",
+            "uq_promo_campaign_product",   "That product is already in this campaign.");
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
-        Throwable root = e.getRootCause() != null ? e.getRootCause() : e.getCause();
-        String message = root != null ? root.getMessage() : e.getMessage();
-        logger.warn("Data integrity violation: {}", message);
+        Throwable root = e.getMostSpecificCause();
+        String detail = root.getMessage() == null ? "" : root.getMessage().toLowerCase();
+        logger.warn("Data integrity violation: {}", detail);
+
+        String message = CONSTRAINT_MESSAGES.entrySet().stream()
+                .filter(entry -> detail.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse("That conflicts with something already saved. Reload and try again.");
 
         Map<String, Object> body = new HashMap<>();
-        body.put("message", "Conflict: duplicate or invalid data. Payment may already have been used for another order.");
+        body.put("message", message);
         body.put("status", false);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
