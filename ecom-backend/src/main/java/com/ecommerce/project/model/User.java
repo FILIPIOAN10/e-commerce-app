@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @Table( name = "users",
                 uniqueConstraints = {
@@ -25,6 +28,8 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Long userId;
 
 

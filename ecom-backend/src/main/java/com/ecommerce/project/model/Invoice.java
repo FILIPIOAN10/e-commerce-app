@@ -1,9 +1,11 @@
 package com.ecommerce.project.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -22,12 +24,17 @@ import java.time.Instant;
         @UniqueConstraint(name = "uk_invoice_year_seq", columnNames = {"fiscal_year", "sequence_no"}),
         @UniqueConstraint(name = "uk_invoice_number", columnNames = "invoice_number")
 })
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 public class Invoice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)

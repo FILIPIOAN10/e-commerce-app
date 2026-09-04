@@ -5,8 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * One row per fiscal year holding the last invoice sequence number handed out for
@@ -19,13 +22,18 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "invoice_number_sequences")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvoiceNumberSequence {
 
     @Id
     @Column(name = "fiscal_year")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer fiscalYear;
 
     @Column(name = "last_value", nullable = false)

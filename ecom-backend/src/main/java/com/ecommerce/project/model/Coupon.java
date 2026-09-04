@@ -7,7 +7,10 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "coupons")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,6 +19,8 @@ public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "coupon_id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Long id;
 
     @Version

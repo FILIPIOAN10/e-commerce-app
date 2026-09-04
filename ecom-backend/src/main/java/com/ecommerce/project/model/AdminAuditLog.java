@@ -3,8 +3,11 @@ package com.ecommerce.project.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -16,7 +19,10 @@ import java.time.Instant;
            @Index(name = "idx_admin_audit_log_entity", columnList = "entity_type, entity_id"),
            @Index(name = "idx_admin_audit_log_created_at", columnList = "created_at")
        })
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,6 +31,8 @@ public class AdminAuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "log_id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Long id;
 
     @Column(name = "admin_user_id")

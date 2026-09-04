@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "wishlists",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -17,6 +20,8 @@ public class Wishlist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "wishlist_id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
