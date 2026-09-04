@@ -36,7 +36,10 @@ const SubscriptionPlans = () => {
         try {
             const { data } = await api.post(`/subscriptions/plans/${planId}/checkout`);
             if (data.checkoutUrl) {
-                window.location.href = data.checkoutUrl;
+                // assign() rather than `location.href =`: identical behaviour
+                // (both push a history entry), but react-hooks/immutability
+                // rejects assigning to a value that lives outside the component.
+                window.location.assign(data.checkoutUrl);
             } else {
                 toast.error("No checkout URL received");
             }
