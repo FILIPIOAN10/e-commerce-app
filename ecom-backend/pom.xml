@@ -277,11 +277,18 @@
             <version>1.21.4</version>
             <scope>test</scope>
         </dependency>
-        <!-- OpenAPI contract validation -->
+        <!-- OpenAPI contract validation.
+             Held at 2.43.x deliberately: 2.x validates against
+             com.github.java-json-tools:json-schema-validator, while 3.x switched to
+             com.networknt:json-schema-validator, which Spring AI already puts on the
+             classpath at 3.0.1 with an incompatible API. The 3.0.0 bump therefore
+             fails at runtime with
+             NoSuchMethodError: SchemaRegistry.getSchema(JsonNode).
+             Revisit when Atlassian supports networknt 3.x. -->
         <dependency>
             <groupId>com.atlassian.oai</groupId>
             <artifactId>swagger-request-validator-restassured</artifactId>
-            <version>3.0.0</version>
+            <version>2.43.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

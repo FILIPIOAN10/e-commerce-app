@@ -11,6 +11,13 @@ updates:
     labels:
       - "dependencies"
       - "backend"
+    ignore:
+      # 3.x validates against com.networknt:json-schema-validator, which Spring AI
+      # already pins to 3.0.1 with an incompatible API - the bump compiles but dies
+      # at runtime with NoSuchMethodError. 2.x uses java-json-tools and does not
+      # collide. Patches within 2.x are still welcome.
+      - dependency-name: "com.atlassian.oai:*"
+        update-types: ["version-update:semver-major"]
 
   # npm dependencies
   - package-ecosystem: "npm"
@@ -22,6 +29,12 @@ updates:
     labels:
       - "dependencies"
       - "frontend"
+    ignore:
+      # @vitejs/plugin-react 6.x requires vite ^8; this app is on vite 7. Lift this
+      # together with the Vite 8 upgrade, not before - the mismatched pair produced
+      # a lockfile npm ci refuses to install.
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
