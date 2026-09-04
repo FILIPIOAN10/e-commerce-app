@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import DashboardOverview from './DashboardOverview'
 import SalesChart from './SalesChart'
 import TopProductsChart from './TopProductsChart'
@@ -7,15 +7,12 @@ import RevenueByCategoryChart from './RevenueByCategoryChart'
 import LowStockSummary from './LowStockSummary'
 import { FaBoxOpen, FaDollarSign, FaShoppingCart, FaChartLine, FaChartBar, FaChartPie } from 'react-icons/fa';
 import { MdAttachMoney } from 'react-icons/md';
-import { useDispatch, useSelector } from 'react-redux';
-import { analyticsAction, fetchSalesChartData, fetchTopProductsChartData, fetchOrderStatusChartData, fetchRevenueByCategoryChartData } from '../../../store/actions';
+import { useSelector } from 'react-redux';
+import { useGetAnalyticsQuery, useGetAnalyticsChartQuery } from '../../../store/api/adminApi';
 import Loader from '../../shared/Loader';
 import ErrorPage from '../../shared/ErrorPage';
 
 const Dashboard = () => {
-
-    const dispatch = useDispatch();
-    const {isLoading,errorMessage}=useSelector((state) => state.errors);
 
     const {
     analytics: { productCount,totalRevenue,totalOrders},
@@ -25,13 +22,20 @@ const Dashboard = () => {
     revenueByCategoryChart,
     } = useSelector((state) => state.admin);
 
-    useEffect(() => {
-        dispatch(analyticsAction());
-        dispatch(fetchSalesChartData());
-        dispatch(fetchTopProductsChartData());
-        dispatch(fetchOrderStatusChartData());
-        dispatch(fetchRevenueByCategoryChartData());
-    },[dispatch]);
+    // Only the headline figures gate the page. Previously all five requests
+    // shared one flag, so a single chart endpoint failing replaced the whole
+    // dashboard with an error - including the numbers that had loaded fine.
+    const { isLoading, error } = useGetAnalyticsQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+    });
+    const errorMessage = error ? error?.data?.message || 'Failed to load analytics' : null;
+
+    // Each chart is independent: one failing leaves that chart empty and the
+    // rest of the dashboard intact.
+    useGetAnalyticsChartQuery('sales');
+    useGetAnalyticsChartQuery('top-products');
+    useGetAnalyticsChartQuery('order-status');
+    useGetAnalyticsChartQuery('revenue-by-category');
 
     if(isLoading){
         return <Loader/>

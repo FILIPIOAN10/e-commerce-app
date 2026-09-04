@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { DataGrid } from '@mui/x-data-grid';
 import { FaClipboardList } from 'react-icons/fa';
-import { fetchActivityLogs } from '../../../store/actions';
+
 import Loader from '../../shared/Loader';
 import ErrorPage from '../../shared/ErrorPage';
+import { useGetActivityLogsQuery } from '../../../store/api/adminApi';
 
 const UserActivityLog = () => {
-    const dispatch = useDispatch();
-    const { isLoading, errorMessage } = useSelector((state) => state.errors);
     const { activityLogs, activityLogTotal } = useSelector((state) => state.admin);
     const [page, setPage] = useState(0);
 
-    useEffect(() => {
-        dispatch(fetchActivityLogs(page, 20));
-    }, [dispatch, page]);
+    // Own status: this screen no longer displays another admin page's failure.
+    const { isLoading, error } = useGetActivityLogsQuery({ pageNumber: page, pageSize: 20 });
+    const errorMessage = error ? error?.data?.message || "Failed to load activity logs" : null;
+
 
     const columns = [
         { field: 'id', headerName: 'ID', width: 80 },

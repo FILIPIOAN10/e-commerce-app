@@ -26,14 +26,14 @@ const Category = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const { categoryLoader, errorMessage } = useSelector((state) => state.errors);
   const { categories, pagination } = useSelector((state) => state.products);
   const [currentPage, setCurrentPage] = useState(
     pagination?.pageNumber + 1 || 1
   );
 
   // Calling the `useCategoryFilter` custom hook to handle category fetching and pagination based on the current URL parameters.
-  useCategoryFilter();
+  const { isLoading: categoryLoader, error } = useCategoryFilter();
+  const errorMessage = error ? error?.data?.message || "Failed to load categories" : null;
 
 
   const tableRecords = categories?.map((item) => ({

@@ -1,31 +1,23 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "react-router-dom";
-import { getOrdersForDashboard } from "../store/actions";
+import { useSelector } from "react-redux";
+import { useGetDashboardOrdersQuery } from "../store/api/adminApi";
+import usePagedQueryArgs from "./usePagedQueryArgs";
 
+/**
+ * Dashboard orders. Admins see every order, sellers only their own, so the role
+ * selects the endpoint — and a customer with neither role must not fetch at
+ * all, which `skip` expresses directly rather than as an early return inside an
+ * effect.
+ */
 const useOrderFilter = () => {
-    const [searchParams] = useSearchParams();
-    const dispatch = useDispatch();
-
     const { user } = useSelector((state) => state.auth);
     const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
-    // ✅ adaugă seller
     const isSeller = Boolean(user?.roles?.includes("ROLE_SELLER"));
+    const queryString = usePagedQueryArgs();
 
-    useEffect(() => {
-        if (!user) return;
-        // ✅ doar admin sau seller fetch-uiesc comenzile din dashboard
-        if (!isAdmin && !isSeller) return;
-
-        const params = new URLSearchParams();
-        const currentPage = searchParams.get("page")
-            ? Number(searchParams.get("page")) : 1;
-        params.set("pageNumber", currentPage - 1);
-
-        const queryString = params.toString();
-        dispatch(getOrdersForDashboard(queryString, isAdmin));
-
-    }, [dispatch, searchParams, user, isAdmin, isSeller]);
+    return useGetDashboardOrdersQuery(
+        { isAdmin, queryString },
+        { skip: !user || (!isAdmin && !isSeller) },
+    );
 };
 
 export default useOrderFilter;

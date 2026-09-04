@@ -23,7 +23,7 @@ const AdminProducts = () => {
   
 
   const {products,pagination} = useSelector((state) => state.products);
-  const {isLoading} = useSelector((state) => state.errors);
+
   // check if order exist or not
   const emptyProduct= !products || products?.length === 0;
     const [currentPage,setCurrentPage] = useState(
@@ -106,24 +106,20 @@ const handlePaginationChange = (paginationModel) =>{
  };
 
  const onDeleteHandler = () => {
-  
-  const deleteParams = new URLSearchParams();
-  const page = searchParams.get("page") ? Number(searchParams.get("page")) : currentPage;
-  deleteParams.set("pageNumber", Math.max(page-1, 0));
-
+  // No page argument: the thunk invalidates the Product tag and RTK Query
+  // refetches whichever page this screen is currently showing.
   dispatch(deleteProduct(
     setLoader,
     selectedProduct?.id,
     toast,
     setOpenDeleteModal,
-    isAdmin,
-    deleteParams.toString()
+    isAdmin
   ));
  };
 
 
 
-  useDashboardProductFilter();
+  const { isLoading } = useDashboardProductFilter();
 
   return (
     <div>

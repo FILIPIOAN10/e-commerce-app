@@ -2,6 +2,12 @@ import toast from "react-hot-toast";
 import api from "../../api/api";
 import i18n from "../../i18n";
 import { removeKey, writeJson } from "../../utils/safeStorage";
+import { apiSlice } from "../api/apiSlice";
+
+// Mutations stay as thunks for now, but they refresh the list by
+// invalidating the RTK Query cache rather than re-dispatching a read
+// thunk. That keeps one owner of request status and lets the read
+// thunks be deleted.
 
 // Key a checkout attempt so a double-click or a retried request creates one
 // order, not two. A Stripe retry carries the same PaymentIntent id, which makes
@@ -11,32 +17,6 @@ const checkoutIdempotencyKey = (payload) =>
     (typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : `co-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-
-export const getOrdersForDashboard = (queryString = "", isAdmin) => async (dispatch, getState) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-        const { user } = getState().auth;
-        const adminRequest = isAdmin ?? Boolean(user?.roles?.includes("ROLE_ADMIN"));
-        const endpoint = adminRequest ? "/admin/orders" : "/seller/orders";
-        const requestUrl = queryString ? `${endpoint}?${queryString}` : endpoint;
-        const { data } = await api.get(requestUrl);
-        dispatch({
-            type: "GET_ADMIN_ORDERS",
-            payload: data.content,
-            pageNumber: data.pageNumber,
-            pageSize: data.pageSize,
-            totalElements: data.totalElements,
-            totalPages: data.totalPages,
-            lastPage: data.lastPage,
-        });
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        dispatch({
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch orders data",
-        });
-    }
-};
 
 export const updateOrderStatusFromDashboard =
     (orderId, orderStatus, toast, setLoader, isAdmin) => async (dispatch, getState) => {
@@ -49,38 +29,11 @@ export const updateOrderStatusFromDashboard =
         const { data } = await api.put(`${endpoint}${orderId}/status`, { status: orderStatus });
 
         toast.success(data.message || "Order updated successfully");
-        await dispatch(getOrdersForDashboard("", adminRequest));
+        dispatch(apiSlice.util.invalidateTags(["Order"]));
     } catch (error) {
         toast.error(error?.response?.data?.message || "Internal Server Error");
     } finally {
         setLoader(false);
-    }
-};
-
-export const getUserOrders = (queryString = "") => async (dispatch) => {
-    try {
-        dispatch({ type: "IS_FETCHING" });
-
-        const requestUrl = queryString ? `/orders/my-orders?${queryString}` : "/orders/my-orders";
-
-        const { data } = await api.get(requestUrl);
-
-        dispatch({
-            type: "GET_USER_ORDERS",
-            payload: data.content,
-            pageNumber: data.pageNumber,
-            pageSize: data.pageSize,
-            totalElements: data.totalElements,
-            totalPages: data.totalPages,
-            lastPage: data.lastPage,
-        });
-
-        dispatch({ type: "IS_SUCCESS" });
-    } catch (error) {
-        dispatch({
-            type: "IS_ERROR",
-            payload: error?.response?.data?.message || "Failed to fetch your orders",
-        });
     }
 };
 

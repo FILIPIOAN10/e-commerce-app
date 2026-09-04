@@ -1,28 +1,19 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useGetCategoriesQuery } from "../store/api/productApi";
+import usePagedQueryArgs from "./usePagedQueryArgs";
 
-import { fetchCategories } from "../store/actions";
-
-const useCategoryFilter = () => {
-  const [searchParams] = useSearchParams(); // Access search params from the URL
-  const dispatch = useDispatch(); // Get the dispatch function to call actions
-
-  useEffect(() => {
-    const params = new URLSearchParams(); // Create new URLSearchParams object
-
-    // Get current page from URL search params, defaulting to 1 if not present
-    const currentPage = searchParams.get("page")
-      ? Number(searchParams.get("page"))
-      : 1;
-    params.set("pageNumber", currentPage - 1); // Pagination starts from 0 for API
-
-    // Convert params to a query string
-    const queryString = params.toString();
-
-    // Dispatch action to fetch categories using the constructed query string
-    dispatch(fetchCategories(queryString));
-  }, [dispatch, searchParams]);
-};
+/**
+ * Admin categories listing, paged from the URL.
+ *
+ * Returns its own status. The screen previously read `categoryLoader` and
+ * `errorMessage` from the shared slice, which the create/update/delete category
+ * thunks also write to — so a failed delete blanked the whole table behind an
+ * error page instead of showing a toast over the rows that were still there.
+ *
+ * refetchOnMountOrArgChange because those mutations are still thunks writing
+ * straight to the reducer, so a cached list could otherwise resurrect a deleted
+ * category on remount.
+ */
+const useCategoryFilter = () =>
+    useGetCategoriesQuery(usePagedQueryArgs(), { refetchOnMountOrArgChange: true });
 
 export default useCategoryFilter;
