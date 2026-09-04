@@ -36,11 +36,16 @@ const ProductCard = ({
     const { compareList } = useSelector((state) => state.products);
     const isInCompare = compareList?.some((p) => p.productId === productId);
 
-    const handleAddToWishlist = () => {
+    // Both of these sit inside the card's own onClick={handleProductView}, so
+    // without stopPropagation the click adds the product AND navigates away to
+    // its detail page - the same reason the add-to-cart button below stops it.
+    const handleAddToWishlist = (e) => {
+        e.stopPropagation();
         dispatch(addToWishlist(productId, toast));
     };
 
-    const handleAddToCompare = () => {
+    const handleAddToCompare = (e) => {
+        e.stopPropagation();
         if (compareList.length >= 3) {
             toast.error(t("compareLimit"));
             return;
