@@ -61,6 +61,19 @@ const productApi = apiSlice.injectEndpoints({
             },
         }),
 
+        getProductById: builder.query({
+            query: (productId) => ({ url: `/public/products/${productId}`, method: "get" }),
+            providesTags: (result, error, productId) => [{ type: "Product", id: productId }],
+            async onQueryStarted(_, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch({ type: "FETCH_PRODUCT", payload: data });
+                } catch {
+                    // The detail page renders its own not-found state from the hook.
+                }
+            },
+        }),
+
         getCategories: builder.query({
             query: (queryString = "") => ({
                 url: queryString ? `/public/categories?${queryString}` : "/public/categories",
@@ -80,5 +93,9 @@ const productApi = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useGetProductsQuery, useGetCategoriesQuery } = productApi;
+export const {
+    useGetProductsQuery,
+    useGetProductByIdQuery,
+    useGetCategoriesQuery,
+} = productApi;
 export default productApi;

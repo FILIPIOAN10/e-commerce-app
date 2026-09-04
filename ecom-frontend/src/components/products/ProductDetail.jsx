@@ -23,13 +23,13 @@ import FrequentlyBoughtTogether from "../shared/FrequentlyBoughtTogether";
 import TrustBadges from "../shared/TrustBadges";
 import { Helmet } from "react-helmet-async";
 import {
-  fetchProductById,
   recordProductView,
   addToCart,
   addToWishlist,
   addToCompare,
 } from "../../store/actions";
 import { useLanguage } from "../../context/LanguageContext";
+import { useGetProductByIdQuery } from "../../store/api/productApi";
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -38,7 +38,13 @@ const ProductDetail = () => {
   const lang = useLanguage();
 
   const product = useSelector((state) => state.products.selectedProduct);
-  const { isLoading, errorMessage } = useSelector((state) => state.errors);
+  // Status comes from this page's own request. Reading the shared slice meant
+  // an unrelated feature's failure rendered "We couldn't find the product you
+  // were looking for" over a product that had loaded perfectly well.
+  const { isLoading, error } = useGetProductByIdQuery(productId, { skip: !productId });
+  const errorMessage = error
+    ? error?.data?.message || "We couldn't load this product."
+    : null;
   const { user } = useSelector((state) => state.auth);
   const { wishlist } = useSelector((state) => state.wishlist);
   const { compareList } = useSelector((state) => state.products);
@@ -49,10 +55,10 @@ const ProductDetail = () => {
   const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
   const isAvailable = product && Number(product.quantity) > 0;
 
+  // The fetch itself is the query hook above; this only clears the shared
+  // selectedProduct on the way out so the next detail page does not flash the
+  // previous product while its own request is in flight.
   useEffect(() => {
-    if (productId) {
-      dispatch(fetchProductById(productId));
-    }
     return () => {
       dispatch({ type: "CLEAR_SELECTED_PRODUCT" });
     };
