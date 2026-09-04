@@ -52,7 +52,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build & push backend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./ecom-backend
           file: ./ecom-backend/Dockerfile
@@ -105,7 +105,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build & push frontend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./ecom-frontend
           file: ./ecom-frontend/Dockerfile
