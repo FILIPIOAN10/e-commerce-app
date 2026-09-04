@@ -236,7 +236,7 @@ class OrderServiceImplTest {
         }
 
         @Test
-        @DisplayName("should remove items from cart after order is placed")
+        @DisplayName("should remove the purchased items from the cart after an order is placed")
         void placeOrder_clearsCartItems() {
             stubHappyPath();
             when(paymentIntent.getAmount()).thenReturn(10000L);
@@ -245,7 +245,10 @@ class OrderServiceImplTest {
                     EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
                     "pi_123", "succeeded", "OK", null);
 
-            verify(cartItemRepository).deleteAllByCartId(CART_ID);
+            // Targeted clear, not deleteAllByCartId: saved-for-later lines were
+            // never part of this order and must still be there afterwards.
+            verify(cartItemRepository).deleteByCartIdAndSavedForLaterFalseOrNull(CART_ID);
+            verify(cartItemRepository, never()).deleteAllByCartId(anyLong());
         }
 
         @Test
@@ -296,7 +299,7 @@ class OrderServiceImplTest {
                             EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
                             "pi_123", "succeeded", "OK", null));
 
-            assertTrue(ex.getMessage().contains("Cart is Empty"));
+            assertTrue(ex.getMessage().toLowerCase().contains("no active items"));
             verify(orderRepository, never()).save(any());
         }
     }
@@ -607,5 +610,62 @@ class OrderServiceImplTest {
             assertEquals(new BigDecimal("5.00"), placed.getShippingCost());
             assertEquals(new BigDecimal("21.00"), placed.getDiscountAmount());
         }
+    }
+    // ─────────────────────────────────────────────
+    //  Save-for-later is not part of the order
+    // ─────────────────────────────────────────────
+
+    @Test
+    @DisplayName("saved-for-later lines are neither ordered nor charged, and survive the cart clear")
+    void placeOrder_withSavedForLaterItems_ordersOnlyActiveLines() {
+        // setUp() already put the active line in the cart: 2 x 50.00 = 100.00.
+        Product luxury = new Product();
+        luxury.setProductId(2L);
+        luxury.setProductName("Espresso Machine");
+        luxury.setQuantity(3);
+
+        CartItem savedForLater = new CartItem();
+        savedForLater.setCartItemId(2L);
+        savedForLater.setCart(cart);
+        savedForLater.setProduct(luxury);
+        savedForLater.setQuantity(1);
+        savedForLater.setDiscount(new BigDecimal("0.0"));
+        savedForLater.setProductPrice(new BigDecimal("500.0"));
+        savedForLater.setSavedForLater(true);
+        cart.getCartItems().add(savedForLater);
+
+        // The stored total excludes the saved line, which is exactly the gap the
+        // bug exploited: it was charged for 100 and shipped 600 of goods.
+        cart.setTotalPrice(new BigDecimal("100.0"));
+
+        stubHappyPath();
+        when(paymentIntent.getAmount()).thenReturn(10000L);
+
+        OrderDTO placed = orderService.placeOrder(
+                EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
+                "pi_123", "succeeded", "OK", List.of());
+
+        assertEquals(1, placed.getItems().size(), "only the active line becomes an order item");
+        assertEquals(new BigDecimal("100.00"), placed.getTotalAmount());
+
+        // The cart clear must spare the saved line rather than wiping the table.
+        verify(cartItemRepository).deleteByCartIdAndSavedForLaterFalseOrNull(CART_ID);
+        verify(cartItemRepository, never()).deleteAllByCartId(anyLong());
+    }
+
+    @Test
+    @DisplayName("a cart holding nothing but saved-for-later lines cannot be checked out")
+    void placeOrder_withOnlySavedForLaterItems_isRejected() {
+        cart.getCartItems().forEach(item -> item.setSavedForLater(true));
+        cart.setTotalPrice(BigDecimal.ZERO);
+
+        when(cartRepository.findCartByEmail(EMAIL)).thenReturn(cart);
+
+        APIException thrown = assertThrows(APIException.class, () -> orderService.placeOrder(
+                EMAIL, ADDRESS_ID, "STRIPE", "Stripe",
+                "pi_123", "succeeded", "OK", List.of()));
+
+        assertTrue(thrown.getMessage().toLowerCase().contains("no active items"));
+        verify(orderRepository, never()).save(any(Order.class));
     }
 }

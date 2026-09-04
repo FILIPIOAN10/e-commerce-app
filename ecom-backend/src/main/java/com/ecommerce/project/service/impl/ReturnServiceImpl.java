@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.ecommerce.project.util.SortWhitelist;
 
 @Slf4j
 @Service
@@ -84,13 +85,15 @@ public class ReturnServiceImpl implements ReturnService {
 
     @Override
     public Page<ReturnRequestDTO> getAllReturnRequests(int page, int size) {
-        Pageable pageRequest = PageRequest.of(page, size, PaginationUtil.buildSort("requestedAt", "desc"));
+        Pageable pageRequest = PaginationUtil.buildPageable(page, size, "requestedAt", "desc",
+                "requestedAt", SortWhitelist.RETURN_REQUEST);
         return mapPage(returnRequestRepository.findAllByOrderByRequestedAtDesc(pageRequest));
     }
 
     @Override
     public Page<ReturnRequestDTO> getMyReturnRequests(String email, int page, int size) {
-        Pageable pageRequest = PageRequest.of(page, size, PaginationUtil.buildSort("requestedAt", "desc"));
+        Pageable pageRequest = PaginationUtil.buildPageable(page, size, "requestedAt", "desc",
+                "requestedAt", SortWhitelist.RETURN_REQUEST);
         return mapPage(returnRequestRepository.findByUserEmailOrderByRequestedAtDesc(email, pageRequest));
     }
 

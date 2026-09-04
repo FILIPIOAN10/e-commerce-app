@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import com.ecommerce.project.util.SortWhitelist;
 
 @Service
 @RequiredArgsConstructor
@@ -111,7 +112,8 @@ public class ReviewServiceImpl implements ReviewService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, "createdAt");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                "createdAt", SortWhitelist.REVIEW);
 
         Page<Review> reviewPage = reviewRepository.findByProduct(product, pageDetails);
 

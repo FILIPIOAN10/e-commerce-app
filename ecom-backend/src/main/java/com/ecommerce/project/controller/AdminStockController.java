@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import com.ecommerce.project.util.SortWhitelist;
 
 /**
  * The answer to "why is this product's stock the number it is". Admin-only —
@@ -39,7 +40,7 @@ public class AdminStockController extends BaseController {
         Page<StockMovementDTO> page = stockMovementRepository
                 .findByProductIdOrderByCreatedAtDescIdDesc(productId,
                         PaginationUtil.buildPageable(params.getPageNumber(), params.getPageSize(),
-                                "createdAt", "desc"))
+                                "createdAt", "desc", "createdAt", SortWhitelist.STOCK_MOVEMENT))
                 .map(StockMovementDTO::from);
         return ok(page);
     }

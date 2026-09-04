@@ -2,10 +2,7 @@ package com.ecommerce.project.service.impl;
 
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
-import com.ecommerce.project.model.Cart;
-import com.ecommerce.project.model.Category;
-import com.ecommerce.project.model.Product;
-import com.ecommerce.project.model.User;
+import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.CartDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
@@ -17,7 +14,6 @@ import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.service.ProductImageService;
 import com.ecommerce.project.service.ProductSemanticSearchService;
 import com.ecommerce.project.service.ProductService;
-import com.ecommerce.project.model.StockMovementReason;
 import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.cache.TransactionAwareCacheEvictor;
@@ -39,6 +35,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.ecommerce.project.service.pricing.Money;
@@ -151,7 +148,8 @@ public class ProductServiceImpl implements ProductService {
             key = "@authUtil.loggedInUserId() + '/' + #pageNumber + '/' + #pageSize + '/' + #sortBy + '/' + #sortOrder"
     )
     public ProductResponse getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                AppConstants.SORT_PRODUCTS_BY, SortWhitelist.PRODUCT);
         User user = authUtil.loggedInUser();
         Page<Product> pageProducts = productRepository.findByUser(user, pageDetails);
 
@@ -185,8 +183,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
 
         // Get the existing product from DB
-        Product productFromDB = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+        Product productFromDB = loadProductForWrite(productId);
 
         BigDecimal oldPrice = productFromDB.getPrice();
         BigDecimal oldSpecialPrice = productFromDB.getSpecialPrice();
@@ -266,8 +263,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDTO deleteProduct(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        Product product = loadProductForWrite(productId);
 
         productImageService.deleteProductImages(product);
 
@@ -312,6 +309,22 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
         return productMapper.mapProductToDTO(product);
+    }
+
+    private Product loadProductForWrite(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        User current = authUtil.loggedInUser();
+        boolean isAdmin = current.getRoles().stream()
+                .anyMatch(r -> r.getRoleName() == AppRole.ROLE_ADMIN);
+
+        if (!isAdmin && (product.getUser() == null
+                || !product.getUser().getUserId().equals(current.getUserId()))) {
+            throw new AccessDeniedException("You can only modify your own products");
+        }
+
+        return product;
     }
 
 }

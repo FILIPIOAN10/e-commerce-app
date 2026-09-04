@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.ecommerce.project.util.SortWhitelist;
 
 @RestController
 @RequestMapping("/api")
@@ -25,7 +26,8 @@ public class UserActivityLogController {
     public ResponseEntity<UserActivityLogResponse> getActivityLogs(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, "createdAt", "desc");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, "createdAt", "desc",
+                "createdAt", SortWhitelist.ACTIVITY_LOG);
         return new ResponseEntity<>(userActivityLogService.getLogs(pageDetails), HttpStatus.OK);
     }
 }

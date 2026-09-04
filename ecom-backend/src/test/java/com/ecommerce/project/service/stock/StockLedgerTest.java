@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -174,6 +175,10 @@ class StockLedgerTest {
     }
 
     @Test
+    // updateProduct now checks that the caller owns the product (admins are exempt),
+    // so this edit has to run as someone. "admin" is user 1 in data.sql and holds
+    // ROLE_ADMIN, which is exactly the actor this case is about.
+    @WithMockUser(username = "admin")
     @DisplayName("an admin correcting the number by hand is recorded as an adjustment")
     void adminEditIsRecordedAsAnAdjustment() {
         ProductDTO edit = new ProductDTO();

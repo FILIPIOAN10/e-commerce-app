@@ -1,5 +1,6 @@
 package com.ecommerce.project.service.impl;
 
+import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Category;
@@ -61,7 +62,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Category", "categoryId", categoryId));
 
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder, AppConstants.SORT_PRODUCTS_BY,SortWhitelist.PRODUCT);
         Page<Product> pageProducts = productRepository.findByCategoryOrderByPriceAsc(category, pageDetails);
 
         List<Product> products = pageProducts.getContent();
@@ -75,7 +76,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     @Override
     public ProductResponse searchProductByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,AppConstants.SORT_PRODUCTS_BY,SortWhitelist.PRODUCT);
         Page<Product> pageProducts = productRepository.findByProductNameLikeIgnoreCase('%' + keyword + '%', pageDetails);
 
         List<Product> products = pageProducts.getContent();
@@ -101,7 +102,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 && !terms.isEmpty();
 
         if (!shouldUseSemanticSearch) {
-            Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder);
+            Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,AppConstants.SORT_PRODUCTS_BY,SortWhitelist.PRODUCT);
             Page<Product> classicPage = productRepository.findAll(buildClassicSearchSpec(classicTerms), pageDetails);
             return productMapper.buildProductResponse(classicPage);
         }
@@ -110,7 +111,9 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         int safePageSize = pageSize == null ? 10 : Math.max(pageSize, 1);
         int semanticLimit = Math.min(PaginationUtil.getMaxPageSize(),
                 Math.max(semanticTopK, (safePageNumber + 1) * safePageSize));
-        Sort sortByAndOrder = PaginationUtil.buildSort(sortBy, sortOrder);
+        // Semantic search paginates by hand, but the sort key is still client
+        // input and goes through the same allow-list as the classic branch.
+        Sort sortByAndOrder = buildProductSort(sortBy, sortOrder);
         List<Product> classicProducts = productRepository.findAll(
                 buildClassicSearchSpec(classicTerms), PageRequest.of(0, semanticLimit, sortByAndOrder)).getContent();
         List<Long> semanticProductIds = searchSemanticProductIds(query, terms, hasCommaSeparatedTerms, semanticLimit);
@@ -165,8 +168,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     }
 
     private Sort buildProductSort(String sortBy, String sortOrder) {
-        String safeSortBy = SortWhitelist.sanitize(sortBy, SortWhitelist.PRODUCT, "productId");
-        return PaginationUtil.buildSort(safeSortBy, sortOrder);
+        return PaginationUtil.buildSafeSort(sortBy, sortOrder,
+                AppConstants.SORT_PRODUCTS_BY, SortWhitelist.PRODUCT);
     }
 
     private Specification<Product> buildClassicSearchSpec(List<String> terms) {

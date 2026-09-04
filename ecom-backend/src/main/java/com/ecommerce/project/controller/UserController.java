@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.ecommerce.project.util.SortWhitelist;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,7 +29,8 @@ public class UserController extends BaseController {
     public ResponseEntity<?> getAllSellers(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber
     ) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, Integer.parseInt(AppConstants.PAGE_SIZE), AppConstants.SORT_USERS_BY, "desc");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, Integer.parseInt(AppConstants.PAGE_SIZE),
+                AppConstants.SORT_USERS_BY, "desc", AppConstants.SORT_USERS_BY, SortWhitelist.USER);
         return ok(userManagementService.getAllSellers(pageDetails));
     }
 
@@ -38,7 +40,8 @@ public class UserController extends BaseController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "20", required = false) Integer pageSize
     ) {
-        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, AppConstants.SORT_USERS_BY, "desc");
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize,
+                AppConstants.SORT_USERS_BY, "desc", AppConstants.SORT_USERS_BY, SortWhitelist.USER);
         return ok(userManagementService.getAllUsers(pageDetails));
     }
 
