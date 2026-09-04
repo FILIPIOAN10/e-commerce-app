@@ -1,10 +1,9 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import HeroBanner from "./HeroBanner";
 import RecentlyViewed from "./RecentlyViewed";
 import RecommendedProducts from "./RecommendedProducts";
 import HomeSection from "./HomeSection";
-import { useEffect } from "react";
-import { fetchProducts, fetchBestSellers, fetchNewArrivals, fetchOnSaleProducts } from "../../store/actions";
+import { useGetProductsQuery, useGetFeaturedProductsQuery } from "../../store/api/productApi";
 import ProductCard from "../shared/ProductCard";
 import Loader from "../shared/Loader";
 import { FaExclamationTriangle, FaFireAlt, FaTags, FaBoxOpen } from "react-icons/fa";
@@ -13,19 +12,20 @@ import { useTranslation } from "react-i18next";
 
 
 const Home  = () => {
-    const dispatch = useDispatch();
     const {products, bestSellers, newArrivals, onSaleProducts} = useSelector( (state) => state.products);
-    const { isLoading, errorMessage} = useSelector(
-    (state) => state.errors
-    );
     const { t } = useTranslation("home");
 
-    useEffect( () => {
-        dispatch(fetchProducts());
-        dispatch(fetchBestSellers(8));
-        dispatch(fetchNewArrivals(8));
-        dispatch(fetchOnSaleProducts(8));
-    },[dispatch]);
+    // Four independent requests. On the shared status slice the first to return
+    // cleared the loader for all of them, and any one failing printed its error
+    // over the main grid below. Each carousel now fails on its own.
+    const { isLoading, error } = useGetProductsQuery("");
+    useGetFeaturedProductsQuery({ type: "best-sellers", limit: 8 });
+    useGetFeaturedProductsQuery({ type: "new-arrivals", limit: 8 });
+    useGetFeaturedProductsQuery({ type: "on-sale", limit: 8 });
+
+    const errorMessage = error
+        ? error?.data?.message || t("failedToLoad", { defaultValue: "Failed to load products" })
+        : null;
     return (
         <div className="lg:px-14 sm:px-8 px-4 dark:bg-gray-950 dark:text-white min-h-screen">
             <div className="py-6">

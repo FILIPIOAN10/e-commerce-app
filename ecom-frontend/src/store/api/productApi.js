@@ -38,6 +38,21 @@ export const buildProductsUrl = (queryString = "") => {
     return `/public/products?${queryString}`;
 };
 
+
+/**
+ * The three home carousels are one endpoint distinguished by `type`, and each
+ * lands in its own reducer key. Kept as data rather than three near-identical
+ * thunks, so adding a carousel is one entry here.
+ */
+export const FEATURED_TYPES = {
+    "best-sellers": "SET_BEST_SELLERS",
+    "new-arrivals": "SET_NEW_ARRIVALS",
+    "on-sale": "SET_ON_SALE",
+};
+
+export const buildFeaturedUrl = ({ type, limit = 8 }) =>
+    `/public/products/featured?type=${encodeURIComponent(type)}&limit=${limit}`;
+
 const toPagination = (data) => ({
     pageNumber: data.pageNumber,
     pageSize: data.pageSize,
@@ -74,6 +89,28 @@ const productApi = apiSlice.injectEndpoints({
             },
         }),
 
+        /**
+         * Each carousel is its own query, so one failing section shows an empty
+         * carousel instead of putting its error message over Home's main
+         * product grid - which is what the shared status slice did.
+         */
+        getFeaturedProducts: builder.query({
+            query: (args) => ({ url: buildFeaturedUrl(args), method: "get" }),
+            providesTags: (result, error, args) => [{ type: "Product", id: `featured-${args.type}` }],
+            async onQueryStarted({ type }, { dispatch, queryFulfilled }) {
+                const action = FEATURED_TYPES[type];
+                if (!action) return;
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch({ type: action, payload: data });
+                } catch {
+                    // Empty the carousel rather than leaving the previous page's
+                    // items in place under a section that failed to load.
+                    dispatch({ type: action, payload: [] });
+                }
+            },
+        }),
+
         getCategories: builder.query({
             query: (queryString = "") => ({
                 url: queryString ? `/public/categories?${queryString}` : "/public/categories",
@@ -96,6 +133,7 @@ const productApi = apiSlice.injectEndpoints({
 export const {
     useGetProductsQuery,
     useGetProductByIdQuery,
+    useGetFeaturedProductsQuery,
     useGetCategoriesQuery,
 } = productApi;
 export default productApi;
