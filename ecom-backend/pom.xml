@@ -21,6 +21,10 @@
         <swagger.version>2.2.54</swagger.version>
         <netty.version>4.2.16.Final</netty.version>
         <httpcore5.version>5.4.3</httpcore5.version>
+        <!-- Overrides the version Spring Boot manages. 11.0.24 carries three
+             CRITICAL auth-bypass CVEs (CVE-2026-65182, CVE-2026-65905,
+             CVE-2026-68525), all fixed in 11.0.25. -->
+        <tomcat.version>11.0.25</tomcat.version>
     </properties>
 
     <dependencyManagement>
