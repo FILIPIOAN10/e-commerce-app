@@ -28,6 +28,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.data.domain.Pageable;
+import com.ecommerce.project.util.PaginationUtil;
+import com.ecommerce.project.util.SortWhitelist;
 
 
 @Service
@@ -95,9 +98,22 @@ public class CartServiceImpl implements CartService {
         return mapToCartDTO(cart);
     }
 
+    /**
+     * Admin cart list. Paginated and fetched in two phases: an unbounded
+     * findAll() here walked every cart's items and their products, which is one
+     * query per cart plus one per line, holding a pooled connection throughout.
+     */
     @Override
-    public List<CartDTO> getAllCarts() {
-        return cartRepository.findAll().stream()
+    @Transactional(readOnly = true)
+    public List<CartDTO> getAllCarts(Integer pageNumber, Integer pageSize) {
+        Pageable page = PaginationUtil.buildPageable(pageNumber, pageSize,
+                "cartId", "asc", "cartId", SortWhitelist.CART);
+
+        List<Long> ids = cartRepository.findAllIds(page).getContent();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return cartRepository.findAllByIdsWithItems(ids).stream()
                 .map(this::mapToCartDTO)
                 .collect(Collectors.toList());
     }

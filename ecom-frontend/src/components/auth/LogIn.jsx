@@ -44,9 +44,6 @@ const LogIn = () => {
     };
 
             const handle2FASuccess = (authData) => {
-                    console.log("=== 1. authData primit:", authData);
-                    console.log("=== 2. typeof authData:", typeof authData);
-                console.log("2FA success, authData:", authData); // vezi ce vine de la backend
                 localStorage.setItem("auth", JSON.stringify(authData));
                 dispatch({ type: "LOGIN_USER", payload: authData });
                 toast.success("Login Success");

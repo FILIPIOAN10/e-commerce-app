@@ -32,7 +32,6 @@ const useProductFilter =  () => {
         }
 
         const queryString = params.toString();
-        console.log("QUERY STRING",queryString);
 
         dispatch(fetchProducts(queryString));
 

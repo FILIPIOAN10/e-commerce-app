@@ -40,6 +40,20 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
     List<Cart> findCartsByProductId(Long productId);
 
     /**
+     * Page 1 of the admin cart list: ids only. A JOIN FETCH plus a Pageable
+     * paginates in memory, so the graph is fetched separately below for exactly
+     * the ids on this page.
+     */
+    @Query("SELECT c.cartId FROM Cart c")
+    Page<Long> findAllIds(Pageable pageable);
+
+    /** Phase 2: the full graph for one page, in one query instead of N+M. */
+    @Query("SELECT DISTINCT c FROM Cart c "
+         + "LEFT JOIN FETCH c.cartItems ci LEFT JOIN FETCH ci.product "
+         + "WHERE c.cartId IN :ids")
+    List<Cart> findAllByIdsWithItems(@Param("ids") List<Long> ids);
+
+    /**
      * One page of cart ids that are candidates for an abandoned-cart reminder at
      * {@code stage}: inactive since before {@code threshold}, non-empty, owned by
      * an opted-in verified user, not already reminded at this stage, and with no

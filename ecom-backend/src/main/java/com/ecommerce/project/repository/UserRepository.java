@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 
 import java.util.Optional;
+import java.util.List;
 
 
 @Repository
@@ -29,4 +30,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.roleName = :role")
     Page<User> findByRoleName(@Param("role") AppRole roleSeller, Pageable pageable);
+
+    /**
+     * Everyone holding a role, unpaginated — for the small bounded sets only
+     * (admins). DISTINCT because a user matching through two roles would
+     * otherwise appear twice; erased tombstones are excluded because they can no
+     * longer authenticate and must not be notified.
+     */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.roles r "
+         + "WHERE r.roleName = :role AND u.erased = false")
+    List<User> findAllByRoleName(@Param("role") AppRole role);
 }
