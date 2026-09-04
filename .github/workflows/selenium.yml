@@ -31,6 +31,12 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ecom-frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ecom-frontend
+        run: npm ci
 
       - name: Create .env
         run: |
@@ -43,9 +49,9 @@ jobs:
           echo "APP_SKIP_VERIFICATION_EMAIL=true" >> .env
           echo "RATE_LIMIT_ENABLED=false" >> .env
 
-      - name: Start services with Docker Compose
+      - name: Start backend stack with Docker Compose
         run: |
-          docker compose up -d --build
+          docker compose up -d --build postgres redis vault vault-init backend
           sleep 60
 
       - name: Wait for backend
@@ -68,20 +74,38 @@ jobs:
           docker compose logs --tail=300 postgres vault vault-init redis
           exit 1
 
+      - name: Start frontend dev server
+        working-directory: ecom-frontend
+        env:
+          VITE_BACK_END_URL: http://localhost:8080
+        run: |
+          # --strictPort: without it Vite silently falls back to 5174 if 5173 is
+          # taken, and the wait loop below would time out against the wrong port.
+          nohup npm run dev -- --host 0.0.0.0 --port 5173 --strictPort > /tmp/vite.log 2>&1 &
+          echo $! > /tmp/vite.pid
+          echo "Vite started as PID $(cat /tmp/vite.pid)"
+
       - name: Wait for frontend
         run: |
           echo "Waiting for frontend..."
-          for i in $(seq 1 30); do
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ || echo "000")
+          for i in $(seq 1 60); do
+            # `|| true` so a connection refusal does not concatenate a second
+            # code onto curl's own "000" (the old loop printed "000000").
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/ || true)
             if [ "$CODE" = "200" ]; then
-              echo "Frontend is up (HTTP $CODE)"
+              echo "Frontend is up after $((i * 2))s"
               exit 0
             fi
-            echo "Attempt $i: HTTP $CODE, retrying..."
-            sleep 5
+            if ! kill -0 "$(cat /tmp/vite.pid)" 2>/dev/null; then
+              echo "Vite exited before serving. Log:"
+              cat /tmp/vite.log
+              exit 1
+            fi
+            echo "Attempt $i: HTTP ${CODE:-000}, retrying..."
+            sleep 2
           done
-          echo "Frontend failed to start"
-          docker compose logs frontend
+          echo "Frontend failed to start. Vite log:"
+          cat /tmp/vite.log
           exit 1
 
       - name: Install Selenium tests dependencies
@@ -91,6 +115,10 @@ jobs:
       - name: Run Selenium tests
         working-directory: selenium-tests
         run: mvn -B test -Dheadless=true
+
+      - name: Dump frontend log on failure
+        if: failure()
+        run: cat /tmp/vite.log || true
 
       - name: Upload Selenium test results
         if: always()

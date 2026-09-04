@@ -9,8 +9,10 @@ services:
       --save 60 1"
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    # Host port only: services reach Redis as redis:6379 on the compose network,
+    # so this can be remapped freely when something else already holds 6379.
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
 
@@ -21,8 +23,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required - see .env.example}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required - see .env.example}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required - see .env.example}
+    # Host port only: the backend connects to postgres:5432 inside the compose
+    # network. Remap when a local Postgres install already owns 5432.
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
