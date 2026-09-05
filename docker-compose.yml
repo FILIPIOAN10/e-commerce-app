@@ -112,6 +112,7 @@ services:
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      METRICS_SCRAPE_PASSWORD: ${METRICS_SCRAPE_PASSWORD:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       # OAuth2 credentials can be injected via .env for local social-login testing
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-dummy-github-id}
@@ -194,6 +195,9 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
       - prometheus-data:/prometheus
+    configs:
+      - source: prometheus_scrape_password
+        target: /etc/prometheus/scrape_password
     ports:
       - "9090:9090"
     depends_on:
@@ -219,6 +223,12 @@ services:
       prometheus:
         condition: service_started
     restart: unless-stopped
+
+configs:
+  # Materialises METRICS_SCRAPE_PASSWORD as a file for prometheus basic_auth,
+  # so the credential lives in .env and never in a committed config.
+  prometheus_scrape_password:
+    content: ${METRICS_SCRAPE_PASSWORD:-}
 
 volumes:
   redis-data:

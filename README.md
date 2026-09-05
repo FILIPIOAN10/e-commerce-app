@@ -226,12 +226,22 @@ worked. One property name, one environment variable, end to end.
 **Monitoring that cannot be scraped is not monitoring.** `/actuator/**` required
 `ADMIN`, and Prometheus scrapes with no JWT, so every metric was blackholed and
 every rule in `alert-rules.yml` sat un-evaluated — findable only during the first
-incident it was meant to catch. `/actuator/prometheus` is now `permitAll`, which
-is safe on two counts that already existed: the backend publishes no port to the
-host, and nginx returns 403 for `/actuator/` bar the health check. The stack
-itself had never been runnable either — `monitoring/` held a scrape config, alert
-rules and a dashboard that no compose file started — so Prometheus and Grafana
-are now services under a `monitoring` profile.
+incident it was meant to catch. The obvious repair, opening `/actuator/prometheus`,
+is the wrong one, and the codebase says so: `IdorAuthorizationTest` asserts that
+every actuator endpoint bar health and info stays closed to anonymous and to a
+plain user. So the scraper gets a credential instead of the endpoint being
+opened — a second `SecurityFilterChain`, ordered ahead of the main one and
+scoped to `/actuator/**`, that accepts HTTP Basic against a single in-memory
+`METRICS` account, alongside the JWT filter so an `ADMIN` reaching actuator
+through the app's own cookie still works. *Trade-off:* the account is in memory
+and not in `users`, because a scrape credential is not a person and must not be
+able to sign in to the application; the cost is that it is configured rather
+than managed, and with no password set no account exists at all, so an
+unconfigured deployment fails closed rather than open. The stack itself had
+never been runnable either — `monitoring/` held a scrape config, alert rules and
+a dashboard that no compose file started — so Prometheus and Grafana are now
+services under a `monitoring` profile, with the scrape password materialised
+from the environment as a file so no credential is committed.
 
 ### In flight this iteration
 

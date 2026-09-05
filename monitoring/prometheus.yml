@@ -8,6 +8,12 @@ rule_files:
 scrape_configs:
   - job_name: 'ecommerce-backend'
     metrics_path: '/actuator/prometheus'
+    # /actuator/prometheus is not public — see actuatorFilterChain. The password
+    # is mounted as a file from METRICS_SCRAPE_PASSWORD rather than written
+    # here, so no credential is committed.
+    basic_auth:
+      username: 'prometheus'
+      password_file: /etc/prometheus/scrape_password
     static_configs:
       - targets: ['backend:8080']
 
