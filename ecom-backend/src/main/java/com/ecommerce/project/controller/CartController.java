@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import com.ecommerce.project.payload.PaginationParams;
@@ -29,7 +30,7 @@ public class CartController {
 
     @Tag(name = "Cart")
     @PostMapping("/cart/create")
-    public ResponseEntity<String> createOrUpdateCart(@RequestBody List<CartItemDTO> cartItems) {
+    public ResponseEntity<String> createOrUpdateCart(@Valid @RequestBody List<@Valid CartItemDTO> cartItems) {
         String response =cartService.createOrUpdateCartWithItems(cartItems);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

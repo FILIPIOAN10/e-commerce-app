@@ -100,8 +100,9 @@ class CartServiceImplTest {
     void addProductToCart_success() {
         when(authUtil.loggedInEmail()).thenReturn("user1@test.com");
         when(authUtil.loggedInUser()).thenReturn(user);
+        // null then cart: createCart reads, finds nothing, claims via
+        // insertIfAbsent, then re-reads to get whichever row now exists.
         when(cartRepository.findCartByEmail("user1@test.com")).thenReturn(null, cart);
-        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(cartItemRepository.findCartItemByProductProductIdAndCartId(1L, 1L)).thenReturn(null);
         doAnswer(inv -> {
@@ -325,5 +326,27 @@ class CartServiceImplTest {
 
         assertEquals(0, new BigDecimal("100.00").compareTo(cart.getTotalPrice()),
                 "a NULL flag means the line was never saved for later, so it is active");
+    }
+
+    @Test
+    @DisplayName("first touch claims the cart through insertIfAbsent, never save()")
+    void createCart_claimsAtomically() {
+        // Losing the create race must not surface as an error: ON CONFLICT DO
+        // NOTHING leaves the winner's row in place and the re-read returns it.
+        // Going through save() instead would raise a duplicate-key violation
+        // that marks the caller's transaction rollback-only — which is why the
+        // old read-then-save left users with two carts and a permanent 500 on
+        // every later findCartByEmail.
+        when(authUtil.loggedInEmail()).thenReturn("user1@test.com");
+        when(authUtil.loggedInUser()).thenReturn(user);
+        when(cartRepository.findCartByEmail("user1@test.com")).thenReturn(null, cart);
+        when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
+        when(productMapper.mapCartItemsToProductDTOs(any())).thenReturn(cartDTO.getProducts());
+
+        CartDTO result = cartService.getOrCreateCartForCurrentUser();
+
+        assertEquals(1L, result.getCartId());
+        verify(cartRepository).insertIfAbsent(user.getUserId());
+        verify(cartRepository, never()).save(any(Cart.class));
     }
 }

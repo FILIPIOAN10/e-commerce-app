@@ -1,13 +1,13 @@
 export const productCatalogReducer = (state, action) => {
     const products = state?.products ?? null;
-    const pagination = state?.pagination ?? {};
+    const productPagination = state?.productPagination ?? {};
 
     switch (action.type) {
         case "FETCH_PRODUCTS":
             return {
                 products: action.payload,
-                pagination: {
-                    ...pagination,
+                productPagination: {
+                    ...productPagination,
                     pageNumber: action.pageNumber,
                     pageSize: action.pageSize,
                     totalElements: action.totalElements,
@@ -29,11 +29,11 @@ export const productCatalogReducer = (state, action) => {
 
             return {
                 products: nextProducts,
-                pagination: {
-                    ...pagination,
-                    totalElements: deletedFromCurrentPage && pagination.totalElements !== undefined
-                        ? Math.max(pagination.totalElements - 1, 0)
-                        : pagination.totalElements,
+                productPagination: {
+                    ...productPagination,
+                    totalElements: deletedFromCurrentPage && productPagination.totalElements !== undefined
+                        ? Math.max(productPagination.totalElements - 1, 0)
+                        : productPagination.totalElements,
                 },
             };
         }

@@ -8,7 +8,7 @@ import { useGetLowStockProductsQuery } from "../../../store/api/adminApi";
 
 
 const LowStockAlerts = () => {
-    const { lowStockProducts, pagination } = useSelector((state) => state.products);
+    const { lowStockProducts, lowStockPagination } = useSelector((state) => state.products);
     const { user } = useSelector((state) => state.auth);
     const [page, setPage] = useState(0);
 
@@ -120,7 +120,7 @@ const LowStockAlerts = () => {
                         disableColumnResize
                         pageSizeOptions={[10]}
                         pagination
-                        rowCount={pagination?.totalElements || 0}
+                        rowCount={lowStockPagination?.totalElements || 0}
                         paginationMode="server"
                         page={page}
                         onPageChange={(newPage) => setPage(newPage)}

@@ -160,37 +160,19 @@ class CouponServiceImplTest {
     }
 
     @Test
-    @DisplayName("applying coupon multiple times until the limit is reached")
-    void applyCoupon_multipleTimes_reachesLimit() {
-        Coupon limited = Coupon.builder()
-                .id(6L)
-                .code("LIMIT3")
-                .discountPercent(10)
-                .expiryDate(LocalDate.now().plusDays(7))
-                .maxUses(3)
-                .usedCount(0)
-                .active(true)
-                .build();
+    @DisplayName("validateCoupon reports how often the coupon was used, not the discount")
+    void validateCoupon_doesNotOverwriteUsedCount() {
+        // A coupon redeemed twice, quoted against a 200.00 order at 10% off.
+        activeCoupon.setUsedCount(2);
+        activeCouponDto.setUsedCount(2);
+        when(couponRepository.findByCode("SAVE10")).thenReturn(Optional.of(activeCoupon));
+        when(modelMapper.map(activeCoupon, CouponDTO.class)).thenReturn(activeCouponDto);
 
-        when(couponRepository.findByCode("LIMIT3")).thenReturn(Optional.of(limited));
-        when(couponRepository.save(any(Coupon.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(modelMapper.map(any(Coupon.class), eq(CouponDTO.class))).thenReturn(activeCouponDto);
+        CouponDTO result = couponService.validateCoupon("save10", 200.0);
 
-        couponService.applyCoupon("LIMIT3");
-        couponService.applyCoupon("LIMIT3");
-
-        limited.setUsedCount(2);
-        CouponDTO dto = couponService.applyCoupon("LIMIT3");
-
-        assertNotNull(dto);
-        assertEquals(3, limited.getUsedCount());
-
-        reset(couponRepository);
-        when(couponRepository.findByCode("LIMIT3")).thenReturn(Optional.of(limited));
-
-        APIException ex = assertThrows(APIException.class,
-                () -> couponService.validateCoupon("LIMIT3", 100.0));
-        assertTrue(ex.getMessage().contains("limit reached"));
+        // Used to answer 20 here -- the discount in whole currency units written
+        // over the redemption count, so the admin list showed invented usage.
+        assertEquals(2, result.getUsedCount());
     }
 
     @Test

@@ -166,6 +166,87 @@ from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 successors); the order-lifecycle listeners are **Observers** on
 `@TransactionalEventListener`.
 
+**The database owns the invariants the entity mapping only claims.** A code
+health audit turned up three defects that shared a shape: something the model
+asserted, that nothing enforced. `User.cart` is mapped `@OneToOne`, but
+`carts.user_id` carried a plain FK — no unique constraint — and cart creation
+read-then-inserted, so two concurrent first touches (a double-clicked *Add to
+cart*, or the SPA loading the cart and adding an item at once) both saw nothing
+and both inserted. `findCartByEmail` returns a single `Cart`, so from that point
+every cart request for that user threw on a two-row result, permanently, until
+someone deleted a row by hand. V26 collapses existing duplicates — merging the
+loser's items into the keeper rather than dropping them — and adds the unique
+index; creation now goes through `INSERT … ON CONFLICT DO NOTHING` and re-reads.
+*Trade-off:* an upsert rather than `save()`-and-catch, because a duplicate-key
+violation raised inside the caller's transaction marks it rollback-only —
+catching it trades the duplicate cart for an `UnexpectedRollbackException` at
+commit, which is not an improvement.
+
+**A scheduled job that only pushes state one way is a leak.** `applyActiveCampaigns`
+wrote a campaign's discount onto every one of its products once a minute, and
+had no path back: when `end_time` passed the campaign simply stopped being
+selected, so the promotional price stayed on the product forever — invisibly,
+because the campaign no longer showed as active anywhere in the admin UI.
+Deleting a campaign did the same thing, and deleted the only rows that could
+have undone it. The sweep is now symmetric — `promo_campaign_products.original_discount`
+remembers what to restore, `promo_campaigns.applied` records what the sweep has
+actually done — so a campaign is applied once and reverted once instead of
+rewritten every tick. That also removes the incidental cost: the old pass was
+1 + N queries and N updates per campaign, bumping `@Version` and churning WAL
+for values that had not changed, where a steady state is now two SELECTs that
+return nothing. `fixedDelay` replaces `fixedRate` and it takes the same advisory
+lock as the other sweeps, so it cannot overlap itself or collide across
+instances. The schedule itself moved out to a `PromoCampaignSweepJob`, matching
+`AbandonedCartReminderJob` and `StockReconciliationJob`: scheduling is a
+deployment concern, and a test that wants to observe one pass should not have to
+defeat a timer to do it — `app.promo.enabled=false` in the test profile, and the
+service driven directly. *Known limit:* campaigns already running when V27 lands
+have no recorded original discount — it was overwritten before the column
+existed — so they revert to no discount rather than to whatever preceded them.
+
+**One key, one writer.** `state.products` held a single `pagination` object that
+`productCatalogReducer`, `categoryReducer` and `lowStockReducer` all wrote, and
+the merge in `ProductReducer` spreads the category slice last. `/products` fires
+the product and category queries in parallel, so whenever the smaller categories
+response landed second it overwrote the catalog's page count with its own — a
+12-page catalog rendering as one page, intermittently, which is why it survived
+so long. Each list now owns its own paginator. The same merge also returned a
+fresh object for every action dispatched anywhere in the app, so `useSelector`'s
+reference check re-rendered every consumer of `state.products` on unrelated
+traffic; it now hands back the same reference when nothing moved.
+
+**Configuration that only resolves in development is a production outage.**
+`app.password-reset.frontend-url` was hardcoded to `localhost:5173` with no
+placeholder, and the prod compose sets `FRONTEND_URL` — which relaxed binding
+maps to `frontend.url`, not to that key. `EmailService` used it for four links:
+password reset, email verification and both order-tracking mails. All four
+pointed at localhost in production, and nothing logged an error because the mail
+sent fine. The duplicate property is gone. Stripe had the mirror image: the key
+was read as `stripe.secret.key` by `StripeServiceImpl` and `stripe.api.key` by
+`SubscriptionServiceImpl`, and only the former is set in production, so
+subscriptions failed with "Stripe API key is not configured" while checkout
+worked. One property name, one environment variable, end to end.
+
+**Monitoring that cannot be scraped is not monitoring.** `/actuator/**` required
+`ADMIN`, and Prometheus scrapes with no JWT, so every metric was blackholed and
+every rule in `alert-rules.yml` sat un-evaluated — findable only during the first
+incident it was meant to catch. The obvious repair, opening `/actuator/prometheus`,
+is the wrong one, and the codebase says so: `IdorAuthorizationTest` asserts that
+every actuator endpoint bar health and info stays closed to anonymous and to a
+plain user. So the scraper gets a credential instead of the endpoint being
+opened — a second `SecurityFilterChain`, ordered ahead of the main one and
+scoped to `/actuator/**`, that accepts HTTP Basic against a single in-memory
+`METRICS` account, alongside the JWT filter so an `ADMIN` reaching actuator
+through the app's own cookie still works. *Trade-off:* the account is in memory
+and not in `users`, because a scrape credential is not a person and must not be
+able to sign in to the application; the cost is that it is configured rather
+than managed, and with no password set no account exists at all, so an
+unconfigured deployment fails closed rather than open. The stack itself had
+never been runnable either — `monitoring/` held a scrape config, alert rules and
+a dashboard that no compose file started — so Prometheus and Grafana are now
+services under a `monitoring` profile, with the scrape password materialised
+from the environment as a file so no credential is committed.
+
 ### In flight this iteration
 
 Not yet merged, stacked in this order: slice 2 of the money migration

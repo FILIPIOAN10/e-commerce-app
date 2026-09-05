@@ -26,9 +26,9 @@ const Category = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const { categories, pagination } = useSelector((state) => state.products);
+  const { categories, categoryPagination } = useSelector((state) => state.products);
   const [currentPage, setCurrentPage] = useState(
-    pagination?.pageNumber + 1 || 1
+    categoryPagination?.pageNumber + 1 || 1
   );
 
   // Calling the `useCategoryFilter` custom hook to handle category fetching and pagination based on the current URL parameters.
@@ -104,11 +104,11 @@ const Category = () => {
                 rows={tableRecords}
                 columns={categoryTableColumns(handleEdit, handleDelete)}
                 paginationMode="server"
-                rowCount={pagination?.totalElements || 0}
+                rowCount={categoryPagination?.totalElements || 0}
                 initialState={{
                   pagination: {
                     paginationModel: {
-                      pageSize: pagination?.pageSize || 10,
+                      pageSize: categoryPagination?.pageSize || 10,
                       page: currentPage - 1,
                     },
                   },
@@ -116,12 +116,12 @@ const Category = () => {
                 onPaginationModelChange={handlePaginationChange}
                 disableRowSelectionOnClick
                 disableColumnResize
-                pageSizeOptions={[pagination?.pageSize || 10]}
+                pageSizeOptions={[categoryPagination?.pageSize || 10]}
                 pagination
                 paginationOptions={{
                   showFirstButton: true,
                   showLastButton: true,
-                  hideNextButton: currentPage === pagination?.totalPages,
+                  hideNextButton: currentPage === categoryPagination?.totalPages,
                 }}
               />
             </div>

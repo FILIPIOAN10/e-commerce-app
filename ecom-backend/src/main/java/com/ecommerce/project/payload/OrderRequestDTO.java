@@ -3,6 +3,7 @@ package com.ecommerce.project.payload;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -12,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderRequestDTO {
 
+    // findById(null) is an InvalidDataAccessApiUsageException, not a 400.
+    @NotNull
     private Long addressId;
     private String paymentMethod;
     private String pgName;

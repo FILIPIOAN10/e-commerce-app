@@ -13,8 +13,6 @@ public interface CouponService {
 
     CouponDTO validateCoupon(String code, Double orderAmount);
 
-    CouponDTO applyCoupon(String code);
-
     java.util.List<CouponDTO> getAllCoupons();
 
     void validateCouponState(Coupon coupon, String code);

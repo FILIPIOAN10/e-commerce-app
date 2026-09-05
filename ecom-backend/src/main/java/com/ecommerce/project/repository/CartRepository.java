@@ -5,6 +5,7 @@ import com.ecommerce.project.model.CartReminderStage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -28,6 +29,23 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
 
     @Query("SELECT c FROM Cart c WHERE c.user.email = ?1 AND c.cartId = ?2")
     Cart findCartByEmailAndCartId(String emailId, Long cartId);
+
+    /**
+     * Claims the one cart a user is allowed (see the unique index added in V26),
+     * doing nothing if they already have one.
+     *
+     * <p>Native because the guarantee lives in {@code ON CONFLICT}: the check
+     * and the insert are one statement, so a concurrent first-touch cannot slip
+     * between them. It is also why this is not {@code save()} — a duplicate-key
+     * exception inside the caller's transaction would mark it rollback-only,
+     * and no amount of catching brings that back.
+     */
+    @Modifying
+    @Query(value = "INSERT INTO carts (user_id, total_price, last_activity_at) "
+                 + "VALUES (:userId, 0.00, CURRENT_TIMESTAMP) "
+                 + "ON CONFLICT (user_id) DO NOTHING",
+           nativeQuery = true)
+    int insertIfAbsent(@Param("userId") Long userId);
 
     /**
      * Carts owned by a user. One-to-one in practice, but returned as a list so

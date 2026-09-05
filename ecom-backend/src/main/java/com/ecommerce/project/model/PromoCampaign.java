@@ -43,4 +43,15 @@ public class PromoCampaign {
 
     @Column(nullable = false)
     private Boolean active = true;
+
+    /**
+     * Whether this campaign's prices are currently pushed onto its products.
+     *
+     * <p>Distinct from {@link #active}, which is the operator's intent. This is
+     * the sweep's own record of what it has done, so a campaign is applied once
+     * when it starts and reverted once when it stops — rather than every product
+     * being rewritten on every pass, and never put back.
+     */
+    @Column(nullable = false)
+    private Boolean applied = false;
 }

@@ -16,6 +16,11 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.http.HttpMethod;
@@ -70,6 +75,64 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Actuator, ahead of the main chain.
+     *
+     * <p>Prometheus scrapes {@code /actuator/prometheus} over the internal
+     * network and carries no JWT, so the blanket ADMIN rule meant every metric
+     * was blackholed and no alert rule ever evaluated. Opening the endpoint was
+     * not the answer — {@code IdorAuthorizationTest} asserts that everything
+     * bar health and info stays closed — so the scraper gets a credential of
+     * its own instead: HTTP Basic against a single in-memory account that
+     * exists only if a password is configured.
+     *
+     * <p>The JWT filter runs here too, so an ADMIN reaching actuator through
+     * the app's own cookie keeps working.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain actuatorFilterChain(
+            HttpSecurity http,
+            AuthTokenFilter authTokenFilter,
+            @Value("${app.metrics.scrape.username:prometheus}") String scrapeUser,
+            @Value("${app.metrics.scrape.password:}") String scrapePassword) throws Exception {
+
+        http.securityMatcher("/actuator/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .anyRequest().hasAnyRole("ADMIN", "METRICS"))
+                .httpBasic(Customizer.withDefaults())
+                .authenticationManager(metricsAuthenticationManager(scrapeUser, scrapePassword))
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    /**
+     * Authenticates the metrics scraper and nothing else.
+     *
+     * <p>Deliberately not wired to {@code UserDetailsServiceImpl}: a scrape
+     * credential is not a person, should not appear in the users table, and
+     * must not be able to sign in to the application. With no password
+     * configured the manager holds no accounts at all, so Basic can never
+     * succeed — an unconfigured deployment fails closed rather than open.
+     */
+    private AuthenticationManager metricsAuthenticationManager(String username, String password) {
+        InMemoryUserDetailsManager accounts = new InMemoryUserDetailsManager();
+        if (password != null && !password.isBlank()) {
+            accounts.createUser(org.springframework.security.core.userdetails.User
+                    .withUsername(username)
+                    .password(passwordEncoder().encode(password))
+                    .roles("METRICS")
+                    .build());
+        }
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(accounts);
+        provider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(provider);
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthTokenFilter authTokenFilter,
                                            RateLimitFilter rateLimitFilter,
@@ -107,6 +170,9 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/*/questions").permitAll()
+                        // Actuator is handled by actuatorFilterChain, which is
+                        // ordered ahead of this one. These stay as a backstop in
+                        // case that chain's matcher is ever narrowed.
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**").permitAll()

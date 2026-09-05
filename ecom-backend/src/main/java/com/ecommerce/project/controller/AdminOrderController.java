@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -38,7 +39,7 @@ public class AdminOrderController extends BaseController {
     @PutMapping("/admin/orders/{orderId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderDTO> updateOrderStatus(@PathVariable Long orderId,
-                                                      @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
+                                                      @Valid @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
        OrderDTO order = orderService.updateOrder(orderId,orderStatusUpdateDto.getStatus());
        return ok(order);
     }
@@ -46,7 +47,7 @@ public class AdminOrderController extends BaseController {
     @PutMapping("/seller/orders/{orderId}/status")
     @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<OrderDTO> updateOrderStatusSeller(@PathVariable Long orderId,
-                                                      @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
+                                                      @Valid @RequestBody OrderStatusUpdateDto orderStatusUpdateDto){
         OrderDTO order = orderService.updateOrder(orderId,orderStatusUpdateDto.getStatus());
         return ok(order);
     }

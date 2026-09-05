@@ -74,22 +74,10 @@ public class CouponServiceImpl implements CouponService {
 
         validateCouponState(coupon, code);
 
-        double discountAmount = orderAmount * coupon.getDiscountPercent() / 100.0;
-        CouponDTO dto = mapToDTO(coupon);
-        dto.setUsedCount((int) Math.round(discountAmount * 100) / 100);
-        return dto;
-    }
-
-    @Override
-    @Transactional
-    public CouponDTO applyCoupon(String code) {
-        Coupon coupon = couponRepository.findByCode(code.toUpperCase())
-                .orElseThrow(() -> new APIException("Invalid coupon code: " + code));
-
-        validateCouponState(coupon, code);
-
-        coupon.setUsedCount(coupon.getUsedCount() + 1);
-        coupon = couponRepository.save(coupon);
+        // The discount for this order amount is computed by the caller, which
+        // returns it as its own field. It used to be written over usedCount
+        // here, so a coupon redeemed twice reported itself as redeemed however
+        // many whole currency units the discount happened to come to.
         return mapToDTO(coupon);
     }
 
