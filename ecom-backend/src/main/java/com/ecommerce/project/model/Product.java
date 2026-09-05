@@ -74,7 +74,22 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne
+    /**
+     * The seller. LAZY because nothing that renders a product reads it:
+     * {@code ProductDTO} has no seller field, so ModelMapper never traverses
+     * here, and the three ownership checks that do use it only call
+     * {@code getUserId()}, which a proxy answers without a query.
+     *
+     * <p>It was EAGER, and {@code User.roles} is EAGER too, so a page of twenty
+     * products issued a select per distinct seller and then a select per
+     * seller's roles — around forty queries to render a list that needs one,
+     * each of them hydrating a full {@code User} including its password hash,
+     * only for the mapper to discard it.
+     *
+     * <p>{@code Order.withDetails} names this attribute explicitly, so the
+     * order path still fetches it in the same query it always did.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User user;
 
