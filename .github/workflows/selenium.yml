@@ -10,6 +10,11 @@ on:
       - 'ecom-backend/**'
       - '.github/workflows/selenium.yml'
 
+# The last workflow without one; the other four declare theirs. Runs a browser
+# suite and uploads artifacts, neither of which writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   selenium-test:
     name: Selenium Tests

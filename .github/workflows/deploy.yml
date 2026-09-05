@@ -5,6 +5,14 @@ on:
     tags:
       - 'v*'
 
+# One production deployment at a time. Two tags pushed close together would
+# otherwise race on the same host over .env, .env.previous and the compose
+# stack. cancel-in-progress stays false on purpose: cancelling a deployment
+# midway is how you get a half-applied stack with no rollback.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 permissions:
   contents: read
   packages: write
@@ -23,6 +31,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: read
@@ -76,10 +85,16 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
             # Health gate: wait up to 2 minutes for the backend to report UP.
+            # Through nginx on :80, not the backend on :8080. docker-compose.prod.yml
+            # publishes ports for nginx alone — the backend is reachable only inside
+            # the compose network — so :8080 on the host answered nothing, every
+            # attempt scored 000, and the gate rolled back and failed a deployment
+            # that was in fact healthy. nginx proxies /actuator/health straight
+            # through, and a 502 while the backend is still coming up simply retries.
             echo "Waiting for /actuator/health ..."
             HEALTHY=false
             for i in $(seq 1 24); do
-              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/actuator/health || echo "000")
               if [ "$CODE" = "200" ]; then
                 HEALTHY=true
                 echo "Health check passed (HTTP 200)"

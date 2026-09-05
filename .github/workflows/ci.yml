@@ -369,7 +369,10 @@ jobs:
         with:
           base-ref: ${{ github.event.pull_request.base.sha || github.event.before }}
           head-ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          # Matches the Trivy gate above. The action's own default is 'low',
-          # which would hold this repo to a stricter line than the scanner
-          # sitting next to it — one threshold, applied by both.
-          fail-on-severity: high
+          # Deliberately stricter than the Trivy gate above, which fails only on
+          # CRITICAL/HIGH. The two are not measuring the same thing: Trivy scans
+          # everything already in the tree, where a moderate finding may be
+          # unreachable or unfixable and blocking on it would be noise. This one
+          # sees only what a push newly introduces, and declining to add a known
+          # moderate vulnerability is cheap at exactly that moment.
+          fail-on-severity: moderate
