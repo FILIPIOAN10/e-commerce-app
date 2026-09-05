@@ -64,8 +64,8 @@ const Wishlist = () => {
 
             {wishlist.length > 0 && (
                 <div className="pb-6 pt-4 grid 2xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 gap-y-6 gap-x-6">
-                    {wishlist.map((item, i) => (
-                        <div key={i} data-testid="wishlist-item" data-product-id={item.productId} className="border dark:border-gray-700 dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 relative">
+                    {wishlist.map((item) => (
+                        <div key={item.productId} data-testid="wishlist-item" data-product-id={item.productId} className="border dark:border-gray-700 dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden transition-shadow duration-300 relative">
                             <button
                                 onClick={() => handleRemove(item.productId)}
                                 data-testid="remove-from-wishlist"

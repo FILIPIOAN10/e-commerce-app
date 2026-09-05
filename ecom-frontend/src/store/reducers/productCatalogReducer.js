@@ -16,9 +16,6 @@ export const productCatalogReducer = (state, action) => {
                 },
             };
 
-        case "FETCH_FILTERED_PRODUCTS":
-            return { products: action.payload };
-
         case "DELETE_PRODUCT_SUCCESS": {
             const nextProducts = products
                 ? products.filter((product) =>
