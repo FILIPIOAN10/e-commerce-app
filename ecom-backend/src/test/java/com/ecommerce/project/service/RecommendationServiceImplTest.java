@@ -11,6 +11,8 @@ import com.ecommerce.project.util.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.DisplayName;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -108,6 +110,27 @@ class RecommendationServiceImplTest {
     void getFrequentlyBoughtTogether_returnsEmptyForInvalidInput() {
         assertTrue(recommendationService.getFrequentlyBoughtTogether(null, 4).isEmpty());
         assertTrue(recommendationService.getFrequentlyBoughtTogether(1L, 0).isEmpty());
+    }
+
+    @Test
+    @DisplayName("the last-resort fallback asks the database for a page, not the whole table")
+    void fallbackDoesNotLoadEveryProduct() {
+        // No purchase history and no best-sellers, so it falls all the way
+        // through. That branch used to be findAll() sorted in memory and cut to
+        // `limit`: the entire products table, plus every row's EAGER category
+        // and seller, to answer with four.
+        when(recentlyViewedService.getRecentlyViewedProducts()).thenReturn(List.of());
+        when(authUtil.loggedInEmail()).thenReturn(null);
+        when(orderItemRepository.getTop10BestSellingProducts()).thenReturn(List.of());
+        when(productRepository.findAllByOrderByProductIdDesc(any(Pageable.class)))
+                .thenReturn(List.of(createProduct(1L, "Widget", null, "10.00")));
+
+        recommendationService.getRecommendedForUser(4);
+
+        verify(productRepository, never()).findAll();
+        ArgumentCaptor<Pageable> page = ArgumentCaptor.forClass(Pageable.class);
+        verify(productRepository).findAllByOrderByProductIdDesc(page.capture());
+        assertEquals(4, page.getValue().getPageSize());
     }
 
     private Product createProduct(Long id, String name, Category category, String price) {

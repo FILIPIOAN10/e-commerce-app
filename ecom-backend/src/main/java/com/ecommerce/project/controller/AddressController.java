@@ -2,6 +2,7 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.AddressDTO;
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.service.AddressService;
 import com.ecommerce.project.util.AuthUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,8 +37,9 @@ public class AddressController extends BaseController {
     @Tag(name = "Address")
     @GetMapping("/addresses")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AddressDTO>> getAddresses() {
-        List<AddressDTO> addressList = addressService.getAddresses();
+    public ResponseEntity<List<AddressDTO>> getAddresses(@ModelAttribute PaginationParams params) {
+        List<AddressDTO> addressList = addressService.getAddresses(
+                params.getPageNumber(), params.getPageSize(), params.getSortBy(), params.getSortOrder());
         return ok(addressList);
     }
 

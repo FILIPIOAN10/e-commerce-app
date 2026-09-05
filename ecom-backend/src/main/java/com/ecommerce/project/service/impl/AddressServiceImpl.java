@@ -12,7 +12,10 @@ import com.ecommerce.project.service.AddressService;
 import com.ecommerce.project.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.ecommerce.project.util.PaginationUtil;
+import com.ecommerce.project.util.SortWhitelist;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,12 +43,23 @@ public class AddressServiceImpl implements AddressService {
         return modelMapper.map(saveAddressService,AddressDTO.class);
     }
 
+    /**
+     * The admin address list, one page at a time.
+     *
+     * <p>Was an unbounded {@code findAll()}: every address in the system, and
+     * because {@code Address.user} is an EAGER {@code @ManyToOne} whose
+     * {@code User} eagerly pulls its roles, every one of them dragged a user and
+     * a roles query along. Fine on a seeded database, an out-of-memory error on
+     * a real one.
+     */
     @Override
-    public List<AddressDTO> getAddresses() {
+    public List<AddressDTO> getAddresses(Integer pageNumber, Integer pageSize,
+                                         String sortBy, String sortOrder) {
+        Pageable pageDetails = PaginationUtil.buildPageable(pageNumber, pageSize, sortBy, sortOrder,
+                "addressId", SortWhitelist.ADDRESS);
 
-        List<Address> addresses = addressRepository.findAll();
-        return addresses.stream()
-                .map(address->modelMapper.map(address,AddressDTO.class))
+        return addressRepository.findAll(pageDetails).getContent().stream()
+                .map(address -> modelMapper.map(address, AddressDTO.class))
                 .toList();
     }
 

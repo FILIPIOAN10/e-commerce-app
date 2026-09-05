@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.*;
@@ -138,10 +139,13 @@ public class RecommendationServiceImpl implements RecommendationService {
     private List<ProductDTO> getFallbackRecommendations(int limit) {
         List<Object[]> topSelling = orderItemRepository.getTop10BestSellingProducts();
         if (topSelling.isEmpty()) {
-            // Ultimul fallback: cele mai recente produse
-            return productRepository.findAll().stream()
-                    .sorted(Comparator.comparing(Product::getProductId).reversed())
-                    .limit(limit)
+            // Ultimul fallback: cele mai recente produse.
+            // Was findAll() sorted in memory and then cut to `limit` — the whole
+            // products table loaded, and every row's EAGER category and seller
+            // with it, to answer with a handful. The database can order and cut.
+            return productRepository
+                    .findAllByOrderByProductIdDesc(PageRequest.of(0, limit))
+                    .stream()
                     .map(this::toDTO)
                     .toList();
         }

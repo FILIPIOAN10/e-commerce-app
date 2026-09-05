@@ -60,6 +60,11 @@ public final class SortWhitelist {
             "id", "name", "startTime", "endTime", "discountPercent", "active"
     );
 
+    /** {@link com.ecommerce.project.model.Address}. */
+    public static final Set<String> ADDRESS = Set.of(
+            "addressId", "city", "country", "pincode"
+    );
+
     /** {@link com.ecommerce.project.model.Cart}. */
     public static final Set<String> CART = Set.of(
             "cartId", "totalPrice", "lastActivityAt"
