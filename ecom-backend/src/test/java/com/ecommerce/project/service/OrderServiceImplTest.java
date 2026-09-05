@@ -325,6 +325,35 @@ class OrderServiceImplTest {
 
             verify(orderRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("shipping quote refuses an address belonging to someone else")
+        void calculateShippingCost_rejectsForeignAddress() {
+            // placeOrder and previewOrder both check ownership; the quote did
+            // not, so a signed-in user could walk address ids and learn which
+            // exist — and roughly where they are, from the rate that came back.
+            User someoneElse = new User();
+            someoneElse.setEmail("stranger@test.com");
+            Address theirAddress = new Address();
+            theirAddress.setAddressId(ADDRESS_ID);
+            theirAddress.setUser(someoneElse);
+
+            when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(theirAddress));
+            when(authUtil.loggedInEmail()).thenReturn(EMAIL);
+
+            APIException ex = assertThrows(APIException.class, () ->
+                    orderService.calculateShippingCost(ADDRESS_ID, new BigDecimal("100.00")));
+            assertTrue(ex.getMessage().contains("does not belong"));
+        }
+
+        @Test
+        @DisplayName("shipping quote works for the caller's own address")
+        void calculateShippingCost_allowsOwnAddress() {
+            when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
+            when(authUtil.loggedInEmail()).thenReturn(EMAIL);
+
+            assertNotNull(orderService.calculateShippingCost(ADDRESS_ID, new BigDecimal("100.00")));
+        }
     }
 
     // ─────────────────────────────────────────────

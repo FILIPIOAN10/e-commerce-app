@@ -27,9 +27,6 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
     Cart findCartByEmail(String email);
 
 
-    @Query("SELECT c FROM Cart c WHERE c.user.email = ?1 AND c.cartId = ?2")
-    Cart findCartByEmailAndCartId(String emailId, Long cartId);
-
     /**
      * Claims the one cart a user is allowed (see the unique index added in V26),
      * doing nothing if they already have one.

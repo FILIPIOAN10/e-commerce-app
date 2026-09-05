@@ -228,6 +228,15 @@ public class OrderServiceImpl implements OrderService {
     public BigDecimal calculateShippingCost(Long addressId, BigDecimal cartTotal) {
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
+
+        // placeOrder and previewOrder both check this; the shipping quote did
+        // not, so any signed-in user could probe another account's address ids
+        // and learn which exist and roughly where they are, from the rate.
+        String emailId = authUtil.loggedInEmail();
+        if (address.getUser() == null || !emailId.equalsIgnoreCase(address.getUser().getEmail())) {
+            throw new APIException("Address does not belong to the current user");
+        }
+
         return pricingPipeline.price(PricingContext.of(cartTotal, address, List.of()))
                 .shippingTotal()
                 .toBigDecimal();

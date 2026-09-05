@@ -125,15 +125,6 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartDTO getCart(String emailId, Long cartId) {
-        Cart cart = cartRepository.findCartByEmailAndCartId(emailId, cartId);
-        if (cart == null) {
-            throw new ResourceNotFoundException("Cart", "cartId", cartId);
-        }
-        return mapToCartDTO(cart);
-    }
-
-    @Override
     @Transactional
     public CartDTO updateProductQuantityInCart(Long productId, Integer quantity) {
 

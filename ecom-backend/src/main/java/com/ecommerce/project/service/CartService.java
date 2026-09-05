@@ -11,7 +11,6 @@ public interface CartService {
 
     List<CartDTO> getAllCarts(Integer pageNumber, Integer pageSize);
 
-    CartDTO getCart(String emailId, Long cartId);
 
     /**
      * Returns the current user's cart, creating an empty one if they do not have

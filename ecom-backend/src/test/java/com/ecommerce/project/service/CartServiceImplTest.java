@@ -189,29 +189,6 @@ class CartServiceImplTest {
     }
 
     @Test
-    @DisplayName("getCart returns cart by email and id")
-    void getCart_success() {
-        cart.setCartItems(List.of(cartItem));
-        when(cartRepository.findCartByEmailAndCartId("user1@test.com", 1L)).thenReturn(cart);
-        when(modelMapper.map(cart, CartDTO.class)).thenReturn(cartDTO);
-        when(productMapper.mapCartItemsToProductDTOs(any())).thenReturn(cartDTO.getProducts());
-
-        CartDTO result = cartService.getCart("user1@test.com", 1L);
-
-        assertNotNull(result);
-        assertEquals(1L, result.getCartId());
-    }
-
-    @Test
-    @DisplayName("getCart throws when cart not found")
-    void getCart_notFound_throws() {
-        when(cartRepository.findCartByEmailAndCartId("user1@test.com", 99L)).thenReturn(null);
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> cartService.getCart("user1@test.com", 99L));
-    }
-
-    @Test
     @DisplayName("deleteProductFromCart removes item and returns message")
     void deleteProductFromCart_success() {
         cart.setTotalPrice(new BigDecimal("199.98"));

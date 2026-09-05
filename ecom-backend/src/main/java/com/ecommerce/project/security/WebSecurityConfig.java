@@ -176,7 +176,6 @@ public class WebSecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/images/avatars/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
