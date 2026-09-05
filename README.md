@@ -247,6 +247,67 @@ a dashboard that no compose file started — so Prometheus and Grafana are now
 services under a `monitoring` profile, with the scrape password materialised
 from the environment as a file so no credential is committed.
 
+**Validation belongs at the edge, and an annotation nobody reads is not
+validation.** Nine `@RequestBody` parameters carried no `@Valid`, so `CouponDTO`'s
+`@Min(1) @Max(100)` had been sitting there unenforced — an admin could store a
+500% coupon and the pricing pipeline would take more off the running total than
+the order was worth. The DTOs with no constraints at all were worse, because the
+missing value got dereferenced anyway: a null `addressId` reached
+`findById(null)` and a null campaign `startTime` reached `LocalDateTime.parse`,
+both surfacing as 500s on input the *client* got wrong. Every constraint added
+corresponds to a dereference that throws or a number that breaks the arithmetic,
+rather than to a general wish for tidier input. `HandlerMethodValidationException`
+— what `List<@Valid CartItemDTO>` raises — had no case in the advice and fell
+through the catch-all as a 500; it now answers 400 naming the failing element's
+index.
+
+**A caught exception that changes nothing is a lie told to the user.** Four of
+`EmailService`'s sends already threw so the outbox would retry them. The other
+five caught, logged and returned normally, every one called straight from a
+request handler — so the endpoint above answered "check your email" for a message
+that was never sent, and the user simply waited. The contact form showed how
+invisible that was: its controller already had a "failed to send, please try
+again" branch that could never run. *Trade-off:* signup is the one place the
+failure is still swallowed. `AuthServiceImpl` is `@Transactional`, so letting it
+out would roll the registration back and the account would silently not exist
+while the user was told signup failed. An unverified account is a state the
+domain already models, so it is kept and the response says the mail did not go.
+
+**Neither JPA nor Postgres indexes the child side of a foreign key.** A
+`@JoinColumn` generates no index and `REFERENCES` indexes only the parent's
+primary key, so seven FK columns were sequential scans — worst inside the
+cascade behind deleting a product, since `bundle_products.product_id` is
+`ON DELETE CASCADE` and gets scanned during the delete itself. Rather than a
+migration listing seven names and a test asserting those seven exist,
+`ForeignKeyIndexTest` asserts the invariant over `pg_constraint`: no foreign key
+anywhere lacks an index leading with its own column. The failure it guards
+against is the *next* `@JoinColumn` added without one, which a named list would
+happily pass. Two of the seven were ones the audit itself had missed; the query
+found them.
+
+**The seller nobody renders.** `Product.user` was an EAGER `@ManyToOne` and
+`User.roles` is an EAGER `@ManyToMany`, so a page of twenty products issued a
+select per distinct seller and then a select for each of those sellers' roles —
+roughly forty queries for a list that needs one, each hydrating a whole `User`
+including its password hash for a DTO with no seller field. Now lazy, which is
+safe on three counts: ModelMapper has no target property to traverse into, the
+only readers call `getUserId()` and a proxy answers that without a query, and
+`Order.withDetails` already named the attribute so the order path is unchanged.
+*Deliberately partial:* `Product.category` stays eager, because the mapper reads
+`getCategoryName()` and converting it means an entity graph on every finder
+across the whole catalogue surface, for a cost bounded by distinct categories on
+a page rather than by rows. The seller was the part that scaled.
+
+**CSRF was waived for `/api/auth/**` as a whole**, which swept up `POST /signout`
+and both device-revocation routes — state changes made by someone who already
+holds a session, which is the thing CSRF exists to stop. Signout takes a
+cross-site form post with no preflight to stand in the way, so any page could
+sign a visitor out, or drop every session they had. Now waived only for the
+routes reached before a token exists. Verified against the running stack rather
+than reasoned about, because this is the change most likely to break a real
+login: a normal GET issues the cookie, signin and forgot-password still pass
+without a token, signout passes with one and is refused without.
+
 ### In flight this iteration
 
 Not yet merged, stacked in this order: slice 2 of the money migration
