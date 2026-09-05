@@ -196,9 +196,13 @@ rewritten every tick. That also removes the incidental cost: the old pass was
 for values that had not changed, where a steady state is now two SELECTs that
 return nothing. `fixedDelay` replaces `fixedRate` and it takes the same advisory
 lock as the other sweeps, so it cannot overlap itself or collide across
-instances. *Known limit:* campaigns already running when V27 lands have no
-recorded original discount — it was overwritten before the column existed — so
-they revert to no discount rather than to whatever preceded them.
+instances. The schedule itself moved out to a `PromoCampaignSweepJob`, matching
+`AbandonedCartReminderJob` and `StockReconciliationJob`: scheduling is a
+deployment concern, and a test that wants to observe one pass should not have to
+defeat a timer to do it — `app.promo.enabled=false` in the test profile, and the
+service driven directly. *Known limit:* campaigns already running when V27 lands
+have no recorded original discount — it was overwritten before the column
+existed — so they revert to no discount rather than to whatever preceded them.
 
 **One key, one writer.** `state.products` held a single `pagination` object that
 `productCatalogReducer`, `categoryReducer` and `lowStockReducer` all wrote, and

@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,14 +122,14 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
      * price on the product permanently.
      *
      * <p>Now each campaign is applied once and reverted once, so a steady state
-     * costs two SELECTs that return nothing. {@code fixedDelay} rather than
-     * {@code fixedRate} so a slow pass cannot overlap itself, and the advisory
-     * lock — the same one the other sweeps in this codebase use — keeps two
-     * instances from writing the same rows and colliding on the version column.
+     * costs two SELECTs that return nothing. The advisory lock — the same one
+     * the other sweeps in this codebase use — keeps two instances from writing
+     * the same rows and colliding on the version column.
+     *
+     * <p>Scheduling lives in {@code PromoCampaignSweepJob}, so tests can drive
+     * one pass directly rather than waiting on (or racing) a timer.
      */
     @Override
-    @Scheduled(fixedDelayString = "${app.promo.sweep-interval-ms:60000}",
-               initialDelayString = "${app.promo.sweep-initial-delay-ms:30000}")
     @Transactional
     public void applyActiveCampaigns() {
         if (!acquireAdvisoryLock()) {
