@@ -21,13 +21,13 @@ public class CouponController extends BaseController {
 
     @PostMapping("/admin/coupons")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CouponDTO> createCoupon(@RequestBody CouponDTO couponDTO) {
+    public ResponseEntity<CouponDTO> createCoupon(@Valid @RequestBody CouponDTO couponDTO) {
         return ok(couponService.createCoupon(couponDTO));
     }
 
     @PutMapping("/admin/coupons/{couponId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CouponDTO> updateCoupon(@PathVariable Long couponId, @RequestBody CouponDTO couponDTO) {
+    public ResponseEntity<CouponDTO> updateCoupon(@PathVariable Long couponId, @Valid @RequestBody CouponDTO couponDTO) {
         return ok(couponService.updateCoupon(couponId, couponDTO));
     }
 

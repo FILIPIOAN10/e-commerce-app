@@ -12,6 +12,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -41,6 +42,32 @@ public class MyGlobalExceptionHandler {
         });
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+    /**
+     * The other half of bean validation: constraints declared on method
+     * parameters themselves — {@code List<@Valid CartItemDTO>} and friends —
+     * arrive as this rather than as {@code MethodArgumentNotValidException}.
+     * Without a case here it fell through to the catch-all and a client that
+     * sent a malformed body got a 500 describing it as an internal error.
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleHandlerMethodValidation(
+            HandlerMethodValidationException e) {
+        Map<String, String> response = new HashMap<>();
+        e.getParameterValidationResults().forEach(result -> {
+            String name = result.getMethodParameter().getParameterName();
+            // A list element reports which one failed, so "the third line is
+            // wrong" does not arrive as "the body is wrong".
+            String field = (name == null ? "request" : name)
+                    + (result.getContainerIndex() == null ? "" : "[" + result.getContainerIndex() + "]");
+            result.getResolvableErrors().forEach(error ->
+                    response.put(field, error.getDefaultMessage()));
+        });
+        if (response.isEmpty()) {
+            response.put("request", "Request validation failed");
+        }
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     /**
      * Gestionează cazurile când o resursă nu este găsită în baza de date.
      */

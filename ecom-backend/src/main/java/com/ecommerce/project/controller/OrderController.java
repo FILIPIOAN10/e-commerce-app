@@ -40,7 +40,7 @@ public class OrderController extends BaseController {
     @Tag(name = "Order")
     @PostMapping("/order/users/payments/{paymentMethod}")
     public ResponseEntity<OrderDTO> orderProducts(@PathVariable String paymentMethod,
-                                                  @RequestBody OrderRequestDTO orderRequestDTO,
+                                                  @Valid @RequestBody OrderRequestDTO orderRequestDTO,
                                                   @RequestHeader(value = "Idempotency-Key", required = false)
                                                   String idempotencyKey){
 
@@ -61,7 +61,7 @@ public class OrderController extends BaseController {
                         orderRequestDTO.getCouponCodes())));
     }
     @PostMapping("/order/stripe-client-secret")
-    public ResponseEntity<String> createStripeClientSecret(@RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
+    public ResponseEntity<String> createStripeClientSecret(@Valid @RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
 
         PaymentIntent paymentIntent = stripeService.paymentIntent(stripePaymentDto);
         return  created(paymentIntent.getClientSecret());

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class PromoCampaignController extends BaseController {
     @Tag(name = "Promo Campaigns")
     @PostMapping("/admin/promo-campaigns")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createCampaign(@RequestBody PromoCampaignDTO dto) {
+    public ResponseEntity<?> createCampaign(@Valid @RequestBody PromoCampaignDTO dto) {
         PromoCampaignDTO created = promoCampaignService.createCampaign(dto);
         return created(created);
     }
@@ -44,7 +45,7 @@ public class PromoCampaignController extends BaseController {
     @Tag(name = "Promo Campaigns")
     @PutMapping("/admin/promo-campaigns/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateCampaign(@PathVariable Long id, @RequestBody PromoCampaignDTO dto) {
+    public ResponseEntity<?> updateCampaign(@PathVariable Long id, @Valid @RequestBody PromoCampaignDTO dto) {
         PromoCampaignDTO updated = promoCampaignService.updateCampaign(id, dto);
         return ok(updated);
     }
