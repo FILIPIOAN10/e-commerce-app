@@ -57,7 +57,8 @@ jobs:
       - name: Start backend stack with Docker Compose
         run: |
           docker compose up -d --build postgres redis vault vault-init backend
-          sleep 60
+          # No sleep: the wait loop below already polls for 150s and starts
+          # checking immediately instead of a minute from now.
 
       - name: Wait for backend
         run: |

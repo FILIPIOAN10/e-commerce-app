@@ -59,12 +59,19 @@ jobs:
       # default /opt/ecommerce) pointing at a host with docker compose + the production compose file.
       - name: Deploy over SSH
         if: steps.check.outputs.configured == 'true'
+        # DEPLOY_PATH is read by the script below as ${DEPLOY_PATH:-/opt/ecommerce}
+        # but was never forwarded into the session, so setting the secret did
+        # nothing and every deployment silently went to the default directory.
+        # Declared here because workflow-level `env` cannot read the secrets
+        # context; only job and step level can.
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: REGISTRY,IMAGE_PREFIX
+          envs: REGISTRY,IMAGE_PREFIX,DEPLOY_PATH
           script: |
             set -e
             DEPLOY_DIR="${DEPLOY_PATH:-/opt/ecommerce}"
@@ -73,8 +80,17 @@ jobs:
             BACKEND_TAG="${REGISTRY}/${IMAGE_PREFIX}-backend:${{ github.ref_name }}"
             FRONTEND_TAG="${REGISTRY}/${IMAGE_PREFIX}-frontend:${{ github.ref_name }}"
 
-            # Keep a copy of the previous production .env so we can roll back.
-            cp .env .env.previous
+            # The rollback target is whatever last *passed* the health gate,
+            # not simply whatever was here a moment ago. .env.previous was
+            # written before the risky part, so a deploy that died between that
+            # copy and the rollback — dropped SSH, cancelled job, runner timeout
+            # — left .env pointing at the broken images while .env.previous held
+            # the good ones. The next deploy then copied that broken .env over
+            # the good rollback target, and the way back was gone. This file is
+            # only ever written after a deployment has proved itself healthy, so
+            # a crash cannot poison it.
+            ROLLBACK=.env.last-good
+            [ -f "$ROLLBACK" ] || cp .env "$ROLLBACK"
 
             # Point compose to the newly pushed images.
             sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=${BACKEND_TAG}|" .env
@@ -105,12 +121,15 @@ jobs:
             done
 
             if [ "$HEALTHY" = "false" ]; then
-              echo "::error::Health check failed. Rolling back to previous images."
-              cp .env.previous .env
+              echo "::error::Health check failed. Rolling back to the last configuration that passed."
+              cp "$ROLLBACK" .env
               docker compose -f docker-compose.prod.yml down
               docker compose -f docker-compose.prod.yml up -d --remove-orphans
               exit 1
             fi
+
+            # Healthy, so this configuration becomes the one to fall back to.
+            cp .env "$ROLLBACK"
 
             # Only prune unused images after the deployment is healthy.
             docker image prune -f
