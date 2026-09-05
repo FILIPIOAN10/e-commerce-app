@@ -36,11 +36,19 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Build Java
+      # CodeQL traces whichever javac invocations the build makes, so the
+      # launcher is free to change: the wrapper pins Maven 3.9.9 the way every
+      # other workflow does, instead of taking whatever the runner image ships.
+      - name: Build Java (backend)
         if: matrix.language == 'java'
-        run: |
-          mvn -B -f ecom-backend/pom.xml -DskipTests package
-          mvn -B -f selenium-tests/pom.xml -DskipTests test-compile
+        working-directory: ecom-backend
+        run: bash mvnw -B -DskipTests package
+
+      # selenium-tests has no wrapper of its own, so this one stays on the
+      # runner's Maven.
+      - name: Build Java (selenium tests)
+        if: matrix.language == 'java'
+        run: mvn -B -f selenium-tests/pom.xml -DskipTests test-compile
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4

@@ -160,6 +160,25 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      # The browsers ship inside the container image; the client comes from the
+      # lockfile. Nothing ties the two together, and they had already drifted
+      # thirteen minors apart once — the image pinned to v1.49.0 while Dependabot
+      # moved the lockfile to 1.62.1, papered over by a forced downgrade at
+      # install time. Left to fail on its own the symptom is a missing-executable
+      # error deep in the run, so compare them here where the message can say
+      # what to change.
+      - name: Playwright image and lockfile must agree
+        run: |
+          IMAGE_LINE='^[[:space:]]*image:[[:space:]]*mcr\.microsoft\.com/playwright:v[0-9]+\.[0-9]+\.[0-9]+'
+          IMAGE=$(grep -oE "$IMAGE_LINE" .github/workflows/ci.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          LOCK=$(node -p "require('./e2e/package-lock.json').packages['node_modules/@playwright/test'].version")
+          echo "container image: v$IMAGE"
+          echo "lockfile:        $LOCK"
+          if [ "$IMAGE" != "$LOCK" ]; then
+            echo "::error file=.github/workflows/ci.yml::Playwright drift: the e2e container is v$IMAGE but e2e/package-lock.json resolves @playwright/test to $LOCK. Browsers ship with the image and will not match this client. Set the container image to mcr.microsoft.com/playwright:v$LOCK-noble, or pin the lockfile back to $IMAGE."
+            exit 1
+          fi
+
       - name: Create .env for frontend
         working-directory: ecom-frontend
         run: |
@@ -305,7 +324,14 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Download Maven dependencies
+      # Not redundant, despite Trivy being able to reach Maven Central itself.
+      # Trivy resolves a pom.xml against ~/.m2/repository first and only falls
+      # back to remote; when a lookup fails it "uses an empty version" and then
+      # "doesn't detect child dependencies for dependencies without a version".
+      # A transient fetch failure would therefore quietly shrink the scan rather
+      # than fail it — the worst outcome for a security gate. setup-java above
+      # restores ~/.m2 from cache, so on a warm run this is close to a no-op.
+      - name: Populate ~/.m2 so Trivy resolves offline
         working-directory: ecom-backend
         run: bash mvnw -B dependency:go-offline
 
@@ -329,4 +355,4 @@ jobs:
 
       - name: Dependency review
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
