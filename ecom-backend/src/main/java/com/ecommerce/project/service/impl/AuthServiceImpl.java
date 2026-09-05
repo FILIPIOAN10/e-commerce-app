@@ -23,8 +23,10 @@ import com.ecommerce.project.service.AuthService;
 import com.ecommerce.project.exception.UsernameAlreadyExistsException;
 import com.ecommerce.project.exception.EmailAlreadyExistsException;
 import com.ecommerce.project.exception.RoleNotFoundException;
+import com.ecommerce.project.exception.EmailDeliveryException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Set;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -138,7 +141,19 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String token = emailVerificationService.generateVerificationToken(user.getEmail());
-        emailService.sendVerificationEmail(user.getEmail(), token);
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), token);
+        } catch (EmailDeliveryException e) {
+            // The one place a delivery failure must not become the response.
+            // This class is @Transactional, so letting it out would roll the
+            // registration back and the account would silently not exist. An
+            // unverified account is a state the domain already models and has a
+            // resend endpoint for, so keep it and say what happened — better
+            // than discarding a valid signup because SMTP hiccuped.
+            log.error("Registration succeeded but the verification email failed for {}", user.getEmail(), e);
+            return new MessageResponse("User registered successfully, but we could not send the "
+                    + "verification email. Please use \"resend verification\" to try again.");
+        }
 
         return new MessageResponse("User registered successfully! Please check your email to verify your account.");
     }

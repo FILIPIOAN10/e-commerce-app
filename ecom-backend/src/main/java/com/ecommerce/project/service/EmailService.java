@@ -1,6 +1,7 @@
 package com.ecommerce.project.service;
 
 import com.ecommerce.project.exception.EmailDeliveryException;
+
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderItemDTO;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,11 @@ public class EmailService {
             mailSender.send(mimeMessage);
             log.info("Password reset email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
+            // The caller answers "check your email". Swallowing this made that a
+            // lie the user had no way to detect: they wait for a link that was
+            // never sent. The token is already stored, so a retry works.
             log.error("Failed to send password reset email to {}", toEmail, e);
+            throw new EmailDeliveryException("password reset email to " + toEmail, e);
         }
     }
     public void sendVerificationEmail(String toEmail, String token) {
@@ -68,6 +73,7 @@ public class EmailService {
             log.info("Verification email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
             log.error("Failed to send verification email to {}", toEmail, e);
+            throw new EmailDeliveryException("verification email to " + toEmail, e);
         }
     }
 
@@ -217,7 +223,11 @@ public class EmailService {
             mailSender.send(mimeMessage);
             log.info("GDPR erasure confirmation email handed off to SMTP for {}", toEmail);
         } catch (Exception e) {
+            // requestErasure returns "we sent a link that will permanently delete
+            // your account". Without this the link never arrives and the user
+            // cannot exercise Art. 17 at all, with nothing to tell them why.
             log.error("Failed to send GDPR erasure confirmation email to {}", toEmail, e);
+            throw new EmailDeliveryException("GDPR erasure confirmation email to " + toEmail, e);
         }
     }
 
@@ -235,6 +245,7 @@ public class EmailService {
             log.info("Unlock request email handed off to SMTP for user {}", username);
         } catch (Exception e) {
             log.error("Failed to send unlock request email for user {}", username, e);
+            throw new EmailDeliveryException("unlock request email for " + username, e);
         }
     }
 
@@ -249,7 +260,11 @@ public class EmailService {
             mailSender.send(mimeMessage);
             log.info("Contact message handed off to SMTP from {}", email);
         } catch (Exception e) {
+            // ContactController already catches this and answers "failed to send,
+            // please try again" — swallowing here meant that branch could never
+            // run and every submission was reported as delivered.
             log.error("Failed to send contact message", e);
+            throw new EmailDeliveryException("contact message from " + email, e);
         }
     }
 }

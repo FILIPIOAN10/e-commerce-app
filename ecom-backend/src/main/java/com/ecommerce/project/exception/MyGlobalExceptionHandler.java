@@ -69,6 +69,21 @@ public class MyGlobalExceptionHandler {
     }
 
     /**
+     * SMTP would not take the message.
+     *
+     * <p>503 rather than 500: nothing is wrong with the request and the caller
+     * should try again. Reaching this at all is the point — these sends used to
+     * be caught and logged, so the endpoint answered "check your email" and the
+     * user waited for a link that was never sent.
+     */
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<ApiResponse> handleEmailDelivery(EmailDeliveryException e) {
+        logger.error("Email delivery failed", e);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ApiResponse("We could not send the email just now. Please try again shortly.", false));
+    }
+
+    /**
      * Gestionează cazurile când o resursă nu este găsită în baza de date.
      */
     @ExceptionHandler(ResourceNotFoundException.class)
