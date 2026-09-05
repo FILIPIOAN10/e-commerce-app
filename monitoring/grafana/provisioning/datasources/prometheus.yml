@@ -1,0 +1,13 @@
+apiVersion: 1
+
+# The bundled dashboard binds its panels to a ${datasource} template variable
+# rather than a fixed uid, so it picks this up as long as one Prometheus
+# datasource exists and is the default.
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

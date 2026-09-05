@@ -22,12 +22,12 @@ const AdminProducts = () => {
   // const pagination = { pageNumber:0,pageSize:50,totalElements:11,totalPages:1,lastPage:true};
   
 
-  const {products,pagination} = useSelector((state) => state.products);
+  const {products,productPagination} = useSelector((state) => state.products);
 
   // check if order exist or not
   const emptyProduct= !products || products?.length === 0;
     const [currentPage,setCurrentPage] = useState(
-    pagination?.pageNumber +1 || 1
+    productPagination?.pageNumber +1 || 1
   );
 
   const [selectedProduct,setSelectedProduct] = useState('');
@@ -155,23 +155,23 @@ const handlePaginationChange = (paginationModel) =>{
                   rows={tableRecords}
                   columns={adminProductTableColumn(handleEdit,handleDelete,handleImageUpload,handleProductView,handleGalleryUpload)}
                   paginationMode='server'
-                  rowCount={pagination?.totalElements || 0}
+                  rowCount={productPagination?.totalElements || 0}
                   initialState={{
                     pagination: {
                       paginationModel: {
-                        pageSize: pagination?.pageSize || 10,
+                        pageSize: productPagination?.pageSize || 10,
                         page: currentPage -1,
                       },
                     },
                   }}
                   onPaginationModelChange={handlePaginationChange}
                   disableRowSelectionOnClick
-                  pageSizeOptions={[pagination?.pageSize || 10]}
+                  pageSizeOptions={[productPagination?.pageSize || 10]}
                   pagination
                   paginationOptions={{
                     showFirstButton:true,
                     showLastButton:true,
-                    hideNextButton: currentPage  === pagination?.totalPages,
+                    hideNextButton: currentPage  === productPagination?.totalPages,
                   }}
                 />
           </div>

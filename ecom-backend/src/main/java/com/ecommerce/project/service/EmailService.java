@@ -29,7 +29,7 @@ public class EmailService {
     @Value("${spring.mail.username:noreply.ecomapp@gmail.com}")
     private String fromEmail;
 
-    @Value("${app.password-reset.frontend-url:http://localhost:5173}")
+    @Value("${frontend.url}")
     private String frontendUrl;
 
     public void sendPasswordResetEmail(String toEmail, String token) {

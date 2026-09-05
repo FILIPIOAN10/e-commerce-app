@@ -111,7 +111,7 @@ services:
       # Mail credentials are injected from Vault (see scripts/vault-init.sh)
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       # OAuth2 credentials can be injected via .env for local social-login testing
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-dummy-github-id}
@@ -177,7 +177,52 @@ services:
       retries: 5
       start_period: 30s
 
+  # --- Observability -------------------------------------------------------
+  # Opt-in: `docker compose --profile monitoring up`. monitoring/ carried a
+  # scrape config, alert rules and a dashboard that no compose file ever ran,
+  # so none of it was reachable. Prometheus reaches the backend over the
+  # default network; /actuator/prometheus is permitAll for exactly this.
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: ecommerce-prometheus
+    profiles: [monitoring]
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.5.1
+    container_name: ecommerce-grafana
+    profiles: [monitoring]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   redis-data:
   postgres-data:
   frontend-node_modules:
+  prometheus-data:
+  grafana-data:

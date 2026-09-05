@@ -18,7 +18,7 @@ const Products  = () => {
     const { isLoading, error } = useProductQuery();
     useGetCategoriesQuery();
 
-    const { products, categories, pagination } = useSelector(
+    const { products, categories, productPagination } = useSelector(
         (state) => state.products
     );
     const { t } = useTranslation();
@@ -50,8 +50,8 @@ const Products  = () => {
                     </div>
                     <div className="flex justify-center pt-10"> 
                         <Paginations 
-                         numberOfPage = {pagination?.totalPages}
-                         totalProducts = {pagination?.totalElements}/>
+                         numberOfPage = {productPagination?.totalPages}
+                         totalProducts = {productPagination?.totalElements}/>
                     </div>
                 </div>
             )}

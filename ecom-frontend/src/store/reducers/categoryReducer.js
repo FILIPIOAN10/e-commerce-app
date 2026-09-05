@@ -1,13 +1,13 @@
 export const categoryReducer = (state, action) => {
     const categories = state?.categories ?? null;
-    const pagination = state?.pagination ?? {};
+    const categoryPagination = state?.categoryPagination ?? {};
 
     switch (action.type) {
         case "FETCH_CATEGORIES":
             return {
                 categories: action.payload,
-                pagination: {
-                    ...pagination,
+                categoryPagination: {
+                    ...categoryPagination,
                     pageNumber: action.pageNumber,
                     pageSize: action.pageSize,
                     totalElements: action.totalElements,
@@ -26,11 +26,11 @@ export const categoryReducer = (state, action) => {
 
             return {
                 categories: nextCategories,
-                pagination: {
-                    ...pagination,
-                    totalElements: deletedFromCurrentPage && pagination.totalElements !== undefined
-                        ? Math.max(pagination.totalElements - 1, 0)
-                        : pagination.totalElements,
+                categoryPagination: {
+                    ...categoryPagination,
+                    totalElements: deletedFromCurrentPage && categoryPagination.totalElements !== undefined
+                        ? Math.max(categoryPagination.totalElements - 1, 0)
+                        : categoryPagination.totalElements,
                 },
             };
         }

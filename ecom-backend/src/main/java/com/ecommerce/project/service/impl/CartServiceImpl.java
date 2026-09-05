@@ -398,17 +398,30 @@ public class CartServiceImpl implements CartService {
         return mapToCartDTO(cart);
     }
 
+    /**
+     * The user's cart, created on first touch.
+     *
+     * <p>Read-then-insert is a race: two concurrent first-touch requests both
+     * see no cart and both insert one. V26 added a unique index on
+     * {@code carts.user_id} so the loser's INSERT is rejected rather than
+     * silently producing a second cart — which used to make every later
+     * {@code findCartByEmail} throw on a two-row result, permanently, for that
+     * user. Losing the race is not an error: the winner's cart is the answer,
+     * so re-read and return it.
+     */
     private Cart createCart() {
-        //  Find existing cart or create one
-        Cart userCart = cartRepository.findCartByEmail(authUtil.loggedInEmail());
+        String email = authUtil.loggedInEmail();
+        Cart userCart = cartRepository.findCartByEmail(email);
         if (userCart != null) {
             return userCart;
         }
-        Cart cart = new Cart();
-        cart.setTotalPrice(BigDecimal.ZERO);
-        cart.setUser(authUtil.loggedInUser());
-        Cart newCart = cartRepository.save(cart);
-        return newCart;
+        // ON CONFLICT DO NOTHING rather than save()-and-catch: a constraint
+        // violation raised inside a JPA transaction marks it rollback-only, so
+        // recovering from it in a catch block only trades the duplicate cart for
+        // an UnexpectedRollbackException at commit. The upsert never throws, so
+        // both racers leave with the same row — whoever's insert won.
+        cartRepository.insertIfAbsent(authUtil.loggedInUser().getUserId());
+        return cartRepository.findCartByEmail(email);
     }
 
     /** One line's contribution to the cart total: unit price counted quantity times. */

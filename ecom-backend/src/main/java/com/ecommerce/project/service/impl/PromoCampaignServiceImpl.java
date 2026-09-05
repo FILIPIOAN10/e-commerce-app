@@ -12,7 +12,9 @@ import com.ecommerce.project.repository.PromoCampaignProductRepository;
 import com.ecommerce.project.repository.PromoCampaignRepository;
 import com.ecommerce.project.service.PromoCampaignService;
 import com.ecommerce.project.util.PaginationUtil;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,13 +28,18 @@ import java.util.List;
 import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.util.SortWhitelist;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PromoCampaignServiceImpl implements PromoCampaignService {
 
+    /** Arbitrary constant key for pg_try_advisory_xact_lock — must be stable across instances. */
+    private static final long ADVISORY_LOCK_KEY = 91_447_268L;
+
     private final PromoCampaignRepository promoCampaignRepository;
     private final PromoCampaignProductRepository promoCampaignProductRepository;
     private final ProductRepository productRepository;
+    private final EntityManager entityManager;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
@@ -50,6 +57,15 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
     public PromoCampaignDTO updateCampaign(Long id, PromoCampaignDTO dto) {
         PromoCampaign campaign = promoCampaignRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PromoCampaign", "id", id));
+
+        // The link rows are about to be replaced, and they are what remembers
+        // each product's pre-campaign discount. Release the products first or
+        // that price is gone and the discount is stranded on them. The next
+        // sweep re-applies under the new terms if the campaign is still running.
+        if (Boolean.TRUE.equals(campaign.getApplied())) {
+            revertCampaignPrices(campaign);
+        }
+
         campaign.setName(dto.getName());
         campaign.setDiscountPercent(dto.getDiscountPercent());
         campaign.setStartTime(LocalDateTime.parse(dto.getStartTime(), FORMATTER));
@@ -66,6 +82,14 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
     public void deleteCampaign(Long id) {
         PromoCampaign campaign = promoCampaignRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PromoCampaign", "id", id));
+
+        // Deleting a running campaign used to leave its discount on every
+        // product it touched, with the rows that could undo it deleted in the
+        // same breath. Put the prices back while the links still exist.
+        if (Boolean.TRUE.equals(campaign.getApplied())) {
+            revertCampaignPrices(campaign);
+        }
+
         promoCampaignProductRepository.deleteByPromoCampaignId(campaign.getId());
         promoCampaignRepository.delete(campaign);
     }
@@ -88,24 +112,104 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
         return mapToDTO(campaign);
     }
 
+    /**
+     * Brings product prices into line with the campaigns that should be running.
+     *
+     * <p>Was: reload every product of every active campaign once a minute and
+     * rewrite the same discount onto it — 1 + N queries and N updates per
+     * campaign, forever, bumping {@code @Version} and churning WAL for values
+     * that had not changed. And it only ever pushed prices <em>on</em>; when a
+     * campaign ended it simply stopped being selected, leaving the promotional
+     * price on the product permanently.
+     *
+     * <p>Now each campaign is applied once and reverted once, so a steady state
+     * costs two SELECTs that return nothing. {@code fixedDelay} rather than
+     * {@code fixedRate} so a slow pass cannot overlap itself, and the advisory
+     * lock — the same one the other sweeps in this codebase use — keeps two
+     * instances from writing the same rows and colliding on the version column.
+     */
     @Override
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedDelayString = "${app.promo.sweep-interval-ms:60000}",
+               initialDelayString = "${app.promo.sweep-initial-delay-ms:30000}")
     @Transactional
     public void applyActiveCampaigns() {
+        if (!acquireAdvisoryLock()) {
+            return;
+        }
         LocalDateTime now = LocalDateTime.now();
-        List<PromoCampaign> activeCampaigns = promoCampaignRepository.findByActiveTrueAndStartTimeBeforeAndEndTimeAfter(now, now);
-        for (PromoCampaign campaign : activeCampaigns) {
-            List<PromoCampaignProduct> links = promoCampaignProductRepository.findByPromoCampaignId(campaign.getId());
-            for (PromoCampaignProduct link : links) {
+        // Revert first: a product moving from one campaign straight into another
+        // must have the old discount taken off before the new one is recorded,
+        // or the second campaign captures the first campaign's price as the
+        // "original" and the real one is lost.
+        revertFinishedCampaigns(now);
+        applyDueCampaigns(now);
+    }
+
+    private void applyDueCampaigns(LocalDateTime now) {
+        List<PromoCampaign> due = promoCampaignRepository
+                .findByActiveTrueAndAppliedFalseAndStartTimeBeforeAndEndTimeAfter(now, now);
+
+        for (PromoCampaign campaign : due) {
+            double percent = campaign.getDiscountPercent() == null ? 0.0 : campaign.getDiscountPercent();
+            for (PromoCampaignProduct link : promoCampaignProductRepository
+                    .findByCampaignIdWithProduct(campaign.getId())) {
                 Product product = link.getProduct();
-                double percent = campaign.getDiscountPercent() == null ? 0.0 : campaign.getDiscountPercent();
+                link.setOriginalDiscount(product.getDiscount() == null
+                        ? BigDecimal.ZERO
+                        : product.getDiscount());
                 product.setDiscount(BigDecimal.valueOf(percent));
                 product.setSpecialPrice(Money.of(product.getPrice())
                         .percentage(100.0 - percent)
                         .toBigDecimal());
-                productRepository.save(product);
             }
+            campaign.setApplied(true);
+            log.info("Promo campaign {} ('{}') applied at {}%", campaign.getId(), campaign.getName(), percent);
         }
+    }
+
+    private void revertFinishedCampaigns(LocalDateTime now) {
+        for (PromoCampaign campaign : promoCampaignRepository.findAppliedButNotRunning(now)) {
+            revertCampaignPrices(campaign);
+            log.info("Promo campaign {} ('{}') reverted", campaign.getId(), campaign.getName());
+        }
+    }
+
+    /**
+     * Puts every product in a campaign back to the discount it had before the
+     * campaign was applied, and clears the record of it.
+     *
+     * <p>Shared by the sweep, {@code deleteCampaign} and {@code updateCampaign}
+     * — deleting or re-scoping a live campaign has to release its products too,
+     * otherwise the rows that remembered the original price are gone and the
+     * discount is stranded on the product with nothing left to undo it.
+     */
+    private void revertCampaignPrices(PromoCampaign campaign) {
+        for (PromoCampaignProduct link : promoCampaignProductRepository
+                .findByCampaignIdWithProduct(campaign.getId())) {
+            Product product = link.getProduct();
+            BigDecimal original = link.getOriginalDiscount() == null
+                    ? BigDecimal.ZERO
+                    : link.getOriginalDiscount();
+            product.setDiscount(original);
+            product.setSpecialPrice(Money.of(product.getPrice())
+                    .percentage(100.0 - original.doubleValue())
+                    .toBigDecimal());
+            link.setOriginalDiscount(null);
+        }
+        campaign.setApplied(false);
+    }
+
+    /**
+     * Transaction-level advisory lock, released automatically on commit or
+     * rollback. Mirrors {@code AbandonedCartSweepService}; the key is arbitrary
+     * but must stay stable across instances.
+     */
+    private boolean acquireAdvisoryLock() {
+        Object result = entityManager
+                .createNativeQuery("SELECT pg_try_advisory_xact_lock(:key)")
+                .setParameter("key", ADVISORY_LOCK_KEY)
+                .getSingleResult();
+        return Boolean.TRUE.equals(result);
     }
 
     private void saveProducts(PromoCampaign campaign, List<Long> productIds) {

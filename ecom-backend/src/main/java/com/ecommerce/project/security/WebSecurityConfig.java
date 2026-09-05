@@ -107,7 +107,12 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/*/questions").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // Prometheus scrapes over the internal compose network and
+                        // carries no JWT, so an ADMIN rule here silently blackholes
+                        // every metric. Two layers keep this from being an exposure:
+                        // the backend publishes no port to the host, and nginx
+                        // returns 403 for /actuator/ (bar /actuator/health).
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()

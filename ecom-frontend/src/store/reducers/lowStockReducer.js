@@ -1,15 +1,15 @@
 export const lowStockReducer = (state, action) => {
     const lowStockProducts = state?.lowStockProducts ?? null;
     const lowStockCount = state?.lowStockCount ?? 0;
-    const pagination = state?.pagination ?? {};
+    const lowStockPagination = state?.lowStockPagination ?? {};
 
     switch (action.type) {
         case "FETCH_LOW_STOCK_PRODUCTS":
             return {
                 lowStockProducts: action.payload,
                 lowStockCount,
-                pagination: {
-                    ...pagination,
+                lowStockPagination: {
+                    ...lowStockPagination,
                     pageNumber: action.pageNumber,
                     pageSize: action.pageSize,
                     totalElements: action.totalElements,

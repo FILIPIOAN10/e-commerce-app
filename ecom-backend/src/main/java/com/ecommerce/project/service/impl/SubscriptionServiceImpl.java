@@ -45,7 +45,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final ProductRepository productRepository;
 
-    @Value("${stripe.api.key:}")
+    @Value("${stripe.secret.key:}")
     private String stripeApiKey;
 
     @Value("${stripe.webhook.secret:}")
