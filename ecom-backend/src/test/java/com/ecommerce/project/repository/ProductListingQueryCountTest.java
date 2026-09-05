@@ -54,6 +54,8 @@ class ProductListingQueryCountTest {
 
     @BeforeEach
     void seed() {
+        alignIdentitySequences();
+
         category = new Category();
         category.setCategoryName(tag + "-cat");
         entityManager.persist(category);
@@ -110,6 +112,21 @@ class ProductListingQueryCountTest {
         assertThat(product.getUser()).isNotNull();
         assertThat(product.getUser().getUserId()).isNotNull();
         assertThat(product.getUser().getUserName()).startsWith(tag);
+    }
+
+    /**
+     * ddl-auto=create-drop plus the seeded rows leaves the identity sequences
+     * behind the seeded ids, so persisting a fresh row collides on the primary
+     * key. Same guard the other integration tests use.
+     */
+    private void alignIdentitySequences() {
+        String[][] pk = {{"users", "user_id"}, {"categories", "category_id"}, {"products", "product_id"}};
+        for (String[] tp : pk) {
+            entityManager.createNativeQuery(
+                    "SELECT setval(pg_get_serial_sequence('" + tp[0] + "', '" + tp[1] + "'), "
+                    + "GREATEST((SELECT COALESCE(MAX(" + tp[1] + "), 0) FROM " + tp[0] + "), 1))")
+                    .getResultList();
+        }
     }
 
     private Statistics statistics() {

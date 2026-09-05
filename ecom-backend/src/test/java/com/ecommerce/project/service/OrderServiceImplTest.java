@@ -351,8 +351,13 @@ class OrderServiceImplTest {
         void calculateShippingCost_allowsOwnAddress() {
             when(addressRepository.findById(ADDRESS_ID)).thenReturn(Optional.of(address));
             when(authUtil.loggedInEmail()).thenReturn(EMAIL);
+            // Re-stubbed here rather than relying on setUp, the same way the
+            // other nested classes that reach the pricing pipeline do.
+            when(shippingCalculator.calculate(any(Address.class), any(Money.class)))
+                    .thenReturn(Money.of(3.0));
 
-            assertNotNull(orderService.calculateShippingCost(ADDRESS_ID, new BigDecimal("100.00")));
+            assertEquals(0, new BigDecimal("3.00").compareTo(
+                    orderService.calculateShippingCost(ADDRESS_ID, new BigDecimal("100.00"))));
         }
     }
 
