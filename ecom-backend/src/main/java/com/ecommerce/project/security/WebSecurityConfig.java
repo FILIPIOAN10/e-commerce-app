@@ -158,7 +158,23 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**"))
+                        // Exempt the endpoints a caller reaches *before* they hold
+                        // a session, since there is no token for them to send yet.
+                        // /api/auth/** as a whole also covered signout and device
+                        // revocation, which are state-changing actions by someone
+                        // already authenticated — exactly what CSRF protects. A
+                        // cross-site form POST could sign a user out, or drop
+                        // every one of their sessions.
+                        .ignoringRequestMatchers(
+                                "/api/auth/signin",
+                                "/api/auth/signup",
+                                "/api/auth/refresh",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/api/auth/verify-email",
+                                "/api/auth/resend-verification",
+                                "/api/auth/unlock-request",
+                                "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
