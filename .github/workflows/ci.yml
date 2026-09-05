@@ -353,6 +353,23 @@ jobs:
           format: 'table'
           skip-dirs: 'ecom-frontend/node_modules,ecom-backend/target,e2e/node_modules'
 
+      # Ran on pull requests only, and work lands here by pushing straight to
+      # main — so in practice this scanner had never executed once. The action
+      # defaults to a PR's own base and head; on a push there is no PR, so the
+      # two ends of the diff have to be named explicitly.
+      #
+      # Skipped when github.event.before is the all-zero SHA, which is what a
+      # branch's first push or a force-push reports: there is no previous commit
+      # to diff against and the action would fail rather than find nothing.
       - name: Dependency review
-        if: github.event_name == 'pull_request'
+        if: >-
+          github.event_name == 'pull_request' ||
+          github.event.before != '0000000000000000000000000000000000000000'
         uses: actions/dependency-review-action@v5
+        with:
+          base-ref: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head-ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Matches the Trivy gate above. The action's own default is 'low',
+          # which would hold this repo to a stricter line than the scanner
+          # sitting next to it — one threshold, applied by both.
+          fail-on-severity: high
