@@ -128,12 +128,26 @@ public class InvoiceService {
 
             document.add(itemTable);
 
-            // Total
+            // Totals — discount / shipping / VAT / total, so the tax the customer
+            // was charged is on the fiscal document rather than folded silently
+            // into one figure.
             document.add(new Paragraph(" "));
             PdfPTable totalTable = new PdfPTable(2);
             totalTable.setWidthPercentage(40);
             totalTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
             totalTable.setSpacingBefore(10f);
+
+            BigDecimal discount = nonNull(order.getDiscountAmount());
+            BigDecimal shipping = nonNull(order.getShippingCost());
+            BigDecimal tax = nonNull(order.getTaxAmount());
+
+            if (discount.signum() > 0) {
+                addTotalsRow(totalTable, "Discount:", "-$" + String.format("%.2f", discount), normalFont);
+            }
+            addTotalsRow(totalTable, "Shipping:", String.format("$%.2f", shipping), normalFont);
+            if (tax.signum() > 0) {
+                addTotalsRow(totalTable, "VAT:", String.format("$%.2f", tax), normalFont);
+            }
 
             PdfPCell totalLabel = new PdfPCell(new Phrase("Total Amount:", headerFont));
             totalLabel.setBackgroundColor(new Color(240, 240, 240));
@@ -162,6 +176,23 @@ public class InvoiceService {
             log.error("Failed to generate invoice for order {}: {}", orderId, e.getMessage());
             throw new RuntimeException("Failed to generate invoice: " + e.getMessage());
         }
+    }
+
+    private static BigDecimal nonNull(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private void addTotalsRow(PdfPTable table, String label, String value, Font font) {
+        PdfPCell labelCell = new PdfPCell(new Phrase(label, font));
+        labelCell.setPadding(5f);
+        labelCell.setBorderWidth(0.5f);
+        table.addCell(labelCell);
+
+        PdfPCell valueCell = new PdfPCell(new Phrase(value, font));
+        valueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        valueCell.setPadding(5f);
+        valueCell.setBorderWidth(0.5f);
+        table.addCell(valueCell);
     }
 
     private void addMetaCell(PdfPTable table, String label, String value, Font font) {

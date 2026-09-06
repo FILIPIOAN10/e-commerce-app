@@ -172,11 +172,29 @@ const TrackOrder = () => {
                             </div>
                         </div>
 
-                        <div className="border-t dark:border-gray-700 pt-3 mt-3 flex justify-between items-center">
-                            <span className="font-semibold text-slate-800 dark:text-white">Total</span>
-                            <span className="text-lg font-bold text-slate-900 dark:text-white">
-                                ${order.totalAmount?.toFixed(2)}
-                            </span>
+                        <div className="border-t dark:border-gray-700 pt-3 mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                            {order.discountAmount > 0 && (
+                                <div className="flex justify-between">
+                                    <span>Discount</span>
+                                    <span>-${order.discountAmount?.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between">
+                                <span>Shipping</span>
+                                <span>${(order.shippingCost || 0).toFixed(2)}</span>
+                            </div>
+                            {order.taxAmount > 0 && (
+                                <div className="flex justify-between">
+                                    <span>VAT</span>
+                                    <span>${order.taxAmount?.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between items-center pt-1">
+                                <span className="font-semibold text-slate-800 dark:text-white">Total</span>
+                                <span className="text-lg font-bold text-slate-900 dark:text-white">
+                                    ${order.totalAmount?.toFixed(2)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 )}

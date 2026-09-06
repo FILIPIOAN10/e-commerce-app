@@ -83,6 +83,14 @@ public class Order {
 
     @Column(precision = 12, scale = 2)
     private BigDecimal shippingCost = BigDecimal.ZERO;
+
+    // VAT charged on this order, in the same NUMERIC(12,2) as every other money
+    // column. Orders placed before the VAT rule shipped carry 0.00 (they were
+    // priced without a tax line), which is what V29 backfills — see the pricing
+    // pipeline's VatRule.
+    @Column(name = "tax_amount", precision = 12, scale = 2)
+    private BigDecimal taxAmount = BigDecimal.ZERO;
+
     private String appliedCoupons;
     private String orderStatus;
 

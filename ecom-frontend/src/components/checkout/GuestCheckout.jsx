@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux'
 
 const GuestCheckout = () => {
     const { cart } = useSelector((state) => state.carts)
-    const { appliedCoupons, shippingCost, discountAmount, finalAmount } = useSelector((state) => state.coupon)
+    const { appliedCoupons, shippingCost, discountAmount, taxAmount, finalAmount } = useSelector((state) => state.coupon)
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
@@ -146,6 +146,12 @@ const GuestCheckout = () => {
                                 <span>Shipping</span>
                                 <span>{formatPrice(shippingCost || 0)}</span>
                             </div>
+                            {(taxAmount || 0) > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>VAT</span>
+                                    <span>{formatPrice(taxAmount)}</span>
+                                </div>
+                            )}
                             <div className='flex justify-between font-semibold text-lg'>
                                 <span>Total</span>
                                 <span>{formatPrice(finalAmount || subtotal)}</span>

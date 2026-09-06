@@ -146,12 +146,30 @@ const OrderTrackingModal = ({ open, setOpen, orderId }) => {
                                         </div>
                                     </div>
 
-                                    {/* Total */}
-                                    <div className="border-t pt-4 mt-4 flex justify-between items-center">
-                                        <span className="font-semibold text-slate-800 dark:text-white">Total Amount</span>
-                                        <span className="text-xl font-bold text-slate-900 dark:text-white">
-                                            {formatPrice(order.totalAmount)}
-                                        </span>
+                                    {/* Totals */}
+                                    <div className="border-t pt-4 mt-4 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                                        {order.discountAmount > 0 && (
+                                            <div className="flex justify-between">
+                                                <span>Discount</span>
+                                                <span>-{formatPrice(order.discountAmount)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between">
+                                            <span>Shipping</span>
+                                            <span>{formatPrice(order.shippingCost || 0)}</span>
+                                        </div>
+                                        {order.taxAmount > 0 && (
+                                            <div className="flex justify-between">
+                                                <span>VAT</span>
+                                                <span>{formatPrice(order.taxAmount)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-center pt-1">
+                                            <span className="font-semibold text-slate-800 dark:text-white">Total Amount</span>
+                                            <span className="text-xl font-bold text-slate-900 dark:text-white">
+                                                {formatPrice(order.totalAmount)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </>
                             ) : null}

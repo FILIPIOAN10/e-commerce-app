@@ -6,11 +6,12 @@ import { previewOrder } from '../../store/actions'
 
 const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
   const dispatch = useDispatch();
-  const { appliedCoupons, discountAmount, shippingCost, finalAmount } = useSelector((state) => state.coupon)
+  const { appliedCoupons, discountAmount, shippingCost, taxAmount, finalAmount } = useSelector((state) => state.coupon)
   const displaySubtotal = totalPrice;
   const displayDiscount = discountAmount || 0;
   const displayShipping = shippingCost || 0;
-  const displayTotal = finalAmount > 0 ? finalAmount : (displaySubtotal - displayDiscount + displayShipping);
+  const displayTax = taxAmount || 0;
+  const displayTotal = finalAmount > 0 ? finalAmount : (displaySubtotal - displayDiscount + displayShipping + displayTax);
 
   useEffect(() => {
     if (address?.addressId) {
@@ -115,6 +116,12 @@ const OrderSummary = ({totalPrice,cart,address,paymentMethod}) => {
                         <span>Shipping</span>
                         <span>${formatPriceCalculation(displayShipping,1)}</span>
                     </div>
+                    {displayTax > 0 && (
+                        <div className="flex justify-between">
+                            <span>VAT</span>
+                            <span>${formatPriceCalculation(displayTax,1)}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between font-semibold">
                             <span>Total</span>
                             <span>${formatPriceCalculation(displayTotal,1)}</span>

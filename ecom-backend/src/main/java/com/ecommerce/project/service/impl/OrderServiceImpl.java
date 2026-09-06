@@ -99,6 +99,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(pricing.total().toBigDecimal());
         order.setDiscountAmount(pricing.discountTotal().toBigDecimal());
         order.setShippingCost(pricing.shippingTotal().toBigDecimal());
+        order.setTaxAmount(pricing.taxTotal().toBigDecimal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
         order.setPayment(orderPaymentHandler.record(order, paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName));
@@ -270,6 +271,7 @@ public class OrderServiceImpl implements OrderService {
         summary.setSubtotal(pricing.subtotal().toBigDecimal());
         summary.setDiscountAmount(pricing.discountTotal().toBigDecimal());
         summary.setShippingCost(pricing.shippingTotal().toBigDecimal());
+        summary.setTaxAmount(pricing.taxTotal().toBigDecimal());
         summary.setTotalAmount(pricing.total().toBigDecimal());
         summary.setAppliedCoupons(pricing.appliedCouponCodes());
         return summary;
@@ -332,6 +334,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(pricing.total().toBigDecimal());
         order.setDiscountAmount(pricing.discountTotal().toBigDecimal());
         order.setShippingCost(pricing.shippingTotal().toBigDecimal());
+        order.setTaxAmount(pricing.taxTotal().toBigDecimal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
 
         order.setPayment(orderPaymentHandler.record(order, request.getPaymentMethod(),
