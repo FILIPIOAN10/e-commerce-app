@@ -57,6 +57,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void notifyUser(String email, String title, String message, String type) {
+        AppNotification notification = saveNotification(email, title, message, type, null);
+        sendToUser(email, notification);
+    }
+
+    @Override
     public void notifyUserOrderStatusChanged(Long orderId, String email, String newStatus) {
         String title = "Order Status Updated";
         String message = String.format("Your order #%d is now: %s", orderId, newStatus);

@@ -19,7 +19,6 @@ import com.stripe.model.Customer;
 import com.stripe.model.Price;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
-import com.stripe.net.Webhook;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PriceCreateParams;
 import com.stripe.param.ProductCreateParams;
@@ -31,11 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,9 +44,6 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Value("${stripe.secret.key:}")
     private String stripeApiKey;
-
-    @Value("${stripe.webhook.secret:}")
-    private String webhookSecret;
 
     @Value("${frontend.url:http://localhost:5173}")
     private String frontendUrl;
@@ -270,54 +262,6 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         subscription.setStatus("CANCELED");
         subscription.setCanceledAt(LocalDateTime.now());
         return mapUserSubscriptionToDTO(userSubscriptionRepository.save(subscription));
-    }
-
-    @Override
-    @Transactional
-    public void handleStripeWebhook(String payload, String sigHeader) {
-        ensureStripeConfigured();
-
-        if (webhookSecret == null || webhookSecret.isBlank()) {
-            throw new APIException("Stripe webhook secret is not configured");
-        }
-
-        com.stripe.model.Event event;
-        try {
-            event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
-        } catch (Exception e) {
-            throw new APIException("Invalid webhook signature: " + e.getMessage());
-        }
-
-        if ("checkout.session.completed".equals(event.getType())) {
-            Session session = (Session) event.getData().getObject();
-            String sessionId = session.getId();
-
-            userSubscriptionRepository.findByStripeCheckoutSessionId(sessionId).ifPresent(sub -> {
-                sub.setStripeSubscriptionId(session.getSubscription());
-                sub.setStatus("ACTIVE");
-                if (session.getSubscriptionObject() != null) {
-                    Subscription s = session.getSubscriptionObject();
-                    sub.setCurrentPeriodStart(toLocalDateTime(s.getStartDate()));
-                }
-                userSubscriptionRepository.save(sub);
-            });
-        } else if ("customer.subscription.updated".equals(event.getType()) ||
-                "customer.subscription.deleted".equals(event.getType())) {
-            Subscription s = (Subscription) event.getData().getObject();
-
-            userSubscriptionRepository.findByStripeSubscriptionId(s.getId()).ifPresent(sub -> {
-                sub.setStatus("canceled".equals(s.getStatus()) ? "CANCELED" : s.getStatus().toUpperCase());
-                if ("canceled".equals(s.getStatus())) {
-                    sub.setCanceledAt(LocalDateTime.now());
-                }
-                userSubscriptionRepository.save(sub);
-            });
-        }
-    }
-
-    private LocalDateTime toLocalDateTime(Long epochSeconds) {
-        if (epochSeconds == null) return null;
-        return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault());
     }
 
     private SubscriptionPlanDTO mapToDTO(SubscriptionPlan plan) {

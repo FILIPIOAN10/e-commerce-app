@@ -59,14 +59,10 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.cancelSubscription(id, email));
     }
 
-    @Tag(name = "Subscriptions")
-    @PostMapping("/public/subscriptions/webhook")
-    public ResponseEntity<Void> handleStripeWebhook(
-            @RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader) {
-        subscriptionService.handleStripeWebhook(payload, sigHeader);
-        return ResponseEntity.ok().build();
-    }
+    // Subscription webhooks now arrive at the single receiver
+    // (POST /api/public/webhooks/stripe) — it verifies the signature and
+    // de-duplicates on the Stripe event id before routing to a
+    // SubscriptionEventHandler. Point every Stripe event there.
 
     @Tag(name = "Admin Subscriptions")
     @GetMapping("/admin/subscriptions/plans")

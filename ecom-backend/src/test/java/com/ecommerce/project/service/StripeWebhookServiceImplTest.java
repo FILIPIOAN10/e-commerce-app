@@ -8,6 +8,7 @@ import com.ecommerce.project.repository.PaymentRepository;
 import com.ecommerce.project.repository.ProcessedWebhookEventRepository;
 import com.ecommerce.project.service.impl.StripeWebhookServiceImpl;
 import com.ecommerce.project.service.order.OrderStatus;
+import com.ecommerce.project.service.subscription.SubscriptionEventDispatcher;
 import com.stripe.model.Charge;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
@@ -39,6 +40,7 @@ class StripeWebhookServiceImplTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private OrderService orderService;
     @Mock private RefundService refundService;
+    @Mock private SubscriptionEventDispatcher subscriptionEventDispatcher;
 
     @InjectMocks
     private StripeWebhookServiceImpl webhookService;
@@ -231,5 +233,23 @@ class StripeWebhookServiceImplTest {
         }
 
         verify(orderService).updateOrder(88L, OrderStatus.CANCELLED);
+    }
+
+    @Test
+    void unhandledEventType_isRoutedToSubscriptionDispatcher() {
+        ReflectionTestUtils.setField(webhookService, "webhookSecret", "whsec_test");
+
+        when(processedWebhookEventRepository.saveAndFlush(any(ProcessedWebhookEvent.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Event event = buildChargeEvent("evt_sub", "customer.subscription.updated", mock(Charge.class));
+
+        try (MockedStatic<Webhook> mocked = mockStatic(Webhook.class)) {
+            mocked.when(() -> Webhook.constructEvent(anyString(), anyString(), eq("whsec_test"))).thenReturn(event);
+            webhookService.handleWebhook("payload", "sig");
+        }
+
+        verify(subscriptionEventDispatcher).dispatch(event);
+        verify(paymentRepository, never()).findByPgPaymentId(anyString());
     }
 }

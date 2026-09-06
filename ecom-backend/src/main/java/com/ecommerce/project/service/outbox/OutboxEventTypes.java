@@ -23,4 +23,10 @@ public final class OutboxEventTypes {
 
     /** Issue the Stripe refund for a return an admin has marked refunded. */
     public static final String REFUND_REQUESTED = "REFUND_REQUESTED";
+
+    /** A subscription renewal payment failed — tell the customer to fix their card. */
+    public static final String SUBSCRIPTION_PAYMENT_FAILED = "SUBSCRIPTION_PAYMENT_FAILED";
+
+    /** A subscription has ended (cancelled, or dunning ran out) — tell the customer. */
+    public static final String SUBSCRIPTION_ENDED = "SUBSCRIPTION_ENDED";
 }

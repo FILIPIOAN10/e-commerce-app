@@ -249,6 +249,45 @@ public class EmailService {
         }
     }
 
+    public void sendSubscriptionPaymentFailedEmail(String toEmail, String planName) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Action needed: payment failed for " + planName);
+            helper.setText(
+                    "<p>We couldn't take payment to renew your <strong>" + planName + "</strong> subscription.</p>"
+                    + "<p>We'll try again automatically over the next few days. To avoid an interruption, "
+                    + "update your card here: <a href=\"" + frontendUrl + "/my-subscriptions\">"
+                    + frontendUrl + "/my-subscriptions</a>.</p>", true);
+            mailSender.send(mimeMessage);
+            log.info("Subscription payment-failed email handed off to SMTP for {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send subscription payment-failed email to {}", toEmail, e);
+            throw new EmailDeliveryException("subscription payment-failed email to " + toEmail, e);
+        }
+    }
+
+    public void sendSubscriptionEndedEmail(String toEmail, String planName) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Your " + planName + " subscription has ended");
+            helper.setText(
+                    "<p>Your <strong>" + planName + "</strong> subscription has ended and will no longer renew.</p>"
+                    + "<p>You can start it again any time here: <a href=\"" + frontendUrl + "/subscriptions\">"
+                    + frontendUrl + "/subscriptions</a>.</p>", true);
+            mailSender.send(mimeMessage);
+            log.info("Subscription-ended email handed off to SMTP for {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send subscription-ended email to {}", toEmail, e);
+            throw new EmailDeliveryException("subscription-ended email to " + toEmail, e);
+        }
+    }
+
     public void sendContactMessage(String name, String email, String userMessage) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
