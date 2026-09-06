@@ -10,6 +10,7 @@ import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.RefundService;
 import com.ecommerce.project.service.StripeWebhookService;
 import com.ecommerce.project.service.payment.PaymentStatus;
+import com.ecommerce.project.service.subscription.SubscriptionEventDispatcher;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Charge;
 import com.stripe.model.Event;
@@ -37,6 +38,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
     private final RefundService refundService;
+    private final SubscriptionEventDispatcher subscriptionEventDispatcher;
 
     @Override
     @Transactional
@@ -103,7 +105,9 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
                 refundService.reconcileFromCharge(charge);
             });
 
-            default -> log.debug("Ignoring unhandled Stripe event type {}", eventType);
+            // Subscription lifecycle (checkout completed, renewal paid/failed,
+            // updated, deleted) is routed through its own Strategy registry.
+            default -> subscriptionEventDispatcher.dispatch(event);
         }
     }
 

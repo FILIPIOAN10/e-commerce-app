@@ -223,6 +223,33 @@ happens in all but the rare permanent-failure case — so the `refunds` row, not
 the order status, is the record of whether the money actually moved. Cash-on-
 delivery returns keep the old manual path: there is no charge to reverse.
 
+**Subscription state is driven by Stripe webhooks, through one deduped door.**
+*Problem:* subscription billing (checkout completed, renewal paid, renewal
+failed, cancelled) was handled by a second webhook endpoint,
+`/api/public/subscriptions/webhook`, that verified its own signature and had no
+replay protection — a Stripe redelivery double-applied. Meanwhile the order-
+payment webhook at `/api/public/webhooks/stripe` already had a
+`processed_webhook_events` unique index doing exactly the dedup we needed.
+*Approach:* the second endpoint is gone. Every Stripe event now enters through
+the one deduped door; anything the payment switch does not claim falls to a
+`SubscriptionEventDispatcher` — a **Strategy registry** built at startup from
+each `SubscriptionEventHandler`'s `eventTypes()`, the same shape as
+`OutboxHandlerRegistry` and `PaymentGatewayRegistry` (two handlers claiming one
+type is a startup failure, not a coin toss). A handler only translates the
+payload and calls `SubscriptionLifecycleService`, which owns the row transition
+and, for the two outward notices (renewal failed, subscription ended), publishes
+an outbox event in the same commit rather than sending mail inline. Payloads
+shift between stripe-java majors — the period end is on the subscription *item*
+now, the subscription id on an invoice is under `parent.subscription_details` —
+so extraction lives in one `StripeSubscriptionEvents` helper that tries the
+current shape and falls back rather than NPE. A `SubscriptionRenewalSweepJob`
+(off in the test profile) reconciles any still-live subscription whose period
+ended over a grace window ago against Stripe, for the delivery that never
+arrived. *Trade-off:* the handlers are thin to the point of looking anaemic —
+five classes that each do one `if null return` and one delegate call — but that
+is the price of the id/period-extraction quirks living in exactly one place
+instead of smeared across the switch.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -377,10 +404,15 @@ without a token, signout passes with one and is refused without.
 The money migration is complete — all five slices are on `main`, and no column or
 field in the codebase holds money as a binary float.
 
-Current work: **automated refunds** (`feat/automated-refunds`, `V31`). An
-approved return now issues its own Stripe refund through the outbox instead of
-leaving it to be done by hand in the dashboard — see the Engineering-decisions
-entry above.
+Current work: **subscription lifecycle webhooks** (`feat/subscription-webhooks`,
+stacked on `feat/automated-refunds`). Stripe subscription events now enter
+through the same deduped webhook endpoint as order payments and route through a
+`SubscriptionEventDispatcher` Strategy registry; the second, unprotected
+`/api/public/subscriptions/webhook` endpoint is removed. Renewal-failed and
+subscription-ended notices go out through the outbox, and a sweep job reconciles
+stale subscriptions against Stripe for any delivery that was missed — see the
+Engineering-decisions entry above. Precedes it: **automated refunds**
+(`feat/automated-refunds`, `V31`).
 
 ## Getting Started
  

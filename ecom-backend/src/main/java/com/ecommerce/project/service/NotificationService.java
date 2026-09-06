@@ -14,6 +14,9 @@ public interface NotificationService {
     /** An automated refund could not be issued and needs a human. */
     void notifyAdminRefundFailed(Long orderId, BigDecimal amount, String reason);
 
+    /** A plain in-app + WebSocket notification to one user. */
+    void notifyUser(String email, String title, String message, String type);
+
     List<NotificationDTO> getNotifications(String email, int page, int size);
 
     long getUnreadCount(String email);

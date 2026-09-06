@@ -17,6 +17,4 @@ public interface SubscriptionService {
     SubscriptionCheckoutDTO createCheckoutSession(Long planId, String email);
     List<UserSubscriptionDTO> getMySubscriptions(String email);
     UserSubscriptionDTO cancelSubscription(Long id, String email);
-
-    void handleStripeWebhook(String payload, String sigHeader);
 }
