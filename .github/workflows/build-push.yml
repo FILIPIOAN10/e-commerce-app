@@ -42,11 +42,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # GHCR image paths must be lowercase (the OCI distribution spec restricts
+      # every path component to [a-z0-9._-]), but IMAGE_PREFIX is built from
+      # github.repository_owner, which preserves the account's exact case —
+      # "FILIPIOAN10" here. docker/metadata-action lowercases its `images:`
+      # input internally, which is the only reason the push below has ever
+      # worked; Trivy has no equivalent normalization, and Actions expressions
+      # have no toLower()/lower() to fix it inline. Computed once here in plain
+      # shell and fed to both, so push and scan always name the same thing.
+      - name: Compute lowercase image name
+        id: image
+        run: |
+          echo "name=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend
+          images: ${{ steps.image.outputs.name }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -77,12 +90,18 @@ jobs:
       # for. A digest is one value regardless of how many tags point at it, and
       # names the exact image this job just pushed rather than whichever tag a
       # concurrent build might move next.
+      #
+      # Built from steps.image.outputs.name, not env.IMAGE_PREFIX directly, for
+      # the same reason as the "Compute lowercase image name" step above: a
+      # second attempt at this fix reused IMAGE_PREFIX's raw casing here and
+      # produced ghcr.io/FILIPIOAN10/... — Trivy rejected that too, as an
+      # invalid reference, before scanning anything.
       - name: Run Trivy scan on backend image
         uses: aquasecurity/trivy-action@v0.36.0
         env:
           TRIVY_CACHE_DIR: /home/runner/.cache/trivy
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend@${{ steps.build.outputs.digest }}
+          image-ref: ${{ steps.image.outputs.name }}@${{ steps.build.outputs.digest }}
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
@@ -110,11 +129,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # See the backend job for why this exists: GHCR paths must be lowercase,
+      # IMAGE_PREFIX carries github.repository_owner's exact case, and Actions
+      # expressions have no toLower() to fix that inline.
+      - name: Compute lowercase image name
+        id: image
+        run: |
+          echo "name=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend
+          images: ${{ steps.image.outputs.name }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -134,13 +161,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # See the backend job for why this is a digest and not steps.meta.outputs.tags.
+      # See the backend job for why this is a digest built from
+      # steps.image.outputs.name rather than env.IMAGE_PREFIX directly.
       - name: Run Trivy scan on frontend image
         uses: aquasecurity/trivy-action@v0.36.0
         env:
           TRIVY_CACHE_DIR: /home/runner/.cache/trivy
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend@${{ steps.build.outputs.digest }}
+          image-ref: ${{ steps.image.outputs.name }}@${{ steps.build.outputs.digest }}
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
