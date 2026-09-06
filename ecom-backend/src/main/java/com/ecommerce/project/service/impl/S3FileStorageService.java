@@ -1,6 +1,7 @@
 package com.ecommerce.project.service.impl;
 
 import com.ecommerce.project.service.FileService;
+import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
@@ -81,6 +82,31 @@ public class S3FileStorageService implements FileService {
         } catch (MinioException e) {
             log.error("Failed to delete image from S3/MinIO: {}", e.getMessage());
             throw new IOException("Image deletion failed", e);
+        }
+    }
+
+    @Override
+    public byte[] read(String path, String storedName) throws IOException {
+        if (storedName == null || storedName.isBlank()) {
+            throw new IOException("No file name given");
+        }
+        String publicUrlPrefix = publicUrl + "/" + bucketName + "/";
+        String objectName;
+        if (storedName.startsWith(publicUrlPrefix)) {
+            objectName = storedName.substring(publicUrlPrefix.length());
+        } else {
+            String folder = path != null && path.endsWith("/") ? path.substring(0, path.length() - 1)
+                    : (path != null ? path : "uploads");
+            objectName = folder + "/" + storedName;
+        }
+        try (var stream = minioClient.getObject(
+                GetObjectArgs.builder().bucket(bucketName).object(objectName).build())) {
+            return stream.readAllBytes();
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to read object from S3/MinIO: {}", e.getMessage());
+            throw new IOException("File read failed", e);
         }
     }
 }

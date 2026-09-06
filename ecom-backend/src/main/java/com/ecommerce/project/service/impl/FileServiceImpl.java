@@ -58,4 +58,14 @@ public class FileServiceImpl implements FileService {
             throw new IOException("Failed to delete image: " + file.getAbsolutePath());
         }
     }
+
+    @Override
+    public byte[] read(String path, String storedName) throws IOException {
+        if (storedName == null || storedName.isBlank()) {
+            throw new IOException("No file name given");
+        }
+        // Guard against a stored name that tries to climb out of the directory.
+        String name = Paths.get(storedName).getFileName().toString();
+        return Files.readAllBytes(Paths.get(path, name));
+    }
 }

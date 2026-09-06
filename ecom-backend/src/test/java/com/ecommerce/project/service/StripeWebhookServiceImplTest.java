@@ -40,6 +40,7 @@ class StripeWebhookServiceImplTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private OrderService orderService;
     @Mock private RefundService refundService;
+    @Mock private com.ecommerce.project.service.DisputeService disputeService;
     @Mock private SubscriptionEventDispatcher subscriptionEventDispatcher;
 
     @InjectMocks
@@ -204,6 +205,31 @@ class StripeWebhookServiceImplTest {
 
         assertEquals("refunded", payment.getPgStatus());
         verify(orderService, never()).updateOrder(anyLong(), anyString());
+    }
+
+    @Test
+    void chargeDisputeCreated_isRoutedToTheDisputeService() {
+        ReflectionTestUtils.setField(webhookService, "webhookSecret", "whsec_test");
+
+        com.stripe.model.Dispute dispute = mock(com.stripe.model.Dispute.class);
+        EventDataObjectDeserializer deserializer = mock(EventDataObjectDeserializer.class);
+        when(deserializer.getObject()).thenReturn(Optional.of(dispute));
+
+        Event event = mock(Event.class);
+        when(event.getId()).thenReturn("evt_dispute");
+        when(event.getType()).thenReturn("charge.dispute.created");
+        when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+
+        when(processedWebhookEventRepository.saveAndFlush(any(ProcessedWebhookEvent.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        try (MockedStatic<Webhook> mocked = mockStatic(Webhook.class)) {
+            mocked.when(() -> Webhook.constructEvent(anyString(), anyString(), eq("whsec_test"))).thenReturn(event);
+            webhookService.handleWebhook("payload", "sig");
+        }
+
+        verify(disputeService).openFromStripe(dispute);
+        verify(subscriptionEventDispatcher, never()).dispatch(any());
     }
 
     @Test

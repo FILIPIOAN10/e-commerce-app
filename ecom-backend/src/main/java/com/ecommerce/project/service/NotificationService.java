@@ -17,6 +17,9 @@ public interface NotificationService {
     /** A plain in-app + WebSocket notification to one user. */
     void notifyUser(String email, String title, String message, String type);
 
+    /** The same in-app + WebSocket notification to every admin. */
+    void notifyAdmins(String title, String message, String type, Long referenceId);
+
     List<NotificationDTO> getNotifications(String email, int page, int size);
 
     long getUnreadCount(String email);

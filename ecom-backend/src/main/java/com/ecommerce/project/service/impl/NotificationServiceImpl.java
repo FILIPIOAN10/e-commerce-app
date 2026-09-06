@@ -63,6 +63,14 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void notifyAdmins(String title, String message, String type, Long referenceId) {
+        for (User admin : userRepository.findAllByRoleName(AppRole.ROLE_ADMIN)) {
+            AppNotification notification = saveNotification(admin.getEmail(), title, message, type, referenceId);
+            sendToUser(admin.getEmail(), notification);
+        }
+    }
+
+    @Override
     public void notifyUserOrderStatusChanged(Long orderId, String email, String newStatus) {
         String title = "Order Status Updated";
         String message = String.format("Your order #%d is now: %s", orderId, newStatus);
