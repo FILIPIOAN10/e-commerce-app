@@ -53,6 +53,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build & push backend image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./ecom-backend
@@ -63,12 +64,25 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Scanned by digest, not by steps.meta.outputs.tags: that output is one tag
+      # per line whenever more than one pattern matches (a real release matches
+      # all three configured here — {{version}}, {{major}}.{{minor}}, latest — so
+      # this is not a corner case), and Trivy's image-ref takes exactly one
+      # reference. Handed the multi-line blob, it tried to parse a reference
+      # containing a literal newline and failed outright:
+      #   FATAL  Fatal error  run error: ... could not parse reference:
+      #   ghcr.io/.../ecommerce-backend:0.0.1-test (newline) ghcr.io/.../ecommerce-backend:latest
+      # First seen on v0.0.1-test, the first tag ever pushed to this repo — every
+      # prior push had gone to a branch, which build-push.yml is never called
+      # for. A digest is one value regardless of how many tags point at it, and
+      # names the exact image this job just pushed rather than whichever tag a
+      # concurrent build might move next.
       - name: Run Trivy scan on backend image
         uses: aquasecurity/trivy-action@v0.36.0
         env:
           TRIVY_CACHE_DIR: /home/runner/.cache/trivy
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend@${{ steps.build.outputs.digest }}
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
@@ -107,6 +121,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build & push frontend image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./ecom-frontend
@@ -119,12 +134,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # See the backend job for why this is a digest and not steps.meta.outputs.tags.
       - name: Run Trivy scan on frontend image
         uses: aquasecurity/trivy-action@v0.36.0
         env:
           TRIVY_CACHE_DIR: /home/runner/.cache/trivy
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend@${{ steps.build.outputs.digest }}
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
