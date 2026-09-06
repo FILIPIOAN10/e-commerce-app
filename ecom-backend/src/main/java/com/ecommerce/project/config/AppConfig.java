@@ -6,10 +6,12 @@ import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.CouponDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(TaxProperties.class)
 public class AppConfig {
     @Bean
     public ModelMapper modelMapper() {

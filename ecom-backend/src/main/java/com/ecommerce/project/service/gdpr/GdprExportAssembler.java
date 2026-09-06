@@ -182,6 +182,7 @@ public class GdprExportAssembler {
                 order.getTotalAmount(),
                 order.getDiscountAmount(),
                 order.getShippingCost(),
+                order.getTaxAmount(),
                 order.getAppliedCoupons(),
                 toAddress(order.getAddress()),
                 toPayment(order.getPayment()),

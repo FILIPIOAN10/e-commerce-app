@@ -25,6 +25,7 @@ public class OrderDTO {
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
     private BigDecimal shippingCost;
+    private BigDecimal taxAmount;
     private List<String> appliedCoupons = new ArrayList<>();
     private String orderStatus;
     private Long addressId;

@@ -2,6 +2,7 @@ const initialState = {
     appliedCoupons: [],
     discountAmount: 0,
     shippingCost: 0,
+    taxAmount: 0,
     finalAmount: 0,
     loading: false,
     error: null,
@@ -24,6 +25,7 @@ const couponReducer = (state = initialState, action) => {
                 ...state,
                 discountAmount: action.payload.discountAmount,
                 shippingCost: action.payload.shippingCost,
+                taxAmount: action.payload.taxAmount || 0,
                 finalAmount: action.payload.totalAmount,
                 appliedCoupons: action.payload.appliedCoupons,
                 error: null,
@@ -34,6 +36,7 @@ const couponReducer = (state = initialState, action) => {
                 appliedCoupons: [],
                 discountAmount: 0,
                 shippingCost: 0,
+                taxAmount: 0,
                 finalAmount: 0,
                 error: action.payload,
             };
@@ -43,6 +46,7 @@ const couponReducer = (state = initialState, action) => {
                 appliedCoupons: [],
                 discountAmount: 0,
                 shippingCost: 0,
+                taxAmount: 0,
                 finalAmount: 0,
                 error: null,
             };

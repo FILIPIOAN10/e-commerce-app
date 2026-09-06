@@ -159,6 +159,27 @@ codebase one slice per branch rather than in one sweep, because every slice
 touches the payment path; what is left of the old world is visible as explicit
 `toDouble()` calls, and each one marks a boundary a later slice removes.
 
+**An order now carries VAT, and the pipeline was already shaped for it.**
+`PriceLineType.TAX` and `PriceBreakdown.taxTotal()` had been sitting unused since
+the pricing pipeline was built — a slot with no rule to fill it, so every order's
+`total_amount` was a pre-tax figure and the amount confirmed with Stripe had no
+tax in it. `VatRule` fills the slot, last in the `@Order` chain: it reads the
+running total *after* the coupon and shipping rules have run, so VAT lands on the
+discounted price the customer actually pays and (by EU practice, and a config
+flag) on the carriage too. The rate is not an app constant the way the shipping
+bands are — it is a legal figure that moves by country and by budget — so it is
+externalised as `app.tax.rates.<ISO>` with a default, resolved from the delivery
+address; a market the store does not charge tax in sets `app.tax.enabled=false`
+and the line disappears rather than showing as €0.00. The amount is persisted in
+its own `NUMERIC(12,2)` column beside the other money, and V29 backfills existing
+orders with `0.00` — correct, not merely convenient, because those orders were
+genuinely priced and charged without tax. *Trade-off:* the taxable base is the
+post-discount total including shipping, which is the common EU case but not
+universal — a jurisdiction that zero-rates shipping or taxes the pre-discount
+amount would need the rule to grow a second mode; and the rate table is a flat
+country map with no notion of reduced rates per product category, which this
+catalogue does not need yet.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -310,15 +331,15 @@ without a token, signout passes with one and is refused without.
 
 ### In flight this iteration
 
-Not yet merged, stacked in this order: slice 2 of the money migration
-(`BigDecimal` on `Order` / `OrderItem`) and slice 3 (`Product` / `Cart`, and the
-pricing pipeline end to end in `Money`).
+Slices 1–3 of the money migration are merged (`Money` value object, then
+`BigDecimal` on `Order` / `OrderItem`, then `Product` / `Cart` and the pricing
+pipeline end to end). Slice 4 — the VAT rule above — is on `feat/vat-tax`.
 
-What is left of the migration: VAT, and then the last entities still holding a
-`Double` (`Bundle`, `ReturnRequest`, `SubscriptionPlan`, `PromoCampaign`). VAT is
-the one that is not a conversion — `PriceLineType.TAX` and
-`PriceBreakdown.taxTotal()` are slots the pipeline is built to accept, but no rule
-fills them yet, so an order currently carries no tax line.
+What is left of the migration: slice 5, the last entities still holding a
+`Double` for money (`Bundle.discountPercentage`, `ReturnRequest.refundAmount`,
+`SubscriptionPlan.amount`, `PromoCampaign.discountPercent`). That one is a
+mechanical conversion — column to `NUMERIC(12,2)`, field to `BigDecimal` — with
+no behaviour change, and it closes the migration out.
 
 ## Getting Started
  

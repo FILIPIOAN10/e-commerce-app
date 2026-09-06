@@ -69,6 +69,7 @@ public final class GdprExportData {
             BigDecimal totalAmount,
             BigDecimal discountAmount,
             BigDecimal shippingCost,
+            BigDecimal taxAmount,
             String appliedCoupons,
             Address shippingAddress,
             Payment payment,

@@ -4,15 +4,19 @@ import com.ecommerce.project.model.Address;
 import com.ecommerce.project.model.Coupon;
 import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
+import com.ecommerce.project.config.TaxProperties;
 import com.ecommerce.project.service.pricing.rule.CouponDiscountRule;
 import com.ecommerce.project.service.pricing.rule.ShippingRule;
+import com.ecommerce.project.service.pricing.rule.VatRule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,6 +65,31 @@ class PricingPipelineTest {
 
         assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(0.0));
         assertThat(breakdown.total()).isEqualTo(Money.of(88.0));
+    }
+
+    @Test
+    @DisplayName("runs coupon -> shipping -> VAT, so VAT lands on the discounted total plus shipping")
+    void vatRunsLast() {
+        when(couponRepository.findByCode("SAVE20"))
+                .thenReturn(Optional.of(Coupon.builder().id(1L).code("SAVE20").discountPercent(20).build()));
+
+        VatRule vatRule = new VatRule(new TaxRateResolver(
+                new TaxProperties(true, BigDecimal.ZERO, true, Map.of("RO", new BigDecimal("19")))));
+
+        // Spring injects the rules already @Order-sorted; the list here is in that order.
+        PricingPipeline pipeline = new PricingPipeline(List.of(
+                new CouponDiscountRule(couponRepository, couponService),
+                new ShippingRule(new ShippingCalculator()),
+                vatRule));
+
+        Address ro = new Address(null, null, null, null, "Romania", null);
+        // 110 - 20% = 88 -> below 100 -> +3 domestic shipping = 91 -> *19% = 17.29 -> 108.29
+        PriceBreakdown breakdown = pipeline.price(new PricingContext(Money.of(110.0), ro, List.of("SAVE20")));
+
+        assertThat(breakdown.discountTotal()).isEqualTo(Money.of(22.0));
+        assertThat(breakdown.shippingTotal()).isEqualTo(Money.of(3.0));
+        assertThat(breakdown.taxTotal()).isEqualTo(Money.of(17.29));
+        assertThat(breakdown.total()).isEqualTo(Money.of(108.29));
     }
 
     @Test

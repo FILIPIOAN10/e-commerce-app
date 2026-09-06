@@ -67,6 +67,7 @@ public class OrderDtoAssembler {
         orderDTO.setTotalAmount(totalAmount);
         orderDTO.setDiscountAmount(order.getDiscountAmount());
         orderDTO.setShippingCost(order.getShippingCost());
+        orderDTO.setTaxAmount(order.getTaxAmount());
         orderDTO.setAddressId(addressId);
         orderDTO.setAppliedCoupons(order.getAppliedCoupons() != null
                 ? List.of(order.getAppliedCoupons().split(","))
