@@ -23,7 +23,7 @@ const LowStockSummary = () => {
                         {lowStockSummary.count} products low in stock
                     </p>
                     <ul className="space-y-2">
-                        {lowStockSummary.products.map((p) => (
+                        {(lowStockSummary.products ?? []).map((p) => (
                             <li key={p.productId} className="text-sm text-gray-700 dark:text-gray-300 flex justify-between">
                                 <span>{p.productName}</span>
                                 <span className="font-semibold text-orange-600">{p.quantity} left</span>

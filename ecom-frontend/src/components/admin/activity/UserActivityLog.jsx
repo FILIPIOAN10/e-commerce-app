@@ -24,7 +24,7 @@ const UserActivityLog = () => {
         { field: 'createdAt', headerName: 'Date', width: 160 },
     ];
 
-    const rows = activityLogs.map((log) => ({
+    const rows = (activityLogs ?? []).map((log) => ({
         id: log.id,
         username: log.username,
         action: log.action,
@@ -49,11 +49,10 @@ const UserActivityLog = () => {
                         disableRowSelectionOnClick
                         disableColumnResize
                         pageSizeOptions={[20]}
-                        pagination
                         rowCount={activityLogTotal || 0}
                         paginationMode="server"
-                        page={page}
-                        onPageChange={(newPage) => setPage(newPage)}
+                        paginationModel={{ page, pageSize: 20 }}
+                        onPaginationModelChange={(model) => setPage(model.page)}
                     />
                 </div>
             )}
