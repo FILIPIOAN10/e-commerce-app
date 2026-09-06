@@ -6,6 +6,7 @@ import com.ecommerce.project.model.Payment;
 import com.ecommerce.project.model.ProcessedWebhookEvent;
 import com.ecommerce.project.repository.PaymentRepository;
 import com.ecommerce.project.repository.ProcessedWebhookEventRepository;
+import com.ecommerce.project.service.DisputeService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.RefundService;
 import com.ecommerce.project.service.StripeWebhookService;
@@ -13,6 +14,7 @@ import com.ecommerce.project.service.payment.PaymentStatus;
 import com.ecommerce.project.service.subscription.SubscriptionEventDispatcher;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Charge;
+import com.stripe.model.Dispute;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
@@ -38,6 +40,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
     private final RefundService refundService;
+    private final DisputeService disputeService;
     private final SubscriptionEventDispatcher subscriptionEventDispatcher;
 
     @Override
@@ -105,6 +108,13 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
                 refundService.reconcileFromCharge(charge);
             });
 
+            // Chargebacks. The dispute service mirrors Stripe's lifecycle into
+            // the disputes table and is idempotent / order-tolerant, so a
+            // redelivered or out-of-sequence event is safe.
+            case "charge.dispute.created" -> onDispute(event, disputeService::openFromStripe);
+            case "charge.dispute.updated" -> onDispute(event, disputeService::syncFromStripe);
+            case "charge.dispute.closed" -> onDispute(event, disputeService::closeFromStripe);
+
             // Subscription lifecycle (checkout completed, renewal paid/failed,
             // updated, deleted) is routed through its own Strategy registry.
             default -> subscriptionEventDispatcher.dispatch(event);
@@ -122,6 +132,13 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
         event.getDataObjectDeserializer().getObject()
                 .filter(Charge.class::isInstance)
                 .map(Charge.class::cast)
+                .ifPresent(handler);
+    }
+
+    private void onDispute(Event event, Consumer<Dispute> handler) {
+        event.getDataObjectDeserializer().getObject()
+                .filter(Dispute.class::isInstance)
+                .map(Dispute.class::cast)
                 .ifPresent(handler);
     }
 

@@ -320,11 +320,39 @@ honour `X-Currency`. `Money` deliberately stays currency-free — it is the base
 amount; `ConvertedAmount` carries the currency and rate for the presentation
 edge.
 
+**A chargeback is a state machine fed by webhooks and worked through the
+outbox.** *Problem:* Stripe's dispute lifecycle arrives as a stream of
+`charge.dispute.created` / `.updated` / `.closed` events — at least once, and not
+guaranteed in order — and each one can move money and starts a clock (evidence
+is due by a deadline or the dispute is lost by default). Handling that inline in
+the webhook switch would mean status logic, an admin alert, and file handling
+all tangled in one `case`. *Approach:* the events enter through the existing
+deduped Stripe endpoint and route to a `DisputeService` that mirrors Stripe into
+a `disputes` row. Its status is an explicit **state machine** — `DisputeStatus`,
+the same enum-with-allowed-transitions shape as `OrderStatus` — so an
+out-of-order `updated` that reports `needs_response` on a dispute we already
+recorded as `won` is logged and dropped, not applied; a closed dispute never
+reopens. Every entry point is order-tolerant and idempotent (a replayed
+`created` becomes an update; a `closed` for a dispute we never saw opens it
+first), because the webhook gives no other guarantee. The two outward effects —
+the "respond by {deadline}" alert on open, the outcome alert on close — are
+**transactional-outbox** events written in the same transaction as the row, so a
+crash between commit and notification still delivers them. Evidence files an
+admin uploads go through the existing **pluggable `FileService`** (`local` by
+default, `s3` by config) into a directory that is *not* web-served — evidence
+carries customer PII, so the only way back to the bytes is the admin download
+endpoint, which is why `FileService` grew a `read`. *Trade-off:* a dispute does
+not move the order's own status — the `OrderStatus` machine has no "disputed"
+node and adding one ripples through stock and returns logic; the dispute row
+links to the order and stands beside it instead. Won/lost is recorded and
+alerted, but the actual ledger reversal is Stripe's — we do not re-credit or
+re-debit anything locally.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
-`OrderStatus` is an explicit **state machine** (each status declares its
-successors); the order-lifecycle listeners are **Observers** on
+`OrderStatus` and `DisputeStatus` are explicit **state machines** (each status
+declares its successors); the order-lifecycle listeners are **Observers** on
 `@TransactionalEventListener`; `EmailService` is a **Template Method** over an
 `EmailMessage` **Builder**.
 
@@ -475,13 +503,14 @@ without a token, signout passes with one and is refused without.
 The money migration is complete — all five slices are on `main`, and no column or
 field in the codebase holds money as a binary float.
 
-Current work: **multi-currency** (`feat/multi-currency`, `V32`). A presentation
-currency on top of the USD base — a `supported_currencies` table, a Strategy
-registry of exchange-rate providers behind a one-hour Redis cache, and the
-chosen currency + rate frozen onto each order. Product-list and checkout-preview
-responses convert at the controller edge; settlement stays USD. See the
-Engineering-decisions entry above. Merged just before it: **design-pattern
-cleanup**, **automated refunds** (`V31`), **subscription lifecycle webhooks**.
+Current work: **chargebacks / disputes** (`feat/chargeback-disputes`, `V33`).
+Stripe `charge.dispute.*` events enter the existing deduped webhook endpoint and
+drive a `disputes` row through the `DisputeStatus` state machine; the open and
+close alerts go out through the transactional outbox; admins attach evidence
+files via the pluggable `FileService` into a non-web-served directory. See the
+Engineering-decisions entry above. Merged just before it: **multi-currency**
+(`V32`), **design-pattern cleanup**, **automated refunds** (`V31`),
+**subscription lifecycle webhooks**.
 
 ## Getting Started
  

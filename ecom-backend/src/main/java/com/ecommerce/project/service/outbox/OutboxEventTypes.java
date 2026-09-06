@@ -29,4 +29,10 @@ public final class OutboxEventTypes {
 
     /** A subscription has ended (cancelled, or dunning ran out) — tell the customer. */
     public static final String SUBSCRIPTION_ENDED = "SUBSCRIPTION_ENDED";
+
+    /** A chargeback was opened on an order — alert the admins, with the evidence deadline. */
+    public static final String DISPUTE_OPENED = "DISPUTE_OPENED";
+
+    /** A chargeback reached a terminal state (won / lost / closed) — alert the admins of the outcome. */
+    public static final String DISPUTE_CLOSED = "DISPUTE_CLOSED";
 }
