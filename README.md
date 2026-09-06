@@ -292,6 +292,34 @@ bytes (WEBP overrides `matches` for the `WEBP` marker at offset 8); one
 `contentMatchesExtension(bytes, ext)` call replaces both ladders and a new
 format is one constant.
 
+**Multi-currency is a presentation layer, not a second settlement currency.**
+*Problem:* customers want to see and check out in their own currency, but the
+catalogue, carts and order totals are all `NUMERIC(12,2)` USD and the payment
+side is single-currency. Re-pricing everything per currency, or threading a
+currency through `Money` and every column, is a migration the size of the one
+that just finished. *Approach:* USD stays the base and the settlement currency;
+a currency the customer picks is a *view* on top. A `supported_currencies` table
+(`V32`, seeded) lists what the picker offers; `ExchangeRateProvider` is a
+**Strategy registry** — `FixedRateProvider` (rates from config, always present,
+the offline floor) and, when `app.currency.provider=frankfurter`, a live ECB
+feed ordered ahead of it that the registry falls through past when a call throws.
+`ExchangeRateService` wraps the registry in a one-hour Redis cache
+(`exchangeRates`), so a rate table is fetched once an hour and every conversion
+reads it from Redis; TTL is the whole invalidation story because rates drift
+slowly. `CurrencyService.convert` rounds to the target currency's own precision
+(2 for EUR, 0 for JPY). At checkout the chosen currency and its USD rate are
+*frozen onto the order* (`orders.currency_code` + `exchange_rate`) so an invoice
+reprinted a year later reproduces the exact figures; product listings and the
+checkout preview convert at the controller boundary, **after** the `@Cacheable`
+product service has returned, so the product cache stays single-currency.
+*Trade-off:* the customer is quoted, say, €92.10 but the card is still charged
+the USD equivalent — true local settlement needs per-currency Stripe prices and
+is a separate slice. Search, faceted, and category product endpoints still
+return USD this iteration; only the main list and single-product endpoints
+honour `X-Currency`. `Money` deliberately stays currency-free — it is the base
+amount; `ConvertedAmount` carries the currency and rate for the presentation
+edge.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -447,13 +475,13 @@ without a token, signout passes with one and is refused without.
 The money migration is complete — all five slices are on `main`, and no column or
 field in the codebase holds money as a binary float.
 
-Current work: **design-pattern cleanup** (`refactor/pattern-cleanup`). No
-behaviour change — `EmailService` becomes a Template Method over an
-`EmailMessage` builder (eleven copies of the MIME envelope collapse to one),
-the repeated checkout preconditions move into a `CheckoutGuards` component, and
-avatar image-type validation becomes an `ImageSignature` enum lookup. See the
-Engineering-decisions entries above. Merged just before it: **automated refunds**
-(`V31`) and **subscription lifecycle webhooks**.
+Current work: **multi-currency** (`feat/multi-currency`, `V32`). A presentation
+currency on top of the USD base — a `supported_currencies` table, a Strategy
+registry of exchange-rate providers behind a one-hour Redis cache, and the
+chosen currency + rate frozen onto each order. Product-list and checkout-preview
+responses convert at the controller edge; settlement stays USD. See the
+Engineering-decisions entry above. Merged just before it: **design-pattern
+cleanup**, **automated refunds** (`V31`), **subscription lifecycle webhooks**.
 
 ## Getting Started
  

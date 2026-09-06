@@ -11,9 +11,9 @@ import java.util.List;
 
 public interface OrderService {
     @Transactional
-    OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes);
+    OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes, String currencyCode);
 
-    OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes);
+    OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes, String currencyCode);
 
     BigDecimal calculateShippingCost(Long addressId, BigDecimal cartTotal);
 

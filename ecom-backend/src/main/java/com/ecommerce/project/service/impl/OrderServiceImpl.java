@@ -17,6 +17,8 @@ import com.ecommerce.project.service.order.OrderPaymentHandler;
 import com.ecommerce.project.service.order.OrderStatus;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
 import com.ecommerce.project.service.order.event.OrderStatusUpdatedEvent;
+import com.ecommerce.project.service.currency.ConvertedAmount;
+import com.ecommerce.project.service.currency.CurrencyService;
 import com.ecommerce.project.service.stock.StockLedgerService;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
@@ -60,11 +62,17 @@ public class OrderServiceImpl implements OrderService {
     private final OrderDtoAssembler orderDtoAssembler;
     private final OrderPaymentHandler orderPaymentHandler;
     private final CheckoutGuards checkoutGuards;
+    private final CurrencyService currencyService;
 
+
+    /** Checkout in the store base currency (USD) — currency-agnostic callers and the guest path. */
+    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes) {
+        return placeOrder(emailId, addressId, paymentMethod, pgName, pgPaymentId, pgStatus, pgResponseMessage, couponCodes, null);
+    }
 
     @Override
     @Transactional // everything in this method successfully finishes or nothing finish
-    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes) {
+    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage, List<String> couponCodes, String currencyCode) {
 
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null) {
@@ -96,6 +104,13 @@ public class OrderServiceImpl implements OrderService {
         order.setShippingCost(pricing.shippingTotal().toBigDecimal());
         order.setTaxAmount(pricing.taxTotal().toBigDecimal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
+
+        // Freeze the presentation currency and its rate onto the order. The
+        // amounts above stay in USD — settlement is single-currency — but an
+        // invoice reprinted later can reproduce exactly what the customer saw.
+        ConvertedAmount checkoutCurrency = currencyService.convert(pricing.total(), currencyCode);
+        order.setCurrencyCode(checkoutCurrency.currency());
+        order.setExchangeRate(checkoutCurrency.rate());
 
         order.setPayment(orderPaymentHandler.record(order, paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName));
         Order savedOrder = orderRepository.save(order);
@@ -229,8 +244,13 @@ public class OrderServiceImpl implements OrderService {
                 .toBigDecimal();
     }
 
-    @Override
+    /** Preview priced in the store base currency (USD). */
     public OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes) {
+        return previewOrder(emailId, addressId, couponCodes, null);
+    }
+
+    @Override
+    public OrderSummaryDTO previewOrder(String emailId, Long addressId, List<String> couponCodes, String currencyCode) {
         Cart cart = cartRepository.findCartByEmail(emailId);
         // A cart holding nothing but saved-for-later lines has nothing to preview:
         // checkout would reject it, so preview must agree rather than quote zero.
@@ -255,7 +275,31 @@ public class OrderServiceImpl implements OrderService {
         summary.setTaxAmount(pricing.taxTotal().toBigDecimal());
         summary.setTotalAmount(pricing.total().toBigDecimal());
         summary.setAppliedCoupons(pricing.appliedCouponCodes());
+        applyPresentationCurrency(summary, pricing, currencyCode);
         return summary;
+    }
+
+    /**
+     * Fills the {@code *InCurrency} block on a preview with the customer's chosen
+     * currency. Always populated: a base-currency preview mirrors the USD figures
+     * at rate 1, so the storefront renders one block unconditionally. The rate is
+     * read once and applied to every line so they stay internally consistent
+     * (line-by-line conversion can leave subtotal - discount + ship + tax != total).
+     */
+    private void applyPresentationCurrency(OrderSummaryDTO summary, PriceBreakdown pricing, String currencyCode) {
+        String code = currencyService.requireSupported(currencyCode);
+        BigDecimal rate = currencyService.rateFor(code);
+        summary.setCurrencyCode(code);
+        summary.setExchangeRate(rate);
+        summary.setSubtotalInCurrency(inCurrency(pricing.subtotal(), code));
+        summary.setDiscountInCurrency(inCurrency(pricing.discountTotal(), code));
+        summary.setShippingInCurrency(inCurrency(pricing.shippingTotal(), code));
+        summary.setTaxInCurrency(inCurrency(pricing.taxTotal(), code));
+        summary.setTotalInCurrency(inCurrency(pricing.total(), code));
+    }
+
+    private BigDecimal inCurrency(Money amount, String currencyCode) {
+        return currencyService.convert(amount, currencyCode).amount();
     }
 
     @Override
@@ -317,6 +361,10 @@ public class OrderServiceImpl implements OrderService {
         order.setShippingCost(pricing.shippingTotal().toBigDecimal());
         order.setTaxAmount(pricing.taxTotal().toBigDecimal());
         order.setAppliedCoupons(String.join(",", pricing.appliedCouponCodes()));
+
+        ConvertedAmount guestCurrency = currencyService.convert(pricing.total(), request.getCurrencyCode());
+        order.setCurrencyCode(guestCurrency.currency());
+        order.setExchangeRate(guestCurrency.rate());
 
         order.setPayment(orderPaymentHandler.record(order, request.getPaymentMethod(),
                 request.getPgPaymentId(), request.getPgStatus(), request.getPgResponseMessage(), request.getPgName()));

@@ -20,4 +20,15 @@ public class OrderSummaryDTO {
     private List<String> appliedCoupons = new ArrayList<>();
     private String email;
     private Long addressId;
+
+    // The same figures in the currency the customer chose. Always populated: for
+    // a base-currency (USD) checkout these mirror the USD amounts, rate 1, so the
+    // storefront can render one block unconditionally.
+    private String currencyCode = "USD";
+    private BigDecimal exchangeRate = BigDecimal.ONE;
+    private BigDecimal subtotalInCurrency;
+    private BigDecimal discountInCurrency;
+    private BigDecimal shippingInCurrency;
+    private BigDecimal taxInCurrency;
+    private BigDecimal totalInCurrency;
 }

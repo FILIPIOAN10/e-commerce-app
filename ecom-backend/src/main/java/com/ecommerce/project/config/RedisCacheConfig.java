@@ -43,7 +43,12 @@ public class RedisCacheConfig {
                 "productSearch",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
                 "product",defaultConfiguration.entryTtl(Duration.ofMinutes(30)),
                 "adminProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
-                "sellerProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5))
+                "sellerProducts",defaultConfiguration.entryTtl(Duration.ofMinutes(5)),
+                // Exchange rates drift slowly; an hour stale is fine and keeps the
+                // provider (or its network call) off the hot path. The list of
+                // supported currencies changes only when an admin edits it.
+                "exchangeRates",defaultConfiguration.entryTtl(Duration.ofHours(1)),
+                "supportedCurrencies",defaultConfiguration.entryTtl(Duration.ofHours(1))
         );
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfiguration)
