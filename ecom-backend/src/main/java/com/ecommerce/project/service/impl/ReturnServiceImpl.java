@@ -71,7 +71,7 @@ public class ReturnServiceImpl implements ReturnService {
         returnRequest.setReason(reason);
         returnRequest.setStatus(STATUS_REQUESTED);
         returnRequest.setRequestedAt(LocalDateTime.now());
-        returnRequest.setRefundAmount(asLegacyDouble(order.getTotalAmount()));
+        returnRequest.setRefundAmount(order.getTotalAmount());
 
         returnRequest = returnRequestRepository.save(returnRequest);
 
@@ -104,15 +104,13 @@ public class ReturnServiceImpl implements ReturnService {
                 .filter(java.util.Objects::nonNull)
                 .distinct()
                 .toList();
-        Map<Long, Double> totals = new HashMap<>();
+        Map<Long, BigDecimal> totals = new HashMap<>();
         if (!orderIds.isEmpty()) {
             for (Object[] row : orderRepository.findTotalsByIds(orderIds)) {
-                // SUM/selection over a NUMERIC column comes back as BigDecimal;
-                // the return request still speaks Double.
-                totals.put((Long) row[0], ((Number) row[1]).doubleValue());
+                totals.put((Long) row[0], (BigDecimal) row[1]);
             }
         }
-        return requests.map(r -> toDTO(r, totals.getOrDefault(r.getOrderId(), 0.0)));
+        return requests.map(r -> toDTO(r, totals.getOrDefault(r.getOrderId(), BigDecimal.ZERO)));
     }
 
     @Override
@@ -255,27 +253,17 @@ public class ReturnServiceImpl implements ReturnService {
         notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), notificationMessage);
     }
 
-    private Double getOrderTotal(Long orderId) {
+    private BigDecimal getOrderTotal(Long orderId) {
         return orderRepository.findById(orderId)
                 .map(Order::getTotalAmount)
-                .map(BigDecimal::doubleValue)
-                .orElse(0.0);
-    }
-
-    /**
-     * {@code ReturnRequest} still stores its refund as a {@code Double}; the order
-     * it is copied from no longer does. The last slice of the money migration
-     * closes this seam.
-     */
-    private static Double asLegacyDouble(BigDecimal amount) {
-        return amount == null ? null : amount.doubleValue();
+                .orElse(BigDecimal.ZERO);
     }
 
     private ReturnRequestDTO toDTO(ReturnRequest r) {
         return toDTO(r, getOrderTotal(r.getOrderId()));
     }
 
-    private ReturnRequestDTO toDTO(ReturnRequest r, Double orderTotal) {
+    private ReturnRequestDTO toDTO(ReturnRequest r, BigDecimal orderTotal) {
         ReturnRequestDTO dto = new ReturnRequestDTO();
         dto.setId(r.getId());
         dto.setOrderId(r.getOrderId());

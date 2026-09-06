@@ -54,8 +54,16 @@ public final class Money implements Comparable<Money> {
 
     /** {@code percent} percent of this amount, e.g. {@code percentage(10)} is a tenth. */
     public Money percentage(double percent) {
-        BigDecimal fraction = BigDecimal.valueOf(percent)
-                .divide(BigDecimal.valueOf(100), SCALE + 6, ROUNDING);
+        return percentage(BigDecimal.valueOf(percent));
+    }
+
+    /**
+     * {@code percent} percent of this amount, from an exact-decimal rate — the
+     * form the entities now hold their discount percentages in, so the rate no
+     * longer round-trips through {@code double} on its way into the arithmetic.
+     */
+    public Money percentage(BigDecimal percent) {
+        BigDecimal fraction = percent.divide(BigDecimal.valueOf(100), SCALE + 6, ROUNDING);
         return new Money(amount.multiply(fraction));
     }
 

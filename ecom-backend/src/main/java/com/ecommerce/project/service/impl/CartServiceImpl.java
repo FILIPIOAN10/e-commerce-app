@@ -360,8 +360,8 @@ public class CartServiceImpl implements CartService {
             throw new APIException("Bundle has no products");
         }
 
-        double bundleDiscountPercent =
-                bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0;
+        BigDecimal bundleDiscountPercent =
+                bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : BigDecimal.ZERO;
 
         for (Product product : bundle.getProducts()) {
             if (product.getQuantity() == null || product.getQuantity() <= 0) {
@@ -437,15 +437,15 @@ public class CartServiceImpl implements CartService {
      * the complement as a percentage keeps it exact: 90% of 84.99 is 76.49, where
      * {@code 84.99 * (1 - 0.10)} in double arithmetic is 76.491.
      */
-    private static BigDecimal bundlePrice(Product product, double bundlePercent) {
+    private static BigDecimal bundlePrice(Product product, BigDecimal bundlePercent) {
         return Money.of(product.getSpecialPrice())
-                .percentage(100.0 - bundlePercent)
+                .percentage(BigDecimal.valueOf(100).subtract(bundlePercent))
                 .toBigDecimal();
     }
 
     /** The two percentages a bundled item carries, added. */
-    private static BigDecimal bundleDiscount(Product product, double bundlePercent) {
-        return product.getDiscount().add(BigDecimal.valueOf(bundlePercent));
+    private static BigDecimal bundleDiscount(Product product, BigDecimal bundlePercent) {
+        return product.getDiscount().add(bundlePercent);
     }
 
     private CartDTO mapToCartDTO(Cart cart){

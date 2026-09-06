@@ -149,16 +149,16 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
                 .findByActiveTrueAndAppliedFalseAndStartTimeBeforeAndEndTimeAfter(now, now);
 
         for (PromoCampaign campaign : due) {
-            double percent = campaign.getDiscountPercent() == null ? 0.0 : campaign.getDiscountPercent();
+            BigDecimal percent = campaign.getDiscountPercent() == null ? BigDecimal.ZERO : campaign.getDiscountPercent();
             for (PromoCampaignProduct link : promoCampaignProductRepository
                     .findByCampaignIdWithProduct(campaign.getId())) {
                 Product product = link.getProduct();
                 link.setOriginalDiscount(product.getDiscount() == null
                         ? BigDecimal.ZERO
                         : product.getDiscount());
-                product.setDiscount(BigDecimal.valueOf(percent));
+                product.setDiscount(percent);
                 product.setSpecialPrice(Money.of(product.getPrice())
-                        .percentage(100.0 - percent)
+                        .percentage(BigDecimal.valueOf(100).subtract(percent))
                         .toBigDecimal());
             }
             campaign.setApplied(true);
@@ -191,7 +191,7 @@ public class PromoCampaignServiceImpl implements PromoCampaignService {
                     : link.getOriginalDiscount();
             product.setDiscount(original);
             product.setSpecialPrice(Money.of(product.getPrice())
-                    .percentage(100.0 - original.doubleValue())
+                    .percentage(BigDecimal.valueOf(100).subtract(original))
                     .toBigDecimal());
             link.setOriginalDiscount(null);
         }

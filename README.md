@@ -180,6 +180,27 @@ amount would need the rule to grow a second mode; and the rate table is a flat
 country map with no notion of reduced rates per product category, which this
 catalogue does not need yet.
 
+**The last four `Double`s are gone, and the migration is closed.** After the
+order, product and cart slices, four columns still stood on `DOUBLE PRECISION`: a
+bundle's and a promo campaign's percentage off, a subscription plan's price, and
+a return's refund amount. Two are amounts and two are percentages, but V25 had
+already settled that both kinds travel as `NUMERIC(12,2)` here — it converted
+`products.discount`, a percentage, on the same reasoning that a percentage
+multiplied into a price must not reintroduce the float error the price just shed,
+and that `12.50%` has to be storable as `12.50`. So V30 converts all four the
+same way, `ROUND(...)` in every `USING` clause as a no-op for real data and a net
+for legacy float noise. The conversion let two seams close: `ReturnServiceImpl`
+had an `asLegacyDouble(BigDecimal)` bridge and a `getOrderTotal` that narrowed
+the order's total back to `double` purely to feed the refund field — both now
+deleted, because the refund is copied straight across as the `BigDecimal` it
+always was — and `SubscriptionServiceImpl` sent Stripe `(long)(amount * 100)`,
+the exact float-cents bug `Money.toCents()` exists to prevent, now
+`Money.of(amount).toCents()`. `Money` grew a `percentage(BigDecimal)` overload so
+the discount rate no longer round-trips through `double` on its way into the
+arithmetic. *Trade-off:* none of consequence — this slice is a type change with
+no behaviour change, which is why it was kept for last, after every slice that
+could actually move a number had landed and been checked.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -331,15 +352,12 @@ without a token, signout passes with one and is refused without.
 
 ### In flight this iteration
 
-Slices 1–3 of the money migration are merged (`Money` value object, then
-`BigDecimal` on `Order` / `OrderItem`, then `Product` / `Cart` and the pricing
-pipeline end to end). Slice 4 — the VAT rule above — is on `feat/vat-tax`.
-
-What is left of the migration: slice 5, the last entities still holding a
-`Double` for money (`Bundle.discountPercentage`, `ReturnRequest.refundAmount`,
-`SubscriptionPlan.amount`, `PromoCampaign.discountPercent`). That one is a
-mechanical conversion — column to `NUMERIC(12,2)`, field to `BigDecimal` — with
-no behaviour change, and it closes the migration out.
+The money migration is complete. Slices 1–4 are merged (`Money` value object;
+`BigDecimal` on `Order` / `OrderItem`; `Product` / `Cart` and the pricing
+pipeline; then VAT). Slice 5 — `Bundle`, `ReturnRequest`, `SubscriptionPlan` and
+`PromoCampaign` off `Double`, `V30` — is on `refactor/entity-cleanup`. Once it
+merges, no column or field in the codebase holds money as a binary float, and
+the last explicit `toDouble()` / `asLegacyDouble` boundaries are gone.
 
 ## Getting Started
  

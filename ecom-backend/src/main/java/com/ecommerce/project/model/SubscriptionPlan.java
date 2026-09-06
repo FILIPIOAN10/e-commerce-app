@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,8 +44,11 @@ public class SubscriptionPlan {
     @NotBlank
     private String interval;
 
+    // The recurring price. NUMERIC(12,2), and the cents figure sent to Stripe is
+    // taken with Money.toCents() rather than (long)(amount * 100). See V30.
     @Positive
-    private Double amount;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal amount;
 
     private String currency = "USD";
 

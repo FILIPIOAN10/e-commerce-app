@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,8 +35,12 @@ public class Bundle {
 
     private String description;
 
+    // A percentage, not an amount — but NUMERIC(12,2) like the money, the way
+    // V25 settled it for products.discount: a percentage multiplied into a price
+    // must not reintroduce the float error the prices just shed. See V30.
     @PositiveOrZero
-    private Double discountPercentage = 0.0;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal discountPercentage = BigDecimal.ZERO;
 
     private Boolean active = true;
 
