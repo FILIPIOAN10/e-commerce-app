@@ -12,6 +12,7 @@ import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.SubscriptionPlanRepository;
 import com.ecommerce.project.repository.UserSubscriptionRepository;
 import com.ecommerce.project.service.SubscriptionService;
+import com.ecommerce.project.service.pricing.Money;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -89,7 +91,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
             PriceCreateParams priceParams = PriceCreateParams.builder()
                     .setProduct(stripeProduct.getId())
-                    .setUnitAmount((long) (planDTO.getAmount() * 100))
+                    .setUnitAmount(Money.of(planDTO.getAmount()).toCents())
                     .setCurrency(planDTO.getCurrency().toLowerCase())
                     .setRecurring(PriceCreateParams.Recurring.builder().setInterval(interval).build())
                     .build();
@@ -129,7 +131,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         plan.setActive(planDTO.getActive());
 
         if (!plan.getInterval().equalsIgnoreCase(planDTO.getInterval()) ||
-                !plan.getAmount().equals(planDTO.getAmount()) ||
+                plan.getAmount().compareTo(planDTO.getAmount()) != 0 ||
                 !plan.getCurrency().equalsIgnoreCase(planDTO.getCurrency())) {
             try {
                 PriceCreateParams.Recurring.Interval interval =
@@ -139,7 +141,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
                 PriceCreateParams priceParams = PriceCreateParams.builder()
                         .setProduct(plan.getStripeProductId())
-                        .setUnitAmount((long) (planDTO.getAmount() * 100))
+                        .setUnitAmount(Money.of(planDTO.getAmount()).toCents())
                         .setCurrency(planDTO.getCurrency().toLowerCase())
                         .setRecurring(PriceCreateParams.Recurring.builder().setInterval(interval).build())
                         .build();

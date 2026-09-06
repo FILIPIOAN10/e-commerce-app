@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +32,7 @@ public class SubscriptionPlanDTO {
 
     @NotNull
     @Positive(message = "Amount must be positive")
-    private Double amount;
+    private BigDecimal amount;
 
     private String currency = "USD";
 

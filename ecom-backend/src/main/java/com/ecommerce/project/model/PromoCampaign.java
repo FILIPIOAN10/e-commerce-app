@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,8 +33,10 @@ public class PromoCampaign {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private Double discountPercent;
+    // A percentage, carried as NUMERIC(12,2) like products.discount (V25) so it
+    // multiplies into a price without float error. See V30.
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountPercent;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;

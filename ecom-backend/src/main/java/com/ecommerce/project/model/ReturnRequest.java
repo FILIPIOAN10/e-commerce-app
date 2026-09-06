@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -54,5 +55,8 @@ public class ReturnRequest {
 
     private LocalDateTime lastTrackedAt;
 
-    private Double refundAmount;
+    // The refund owed for this return — copied from the order's total, which is
+    // NUMERIC(12,2), so this is too rather than a Double that widens it. See V30.
+    @Column(precision = 12, scale = 2)
+    private BigDecimal refundAmount;
 }

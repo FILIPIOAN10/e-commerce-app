@@ -91,7 +91,7 @@ class ReturnServiceTest {
         assertEquals(1L, result.getOrderId());
         assertEquals("user@test.com", result.getUserEmail());
         assertEquals("REQUESTED", result.getStatus());
-        assertEquals(150.0, result.getRefundAmount());
+        assertEquals(new BigDecimal("150.00"), result.getRefundAmount());
         assertEquals("Return Requested", order.getOrderStatus());
         verify(returnRequestRepository).save(any(ReturnRequest.class));
         verify(orderRepository).save(order);

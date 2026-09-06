@@ -140,9 +140,9 @@ public class BundleServiceImpl implements BundleService {
         Money bundlePrice = bundle.getProducts().stream()
                 .map(product -> Money.of(product.getSpecialPrice()))
                 .reduce(Money.ZERO, Money::add);
-        double discountPercent =
-                bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : 0.0;
-        Money discountedPrice = bundlePrice.percentage(100.0 - discountPercent);
+        BigDecimal discountPercent =
+                bundle.getDiscountPercentage() != null ? bundle.getDiscountPercentage() : BigDecimal.ZERO;
+        Money discountedPrice = bundlePrice.percentage(BigDecimal.valueOf(100).subtract(discountPercent));
         Money savings = bundlePrice.subtract(discountedPrice);
 
         dto.setBundlePrice(bundlePrice.toBigDecimal());

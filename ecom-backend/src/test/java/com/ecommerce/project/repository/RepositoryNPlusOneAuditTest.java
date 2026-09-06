@@ -203,7 +203,7 @@ class RepositoryNPlusOneAuditTest {
             Bundle bundle = new Bundle();
             bundle.setName("np-audit-bundle-" + b);
             bundle.setActive(true);
-            bundle.setDiscountPercentage(10.0);
+            bundle.setDiscountPercentage(new BigDecimal("10.00"));
             bundle.setProducts(products.subList(0, 3 + b));
             em.persist(bundle);
         }

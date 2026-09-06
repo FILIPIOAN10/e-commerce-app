@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -23,5 +24,5 @@ public class ReturnRequestDTO {
     private String carrierName;
     private String trackingStatus;
     private LocalDateTime lastTrackedAt;
-    private Double refundAmount;
+    private BigDecimal refundAmount;
 }

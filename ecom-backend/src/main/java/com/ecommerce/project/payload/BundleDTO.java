@@ -23,7 +23,7 @@ public class BundleDTO {
     private String description;
 
     @PositiveOrZero(message = "Bundle discount cannot be negative")
-    private Double discountPercentage = 0.0;
+    private BigDecimal discountPercentage = BigDecimal.ZERO;
 
     private Boolean active = true;
 

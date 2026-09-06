@@ -159,7 +159,7 @@ public final class GdprExportData {
             String status,
             LocalDateTime requestedAt,
             LocalDateTime processedAt,
-            Double refundAmount) {
+            BigDecimal refundAmount) {
     }
 
     /** A short note shipped alongside the data so the archive explains itself. */

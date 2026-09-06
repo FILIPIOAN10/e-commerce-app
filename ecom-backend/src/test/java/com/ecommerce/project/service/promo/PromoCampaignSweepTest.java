@@ -82,7 +82,7 @@ class PromoCampaignSweepTest {
     @Test
     @DisplayName("applying a campaign discounts its products and records what it replaced")
     void applyPushesDiscountAndRemembersTheOriginal() {
-        Long campaignId = persistCampaign(30.0, minutesFromNow(-5), minutesFromNow(60), true);
+        Long campaignId = persistCampaign(new BigDecimal("30.0"), minutesFromNow(-5), minutesFromNow(60), true);
 
         promoCampaignService.applyActiveCampaigns();
 
@@ -98,7 +98,7 @@ class PromoCampaignSweepTest {
     @Test
     @DisplayName("a campaign that has ended puts every price back where it found it")
     void revertRestoresTheOriginalDiscountWhenTheCampaignEnds() {
-        Long campaignId = persistCampaign(30.0, minutesFromNow(-5), minutesFromNow(60), true);
+        Long campaignId = persistCampaign(new BigDecimal("30.0"), minutesFromNow(-5), minutesFromNow(60), true);
         promoCampaignService.applyActiveCampaigns();
         assertThat(appliedFlag(campaignId)).isTrue();
 
@@ -115,7 +115,7 @@ class PromoCampaignSweepTest {
     @Test
     @DisplayName("switching a campaign off reverts it just like expiry does")
     void revertRestoresWhenTheCampaignIsDeactivated() {
-        Long campaignId = persistCampaign(30.0, minutesFromNow(-5), minutesFromNow(60), true);
+        Long campaignId = persistCampaign(new BigDecimal("30.0"), minutesFromNow(-5), minutesFromNow(60), true);
         promoCampaignService.applyActiveCampaigns();
 
         tx().executeWithoutResult(status -> entityManager
@@ -130,7 +130,7 @@ class PromoCampaignSweepTest {
     @Test
     @DisplayName("a sweep with nothing to do writes nothing")
     void anIdleSweepDoesNotTouchProducts() {
-        persistCampaign(30.0, minutesFromNow(-5), minutesFromNow(60), true);
+        persistCampaign(new BigDecimal("30.0"), minutesFromNow(-5), minutesFromNow(60), true);
         promoCampaignService.applyActiveCampaigns();
 
         long plainVersion = version(plainProductId);
@@ -148,7 +148,7 @@ class PromoCampaignSweepTest {
     @Test
     @DisplayName("deleting a live campaign releases its products before the links go")
     void deletingALiveCampaignRestoresPrices() {
-        Long campaignId = persistCampaign(30.0, minutesFromNow(-5), minutesFromNow(60), true);
+        Long campaignId = persistCampaign(new BigDecimal("30.0"), minutesFromNow(-5), minutesFromNow(60), true);
         promoCampaignService.applyActiveCampaigns();
         assertDiscount(discountedProductId, "30.00", "62.99");
 
@@ -163,13 +163,13 @@ class PromoCampaignSweepTest {
     @Test
     @DisplayName("re-scoping a live campaign releases its products before replacing the links")
     void updatingALiveCampaignRestoresPricesFirst() {
-        Long campaignId = persistCampaign(30.0, minutesFromNow(-5), minutesFromNow(60), true);
+        Long campaignId = persistCampaign(new BigDecimal("30.0"), minutesFromNow(-5), minutesFromNow(60), true);
         promoCampaignService.applyActiveCampaigns();
 
         // Same campaign, now only covering the plain product, at 50%.
         PromoCampaignDTO dto = new PromoCampaignDTO();
         dto.setName(tag + "-campaign");
-        dto.setDiscountPercent(50.0);
+        dto.setDiscountPercent(new BigDecimal("50.0"));
         dto.setStartTime(minutesFromNow(-5).format(DTO_FORMAT));
         dto.setEndTime(minutesFromNow(60).format(DTO_FORMAT));
         dto.setActive(true);
@@ -211,7 +211,7 @@ class PromoCampaignSweepTest {
         return product.getProductId();
     }
 
-    private Long persistCampaign(double percent, LocalDateTime start, LocalDateTime end, boolean active) {
+    private Long persistCampaign(BigDecimal percent, LocalDateTime start, LocalDateTime end, boolean active) {
         return tx().execute(status -> {
             PromoCampaign campaign = new PromoCampaign();
             campaign.setName(tag + "-campaign");
