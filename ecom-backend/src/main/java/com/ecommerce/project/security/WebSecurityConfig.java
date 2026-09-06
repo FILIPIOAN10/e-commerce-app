@@ -174,13 +174,13 @@ public class WebSecurityConfig {
                                 "/api/auth/verify-email",
                                 "/api/auth/resend-verification",
                                 "/api/auth/unlock-request",
-                                "/oauth2/**", "/login/oauth2/**", "/ws-notifications/**"))
+                                "/oauth2/**", "/login/oauth2/**", "/api/ws-notifications/**"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/auth/**","/error").permitAll()
-                        .requestMatchers("/ws-notifications/**").permitAll()
+                        .requestMatchers("/api/ws-notifications/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")

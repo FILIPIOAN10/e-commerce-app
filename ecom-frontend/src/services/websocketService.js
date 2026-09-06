@@ -16,7 +16,7 @@ export const connectWebSocket = (onNotification) => {
     }
 
     const client = new Client({
-        webSocketFactory: () => new SockJS(`${BACKEND_URL}/ws-notifications`),
+        webSocketFactory: () => new SockJS(`${BACKEND_URL}/api/ws-notifications`),
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
