@@ -11,6 +11,7 @@ import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.InventoryReservationService;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.order.CheckoutGuards;
 import com.ecommerce.project.service.order.OrderDtoAssembler;
 import com.ecommerce.project.service.order.OrderPaymentHandler;
 import com.ecommerce.project.service.order.OrderStatus;
@@ -58,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final OrderDtoAssembler orderDtoAssembler;
     private final OrderPaymentHandler orderPaymentHandler;
+    private final CheckoutGuards checkoutGuards;
 
 
     @Override
@@ -72,15 +74,8 @@ public class OrderServiceImpl implements OrderService {
         // Saved-for-later items are excluded from cart.totalPrice, so they must be
         // excluded from order creation to prevent shipping uncharged items.
         List<CartItem> cartItems = getActiveCartItems(cart);
-        if (cartItems.isEmpty()) {
-            throw new APIException("Cart has no active items to purchase");
-        }
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-
-        if (address.getUser() == null || !emailId.equalsIgnoreCase(address.getUser().getEmail())) {
-            throw new APIException("Address does not belong to the current user");
-        }
+        checkoutGuards.requireActiveItems(cartItems);
+        Address address = checkoutGuards.resolveOwnedAddress(emailId, addressId);
 
         Order order = new Order();
         order.setEmail(emailId);
@@ -227,16 +222,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public BigDecimal calculateShippingCost(Long addressId, BigDecimal cartTotal) {
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-
-        // placeOrder and previewOrder both check this; the shipping quote did
-        // not, so any signed-in user could probe another account's address ids
-        // and learn which exist and roughly where they are, from the rate.
-        String emailId = authUtil.loggedInEmail();
-        if (address.getUser() == null || !emailId.equalsIgnoreCase(address.getUser().getEmail())) {
-            throw new APIException("Address does not belong to the current user");
-        }
+        Address address = checkoutGuards.resolveOwnedAddress(authUtil.loggedInEmail(), addressId);
 
         return pricingPipeline.price(PricingContext.of(cartTotal, address, List.of()))
                 .shippingTotal()
@@ -248,18 +234,13 @@ public class OrderServiceImpl implements OrderService {
         Cart cart = cartRepository.findCartByEmail(emailId);
         // A cart holding nothing but saved-for-later lines has nothing to preview:
         // checkout would reject it, so preview must agree rather than quote zero.
-        if (cart == null || getActiveCartItems(cart).isEmpty()) {
-            throw new APIException("Cart has no active items to purchase");
-        }
+        List<CartItem> activeCartItems = cart == null ? null : getActiveCartItems(cart);
+        checkoutGuards.requireActiveItems(activeCartItems);
 
-        Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
-        if (address.getUser() == null || !emailId.equalsIgnoreCase(address.getUser().getEmail())) {
-            throw new APIException("Address does not belong to the current user");
-        }
+        Address address = checkoutGuards.resolveOwnedAddress(emailId, addressId);
 
         // Reserve stock for 10 minutes (TTL) to prevent race conditions at checkout
-        inventoryReservationService.reserveCartItems(cart.getCartId(), getActiveCartItems(cart));
+        inventoryReservationService.reserveCartItems(cart.getCartId(), activeCartItems);
 
         // The pipeline is pure, so preview does not touch coupon usage counters.
         PriceBreakdown pricing = pricingPipeline.price(

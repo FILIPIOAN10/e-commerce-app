@@ -250,12 +250,55 @@ five classes that each do one `if null return` and one delegate call — but tha
 is the price of the id/period-extraction quirks living in exactly one place
 instead of smeared across the switch.
 
+**One skeleton builds and sends every email.** *Problem:* `EmailService` had
+eleven `send*Email` methods, each repeating the same fifteen lines —
+`createMimeMessage` → `new MimeMessageHelper(msg, true, "UTF-8")` →
+`setFrom`/`setTo`/`setSubject` → render body → `setText(html, true)` → `send` →
+`catch` → `EmailDeliveryException`. The bodies had already drifted: one caught
+`MessagingException` where the rest caught `Exception`, and two stale comments
+claimed to swallow failures that they actually rethrew. *Approach:* a **Template
+Method** — one `private void send(EmailMessage)` owns the envelope, the content
+type, the attachment loop and the single `catch` that names the recipient; each
+public method now renders a subject and body and builds an `EmailMessage`. That
+value object is assembled through a hand-written **Builder** (`EmailMessage.to(to,
+subject).html(body).attach(name, bytes).replyTo(addr).build()`) — required fields
+are arguments to the entry point, optional ones are fluent with defaults,
+validation runs once in `build()`. *Trade-off:* a builder for a six-field record
+is more ceremony than a plain constructor, but the alternative — a `send`
+overload per shape (plain vs html, with vs without attachment, with vs without
+reply-to) — is the combinatorial mess the builder exists to avoid, and the
+contact form finally sets `Reply-To` to the sender because adding it was one
+call rather than a new overload.
+
+**Checkout preconditions live in one place.** `placeOrder`, `previewOrder` and
+`calculateShippingCost` each re-derived "this address belongs to the caller" and
+"the cart has something billable in it". They had drifted: the shipping quote
+skipped the ownership check for a while, so a signed-in user could probe other
+accounts' address ids and read their rough location off the returned rate. A
+`CheckoutGuards` component now holds both — `resolveOwnedAddress` returns the
+address it just authorised, `requireActiveItems` rejects a cart that is empty
+once saved-for-later lines are excluded. *Trade-off:* kept as two named methods
+rather than an ordered `List<CheckoutPrecondition>` chain like the pricing
+pipeline — there are two guards, one of them has to hand back the address the
+caller then uses, and a throw-only chain would leave that lookup duplicated
+anyway. The `List` shape earns its keep at three or four independent checks, not
+two.
+
+**Image type validation is a lookup, not two parallel ladders.** Avatar upload
+checked the magic bytes with an if-else chain and *then* re-checked the declared
+extension against the same signatures in a `switch` — two lists to keep in sync.
+`ImageSignature` is an enum pairing each format's extensions with its magic
+bytes (WEBP overrides `matches` for the `WEBP` marker at offset 8); one
+`contentMatchesExtension(bytes, ext)` call replaces both ladders and a new
+format is one constant.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
 `OrderStatus` is an explicit **state machine** (each status declares its
 successors); the order-lifecycle listeners are **Observers** on
-`@TransactionalEventListener`.
+`@TransactionalEventListener`; `EmailService` is a **Template Method** over an
+`EmailMessage` **Builder**.
 
 **The database owns the invariants the entity mapping only claims.** A code
 health audit turned up three defects that shared a shape: something the model
@@ -404,15 +447,13 @@ without a token, signout passes with one and is refused without.
 The money migration is complete — all five slices are on `main`, and no column or
 field in the codebase holds money as a binary float.
 
-Current work: **subscription lifecycle webhooks** (`feat/subscription-webhooks`,
-stacked on `feat/automated-refunds`). Stripe subscription events now enter
-through the same deduped webhook endpoint as order payments and route through a
-`SubscriptionEventDispatcher` Strategy registry; the second, unprotected
-`/api/public/subscriptions/webhook` endpoint is removed. Renewal-failed and
-subscription-ended notices go out through the outbox, and a sweep job reconciles
-stale subscriptions against Stripe for any delivery that was missed — see the
-Engineering-decisions entry above. Precedes it: **automated refunds**
-(`feat/automated-refunds`, `V31`).
+Current work: **design-pattern cleanup** (`refactor/pattern-cleanup`). No
+behaviour change — `EmailService` becomes a Template Method over an
+`EmailMessage` builder (eleven copies of the MIME envelope collapse to one),
+the repeated checkout preconditions move into a `CheckoutGuards` component, and
+avatar image-type validation becomes an `ImageSignature` enum lookup. See the
+Engineering-decisions entries above. Merged just before it: **automated refunds**
+(`V31`) and **subscription lifecycle webhooks**.
 
 ## Getting Started
  
