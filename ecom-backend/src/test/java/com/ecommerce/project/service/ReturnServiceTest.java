@@ -49,6 +49,9 @@ class ReturnServiceTest {
     @Mock
     private CourierTrackingService courierTrackingService;
 
+    @Mock
+    private RefundService refundService;
+
     @InjectMocks
     private ReturnServiceImpl returnService;
 

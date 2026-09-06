@@ -45,6 +45,18 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void notifyAdminRefundFailed(Long orderId, BigDecimal amount, String reason) {
+        String title = "Refund needs attention";
+        String message = String.format("Automated refund of $%.2f for order #%d failed: %s", amount, orderId, reason);
+
+        List<User> admins = userRepository.findAllByRoleName(AppRole.ROLE_ADMIN);
+        for (User admin : admins) {
+            AppNotification notification = saveNotification(admin.getEmail(), title, message, "REFUND_FAILED", orderId);
+            sendToUser(admin.getEmail(), notification);
+        }
+    }
+
+    @Override
     public void notifyUserOrderStatusChanged(Long orderId, String email, String newStatus) {
         String title = "Order Status Updated";
         String message = String.format("Your order #%d is now: %s", orderId, newStatus);

@@ -7,6 +7,7 @@ import com.ecommerce.project.model.ProcessedWebhookEvent;
 import com.ecommerce.project.repository.PaymentRepository;
 import com.ecommerce.project.repository.ProcessedWebhookEventRepository;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.RefundService;
 import com.ecommerce.project.service.StripeWebhookService;
 import com.ecommerce.project.service.payment.PaymentStatus;
 import com.stripe.exception.SignatureVerificationException;
@@ -35,6 +36,7 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
     private final ProcessedWebhookEventRepository processedWebhookEventRepository;
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
+    private final RefundService refundService;
 
     @Override
     @Transactional
@@ -92,12 +94,14 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
             });
 
             // A refund can be partial or full. In both cases we move the order to
-            // Refunded so the inventory and financial state stay consistent with Stripe.
-            case "charge.refunded" -> event.getDataObjectDeserializer().getObject()
-                    .filter(Charge.class::isInstance)
-                    .map(Charge.class::cast)
-                    .ifPresent(charge -> applyPaymentStatus(
-                            charge.getPaymentIntent(), PaymentStatus.REFUNDED, "Payment refunded", eventType));
+            // Refunded so the inventory and financial state stay consistent with
+            // Stripe, and reconcile the local refunds record — whether we issued
+            // the refund ourselves (the outbox path) or it was done in the Stripe
+            // dashboard, the two converge on one row.
+            case "charge.refunded" -> onCharge(event, charge -> {
+                applyPaymentStatus(charge.getPaymentIntent(), PaymentStatus.REFUNDED, "Payment refunded", eventType);
+                refundService.reconcileFromCharge(charge);
+            });
 
             default -> log.debug("Ignoring unhandled Stripe event type {}", eventType);
         }
@@ -107,6 +111,13 @@ public class StripeWebhookServiceImpl implements StripeWebhookService {
         event.getDataObjectDeserializer().getObject()
                 .filter(PaymentIntent.class::isInstance)
                 .map(PaymentIntent.class::cast)
+                .ifPresent(handler);
+    }
+
+    private void onCharge(Event event, Consumer<Charge> handler) {
+        event.getDataObjectDeserializer().getObject()
+                .filter(Charge.class::isInstance)
+                .map(Charge.class::cast)
                 .ifPresent(handler);
     }
 

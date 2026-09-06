@@ -7,6 +7,7 @@ import com.ecommerce.project.payload.StripePaymentDto;
 import com.ecommerce.project.repository.AddressRepository;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.service.StripeService;
+import com.ecommerce.project.service.payment.RefundResult;
 import com.ecommerce.project.service.pricing.Money;
 import com.ecommerce.project.service.pricing.PriceBreakdown;
 import com.ecommerce.project.service.pricing.PricingContext;
@@ -17,9 +18,12 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.CustomerSearchResult;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
+import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerSearchParams;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.RefundCreateParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -118,6 +122,21 @@ public class StripeServiceImpl implements StripeService {
         } catch (StripeException e) {
             throw new APIException("Failed to retrieve payment: " + e.getMessage());
         }
+    }
+
+    @Override
+    public RefundResult issueRefund(String paymentIntentId, long amountMinorUnits, String idempotencyKey)
+            throws StripeException {
+        RefundCreateParams params = RefundCreateParams.builder()
+                .setPaymentIntent(paymentIntentId)
+                .setAmount(amountMinorUnits)
+                .setReason(RefundCreateParams.Reason.REQUESTED_BY_CUSTOMER)
+                .build();
+        RequestOptions options = RequestOptions.builder()
+                .setIdempotencyKey(idempotencyKey)
+                .build();
+        Refund refund = Refund.create(params, options);
+        return new RefundResult(refund.getId(), refund.getStatus());
     }
 
 }

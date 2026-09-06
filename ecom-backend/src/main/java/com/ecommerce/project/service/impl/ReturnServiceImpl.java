@@ -10,6 +10,7 @@ import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.ReturnRequestRepository;
 import com.ecommerce.project.service.CourierTrackingService;
 import com.ecommerce.project.service.NotificationService;
+import com.ecommerce.project.service.RefundService;
 import com.ecommerce.project.service.ReturnService;
 import com.ecommerce.project.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class ReturnServiceImpl implements ReturnService {
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
     private final CourierTrackingService courierTrackingService;
+    private final RefundService refundService;
 
     private static final String STATUS_REQUESTED = "REQUESTED";
     private static final String STATUS_APPROVED = "APPROVED";
@@ -163,13 +165,23 @@ public class ReturnServiceImpl implements ReturnService {
             throw new APIException("Only approved or shipped-back returns can be marked as refunded");
         }
 
+        Order order = orderRepository.findById(returnRequest.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", returnRequest.getOrderId()));
+
+        // Records a PENDING refund and enqueues the Stripe call on the outbox, or
+        // does nothing for a cash-on-delivery order. Runs inside this transaction
+        // so the refund row and the status changes commit as one unit.
+        refundService.requestRefundForReturn(returnRequest, order);
+
         returnRequest.setStatus(STATUS_REFUNDED);
         if (returnRequest.getProcessedAt() == null) {
             returnRequest.setProcessedAt(LocalDateTime.now());
         }
         ReturnRequest saved = returnRequestRepository.save(returnRequest);
 
-        updateOrderStatusAndNotify(saved.getOrderId(), "Refunded", "Refunded");
+        order.setOrderStatus("Refunded");
+        orderRepository.save(order);
+        notificationService.notifyUserOrderStatusChanged(order.getId(), order.getEmail(), "Refunded");
 
         return toDTO(saved);
     }

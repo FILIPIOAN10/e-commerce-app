@@ -201,6 +201,28 @@ arithmetic. *Trade-off:* none of consequence — this slice is a type change wit
 no behaviour change, which is why it was kept for last, after every slice that
 could actually move a number had landed and been checked.
 
+**An approved return refunds the customer by itself, exactly once.** Marking a
+return refunded only ever flipped the order status — the money was refunded by
+hand in the Stripe dashboard, and the `charge.refunded` webhook was the sole
+thing that ever reacted to a refund. Now the "mark refunded" transaction writes
+a `refunds` row and, in the same commit, an outbox event; the dispatcher's
+handler issues the Stripe refund and drives the row to `SUCCEEDED`. Three things
+make a double refund unrepresentable: a partial unique index on `return_id` so a
+second `markAsRefunded` (a double-click, the delivered-tracking sweep firing
+twice) is rejected before any Stripe call; an `Idempotency-Key` of
+`refund:{id}` on the Stripe call so a redelivered outbox event gets the original
+refund back rather than a second one; and a partial unique index on
+`stripe_refund_id` so the outbox path and a refund made straight in the
+dashboard cannot both record the same Stripe refund — the `charge.refunded`
+webhook reconciles onto the row the other path already wrote. A transient Stripe
+error is rethrown so the outbox backs off and retries; a permanent rejection
+(already refunded, not refundable) marks the row `FAILED` and raises an admin
+notification rather than looping. *Trade-off:* the order still moves to
+`Refunded` the moment the admin clicks — that is their assertion and it is what
+happens in all but the rare permanent-failure case — so the `refunds` row, not
+the order status, is the record of whether the money actually moved. Cash-on-
+delivery returns keep the old manual path: there is no charge to reverse.
+
 **Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
 from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
 **Chain of Responsibility** ordered by `@Order`, not statement order;
@@ -352,12 +374,13 @@ without a token, signout passes with one and is refused without.
 
 ### In flight this iteration
 
-The money migration is complete. Slices 1–4 are merged (`Money` value object;
-`BigDecimal` on `Order` / `OrderItem`; `Product` / `Cart` and the pricing
-pipeline; then VAT). Slice 5 — `Bundle`, `ReturnRequest`, `SubscriptionPlan` and
-`PromoCampaign` off `Double`, `V30` — is on `refactor/entity-cleanup`. Once it
-merges, no column or field in the codebase holds money as a binary float, and
-the last explicit `toDouble()` / `asLegacyDouble` boundaries are gone.
+The money migration is complete — all five slices are on `main`, and no column or
+field in the codebase holds money as a binary float.
+
+Current work: **automated refunds** (`feat/automated-refunds`, `V31`). An
+approved return now issues its own Stripe refund through the outbox instead of
+leaving it to be done by hand in the dashboard — see the Engineering-decisions
+entry above.
 
 ## Getting Started
  

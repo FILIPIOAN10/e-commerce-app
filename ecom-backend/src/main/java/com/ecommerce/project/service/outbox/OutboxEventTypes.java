@@ -20,4 +20,7 @@ public final class OutboxEventTypes {
 
     /** Build a GDPR Art. 15 data export and email its download link. */
     public static final String GDPR_EXPORT_REQUESTED = "GDPR_EXPORT_REQUESTED";
+
+    /** Issue the Stripe refund for a return an admin has marked refunded. */
+    public static final String REFUND_REQUESTED = "REFUND_REQUESTED";
 }

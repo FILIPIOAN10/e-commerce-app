@@ -11,6 +11,9 @@ public interface NotificationService {
 
     void notifyUserOrderStatusChanged(Long orderId, String email, String newStatus);
 
+    /** An automated refund could not be issued and needs a human. */
+    void notifyAdminRefundFailed(Long orderId, BigDecimal amount, String reason);
+
     List<NotificationDTO> getNotifications(String email, int page, int size);
 
     long getUnreadCount(String email);
