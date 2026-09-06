@@ -32,6 +32,9 @@ public class GuestCheckoutRequestDTO {
 
     private List<String> couponCodes;
 
+    /** Presentation currency the guest checked out in; null / blank means the store base (USD). */
+    private String currencyCode;
+
     @NotEmpty
     private List<CartItemDTO> items;
 }

@@ -42,7 +42,9 @@ public class OrderController extends BaseController {
     public ResponseEntity<OrderDTO> orderProducts(@PathVariable String paymentMethod,
                                                   @Valid @RequestBody OrderRequestDTO orderRequestDTO,
                                                   @RequestHeader(value = "Idempotency-Key", required = false)
-                                                  String idempotencyKey){
+                                                  String idempotencyKey,
+                                                  @RequestHeader(value = "X-Currency", required = false)
+                                                  String currency){
 
         String emailId = authUtil.loggedInEmail();
         return idempotencyService.runIdempotent(
@@ -58,7 +60,8 @@ public class OrderController extends BaseController {
                         orderRequestDTO.getPgPaymentId(),
                         orderRequestDTO.getPgStatus(),
                         orderRequestDTO.getPgResponseMessage(),
-                        orderRequestDTO.getCouponCodes())));
+                        orderRequestDTO.getCouponCodes(),
+                        currency)));
     }
     @PostMapping("/order/stripe-client-secret")
     public ResponseEntity<String> createStripeClientSecret(@Valid @RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
@@ -77,12 +80,15 @@ public class OrderController extends BaseController {
 
     @Tag(name = "Order")
     @PostMapping("/order/preview")
-    public ResponseEntity<OrderSummaryDTO> previewOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO) {
+    public ResponseEntity<OrderSummaryDTO> previewOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO,
+                                                        @RequestHeader(value = "X-Currency", required = false)
+                                                        String currency) {
         String emailId = authUtil.loggedInEmail();
         OrderSummaryDTO summary = orderService.previewOrder(
                 emailId,
                 orderRequestDTO.getAddressId(),
-                orderRequestDTO.getCouponCodes()
+                orderRequestDTO.getCouponCodes(),
+                currency
         );
         return ok(summary);
     }

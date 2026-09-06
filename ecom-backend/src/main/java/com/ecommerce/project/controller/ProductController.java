@@ -10,6 +10,7 @@ import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductSearchService;
 import com.ecommerce.project.service.ProductService;
 import com.ecommerce.project.service.RecentlyViewedService;
+import com.ecommerce.project.service.currency.ProductPriceConverter;
 import com.ecommerce.project.service.search.FacetedProductSearchService;
 import com.ecommerce.project.service.search.ProductFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,22 +32,27 @@ public class ProductController extends BaseController {
     private final ProductSearchService productSearchService;
     private final FacetedProductSearchService facetedProductSearchService;
     private final RecentlyViewedService recentlyViewedService;
+    private final ProductPriceConverter productPriceConverter;
 
     public ProductController(ProductService productService, ProductSearchService productSearchService,
                              FacetedProductSearchService facetedProductSearchService,
-                             RecentlyViewedService recentlyViewedService) {
+                             RecentlyViewedService recentlyViewedService,
+                             ProductPriceConverter productPriceConverter) {
         this.productService = productService;
         this.productSearchService = productSearchService;
         this.facetedProductSearchService = facetedProductSearchService;
         this.recentlyViewedService = recentlyViewedService;
+        this.productPriceConverter = productPriceConverter;
     }
     /**
      * Returnează toate produsele cu paginare și sortare.
      */
     @Tag(name = "Product")
     @GetMapping("/public/products/{productId}")
-    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId) {
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long productId,
+                                                     @RequestHeader(value = "X-Currency", required = false) String currency) {
         ProductDTO productDTO = productService.getProductById(productId);
+        productPriceConverter.applyCurrency(productDTO, currency);
         return ok(productDTO);
     }
 
@@ -55,9 +61,11 @@ public class ProductController extends BaseController {
     public ResponseEntity<ProductResponse> getAllProducts(
             @RequestParam(name = "keyword",required = false)  String keyword,
             @RequestParam(name = "category",required = false) String category,
+            @RequestHeader(value = "X-Currency", required = false) String currency,
             @ModelAttribute PaginationParams params
     ) {
         ProductResponse productResponse = productService.getAllProducts(params.getPageNumber(),params.getPageSize(),params.getSortBy(),params.getSortOrder(),keyword,category);
+        productPriceConverter.applyCurrency(productResponse, currency);
         return ok(productResponse);
     }
 

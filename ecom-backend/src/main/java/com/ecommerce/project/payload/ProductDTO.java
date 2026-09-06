@@ -43,6 +43,11 @@ public class ProductDTO {
     @PositiveOrZero(message = "Special price cannot be negative")
     private BigDecimal specialPrice;
 
+    // Non-null only when the caller asked for a non-base currency via the
+    // X-Currency header: then price and specialPrice are in this currency, not
+    // USD. Null means the figures are in the store base (USD), as before.
+    private String currency;
+
     private Double averageRating;
     private Long reviewCount;
     private String categoryName;

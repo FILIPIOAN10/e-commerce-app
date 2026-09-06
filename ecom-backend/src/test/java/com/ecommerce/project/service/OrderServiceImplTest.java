@@ -7,6 +7,10 @@ import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.config.CurrencyProperties;
+import com.ecommerce.project.service.currency.CurrencyService;
+import com.ecommerce.project.service.currency.ExchangeRateProviderRegistry;
+import com.ecommerce.project.service.currency.ExchangeRateService;
 import com.ecommerce.project.service.order.CheckoutGuards;
 import com.ecommerce.project.service.order.OrderDtoAssembler;
 import com.ecommerce.project.service.order.OrderPaymentHandler;
@@ -71,6 +75,7 @@ class OrderServiceImplTest {
     @Mock private PaymentGatewayRegistry paymentGatewayRegistry;
     @Mock private PricingPipeline pricingPipeline;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private SupportedCurrencyRepository supportedCurrencyRepository;
 
     // Built in setUp() with real OrderDtoAssembler / OrderPaymentHandler over the mocks,
     // the same way the pricing pipeline and gateway registry are exercised for real.
@@ -135,11 +140,21 @@ class OrderServiceImplTest {
         OrderPaymentHandler orderPaymentHandler = new OrderPaymentHandler(paymentRepository, paymentGatewayRegistry);
         CheckoutGuards checkoutGuards = new CheckoutGuards(addressRepository);
 
+        // Real CurrencyService over the store base (USD): every call in these
+        // tests is currency-agnostic, so it resolves to USD at rate 1 without
+        // touching the (mocked, empty) currency repository or a rate provider.
+        CurrencyProperties currencyProperties = new CurrencyProperties();
+        ExchangeRateService exchangeRateService =
+                new ExchangeRateService(mock(ExchangeRateProviderRegistry.class), currencyProperties);
+        CurrencyService currencyService =
+                new CurrencyService(supportedCurrencyRepository, exchangeRateService, currencyProperties);
+
         orderService = new OrderServiceImpl(
                 cartRepository, cartItemRepository, addressRepository,
                 orderRepository, orderItemRepository, productRepository,
                 inventoryReservationService, stockLedgerService, couponRepository, authUtil,
-                pricingPipeline, eventPublisher, orderDtoAssembler, orderPaymentHandler, checkoutGuards);
+                pricingPipeline, eventPublisher, orderDtoAssembler, orderPaymentHandler, checkoutGuards,
+                currencyService);
     }
 
 

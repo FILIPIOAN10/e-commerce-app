@@ -91,6 +91,17 @@ public class Order {
     @Column(name = "tax_amount", precision = 12, scale = 2)
     private BigDecimal taxAmount = BigDecimal.ZERO;
 
+    // The currency the customer chose to see and check out in, and the
+    // USD -> currency rate quoted at that moment. The money columns above stay in
+    // USD (the settlement currency); these let an invoice reprinted later show
+    // the exact figures the customer agreed to. Orders placed before this slice
+    // are USD at rate 1 — see V32.
+    @Column(name = "currency_code", length = 3, nullable = false)
+    private String currencyCode = "USD";
+
+    @Column(name = "exchange_rate", precision = 18, scale = 8, nullable = false)
+    private BigDecimal exchangeRate = BigDecimal.ONE;
+
     private String appliedCoupons;
     private String orderStatus;
 
