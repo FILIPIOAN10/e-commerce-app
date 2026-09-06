@@ -1,9 +1,12 @@
 <configuration>
   <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="sb-ecom"/>
 
-  <!-- Human-readable console appender for dev/test/ci.
-       %X{requestId} is the per-request correlation id set by RequestCorrelationFilter. -->
-  <springProfile name="dev | test | ci | default">
+  <!-- Human-readable console appender for dev/test/ci/local.
+       %X{requestId} is the per-request correlation id set by RequestCorrelationFilter.
+       `local` is the profile `docker compose up` runs under, so it must get an
+       appender too — without one the root logger references a CONSOLE that does
+       not exist and every application log line (stack traces included) is dropped. -->
+  <springProfile name="dev | test | ci | local | default">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
         <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId:-}] %-5level %logger{36} - %msg%n</pattern>

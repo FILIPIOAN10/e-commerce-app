@@ -19,7 +19,7 @@ const LowStockAlerts = () => {
     const errorMessage = error ? error?.data?.message || "Failed to load low-stock products" : null;
 
 
-    const tableRecords = lowStockProducts?.map((item) => ({
+    const tableRecords = (lowStockProducts ?? []).map((item) => ({
         id: item.productId,
         productName: item.productName,
         quantity: item.quantity,
@@ -119,11 +119,10 @@ const LowStockAlerts = () => {
                         disableRowSelectionOnClick
                         disableColumnResize
                         pageSizeOptions={[10]}
-                        pagination
                         rowCount={lowStockPagination?.totalElements || 0}
                         paginationMode="server"
-                        page={page}
-                        onPageChange={(newPage) => setPage(newPage)}
+                        paginationModel={{ page, pageSize: 10 }}
+                        onPaginationModelChange={(model) => setPage(model.page)}
                     />
                 </div>
             )}

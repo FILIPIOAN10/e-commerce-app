@@ -40,7 +40,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-notifications")
+        // Under /api on purpose: the access-token cookie is scoped to path /api
+        // (JwtUtils), so the SockJS handshake only carries it when the endpoint
+        // lives there too. Anywhere else the handshake arrives with no cookie and
+        // WebSocketAuthInterceptor can only answer 401.
+        registry.addEndpoint("/api/ws-notifications")
                 .setAllowedOrigins(frontendUrl)
                 .addInterceptors(authInterceptor)
                 .setHandshakeHandler(handshakeHandler)

@@ -1,11 +1,12 @@
 import { Avatar, Menu, MenuItem } from '@mui/material';
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BiUser } from 'react-icons/bi';
 import { FaShoppingCart, FaUserShield } from 'react-icons/fa';
 import { IoExitOutline } from 'react-icons/io5';
 import BackDrop from './BackDrop';
+import LangLink from './shared/LangLink';
 import { logOutUser } from '../store/actions';
 
 const UserMenu = () => {
@@ -53,37 +54,37 @@ const UserMenu = () => {
           },
         }}
       >
-        <Link to="/profile">
+        <LangLink to="/profile">
           <MenuItem className='flex ga-2' onClick={handleClose}>
             <BiUser className="text-xl" />
             <span className='font-bold tex-[16px] mt-1'>
               {user?.username}
             </span>
           </MenuItem>
-        </Link>
+        </LangLink>
 
         {/* ✅ Order vizibil doar pentru user normal */}
         {!isAdmin && !isSeller && (
-          <Link to="/profile/orders">
+          <LangLink to="/profile/orders">
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaShoppingCart className="text-xl" />
               <span className='font-semibold'>
                 Order
               </span>
             </MenuItem>
-          </Link>
+          </LangLink>
         )}
 
         {/* ✅ Admin Panel sau Seller Panel */}
         {(isAdmin || isSeller) && (
-          <Link to={isAdmin ? "/admin" : "/admin/orders"}>
+          <LangLink to={isAdmin ? "/admin" : "/admin/orders"}>
             <MenuItem className='flex ga-2' onClick={handleClose}>
               <FaUserShield className="text-xl" />
               <span className='font-semibold'>
                 {isAdmin ? "Admin Panel" : "Seller Panel"}
               </span>
             </MenuItem>
-          </Link>
+          </LangLink>
         )}
 
         <MenuItem data-testid='logout-button' className='flex ga-2' onClick={logOutHandler}>

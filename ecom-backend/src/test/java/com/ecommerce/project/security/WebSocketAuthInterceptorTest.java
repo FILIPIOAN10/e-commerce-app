@@ -58,7 +58,7 @@ class WebSocketAuthInterceptorTest {
     }
 
     private ServerHttpRequest requestWithCookie(String value) {
-        MockHttpServletRequest raw = new MockHttpServletRequest("GET", "/ws-notifications");
+        MockHttpServletRequest raw = new MockHttpServletRequest("GET", "/api/ws-notifications");
         if (value != null) {
             raw.setCookies(new Cookie(COOKIE_NAME, value));
         }

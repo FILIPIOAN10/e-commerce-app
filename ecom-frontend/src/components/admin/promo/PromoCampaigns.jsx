@@ -32,10 +32,9 @@ const PromoCampaigns = () => {
         { pageNumber: page, pageSize: 10 },
         { refetchOnMountOrArgChange: true },
     );
-    // The product picker. Previously passed '?pageNumber=0&pageSize=1000',
-    // which produced '/public/products??pageNumber=0' - the server read the
-    // first parameter as '?pageNumber' and silently fell back to page 0.
-    useGetProductsQuery('pageNumber=0&pageSize=1000');
+    // The product picker. The server clamps pageSize to 100 (PageSizeLimitFilter),
+    // so ask for exactly that rather than a number the filter will silently cut.
+    useGetProductsQuery('pageNumber=0&pageSize=100');
 
     const errorMessage = error ? error?.data?.message || 'Failed to load campaigns' : null;
 
@@ -109,7 +108,7 @@ const PromoCampaigns = () => {
         },
     ];
 
-    const rows = promoCampaigns.map((c) => ({ ...c, id: c.id }));
+    const rows = (promoCampaigns ?? []).map((c) => ({ ...c, id: c.id }));
 
     if (errorMessage) return <ErrorPage message={errorMessage} />;
 
@@ -162,7 +161,7 @@ const PromoCampaigns = () => {
                         onChange={handleProductSelect}
                         className="border dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg p-2 text-sm h-32 md:col-span-2"
                     >
-                        {products.map((p) => (
+                        {(products ?? []).map((p) => (
                             <option key={p.productId} value={p.productId}>
                                 {p.productName}
                             </option>
@@ -203,11 +202,10 @@ const PromoCampaigns = () => {
                         disableRowSelectionOnClick
                         disableColumnResize
                         pageSizeOptions={[10]}
-                        pagination
                         rowCount={promoCampaignTotal || 0}
                         paginationMode="server"
-                        page={page}
-                        onPageChange={(newPage) => setPage(newPage)}
+                        paginationModel={{ page, pageSize: 10 }}
+                        onPaginationModelChange={(model) => setPage(model.page)}
                     />
                 </div>
             )}
