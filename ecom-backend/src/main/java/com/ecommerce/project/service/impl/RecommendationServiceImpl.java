@@ -12,6 +12,7 @@ import com.ecommerce.project.util.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+// Read paths only: every method loads products and maps them through
+// ProductMapper, which walks the LAZY productImages collection. With
+// open-in-view off the mapping must run inside a session.
+@Transactional(readOnly = true)
 public class RecommendationServiceImpl implements RecommendationService {
 
     private final ProductSemanticSearchService semanticSearchService;

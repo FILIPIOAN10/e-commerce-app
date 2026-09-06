@@ -8,6 +8,7 @@ import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.ProductMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,9 @@ public class RecentlyViewedServiceImpl implements RecentlyViewedService {
     }
 
     @Override
+    // open-in-view is off, and ProductMapper walks the LAZY productImages
+    // gallery; without a session held open here that is a LazyInitializationException.
+    @Transactional(readOnly = true)
     public List<ProductDTO> getRecentlyViewedProducts() {
         Long userId = authUtil.loggedInUserId();
         String key = KEY_PREFIX + userId;
