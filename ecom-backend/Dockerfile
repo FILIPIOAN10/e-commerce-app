@@ -11,6 +11,15 @@ RUN mvn package -B -DskipTests
 # ── Runtime stage ──
 FROM eclipse-temurin:21-jre-alpine
 
+# The base image's Alpine packages drift behind their own repo's security
+# fixes between whenever this layer was cached and whenever it's actually
+# built — found by build-push.yml's Trivy gate rejecting the first image
+# this Dockerfile ever produced under it (3 HIGH: openssl/libssl3/libcrypto3
+# 3.5.7-r0, fixed upstream at 3.5.8-r0 in the same 3.24 branch already).
+# apk upgrade tracks that branch's current fixes rather than pinning to
+# whatever the base layer happened to have on the day it was cached.
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring && \
