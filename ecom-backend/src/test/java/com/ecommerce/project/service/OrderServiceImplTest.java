@@ -7,6 +7,7 @@ import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderSummaryDTO;
 import com.ecommerce.project.repository.*;
 import com.ecommerce.project.service.impl.OrderServiceImpl;
+import com.ecommerce.project.service.order.CheckoutGuards;
 import com.ecommerce.project.service.order.OrderDtoAssembler;
 import com.ecommerce.project.service.order.OrderPaymentHandler;
 import com.ecommerce.project.service.order.event.OrderPlacedEvent;
@@ -132,12 +133,13 @@ class OrderServiceImplTest {
 
         OrderDtoAssembler orderDtoAssembler = new OrderDtoAssembler(orderRepository, new ModelMapper());
         OrderPaymentHandler orderPaymentHandler = new OrderPaymentHandler(paymentRepository, paymentGatewayRegistry);
+        CheckoutGuards checkoutGuards = new CheckoutGuards(addressRepository);
 
         orderService = new OrderServiceImpl(
                 cartRepository, cartItemRepository, addressRepository,
                 orderRepository, orderItemRepository, productRepository,
                 inventoryReservationService, stockLedgerService, couponRepository, authUtil,
-                pricingPipeline, eventPublisher, orderDtoAssembler, orderPaymentHandler);
+                pricingPipeline, eventPublisher, orderDtoAssembler, orderPaymentHandler, checkoutGuards);
     }
 
 

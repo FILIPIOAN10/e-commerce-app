@@ -8,6 +8,7 @@ import com.ecommerce.project.security.request.ChangePasswordRequest;
 import com.ecommerce.project.security.request.UpdateProfileRequest;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.service.ProfileService;
+import com.ecommerce.project.service.media.ImageSignature;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.UserInfoMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,7 +99,7 @@ public class ProfileServiceImpl implements ProfileService {
             }
 
             byte[] fileBytes = file.getBytes();
-            if (!isValidImageContent(fileBytes, fileExtension)) {
+            if (!ImageSignature.contentMatchesExtension(fileBytes, fileExtension)) {
                 throw new RuntimeException("Invalid file content. File does not match the declared image type.");
             }
 
@@ -116,46 +117,4 @@ public class ProfileServiceImpl implements ProfileService {
         }
     }
 
-    private boolean isValidImageContent(byte[] bytes, String extension) {
-        if (bytes == null || bytes.length < 8) {
-            return false;
-        }
-
-        boolean matchesMagic = false;
-        if (startsWith(bytes, new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF})) {
-            matchesMagic = true; // JPEG
-        } else if (startsWith(bytes, new byte[]{0x47, 0x49, 0x46, 0x38})) {
-            matchesMagic = true; // GIF
-        } else if (startsWith(bytes, new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A})) {
-            matchesMagic = true; // PNG
-        } else if (startsWith(bytes, new byte[]{0x52, 0x49, 0x46, 0x46}) && bytes.length >= 12) {
-            // WEBP: RIFF....WEBP
-            matchesMagic = bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50;
-        }
-
-        if (!matchesMagic) {
-            return false;
-        }
-
-        // Optional: double check that the declared extension matches the magic type
-        return switch (extension) {
-            case ".jpg", ".jpeg" -> startsWith(bytes, new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF});
-            case ".png" -> startsWith(bytes, new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A});
-            case ".gif" -> startsWith(bytes, new byte[]{0x47, 0x49, 0x46, 0x38});
-            case ".webp" -> startsWith(bytes, new byte[]{0x52, 0x49, 0x46, 0x46});
-            default -> false;
-        };
-    }
-
-    private boolean startsWith(byte[] bytes, byte[] prefix) {
-        if (bytes.length < prefix.length) {
-            return false;
-        }
-        for (int i = 0; i < prefix.length; i++) {
-            if (bytes[i] != prefix[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

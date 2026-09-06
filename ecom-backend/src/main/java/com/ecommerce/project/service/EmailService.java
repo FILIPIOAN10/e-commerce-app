@@ -4,6 +4,7 @@ import com.ecommerce.project.exception.EmailDeliveryException;
 
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderItemDTO;
+import com.ecommerce.project.service.email.EmailMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +13,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -33,145 +32,114 @@ public class EmailService {
     @Value("${frontend.url}")
     private String frontendUrl;
 
-    public void sendPasswordResetEmail(String toEmail, String token) {
+    // ------------------------------------------------------------------
+    // The one place a MimeMessage is built and sent. Every public method
+    // below assembles an EmailMessage and hands it here. A send that fails
+    // always leaves as an EmailDeliveryException naming the recipient, so a
+    // caller that told the user "check your email" can react rather than lie.
+    // ------------------------------------------------------------------
+    private void send(EmailMessage message) {
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            MimeMessage mime = mailSender.createMimeMessage();
+            boolean multipart = !message.attachments().isEmpty();
+            MimeMessageHelper helper = new MimeMessageHelper(mime, multipart, "UTF-8");
             helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Password Reset Request");
-
-            String html = emailTemplateService.render("reset-password", Map.of(
-                    "expires", "15",
-                    "link", frontendUrl + "/reset-password?token=" + token
-            ));
-            helper.setText(html, true);
-            mailSender.send(mimeMessage);
-            log.info("Password reset email handed off to SMTP for {}", toEmail);
+            helper.setTo(message.to());
+            helper.setSubject(message.subject());
+            helper.setText(message.body(), message.html());
+            if (message.replyTo() != null && !message.replyTo().isBlank()) {
+                helper.setReplyTo(message.replyTo());
+            }
+            for (EmailMessage.Attachment attachment : message.attachments()) {
+                helper.addAttachment(attachment.filename(), new ByteArrayResource(attachment.content()));
+            }
+            mailSender.send(mime);
+            log.info("Email '{}' handed off to SMTP for {}", message.subject(), message.to());
         } catch (Exception e) {
-            // The caller answers "check your email". Swallowing this made that a
-            // lie the user had no way to detect: they wait for a link that was
-            // never sent. The token is already stored, so a retry works.
-            log.error("Failed to send password reset email to {}", toEmail, e);
-            throw new EmailDeliveryException("password reset email to " + toEmail, e);
+            log.error("Failed to send email '{}' to {}", message.subject(), message.to(), e);
+            throw new EmailDeliveryException("email to " + message.to() + " (" + message.subject() + ")", e);
         }
     }
-    public void sendVerificationEmail(String toEmail, String token) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Verify Your Email Address");
 
-            String html = emailTemplateService.render("verify-email", Map.of(
-                    "expires", "60",
-                    "link", frontendUrl + "/verify-email?token=" + token
-            ));
-            helper.setText(html, true);
-            mailSender.send(mimeMessage);
-            log.info("Verification email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send verification email to {}", toEmail, e);
-            throw new EmailDeliveryException("verification email to " + toEmail, e);
-        }
+    public void sendPasswordResetEmail(String toEmail, String token) {
+        // The caller answers "check your email". Swallowing a failure made that a
+        // lie the user had no way to detect: they wait for a link that was never
+        // sent. The token is already stored, so a retry works.
+        send(EmailMessage.to(toEmail, "Password Reset Request")
+                .html(emailTemplateService.render("reset-password", Map.of(
+                        "expires", "15",
+                        "link", frontendUrl + "/reset-password?token=" + token)))
+                .build());
+    }
+
+    public void sendVerificationEmail(String toEmail, String token) {
+        send(EmailMessage.to(toEmail, "Verify Your Email Address")
+                .html(emailTemplateService.render("verify-email", Map.of(
+                        "expires", "60",
+                        "link", frontendUrl + "/verify-email?token=" + token)))
+                .build());
     }
 
     public void sendOrderConfirmationEmail(String toEmail, OrderDTO order) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Order Confirmation - #" + order.getOrderId());
-
-            StringBuilder itemsHtml = new StringBuilder();
-            if (order.getItems() != null) {
-                for (OrderItemDTO item : order.getItems()) {
-                    String name = item.getProduct() != null ? item.getProduct().getProductName() : "Unknown Product";
-                    itemsHtml.append("<tr>")
-                            .append("<td>").append(name).append("</td>")
-                            .append("<td>").append(item.getQuantity()).append("</td>")
-                            .append("<td>$").append(String.format("%.2f", item.getOrderedProductPrice())).append("</td>")
-                            .append("</tr>");
-                }
+        StringBuilder itemsHtml = new StringBuilder();
+        if (order.getItems() != null) {
+            for (OrderItemDTO item : order.getItems()) {
+                String name = item.getProduct() != null ? item.getProduct().getProductName() : "Unknown Product";
+                itemsHtml.append("<tr>")
+                        .append("<td>").append(name).append("</td>")
+                        .append("<td>").append(item.getQuantity()).append("</td>")
+                        .append("<td>$").append(String.format("%.2f", item.getOrderedProductPrice())).append("</td>")
+                        .append("</tr>");
             }
-
-            String html = emailTemplateService.render("order-confirmation", Map.of(
-                    "orderId", String.valueOf(order.getOrderId()),
-                    "orderDate", String.valueOf(order.getOrderDate()),
-                    "paymentMethod", order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A",
-                    "total", String.format("%.2f", order.getTotalAmount()),
-                    "items", itemsHtml.toString(),
-                    "trackLink", frontendUrl + "/orders/" + order.getOrderId()
-            ));
-            helper.setText(html, true);
-
-            byte[] invoicePdf = invoiceService.generateInvoicePdf(order.getOrderId());
-            helper.addAttachment("invoice-" + order.getOrderId() + ".pdf", new ByteArrayResource(invoicePdf));
-
-            mailSender.send(mimeMessage);
-            log.info("Order confirmation email handed off to SMTP for {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send order confirmation email with invoice to {}", toEmail, e);
-            // Rethrow so the outbox dispatcher backs off and retries rather than
-            // losing the confirmation.
-            throw new EmailDeliveryException("order confirmation email to " + toEmail, e);
         }
+
+        String html = emailTemplateService.render("order-confirmation", Map.of(
+                "orderId", String.valueOf(order.getOrderId()),
+                "orderDate", String.valueOf(order.getOrderDate()),
+                "paymentMethod", order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A",
+                "total", String.format("%.2f", order.getTotalAmount()),
+                "items", itemsHtml.toString(),
+                "trackLink", frontendUrl + "/orders/" + order.getOrderId()));
+
+        // Rethrows (via send) so the outbox dispatcher backs off and retries
+        // rather than losing the confirmation.
+        send(EmailMessage.to(toEmail, "Order Confirmation - #" + order.getOrderId())
+                .html(html)
+                .attach("invoice-" + order.getOrderId() + ".pdf",
+                        invoiceService.generateInvoicePdf(order.getOrderId()))
+                .build());
     }
 
     public void sendOrderStatusUpdateEmail(String toEmail, OrderDTO order) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Order Status Update - #" + order.getOrderId() + " - " + order.getOrderStatus());
+        String statusMessage = switch (order.getOrderStatus()) {
+            case "Packed" -> "Your order has been packed and is being prepared for shipment.";
+            case "Shipped" -> "Great news! Your order has been shipped and is on its way. Estimated delivery: 3-5 business days.";
+            case "Delivered" -> "Your order has been delivered. Enjoy your purchase!";
+            case "Cancelled" -> "Your order has been cancelled. If you did not request this, please contact support.";
+            default -> "Your order status is now: " + order.getOrderStatus();
+        };
 
-            String statusMessage = switch (order.getOrderStatus()) {
-                case "Packed" -> "Your order has been packed and is being prepared for shipment.";
-                case "Shipped" -> "Great news! Your order has been shipped and is on its way. Estimated delivery: 3-5 business days.";
-                case "Delivered" -> "Your order has been delivered. Enjoy your purchase!";
-                case "Cancelled" -> "Your order has been cancelled. If you did not request this, please contact support.";
-                default -> "Your order status is now: " + order.getOrderStatus();
-            };
+        String html = emailTemplateService.render("order-status-update", Map.of(
+                "orderId", String.valueOf(order.getOrderId()),
+                "status", order.getOrderStatus(),
+                "message", statusMessage,
+                "trackLink", frontendUrl + "/orders/" + order.getOrderId()));
 
-            String html = emailTemplateService.render("order-status-update", Map.of(
-                    "orderId", String.valueOf(order.getOrderId()),
-                    "status", order.getOrderStatus(),
-                    "message", statusMessage,
-                    "trackLink", frontendUrl + "/orders/" + order.getOrderId()
-            ));
-            helper.setText(html, true);
-            mailSender.send(mimeMessage);
-            log.info("Order status email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send order status email to {}", toEmail, e);
-            throw new EmailDeliveryException("order status email to " + toEmail, e);
-        }
+        send(EmailMessage.to(toEmail,
+                        "Order Status Update - #" + order.getOrderId() + " - " + order.getOrderStatus())
+                .html(html)
+                .build());
     }
 
     public void sendCartRecoveryEmail(String toEmail, String name, int itemCount, BigDecimal cartTotal, String recoveryUrl) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("You left " + (itemCount == 1 ? "an item" : itemCount + " items") + " in your cart");
-
-            String html = emailTemplateService.render("cart-recovery", Map.of(
-                    "name", name != null && !name.isBlank() ? name : "there",
-                    "itemCount", String.valueOf(itemCount),
-                    "cartTotal", String.format("%.2f", cartTotal),
-                    "link", recoveryUrl
-            ));
-            helper.setText(html, true);
-            mailSender.send(mimeMessage);
-            log.info("Cart recovery email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send cart recovery email to {}", toEmail, e);
-            throw new EmailDeliveryException("cart recovery email to " + toEmail, e);
-        }
+        String subject = "You left " + (itemCount == 1 ? "an item" : itemCount + " items") + " in your cart";
+        send(EmailMessage.to(toEmail, subject)
+                .html(emailTemplateService.render("cart-recovery", Map.of(
+                        "name", name != null && !name.isBlank() ? name : "there",
+                        "itemCount", String.valueOf(itemCount),
+                        "cartTotal", String.format("%.2f", cartTotal),
+                        "link", recoveryUrl)))
+                .build());
     }
 
     /**
@@ -180,130 +148,60 @@ public class EmailService {
      * silently failed to answer.
      */
     public void sendGdprExportReadyEmail(String toEmail, String name, String downloadUrl, long expiryDays) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Your data export is ready");
-
-            String html = emailTemplateService.render("gdpr-export-ready", Map.of(
-                    "name", name != null && !name.isBlank() ? name : "there",
-                    "expiryDays", String.valueOf(expiryDays),
-                    "link", downloadUrl
-            ));
-            helper.setText(html, true);
-            mailSender.send(mimeMessage);
-            log.info("GDPR export email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send GDPR export email to {}", toEmail, e);
-            throw new EmailDeliveryException("GDPR export email to " + toEmail, e);
-        }
+        send(EmailMessage.to(toEmail, "Your data export is ready")
+                .html(emailTemplateService.render("gdpr-export-ready", Map.of(
+                        "name", name != null && !name.isBlank() ? name : "there",
+                        "expiryDays", String.valueOf(expiryDays),
+                        "link", downloadUrl)))
+                .build());
     }
 
     /**
-     * The second factor of account deletion. Swallows failures like the password
-     * reset does — the caller is already told to check their email, and surfacing
-     * SMTP trouble here would only reveal which addresses exist.
+     * The second factor of account deletion. {@code requestErasure} answers "we
+     * sent a link that will permanently delete your account", so a silent failure
+     * would leave Art. 17 unexercisable with nothing to explain why — hence this
+     * surfaces like the others.
      */
     public void sendGdprErasureConfirmationEmail(String toEmail, String name, String confirmUrl, long expiryMinutes) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Confirm deleting your account");
-
-            String html = emailTemplateService.render("gdpr-erase-confirm", Map.of(
-                    "name", name != null && !name.isBlank() ? name : "there",
-                    "expires", String.valueOf(expiryMinutes),
-                    "link", confirmUrl
-            ));
-            helper.setText(html, true);
-            mailSender.send(mimeMessage);
-            log.info("GDPR erasure confirmation email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            // requestErasure returns "we sent a link that will permanently delete
-            // your account". Without this the link never arrives and the user
-            // cannot exercise Art. 17 at all, with nothing to tell them why.
-            log.error("Failed to send GDPR erasure confirmation email to {}", toEmail, e);
-            throw new EmailDeliveryException("GDPR erasure confirmation email to " + toEmail, e);
-        }
+        send(EmailMessage.to(toEmail, "Confirm deleting your account")
+                .html(emailTemplateService.render("gdpr-erase-confirm", Map.of(
+                        "name", name != null && !name.isBlank() ? name : "there",
+                        "expires", String.valueOf(expiryMinutes),
+                        "link", confirmUrl)))
+                .build());
     }
 
     public void sendUnlockRequestEmail(String username) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(fromEmail);
-            helper.setSubject("Account Unlock Request - " + username);
-            helper.setText("User \"" + username + "\" has requested their account be unlocked "
-                    + "after too many failed login attempts. Please review and unlock the account "
-                    + "from the Admin Panel if appropriate.", false);
-            mailSender.send(mimeMessage);
-            log.info("Unlock request email handed off to SMTP for user {}", username);
-        } catch (Exception e) {
-            log.error("Failed to send unlock request email for user {}", username, e);
-            throw new EmailDeliveryException("unlock request email for " + username, e);
-        }
+        send(EmailMessage.to(fromEmail, "Account Unlock Request - " + username)
+                .text("User \"" + username + "\" has requested their account be unlocked "
+                        + "after too many failed login attempts. Please review and unlock the account "
+                        + "from the Admin Panel if appropriate.")
+                .build());
     }
 
     public void sendSubscriptionPaymentFailedEmail(String toEmail, String planName) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Action needed: payment failed for " + planName);
-            helper.setText(
-                    "<p>We couldn't take payment to renew your <strong>" + planName + "</strong> subscription.</p>"
-                    + "<p>We'll try again automatically over the next few days. To avoid an interruption, "
-                    + "update your card here: <a href=\"" + frontendUrl + "/my-subscriptions\">"
-                    + frontendUrl + "/my-subscriptions</a>.</p>", true);
-            mailSender.send(mimeMessage);
-            log.info("Subscription payment-failed email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send subscription payment-failed email to {}", toEmail, e);
-            throw new EmailDeliveryException("subscription payment-failed email to " + toEmail, e);
-        }
+        send(EmailMessage.to(toEmail, "Action needed: payment failed for " + planName)
+                .html("<p>We couldn't take payment to renew your <strong>" + planName + "</strong> subscription.</p>"
+                        + "<p>We'll try again automatically over the next few days. To avoid an interruption, "
+                        + "update your card here: <a href=\"" + frontendUrl + "/my-subscriptions\">"
+                        + frontendUrl + "/my-subscriptions</a>.</p>")
+                .build());
     }
 
     public void sendSubscriptionEndedEmail(String toEmail, String planName) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Your " + planName + " subscription has ended");
-            helper.setText(
-                    "<p>Your <strong>" + planName + "</strong> subscription has ended and will no longer renew.</p>"
-                    + "<p>You can start it again any time here: <a href=\"" + frontendUrl + "/subscriptions\">"
-                    + frontendUrl + "/subscriptions</a>.</p>", true);
-            mailSender.send(mimeMessage);
-            log.info("Subscription-ended email handed off to SMTP for {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send subscription-ended email to {}", toEmail, e);
-            throw new EmailDeliveryException("subscription-ended email to " + toEmail, e);
-        }
+        send(EmailMessage.to(toEmail, "Your " + planName + " subscription has ended")
+                .html("<p>Your <strong>" + planName + "</strong> subscription has ended and will no longer renew.</p>"
+                        + "<p>You can start it again any time here: <a href=\"" + frontendUrl + "/subscriptions\">"
+                        + frontendUrl + "/subscriptions</a>.</p>")
+                .build());
     }
 
     public void sendContactMessage(String name, String email, String userMessage) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(fromEmail);
-            helper.setSubject("Contact Form Message from " + name);
-            helper.setText("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + userMessage, false);
-            mailSender.send(mimeMessage);
-            log.info("Contact message handed off to SMTP from {}", email);
-        } catch (Exception e) {
-            // ContactController already catches this and answers "failed to send,
-            // please try again" — swallowing here meant that branch could never
-            // run and every submission was reported as delivered.
-            log.error("Failed to send contact message", e);
-            throw new EmailDeliveryException("contact message from " + email, e);
-        }
+        // ContactController answers "failed to send, please try again" on the
+        // exception — reply-to the sender so a hit "Reply" reaches the customer.
+        send(EmailMessage.to(fromEmail, "Contact Form Message from " + name)
+                .text("Name: " + name + "\nEmail: " + email + "\n\nMessage:\n" + userMessage)
+                .replyTo(email)
+                .build());
     }
 }
