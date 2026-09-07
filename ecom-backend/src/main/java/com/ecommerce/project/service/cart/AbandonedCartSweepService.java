@@ -47,7 +47,7 @@ public class AbandonedCartSweepService {
     private final OutboxEventPublisher outboxEventPublisher;
     private final EntityManager entityManager;
 
-    private final String frontendUrl;
+    private final com.ecommerce.project.service.FrontendUrls frontend;
     private final int pageSize;
     private final int maxRemindersPerSweep;
     private final int recentOrderCutoffDays;
@@ -57,7 +57,7 @@ public class AbandonedCartSweepService {
                                      CartRecoveryTokenService recoveryTokenService,
                                      OutboxEventPublisher outboxEventPublisher,
                                      EntityManager entityManager,
-                                     @Value("${frontend.url:http://localhost:5173}") String frontendUrl,
+                                     com.ecommerce.project.service.FrontendUrls frontend,
                                      @Value("${app.abandoned-cart.page-size:100}") int pageSize,
                                      @Value("${app.abandoned-cart.max-reminders-per-sweep:500}") int maxRemindersPerSweep,
                                      @Value("${app.abandoned-cart.recent-order-cutoff-days:4}") int recentOrderCutoffDays) {
@@ -66,7 +66,7 @@ public class AbandonedCartSweepService {
         this.recoveryTokenService = recoveryTokenService;
         this.outboxEventPublisher = outboxEventPublisher;
         this.entityManager = entityManager;
-        this.frontendUrl = frontendUrl;
+        this.frontend = frontend;
         this.pageSize = pageSize;
         this.maxRemindersPerSweep = maxRemindersPerSweep;
         this.recentOrderCutoffDays = recentOrderCutoffDays;
@@ -122,7 +122,7 @@ public class AbandonedCartSweepService {
         }
 
         String token = recoveryTokenService.issue(cartId);
-        String recoveryUrl = frontendUrl + "/cart/recover?token=" + token;
+        String recoveryUrl = frontend.page("/cart/recover?token=" + token);
 
         List<CartItem> activeItems = cart.getCartItems().stream()
                 .filter(i -> !Boolean.TRUE.equals(i.getSavedForLater()))

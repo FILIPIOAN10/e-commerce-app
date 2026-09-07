@@ -49,9 +49,9 @@ class EmailDeliveryFailureTest {
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailService(mailSender, invoiceService, emailTemplateService);
+        emailService = new EmailService(mailSender, invoiceService, emailTemplateService,
+                new FrontendUrls("https://shop.example.com", "en"));
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@example.com");
-        ReflectionTestUtils.setField(emailService, "frontendUrl", "https://shop.example.com");
 
         when(mailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
         when(emailTemplateService.render(anyString(), any())).thenReturn("<html>body</html>");

@@ -49,7 +49,7 @@ public class GdprService {
 
     private final long exportTtlDays;
     private final long erasureTokenTtlMinutes;
-    private final String frontendUrl;
+    private final com.ecommerce.project.service.FrontendUrls frontend;
 
     public GdprService(GdprExportRepository gdprExportRepository,
                        GdprErasureService gdprErasureService,
@@ -59,7 +59,7 @@ public class GdprService {
                        PasswordEncoder passwordEncoder,
                        @Value("${app.gdpr.export-ttl-days:7}") long exportTtlDays,
                        @Value("${app.gdpr.erasure-token-ttl-minutes:60}") long erasureTokenTtlMinutes,
-                       @Value("${frontend.url:http://localhost:5173}") String frontendUrl) {
+                       com.ecommerce.project.service.FrontendUrls frontend) {
         this.gdprExportRepository = gdprExportRepository;
         this.gdprErasureService = gdprErasureService;
         this.gdprTokenService = gdprTokenService;
@@ -68,7 +68,7 @@ public class GdprService {
         this.passwordEncoder = passwordEncoder;
         this.exportTtlDays = exportTtlDays;
         this.erasureTokenTtlMinutes = erasureTokenTtlMinutes;
-        this.frontendUrl = frontendUrl;
+        this.frontend = frontend;
     }
 
     // ── Art. 15: export ─────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ public class GdprService {
         emailService.sendGdprErasureConfirmationEmail(
                 user.getEmail(),
                 user.getUserName(),
-                frontendUrl + "/gdpr/erase/confirm?token=" + token,
+                frontend.page("/gdpr/erase/confirm?token=" + token),
                 erasureTokenTtlMinutes);
 
         return "Check your email: we sent a link that will permanently delete your account. "

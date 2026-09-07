@@ -43,9 +43,9 @@ class EmailServiceTest {
         templateService = mock(EmailTemplateService.class);
         when(templateService.render(any(), any())).thenReturn("<p>rendered</p>");
 
-        emailService = new EmailService(mailSender, invoiceService, templateService);
+        emailService = new EmailService(mailSender, invoiceService, templateService,
+                new FrontendUrls("https://shop.example.com", "en"));
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@shop.example.com");
-        ReflectionTestUtils.setField(emailService, "frontendUrl", "https://shop.example.com");
     }
 
     private MimeMessage captureSent() {

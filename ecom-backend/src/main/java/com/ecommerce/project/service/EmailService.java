@@ -25,12 +25,10 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final InvoiceService invoiceService;
     private final EmailTemplateService emailTemplateService;
+    private final FrontendUrls frontend;
 
     @Value("${spring.mail.username:noreply.ecomapp@gmail.com}")
     private String fromEmail;
-
-    @Value("${frontend.url}")
-    private String frontendUrl;
 
     // ------------------------------------------------------------------
     // The one place a MimeMessage is built and sent. Every public method
@@ -68,7 +66,7 @@ public class EmailService {
         send(EmailMessage.to(toEmail, "Password Reset Request")
                 .html(emailTemplateService.render("reset-password", Map.of(
                         "expires", "15",
-                        "link", frontendUrl + "/reset-password?token=" + token)))
+                        "link", frontend.page("/reset-password?token=" + token))))
                 .build());
     }
 
@@ -76,7 +74,7 @@ public class EmailService {
         send(EmailMessage.to(toEmail, "Verify Your Email Address")
                 .html(emailTemplateService.render("verify-email", Map.of(
                         "expires", "60",
-                        "link", frontendUrl + "/verify-email?token=" + token)))
+                        "link", frontend.page("/verify-email?token=" + token))))
                 .build());
     }
 
@@ -99,7 +97,7 @@ public class EmailService {
                 "paymentMethod", order.getPayment() != null ? order.getPayment().getPaymentMethod() : "N/A",
                 "total", String.format("%.2f", order.getTotalAmount()),
                 "items", itemsHtml.toString(),
-                "trackLink", frontendUrl + "/orders/" + order.getOrderId()));
+                "trackLink", frontend.page("/orders/" + order.getOrderId())));
 
         // Rethrows (via send) so the outbox dispatcher backs off and retries
         // rather than losing the confirmation.
@@ -123,7 +121,7 @@ public class EmailService {
                 "orderId", String.valueOf(order.getOrderId()),
                 "status", order.getOrderStatus(),
                 "message", statusMessage,
-                "trackLink", frontendUrl + "/orders/" + order.getOrderId()));
+                "trackLink", frontend.page("/orders/" + order.getOrderId())));
 
         send(EmailMessage.to(toEmail,
                         "Order Status Update - #" + order.getOrderId() + " - " + order.getOrderStatus())
@@ -180,19 +178,19 @@ public class EmailService {
     }
 
     public void sendSubscriptionPaymentFailedEmail(String toEmail, String planName) {
+        String link = frontend.page("/my-subscriptions");
         send(EmailMessage.to(toEmail, "Action needed: payment failed for " + planName)
                 .html("<p>We couldn't take payment to renew your <strong>" + planName + "</strong> subscription.</p>"
                         + "<p>We'll try again automatically over the next few days. To avoid an interruption, "
-                        + "update your card here: <a href=\"" + frontendUrl + "/my-subscriptions\">"
-                        + frontendUrl + "/my-subscriptions</a>.</p>")
+                        + "update your card here: <a href=\"" + link + "\">" + link + "</a>.</p>")
                 .build());
     }
 
     public void sendSubscriptionEndedEmail(String toEmail, String planName) {
+        String link = frontend.page("/subscriptions");
         send(EmailMessage.to(toEmail, "Your " + planName + " subscription has ended")
                 .html("<p>Your <strong>" + planName + "</strong> subscription has ended and will no longer renew.</p>"
-                        + "<p>You can start it again any time here: <a href=\"" + frontendUrl + "/subscriptions\">"
-                        + frontendUrl + "/subscriptions</a>.</p>")
+                        + "<p>You can start it again any time here: <a href=\"" + link + "\">" + link + "</a>.</p>")
                 .build());
     }
 
