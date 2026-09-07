@@ -20,7 +20,7 @@
     "@mui/x-data-grid": "^9.13.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@stomp/stompjs": "^7.3.0",
-    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/react-stripe-js": "^6.9.0",
     "@stripe/stripe-js": "^9.14.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.19.0",
