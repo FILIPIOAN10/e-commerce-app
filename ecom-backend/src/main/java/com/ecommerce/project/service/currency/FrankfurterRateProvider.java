@@ -3,6 +3,8 @@ package com.ecommerce.project.service.currency;
 import com.ecommerce.project.config.CurrencyProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.HttpClientSettings;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -18,6 +20,12 @@ import java.util.Map;
  * {@link FixedRateProvider}, so the registry prefers it and falls back to the
  * fixed table if a call throws.
  *
+ * <p>The {@link RestClient} is built with explicit connect and read timeouts
+ * (see {@code app.currency.frankfurter.*-timeout}). frankfurter.app has no SLA;
+ * without a read timeout a stalled socket would block the calling request thread
+ * indefinitely and {@code ExchangeRateProviderRegistry}'s fall-through — which is
+ * driven by an exception — would never run.
+ *
  * <p>Not cached here — {@link ExchangeRateService} owns the Redis cache, so this
  * hits the network once per cache miss (about once an hour).
  */
@@ -30,8 +38,12 @@ public class FrankfurterRateProvider implements ExchangeRateProvider {
     private final RestClient restClient;
 
     public FrankfurterRateProvider(CurrencyProperties properties) {
+        CurrencyProperties.Frankfurter cfg = properties.getFrankfurter();
+        HttpClientSettings settings = HttpClientSettings.defaults()
+                .withTimeouts(cfg.getConnectTimeout(), cfg.getReadTimeout());
         this.restClient = RestClient.builder()
-                .baseUrl(properties.getFrankfurter().getBaseUrl())
+                .baseUrl(cfg.getBaseUrl())
+                .requestFactory(ClientHttpRequestFactoryBuilder.detect().build(settings))
                 .build();
     }
 

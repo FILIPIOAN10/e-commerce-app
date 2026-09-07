@@ -3,6 +3,7 @@ package com.ecommerce.project.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -60,12 +61,39 @@ public class CurrencyProperties {
     public static class Frankfurter {
         private String baseUrl = "https://api.frankfurter.app";
 
+        /**
+         * Caps how long a rate lookup may block a request thread. frankfurter.app
+         * is a free, no-SLA service; without these, a stalled socket never throws
+         * and {@code ExchangeRateProviderRegistry}'s fall-through to the fixed
+         * table never fires. A timeout throws, which the registry already
+         * catches. Kept short: the store base is USD and the fixed table is a
+         * good-enough floor for the seconds until the next cache refresh.
+         */
+        private Duration connectTimeout = Duration.ofSeconds(2);
+        private Duration readTimeout = Duration.ofSeconds(3);
+
         public String getBaseUrl() {
             return baseUrl;
         }
 
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
+        }
+
+        public Duration getConnectTimeout() {
+            return connectTimeout;
+        }
+
+        public void setConnectTimeout(Duration connectTimeout) {
+            this.connectTimeout = connectTimeout == null ? Duration.ofSeconds(2) : connectTimeout;
+        }
+
+        public Duration getReadTimeout() {
+            return readTimeout;
+        }
+
+        public void setReadTimeout(Duration readTimeout) {
+            this.readTimeout = readTimeout == null ? Duration.ofSeconds(3) : readTimeout;
         }
     }
 }
