@@ -29,6 +29,16 @@ updates:
     labels:
       - "dependencies"
       - "frontend"
+    groups:
+      # vitest and @vitest/coverage-v8 are version-locked: coverage-v8 declares a
+      # peer of the *exact* vitest version, so a lone coverage bump produces a
+      # tree npm refuses to install (ERESOLVE, "peer vitest@5.0.0 ... Found:
+      # vitest@4.1.11") and CI fails on npm ci before a single test runs. Grouped
+      # so the pair always moves in one PR.
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
     ignore:
       # @vitejs/plugin-react 6.x requires vite ^8; this app is on vite 7. Lift this
       # together with the Vite 8 upgrade, not before - the mismatched pair produced
