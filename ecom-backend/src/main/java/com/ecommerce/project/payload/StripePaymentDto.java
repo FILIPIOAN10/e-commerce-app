@@ -2,6 +2,7 @@ package com.ecommerce.project.payload;
 
 import com.ecommerce.project.model.Address;
 import lombok.Data;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -17,6 +18,8 @@ public class StripePaymentDto {
     @NotBlank
     private String currency;
 
+    @NotBlank
+    @Email
     private String email;
 
     private String name;

@@ -132,8 +132,11 @@ const Filter = ({categories}) => {
             // Show recent searches instantly
             updateSuggestions(filteredHistory.map((text) => ({ text, type: "history" })));
 
+            const controller = new AbortController();
             const fetchSuggestions = setTimeout(() => {
-                api.get(`/public/products/autocomplete?q=${encodeURIComponent(trimmed)}`)
+                api.get(`/public/products/autocomplete?q=${encodeURIComponent(trimmed)}`, {
+                        signal: controller.signal,
+                    })
                     .then(({ data }) => {
                         const apiItems = (data || [])
                             .filter((item) => !filteredHistory.some((h) => h.toLowerCase() === item.toLowerCase()))
@@ -142,11 +145,17 @@ const Filter = ({categories}) => {
                         const merged = [...filteredHistory.map((text) => ({ text, type: "history" })), ...apiItems];
                         updateSuggestions(merged);
                     })
-                    .catch(() => {
+                    .catch((err) => {
+                        // A superseded keystroke aborts this request; ignore it
+                        // so its stale response can't overwrite the newer one.
+                        if (err?.code === "ERR_CANCELED" || err?.name === "CanceledError") return;
                         updateSuggestions(filteredHistory.map((text) => ({ text, type: "history" })));
                     });
             }, SUGGESTION_DEBOUNCE_MS);
-            return () => clearTimeout(fetchSuggestions);
+            return () => {
+                clearTimeout(fetchSuggestions);
+                controller.abort();
+            };
         }, [searchTerm, recentSearches]);
 
         useEffect(() => {

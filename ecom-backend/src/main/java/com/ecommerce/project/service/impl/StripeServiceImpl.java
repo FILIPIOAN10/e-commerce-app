@@ -26,6 +26,7 @@ import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.RefundCreateParams;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,7 @@ import java.util.List;
  * (e.g. {@code RefundHandler}) must order it call-Stripe-then-write in their own
  * short transaction, not wrap this service.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StripeServiceImpl implements StripeService {
@@ -100,7 +102,7 @@ public class StripeServiceImpl implements StripeService {
         Customer customer;
         CustomerSearchParams searchParams =
                 CustomerSearchParams.builder()
-                        .setQuery("email:'" + stripePaymentDto.getEmail() + "'")
+                        .setQuery("email:'" + escapeStripeSearchValue(stripePaymentDto.getEmail()) + "'")
                         .build();
         CustomerSearchResult customers = Customer.search(searchParams);
         if (customers.getData().isEmpty()) {
@@ -143,8 +145,25 @@ public class StripeServiceImpl implements StripeService {
         try {
             return PaymentIntent.retrieve(paymentIntentId);
         } catch (StripeException e) {
-            throw new APIException("Failed to retrieve payment: " + e.getMessage());
+            // e.getMessage() is Stripe's own wording (request ids, parameter
+            // names, account hints) — log it for us, not for the API client.
+            log.warn("Stripe PaymentIntent retrieve failed for {}: {}", paymentIntentId, e.getMessage());
+            throw new APIException("Unable to verify the payment right now. Please try again.");
         }
+    }
+
+    /**
+     * Escapes a value for interpolation into a single-quoted Stripe Search
+     * query string. Stripe uses backslash as the escape character inside
+     * {@code '...'}; a stray quote would otherwise let the caller's input change
+     * the query's structure. {@code StripePaymentDto.email} is also
+     * {@code @Email}-validated at the controller, so this is defence in depth.
+     */
+    private static String escapeStripeSearchValue(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\").replace("'", "\\'");
     }
 
     @Override
