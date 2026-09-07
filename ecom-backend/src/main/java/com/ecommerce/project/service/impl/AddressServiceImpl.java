@@ -31,16 +31,18 @@ public class AddressServiceImpl implements AddressService {
     private final AuthUtil authUtil;
 
 
+    /**
+     * {@code Address.user} is the owning side, so setting it and saving is the
+     * whole persist. The previous version also pushed the new address into
+     * {@code user.getAddresses()} — the inverse side, which JPA never writes —
+     * and that touch of a LAZY collection on a detached User threw
+     * LazyInitializationException before the insert was ever attempted.
+     */
     @Override
     public AddressDTO createAddress(AddressDTO addressDTO, User user) {
-
         Address address = modelMapper.map(addressDTO, Address.class);
-        List<Address> addressesList = user.getAddresses();
-        addressesList.add(address);
-        user.setAddresses(addressesList);
         address.setUser(user);
-        Address saveAddressService =  addressRepository.save(address);
-        return modelMapper.map(saveAddressService,AddressDTO.class);
+        return modelMapper.map(addressRepository.save(address), AddressDTO.class);
     }
 
     /**
@@ -70,11 +72,20 @@ public class AddressServiceImpl implements AddressService {
         return modelMapper.map(address,AddressDTO.class);
     }
 
+    /**
+     * The addresses on one account.
+     *
+     * <p>Queried by user id rather than walked off {@code user.getAddresses()}:
+     * {@code AuthUtil.loggedInUser()} hands back a detached User — its own short
+     * repository transaction has already committed — so with
+     * {@code open-in-view=false} reading that LAZY collection threw
+     * LazyInitializationException, a 500 on every checkout. Ordered so the
+     * address list does not reshuffle between loads.
+     */
     @Override
     public List<AddressDTO> getUserAddresses(User user) {
-        List<Address> addresses = user.getAddresses();
-        return  addresses.stream()
-                .map(address->modelMapper.map(address,AddressDTO.class))
+        return addressRepository.findByUserUserIdOrderByAddressIdAsc(user.getUserId()).stream()
+                .map(address -> modelMapper.map(address, AddressDTO.class))
                 .toList();
     }
 

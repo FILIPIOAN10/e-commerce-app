@@ -16,6 +16,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,33 @@ public class MyGlobalExceptionHandler {
         if (response.isEmpty()) {
             response.put("request", "Request validation failed");
         }
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Bean Validation that fired somewhere other than the request boundary —
+     * in practice, constraints declared on an entity class, which Hibernate
+     * checks at flush time.
+     *
+     * <p>Without this the violation reached the catch-all and a caller who sent
+     * a too-short building name was told "Internal server error". It is their
+     * input that is wrong, so it is a 400, reported per field like the other two
+     * validation handlers above. A DTO that mirrors its entity's constraints
+     * never gets here; this is the backstop for the ones that drift apart.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException e) {
+        Map<String, String> response = new HashMap<>();
+        if (e.getConstraintViolations() != null) {
+            e.getConstraintViolations().forEach(violation -> {
+                String path = violation.getPropertyPath() == null ? "" : violation.getPropertyPath().toString();
+                response.put(path.isBlank() ? "request" : path, violation.getMessage());
+            });
+        }
+        if (response.isEmpty()) {
+            response.put("request", "Request validation failed");
+        }
+        logger.warn("Constraint violation escaped the request boundary: {}", response);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
