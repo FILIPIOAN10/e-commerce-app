@@ -7,8 +7,13 @@ async function waitForCategory(page, name) {
     if (await page.locator('text=' + name).first().isVisible({ timeout: 1000 }).catch(() => false)) {
       return
     }
+    // The empty-state screen ("No Categories Created Yet") renders no data grid
+    // and therefore no pager. A bounded isEnabled() returns false for both a
+    // missing and a disabled button instead of blocking on a missing element
+    // until the whole test times out.
     const nextBtn = page.getByRole('button', { name: 'Go to next page' })
-    if (await nextBtn.isDisabled().catch(() => true)) {
+    const canPage = await nextBtn.isEnabled({ timeout: 1000 }).catch(() => false)
+    if (!canPage) {
       break
     }
     await nextBtn.click()
@@ -33,9 +38,11 @@ test.describe('Admin category CRUD', () => {
     await page.fill('#categoryName', uniqueName)
     await page.click('button:has-text("Save")')
 
-    // Wait for the create request and the subsequent table refresh to complete
+    // Wait for the create request and the subsequent table refresh to complete.
+    // The API call is POST /api/admin/categories — matching /en/admin/categories
+    // (the SPA route) never resolved and always burned the full timeout.
     await page.waitForResponse(
-      response => response.url().includes('/en/admin/categories') && response.request().method() === 'POST',
+      response => response.url().includes('/api/admin/categories') && response.request().method() === 'POST',
       { timeout: 10000 }
     ).catch(() => null)
     await page.waitForTimeout(500)
