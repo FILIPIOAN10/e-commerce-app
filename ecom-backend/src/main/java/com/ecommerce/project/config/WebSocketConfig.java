@@ -9,6 +9,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -16,8 +18,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final WebSocketAuthInterceptor authInterceptor;
     private final WebSocketPrincipalHandshakeHandler handshakeHandler;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    /**
+     * Same list the CORS filter uses (see {@code WebSecurityConfig}). The STOMP
+     * handshake enforces its own origin check, so leaving it on frontend.url
+     * alone would let the REST calls succeed from a Vite fallback port while the
+     * notification socket kept failing.
+     */
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     public WebSocketConfig(WebSocketAuthInterceptor authInterceptor,
                            WebSocketPrincipalHandshakeHandler handshakeHandler) {
@@ -45,7 +53,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // lives there too. Anywhere else the handshake arrives with no cookie and
         // WebSocketAuthInterceptor can only answer 401.
         registry.addEndpoint("/api/ws-notifications")
-                .setAllowedOrigins(frontendUrl)
+                .setAllowedOrigins(allowedOrigins.toArray(new String[0]))
                 .addInterceptors(authInterceptor)
                 .setHandshakeHandler(handshakeHandler)
                 .withSockJS();
