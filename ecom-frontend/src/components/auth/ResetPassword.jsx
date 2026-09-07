@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import LangLink from "../shared/LangLink";
+import { useLangNavigate } from "../../hooks/useLangNavigate";
 import { FaKey, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import InputField from "../shared/InputField";
@@ -9,7 +11,7 @@ import toast from "react-hot-toast";
 
 const ResetPassword = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const navigate = useLangNavigate();
     const [loader, setLoader] = useState(false);
     const [status, setStatus] = useState("form");
     const [message, setMessage] = useState("");
@@ -68,12 +70,12 @@ const ResetPassword = () => {
                     <p className="text-slate-600 dark:text-gray-400 mb-4">
                         No reset token found. Please request a new password reset link.
                     </p>
-                    <Link
+                    <LangLink
                         to="/forgot-password"
                         className="text-blue-600 hover:underline font-medium"
                     >
                         Request New Link
-                    </Link>
+                    </LangLink>
                 </div>
             </div>
         );
@@ -111,12 +113,12 @@ const ResetPassword = () => {
                         Reset Failed
                     </h1>
                     <p className="text-slate-600 dark:text-gray-400 mb-4">{message}</p>
-                    <Link
+                    <LangLink
                         to="/forgot-password"
                         className="text-blue-600 hover:underline font-medium"
                     >
                         Request New Link
-                    </Link>
+                    </LangLink>
                 </div>
             </div>
         );
@@ -184,12 +186,12 @@ const ResetPassword = () => {
 
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Remember your password?{" "}
-                    <Link
+                    <LangLink
                         className="font-semibold underline hover:text-black dark:hover:text-white"
                         to="/login"
                     >
                         Back to Login
-                    </Link>
+                    </LangLink>
                 </p>
             </form>
         </div>

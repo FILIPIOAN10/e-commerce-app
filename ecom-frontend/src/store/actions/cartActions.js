@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import api from "../../api/api";
-import i18n from "../../i18n";
+import { langPath } from "../../utils/languagePath";
 import { writeJson } from "../../utils/safeStorage";
 
 const renderAddedToCartToast = (productName, navigate, toast, t) =>
@@ -13,7 +13,7 @@ const renderAddedToCartToast = (productName, navigate, toast, t) =>
             {
                 type: "button",
                 onClick: () => {
-                    navigate(`/${i18n.language}/cart`);
+                    navigate(langPath("/cart"));
                     toast.dismiss(t.id);
                 },
                 className:

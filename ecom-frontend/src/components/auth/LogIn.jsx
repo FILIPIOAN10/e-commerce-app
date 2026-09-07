@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import LangLink from "../shared/LangLink";
+import { useLanguage } from "../../context/LanguageContext";
 import { AiOutlineLogin } from "react-icons/ai";
 import InputField from "../shared/InputField";
 import { useDispatch } from "react-redux";
@@ -16,6 +18,7 @@ import { writeJson } from "../../utils/safeStorage";
 const LogIn = () => {
 
     const navigate = useNavigate();
+    const lang = useLanguage();
     const [loader,setLoader]= useState(false);
     const [needs2FA, setNeeds2FA] = useState(false);
     const [temp2FAToken, setTemp2FAToken] = useState(null);
@@ -52,7 +55,7 @@ const LogIn = () => {
                 setTemp2FAToken(null);
                 setLoginEmail(null);
                 reset();
-                navigate("/");
+                navigate(`/${lang}`);
             };
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center dark:bg-gray-950">
@@ -114,12 +117,12 @@ const LogIn = () => {
 
                 {/* FORGOT PASSWORD */}
                 <div className="text-right mt-1">
-                    <Link
+                    <LangLink
                         to="/forgot-password"
                         className="text-sm text-blue-600 hover:underline font-medium"
                     >
                         Forgot Password?
-                    </Link>
+                    </LangLink>
                 </div>
 
                 {/* OAUTH SECTION */}
@@ -149,12 +152,12 @@ const LogIn = () => {
                 {/* REGISTER */}
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Don't have an account?{" "}
-                    <Link
+                    <LangLink
                         className="font-semibold underline hover:text-black dark:hover:text-white"
                         to="/register"
                     >
                         SignUp
-                    </Link>
+                    </LangLink>
                 </p>
 
             </form>

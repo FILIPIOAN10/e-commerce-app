@@ -1,12 +1,13 @@
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "../../i18n";
+import { stripLangPrefix } from "../../utils/languagePath";
 
 const siteUrl = import.meta.env.VITE_SITE_URL || "https://e-shop.example.com";
 
 const LanguageMeta = () => {
   const location = useLocation();
-  const pathWithoutLang = location.pathname.replace(/^\/[a-z]{2}/, "") || "/";
+  const pathWithoutLang = stripLangPrefix(location.pathname) || "/";
 
   return (
     <Helmet>

@@ -1,5 +1,5 @@
 import axios from "axios";
-import i18n from "../i18n";
+import { currentLang, langPath } from "../utils/languagePath";
 import { removeKey } from "../utils/safeStorage";
 
 const api = axios.create({
@@ -10,7 +10,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
     config.headers = config.headers || {};
 
-    config.headers["Accept-Language"] = i18n.language || "en";
+    config.headers["Accept-Language"] = currentLang();
 
     const csrfToken = document.cookie
         .split("; ")
@@ -31,9 +31,9 @@ let refreshing = null;
 
 const signOutAndRedirect = () => {
     removeKey("auth");
-    const lang = i18n.language || "en";
-    if (!window.location.pathname.includes(`/${lang}/login`)) {
-        window.location.assign(`/${lang}/login`);
+    const loginPath = langPath("/login");
+    if (window.location.pathname !== loginPath) {
+        window.location.assign(loginPath);
     }
 };
 
