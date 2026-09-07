@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form';
 import { FaUserPlus } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import LangLink from '../shared/LangLink';
 import InputField from '../shared/InputField';
 import { useDispatch } from 'react-redux';
 import { registerNewUser } from '../../store/actions';
@@ -128,12 +129,12 @@ const Register = () => {
                 </button>
                 <p className="text-center text-sm text-slate-700 dark:text-gray-300 mt-6">
                     Already have an account?
-                    <Link 
+                    <LangLink
                     className="font-semibold underline hover:text-black dark:hover:text-white"
                     to="/login"
                     >
                     <span>Login</span>
-                    </Link>
+                    </LangLink>
                 </p>
             </form>
         </div>

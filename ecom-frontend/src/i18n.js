@@ -28,6 +28,8 @@ i18n
   .init({
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),
+    // Reduce "en-US" → "en" so i18n.language is always a code we route on.
+    load: "languageOnly",
     ns: ["common", "navbar", "home", "product", "cart", "auth", "about", "contact", "wishlist", "notFound", "userMenu"],
     defaultNS: "common",
     resources,

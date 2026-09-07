@@ -3,6 +3,7 @@ import { FaGlobe, FaCheck } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import { SUPPORTED_LANGUAGES } from "../../i18n";
+import { stripLangPrefix } from "../../utils/languagePath";
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
@@ -15,9 +16,8 @@ const LanguageSwitcher = () => {
   const changeLanguage = (code) => {
     if (code === current.code) return;
     i18n.changeLanguage(code);
-    const currentPath = location.pathname;
-    const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}/, "") || "";
-    navigate(`/${code}${pathWithoutLang}`);
+    const pathWithoutLang = stripLangPrefix(location.pathname).replace(/\/$/, "");
+    navigate(`/${code}${pathWithoutLang}${location.search}${location.hash}`);
   };
 
   return (

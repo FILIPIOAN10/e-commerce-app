@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useLangNavigate } from "../../hooks/useLangNavigate";
 import { FaCheckCircle, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 import api from "../../api/api";
 
 const VerifyEmail = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const navigate = useLangNavigate();
     const [status, setStatus] = useState("loading");
     const [message, setMessage] = useState("");
     const hasVerified = useRef(false);
