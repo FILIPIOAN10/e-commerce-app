@@ -169,7 +169,11 @@ public class ProductServiceImpl implements ProductService {
         int pageNumber = 0;
         Page<Product> slice;
         do {
-            slice = productRepository.findAll(PageRequest.of(pageNumber, REINDEX_PAGE_SIZE, Sort.by("productId")));
+            // findAllWithCategory, not findAll: category is LAZY now and the
+            // entities here are detached (no surrounding transaction), so the
+            // indexer's product.getCategory() would otherwise fail.
+            slice = productRepository.findAllWithCategory(
+                    PageRequest.of(pageNumber, REINDEX_PAGE_SIZE, Sort.by("productId")));
             slice.getContent().forEach(productSemanticSearchService::indexProduct);
             indexed += slice.getNumberOfElements();
             log.info("Reindex progress: {} / {} products", indexed, slice.getTotalElements());

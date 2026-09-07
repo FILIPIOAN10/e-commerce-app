@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,6 +113,24 @@ class ProductListingQueryCountTest {
         assertThat(product.getUser()).isNotNull();
         assertThat(product.getUser().getUserId()).isNotNull();
         assertThat(product.getUser().getUserName()).startsWith(tag);
+    }
+
+    @Test
+    @DisplayName("findAllWithCategory keeps the category reachable on a detached product")
+    void reindexPathCategorySurvivesDetach() {
+        // reindexProductSearch runs its per-page work in no transaction, so the
+        // entities it hands the indexer are detached. category is LAZY now — the
+        // fetch join in findAllWithCategory is what keeps getCategory() working
+        // there. Without it this loop throws LazyInitializationException.
+        Page<Product> page = productRepository.findAllWithCategory(
+                PageRequest.of(0, SELLERS, Sort.by(Sort.Direction.DESC, "productId")));
+        entityManager.clear();
+
+        assertThat(page.getContent()).hasSize(SELLERS);
+        for (Product product : page.getContent()) {
+            assertThat(product.getProductName()).startsWith(tag);
+            assertThat(product.getCategory().getCategoryName()).isEqualTo(tag + "-cat");
+        }
     }
 
     /**

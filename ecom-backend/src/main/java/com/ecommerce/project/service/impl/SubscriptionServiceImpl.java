@@ -26,7 +26,10 @@ import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +37,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionServiceImpl implements SubscriptionService {
+
+    /**
+     * Upper bound on the admin plan list. Like the coupon list, the endpoint
+     * returns a plain array, so {@code findAll()} was unbounded; a catalogue of
+     * subscription plans never approaches this, and hitting it is the cue to
+     * paginate the endpoint.
+     */
+    private static final int MAX_PLANS = 200;
 
     private final SubscriptionPlanRepository planRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
@@ -160,14 +172,19 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public List<SubscriptionPlanDTO> getActivePlans() {
         return planRepository.findByActiveTrue().stream()
-                .filter(SubscriptionPlan::getActive)
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<SubscriptionPlanDTO> getAllPlans() {
-        return planRepository.findAll().stream()
+        var page = planRepository.findAll(
+                PageRequest.of(0, MAX_PLANS, Sort.by(Sort.Direction.ASC, "planId")));
+        if (page.hasNext()) {
+            log.warn("Plan list truncated at {} rows; {} exist. Paginate this endpoint.",
+                    MAX_PLANS, page.getTotalElements());
+        }
+        return page.getContent().stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

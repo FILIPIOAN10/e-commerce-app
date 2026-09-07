@@ -36,6 +36,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
 
     List<Product> findAllByOrderByProductIdDesc(Pageable pageable);
 
+    /**
+     * Every product with its category pre-fetched, for the reindex sweep, which
+     * reads {@code product.getCategory().getCategoryName()} on detached entities
+     * (its per-page work runs in no transaction, on purpose). {@code category} is
+     * a to-one, so the fetch join does not multiply rows and the page limit is
+     * applied in SQL.
+     */
+    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.category",
+            countQuery = "SELECT COUNT(p) FROM Product p")
+    Page<Product> findAllWithCategory(Pageable pageable);
+
     @Query("SELECT oi.product FROM OrderItem oi GROUP BY oi.product " +
             "ORDER BY SUM(oi.quantity) DESC")
     List<Product> findBestSellingProducts(Pageable pageable);

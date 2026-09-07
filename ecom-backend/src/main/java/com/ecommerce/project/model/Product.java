@@ -70,7 +70,13 @@ public class Product {
     @Column(name = "review_count", nullable = false)
     private int reviewCount = 0;
 
-    @ManyToOne
+    // @ManyToOne defaults to EAGER, which loaded the category on every product
+    // read whether or not the caller wanted it. LAZY now; the catalogue mapper
+    // still reads the category name, but @BatchSize(50) on the Category class
+    // means a page of products resolves its categories ~one query per 50 rather
+    // than a fetch-join baked into every list query. The one caller that touches
+    // a detached Product — reindexProductSearch — uses findAllWithCategory().
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 

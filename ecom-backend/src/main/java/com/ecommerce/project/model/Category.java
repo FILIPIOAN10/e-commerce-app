@@ -4,6 +4,7 @@ package com.ecommerce.project.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.BatchSize;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,11 @@ import lombok.ToString;
 import java.util.List;
 
 @Entity(name = "categories")
+// On the class, not on Product.category: Hibernate 6+ rejects @BatchSize on a
+// to-one field. Here it batches lazy Category proxy initialisation, so a page of
+// products whose categories were left lazy resolves them 50 at a time instead of
+// one query each.
+@BatchSize(size = 50)
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)

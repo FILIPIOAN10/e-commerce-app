@@ -7,16 +7,29 @@ import com.ecommerce.project.payload.CouponDTO;
 import com.ecommerce.project.repository.CouponRepository;
 import com.ecommerce.project.service.CouponService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponServiceImpl implements CouponService {
+
+    /**
+     * Upper bound on the admin coupon list. The endpoint returns a plain array
+     * (no pagination in the API contract), so an unbounded {@code findAll()}
+     * would scan and serialise the whole table. A real store never has this
+     * many live coupons; if the cap is ever hit, that is the signal to give the
+     * endpoint real pagination.
+     */
+    private static final int MAX_COUPONS = 500;
 
     private final CouponRepository couponRepository;
     private final ModelMapper modelMapper;
@@ -83,7 +96,13 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<CouponDTO> getAllCoupons() {
-        return couponRepository.findAll().stream()
+        var page = couponRepository.findAll(
+                PageRequest.of(0, MAX_COUPONS, Sort.by(Sort.Direction.DESC, "id")));
+        if (page.hasNext()) {
+            log.warn("Coupon list truncated at {} rows; {} exist. Paginate this endpoint.",
+                    MAX_COUPONS, page.getTotalElements());
+        }
+        return page.getContent().stream()
                 .map(this::mapToDTO)
                 .toList();
     }
