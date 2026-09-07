@@ -95,4 +95,18 @@ class AddressBookIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
+
+    @Test
+    @WithMockUser(username = "user1", roles = "USER")
+    @DisplayName("a too-short field is a 400 naming the field, not a 500")
+    void invalidAddressIsRejectedAtTheBoundary() throws Exception {
+        String tooShortBuilding = ADDRESS_BODY.replace("\"Block 7\"", "\"B1\"");
+
+        mockMvc.perform(post("/api/addresses")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(tooShortBuilding))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.buildingName").exists());
+    }
 }
