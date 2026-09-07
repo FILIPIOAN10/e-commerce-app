@@ -95,6 +95,9 @@ services:
       # data.sql is replaced by Flyway migrations (V2__seed_roles_and_users.sql)
       SQL_INIT_MODE: never
       SPRING_FLYWAY_ENABLED: "true"
+      # Only the Selenium workflow overrides this (to add classpath:db/seed);
+      # every other run keeps the migration-only default.
+      SPRING_FLYWAY_LOCATIONS: ${SPRING_FLYWAY_LOCATIONS:-classpath:db/migration}
       # 'local' profile: Vault and Spring AI stay off (both incompatible with
       # Spring Boot 4.1 in local Docker), but rate limiting and email
       # verification run exactly as in production. Override via .env.

@@ -53,6 +53,10 @@ jobs:
           # Browser suite has no SMTP server and drives login repeatedly.
           echo "APP_SKIP_VERIFICATION_EMAIL=true" >> .env
           echo "RATE_LIMIT_ENABLED=false" >> .env
+          # This suite drives fixed URLs (/products/1) and needs the demo
+          # catalogue. V34 removes it from every DB; db/seed puts it back, and
+          # only this workflow loads that location.
+          echo "SPRING_FLYWAY_LOCATIONS=classpath:db/migration,classpath:db/seed" >> .env
 
       - name: Start backend stack with Docker Compose
         run: |
