@@ -64,453 +64,92 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 | Wishlist | Per-user wishlist with add/remove |
 
 ## Engineering decisions
+1. Authentication & Security (JWT, OAuth2, CSRF)
+What to test: Login, registration, token refresh, and CSRF protection on state-changing routes.
 
-The parts of this codebase worth a second look are the ones where a naive
-implementation is subtly wrong under concurrency or against a hostile client.
-Each decision below is stated as *problem → approach → trade-off*.
+Prerequisites: Running frontend (:5173) and backend, test user created.
 
-**Stock is never over-sold, and lapsed carts never leak it.** Checkout reserves
-stock in Redis while the customer is paying. The reserved total per product is
-*always derived* from the live reservations — a sorted set scored by expiry — so
-a reservation that times out simply stops counting; there is no separate counter
-that can drift. The reserve operation (release old, prune expired, check, create)
-runs as one atomic Lua script, closing the check-then-act gap that let two
-requests both see "enough stock". The authoritative oversell gate is a
-conditional `UPDATE … WHERE quantity >= :qty` at consume time: the loser of a
-race is rejected there. *Trade-off:* the reservation check reads on-hand stock as
-a script argument, not atomically, so an over-optimistic reservation can slip
-through — it is caught at the gate, never sold. The Redis-Lua reservation layer
-is also more machinery than a single `SELECT … FOR UPDATE` would be, chosen so
-the DB is not the contention point for browse-heavy traffic.
+Steps:
 
-**Anything that moves money is idempotent.** The Stripe webhook records each
-`event_id` in `processed_webhook_events` with a unique constraint that is the
-real backstop against concurrent double-delivery (the pre-check is just an
-optimisation). Order-creating endpoints take an `Idempotency-Key` header: the
-same key replays the stored response, the same key with a different body is a
-422, an in-flight key is a 409. A payment reference is unique across orders.
-Before an order is created, the server recomputes the price through its own
-pipeline and confirms the gateway's PaymentIntent is for that exact amount —
-the client's claimed `pgStatus` is never trusted. *Trade-off:* an extra table
-and a client contract for the key; a gateway round-trip on the checkout path.
+Go to /login and submit valid credentials. Verify you receive the HttpOnly auth cookie and redirect to the correct base language route (e.g., /en/products).
 
-**Lost updates surface as 409s, not silent last-write-wins.** `@Version` is on
-`Product`, `Coupon` and `Order`; the native stock and coupon UPDATEs bump the
-version too, so an entity save that raced them is rejected rather than clobbering
-their change. The post-commit side effects of checkout (confirmation email,
-notifications, audit) run on a bounded pool *after the transaction commits*, and
-the Redis reservation purge is deferred to after-commit as well — a rolled-back
-checkout keeps its held stock. *Trade-off:* callers must be prepared to retry a
-409; "email may arrive twice" is accepted over "email silently lost" (made
-durable by the transactional outbox — see below).
+Test a state-changing endpoint like /api/auth/signout without a valid session/token. Verify it is rejected (CSRF active).
 
-**`open-in-view` is off**, so every read path resolves its data before the
-transaction closes. That forces three patterns worth naming: list queries use
-JPA **Specifications** (`findAll(spec, pageable)`) for composable filtering;
-sort input is checked against a **`SortWhitelist`** allow-list (an unknown
-property is a 400, not a 500, and `user.password` can't be used to probe an
-ordering); and paginated queries that also need a collection use the **two-phase
-id-then-details** fetch (page over IDs in SQL, then fetch the full graph for that
-page) because a `JOIN FETCH` plus `Pageable` paginates in memory.
+Sign in, click "Sign out", and verify cookies/session are properly cleared.
 
-**A crash between "order saved" and "email sent" loses neither.** The
-confirmation email is not sent from the checkout transaction; a row is written to
-`outbox_event` inside it, and a poller drains the table with `FOR UPDATE SKIP
-LOCKED` so several instances can work the same queue without stepping on each
-other. A failing event retries with exponential backoff and is dead-lettered
-after 8 attempts rather than retried forever. Fiscal invoice numbers rely on the
-same commit-or-nothing property from the other side: a per-year counter row is
-incremented *inside* the transaction that inserts the invoice, rather than drawn
-from a SEQUENCE, because a rolled-back checkout must not consume number 41 and
-leave a permanent hole in the year. *Trade-off:* the outbox costs a table, a
-poller and at-least-once delivery, so handlers have to be idempotent; the counter
-row serialises concurrent issuers on a lock held at the tail of checkout, which
-is fine at this store's volume and would move behind the outbox if it were not.
+Expected Result: Secure authentication flow; unprotected routes reject unauthorized access; sign-out cleanly drops the session.
 
-**Every change to stock can be explained afterwards.** `products.quantity` was a
-bare mutable number: when it said 3, nothing recorded what sold, what came back,
-or what an admin corrected by hand. Every write now goes through one service that
-applies the change and appends a signed `stock_movement` row — reason, cause,
-resulting balance, actor — via a single
-`UPDATE ... WHERE quantity + :delta >= 0 RETURNING quantity`, which decides and
-reads the new balance in one statement and is itself the oversell gate. The
-service is `Propagation.MANDATORY`: a movement recorded outside a transaction
-could outlive the rolled-back order that caused it, so a caller without one fails
-loudly. *Trade-off:* the raw UPDATE leaves an already-loaded `Product` stale in
-the persistence context, so callers take the new figure from the returned
-movement; and the trail is only as good as the discipline of routing every write
-through the service, so a scheduled sweep asserts
-`SUM(delta) = products.quantity` per product and logs whatever drifted.
+2. Multi-Currency Selector
+What to test: Switching currencies on the frontend and verifying correct presentation conversion.
 
-**Money is a decimal, and the database agrees.** Prices and totals were
-`double` throughout — a binary float standing in for a count of cents, which
-cannot hold 84.99 exactly. The `Money` value object (`BigDecimal`, scale 2,
-HALF_UP) owns every arithmetic step of the pricing pipeline, and an order now
-stores `NUMERIC(12,2)` rather than `DOUBLE PRECISION`, so that exactness survives
-the last hop into the database instead of being widened away there. The
-catalogue and the cart followed, so a price is exact from the product row it
-starts on through to the amount confirmed with Stripe — and `SUM(total_amount)`
-behind the revenue reports is exact rather than nearly right. Two hand-rolled
-roundings went with it: `Math.round(x * 100) / 100` in the bundle pricing and
-`price - (discount * 0.01 * price)` for a special price, both replaced by
-`Money.percentage`, which rounds to the cent at every step so the figures agree
-with each other by construction. *Trade-off:* the conversion is going across the
-codebase one slice per branch rather than in one sweep, because every slice
-touches the payment path; what is left of the old world is visible as explicit
-`toDouble()` calls, and each one marks a boundary a later slice removes.
+Prerequisites: App running, products available in the catalogue.
 
-**An order now carries VAT, and the pipeline was already shaped for it.**
-`PriceLineType.TAX` and `PriceBreakdown.taxTotal()` had been sitting unused since
-the pricing pipeline was built — a slot with no rule to fill it, so every order's
-`total_amount` was a pre-tax figure and the amount confirmed with Stripe had no
-tax in it. `VatRule` fills the slot, last in the `@Order` chain: it reads the
-running total *after* the coupon and shipping rules have run, so VAT lands on the
-discounted price the customer actually pays and (by EU practice, and a config
-flag) on the carriage too. The rate is not an app constant the way the shipping
-bands are — it is a legal figure that moves by country and by budget — so it is
-externalised as `app.tax.rates.<ISO>` with a default, resolved from the delivery
-address; a market the store does not charge tax in sets `app.tax.enabled=false`
-and the line disappears rather than showing as €0.00. The amount is persisted in
-its own `NUMERIC(12,2)` column beside the other money, and V29 backfills existing
-orders with `0.00` — correct, not merely convenient, because those orders were
-genuinely priced and charged without tax. *Trade-off:* the taxable base is the
-post-discount total including shipping, which is the common EU case but not
-universal — a jurisdiction that zero-rates shipping or taxes the pre-discount
-amount would need the rule to grow a second mode; and the rate table is a flat
-country map with no notion of reduced rates per product category, which this
-catalogue does not need yet.
+Steps:
 
-**The last four `Double`s are gone, and the migration is closed.** After the
-order, product and cart slices, four columns still stood on `DOUBLE PRECISION`: a
-bundle's and a promo campaign's percentage off, a subscription plan's price, and
-a return's refund amount. Two are amounts and two are percentages, but V25 had
-already settled that both kinds travel as `NUMERIC(12,2)` here — it converted
-`products.discount`, a percentage, on the same reasoning that a percentage
-multiplied into a price must not reintroduce the float error the price just shed,
-and that `12.50%` has to be storable as `12.50`. So V30 converts all four the
-same way, `ROUND(...)` in every `USING` clause as a no-op for real data and a net
-for legacy float noise. The conversion let two seams close: `ReturnServiceImpl`
-had an `asLegacyDouble(BigDecimal)` bridge and a `getOrderTotal` that narrowed
-the order's total back to `double` purely to feed the refund field — both now
-deleted, because the refund is copied straight across as the `BigDecimal` it
-always was — and `SubscriptionServiceImpl` sent Stripe `(long)(amount * 100)`,
-the exact float-cents bug `Money.toCents()` exists to prevent, now
-`Money.of(amount).toCents()`. `Money` grew a `percentage(BigDecimal)` overload so
-the discount rate no longer round-trips through `double` on its way into the
-arithmetic. *Trade-off:* none of consequence — this slice is a type change with
-no behaviour change, which is why it was kept for last, after every slice that
-could actually move a number had landed and been checked.
+Open the homepage/product list (/en/products).
 
-**An approved return refunds the customer by itself, exactly once.** Marking a
-return refunded only ever flipped the order status — the money was refunded by
-hand in the Stripe dashboard, and the `charge.refunded` webhook was the sole
-thing that ever reacted to a refund. Now the "mark refunded" transaction writes
-a `refunds` row and, in the same commit, an outbox event; the dispatcher's
-handler issues the Stripe refund and drives the row to `SUCCEEDED`. Three things
-make a double refund unrepresentable: a partial unique index on `return_id` so a
-second `markAsRefunded` (a double-click, the delivered-tracking sweep firing
-twice) is rejected before any Stripe call; an `Idempotency-Key` of
-`refund:{id}` on the Stripe call so a redelivered outbox event gets the original
-refund back rather than a second one; and a partial unique index on
-`stripe_refund_id` so the outbox path and a refund made straight in the
-dashboard cannot both record the same Stripe refund — the `charge.refunded`
-webhook reconciles onto the row the other path already wrote. A transient Stripe
-error is rethrown so the outbox backs off and retries; a permanent rejection
-(already refunded, not refundable) marks the row `FAILED` and raises an admin
-notification rather than looping. *Trade-off:* the order still moves to
-`Refunded` the moment the admin clicks — that is their assertion and it is what
-happens in all but the rare permanent-failure case — so the `refunds` row, not
-the order status, is the record of whether the money actually moved. Cash-on-
-delivery returns keep the old manual path: there is no charge to reverse.
+Use the currency picker (header/settings) to switch from USD to EUR (or JPY).
 
-**Subscription state is driven by Stripe webhooks, through one deduped door.**
-*Problem:* subscription billing (checkout completed, renewal paid, renewal
-failed, cancelled) was handled by a second webhook endpoint,
-`/api/public/subscriptions/webhook`, that verified its own signature and had no
-replay protection — a Stripe redelivery double-applied. Meanwhile the order-
-payment webhook at `/api/public/webhooks/stripe` already had a
-`processed_webhook_events` unique index doing exactly the dedup we needed.
-*Approach:* the second endpoint is gone. Every Stripe event now enters through
-the one deduped door; anything the payment switch does not claim falls to a
-`SubscriptionEventDispatcher` — a **Strategy registry** built at startup from
-each `SubscriptionEventHandler`'s `eventTypes()`, the same shape as
-`OutboxHandlerRegistry` and `PaymentGatewayRegistry` (two handlers claiming one
-type is a startup failure, not a coin toss). A handler only translates the
-payload and calls `SubscriptionLifecycleService`, which owns the row transition
-and, for the two outward notices (renewal failed, subscription ended), publishes
-an outbox event in the same commit rather than sending mail inline. Payloads
-shift between stripe-java majors — the period end is on the subscription *item*
-now, the subscription id on an invoice is under `parent.subscription_details` —
-so extraction lives in one `StripeSubscriptionEvents` helper that tries the
-current shape and falls back rather than NPE. A `SubscriptionRenewalSweepJob`
-(off in the test profile) reconciles any still-live subscription whose period
-ended over a grace window ago against Stripe, for the delivery that never
-arrived. *Trade-off:* the handlers are thin to the point of looking anaemic —
-five classes that each do one `if null return` and one delegate call — but that
-is the price of the id/period-extraction quirks living in exactly one place
-instead of smeared across the switch.
+Observe product prices updating instantly on the UI.
 
-**One skeleton builds and sends every email.** *Problem:* `EmailService` had
-eleven `send*Email` methods, each repeating the same fifteen lines —
-`createMimeMessage` → `new MimeMessageHelper(msg, true, "UTF-8")` →
-`setFrom`/`setTo`/`setSubject` → render body → `setText(html, true)` → `send` →
-`catch` → `EmailDeliveryException`. The bodies had already drifted: one caught
-`MessagingException` where the rest caught `Exception`, and two stale comments
-claimed to swallow failures that they actually rethrew. *Approach:* a **Template
-Method** — one `private void send(EmailMessage)` owns the envelope, the content
-type, the attachment loop and the single `catch` that names the recipient; each
-public method now renders a subject and body and builds an `EmailMessage`. That
-value object is assembled through a hand-written **Builder** (`EmailMessage.to(to,
-subject).html(body).attach(name, bytes).replyTo(addr).build()`) — required fields
-are arguments to the entry point, optional ones are fluent with defaults,
-validation runs once in `build()`. *Trade-off:* a builder for a six-field record
-is more ceremony than a plain constructor, but the alternative — a `send`
-overload per shape (plain vs html, with vs without attachment, with vs without
-reply-to) — is the combinatorial mess the builder exists to avoid, and the
-contact form finally sets `Reply-To` to the sender because adding it was one
-call rather than a new overload.
+Expected Result: Prices convert based on the cached exchange rates (fetched from ECB/config) while the base settlement in the backend remains in USD.
 
-**Checkout preconditions live in one place.** `placeOrder`, `previewOrder` and
-`calculateShippingCost` each re-derived "this address belongs to the caller" and
-"the cart has something billable in it". They had drifted: the shipping quote
-skipped the ownership check for a while, so a signed-in user could probe other
-accounts' address ids and read their rough location off the returned rate. A
-`CheckoutGuards` component now holds both — `resolveOwnedAddress` returns the
-address it just authorised, `requireActiveItems` rejects a cart that is empty
-once saved-for-later lines are excluded. *Trade-off:* kept as two named methods
-rather than an ordered `List<CheckoutPrecondition>` chain like the pricing
-pipeline — there are two guards, one of them has to hand back the address the
-caller then uses, and a throw-only chain would leave that lookup duplicated
-anyway. The `List` shape earns its keep at three or four independent checks, not
-two.
 
-**Image type validation is a lookup, not two parallel ladders.** Avatar upload
-checked the magic bytes with an if-else chain and *then* re-checked the declared
-extension against the same signatures in a `switch` — two lists to keep in sync.
-`ImageSignature` is an enum pairing each format's extensions with its magic
-bytes (WEBP overrides `matches` for the `WEBP` marker at offset 8); one
-`contentMatchesExtension(bytes, ext)` call replaces both ladders and a new
-format is one constant.
+3. Cart & Checkout (Stock Locking & Money Precision)
+What to test: Adding items, Redis stock reservation, exact BigDecimal calculation (including VAT & Shipping).
 
-**Multi-currency is a presentation layer, not a second settlement currency.**
-*Problem:* customers want to see and check out in their own currency, but the
-catalogue, carts and order totals are all `NUMERIC(12,2)` USD and the payment
-side is single-currency. Re-pricing everything per currency, or threading a
-currency through `Money` and every column, is a migration the size of the one
-that just finished. *Approach:* USD stays the base and the settlement currency;
-a currency the customer picks is a *view* on top. A `supported_currencies` table
-(`V32`, seeded) lists what the picker offers; `ExchangeRateProvider` is a
-**Strategy registry** — `FixedRateProvider` (rates from config, always present,
-the offline floor) and, when `app.currency.provider=frankfurter`, a live ECB
-feed ordered ahead of it that the registry falls through past when a call throws.
-`ExchangeRateService` wraps the registry in a one-hour Redis cache
-(`exchangeRates`), so a rate table is fetched once an hour and every conversion
-reads it from Redis; TTL is the whole invalidation story because rates drift
-slowly. `CurrencyService.convert` rounds to the target currency's own precision
-(2 for EUR, 0 for JPY). At checkout the chosen currency and its USD rate are
-*frozen onto the order* (`orders.currency_code` + `exchange_rate`) so an invoice
-reprinted a year later reproduces the exact figures; product listings and the
-checkout preview convert at the controller boundary, **after** the `@Cacheable`
-product service has returned, so the product cache stays single-currency.
-*Trade-off:* the customer is quoted, say, €92.10 but the card is still charged
-the USD equivalent — true local settlement needs per-currency Stripe prices and
-is a separate slice. Search, faceted, and category product endpoints still
-return USD this iteration; only the main list and single-product endpoints
-honour `X-Currency`. `Money` deliberately stays currency-free — it is the base
-amount; `ConvertedAmount` carries the currency and rate for the presentation
-edge.
+Prerequisites: Logged-in user, active product with stock.
 
-**A chargeback is a state machine fed by webhooks and worked through the
-outbox.** *Problem:* Stripe's dispute lifecycle arrives as a stream of
-`charge.dispute.created` / `.updated` / `.closed` events — at least once, and not
-guaranteed in order — and each one can move money and starts a clock (evidence
-is due by a deadline or the dispute is lost by default). Handling that inline in
-the webhook switch would mean status logic, an admin alert, and file handling
-all tangled in one `case`. *Approach:* the events enter through the existing
-deduped Stripe endpoint and route to a `DisputeService` that mirrors Stripe into
-a `disputes` row. Its status is an explicit **state machine** — `DisputeStatus`,
-the same enum-with-allowed-transitions shape as `OrderStatus` — so an
-out-of-order `updated` that reports `needs_response` on a dispute we already
-recorded as `won` is logged and dropped, not applied; a closed dispute never
-reopens. Every entry point is order-tolerant and idempotent (a replayed
-`created` becomes an update; a `closed` for a dispute we never saw opens it
-first), because the webhook gives no other guarantee. The two outward effects —
-the "respond by {deadline}" alert on open, the outcome alert on close — are
-**transactional-outbox** events written in the same transaction as the row, so a
-crash between commit and notification still delivers them. Evidence files an
-admin uploads go through the existing **pluggable `FileService`** (`local` by
-default, `s3` by config) into a directory that is *not* web-served — evidence
-carries customer PII, so the only way back to the bytes is the admin download
-endpoint, which is why `FileService` grew a `read`. *Trade-off:* a dispute does
-not move the order's own status — the `OrderStatus` machine has no "disputed"
-node and adding one ripples through stock and returns logic; the dispute row
-links to the order and stands beside it instead. Won/lost is recorded and
-alerted, but the actual ledger reversal is Stripe's — we do not re-credit or
-re-debit anything locally.
+Steps:
 
-**Named patterns already in place:** `PaymentGateway` is a **Strategy** selected
-from a registry; the coupon-then-shipping-then-tax pricing pipeline is a
-**Chain of Responsibility** ordered by `@Order`, not statement order;
-`OrderStatus` and `DisputeStatus` are explicit **state machines** (each status
-declares its successors); the order-lifecycle listeners are **Observers** on
-`@TransactionalEventListener`; `EmailService` is a **Template Method** over an
-`EmailMessage` **Builder**.
+Add an item to the cart. Verify Redis holds a temporary stock reservation.
 
-**The database owns the invariants the entity mapping only claims.** A code
-health audit turned up three defects that shared a shape: something the model
-asserted, that nothing enforced. `User.cart` is mapped `@OneToOne`, but
-`carts.user_id` carried a plain FK — no unique constraint — and cart creation
-read-then-inserted, so two concurrent first touches (a double-clicked *Add to
-cart*, or the SPA loading the cart and adding an item at once) both saw nothing
-and both inserted. `findCartByEmail` returns a single `Cart`, so from that point
-every cart request for that user threw on a two-row result, permanently, until
-someone deleted a row by hand. V26 collapses existing duplicates — merging the
-loser's items into the keeper rather than dropping them — and adds the unique
-index; creation now goes through `INSERT … ON CONFLICT DO NOTHING` and re-reads.
-*Trade-off:* an upsert rather than `save()`-and-catch, because a duplicate-key
-violation raised inside the caller's transaction marks it rollback-only —
-catching it trades the duplicate cart for an `UnexpectedRollbackException` at
-commit, which is not an improvement.
+Proceed to checkout, enter a shipping address, and review the price breakdown (Subtotal + Shipping + VAT).
 
-**A scheduled job that only pushes state one way is a leak.** `applyActiveCampaigns`
-wrote a campaign's discount onto every one of its products once a minute, and
-had no path back: when `end_time` passed the campaign simply stopped being
-selected, so the promotional price stayed on the product forever — invisibly,
-because the campaign no longer showed as active anywhere in the admin UI.
-Deleting a campaign did the same thing, and deleted the only rows that could
-have undone it. The sweep is now symmetric — `promo_campaign_products.original_discount`
-remembers what to restore, `promo_campaigns.applied` records what the sweep has
-actually done — so a campaign is applied once and reverted once instead of
-rewritten every tick. That also removes the incidental cost: the old pass was
-1 + N queries and N updates per campaign, bumping `@Version` and churning WAL
-for values that had not changed, where a steady state is now two SELECTs that
-return nothing. `fixedDelay` replaces `fixedRate` and it takes the same advisory
-lock as the other sweeps, so it cannot overlap itself or collide across
-instances. The schedule itself moved out to a `PromoCampaignSweepJob`, matching
-`AbandonedCartReminderJob` and `StockReconciliationJob`: scheduling is a
-deployment concern, and a test that wants to observe one pass should not have to
-defeat a timer to do it — `app.promo.enabled=false` in the test profile, and the
-service driven directly. *Known limit:* campaigns already running when V27 lands
-have no recorded original discount — it was overwritten before the column
-existed — so they revert to no discount rather than to whatever preceded them.
+Complete payment via Stripe.
 
-**One key, one writer.** `state.products` held a single `pagination` object that
-`productCatalogReducer`, `categoryReducer` and `lowStockReducer` all wrote, and
-the merge in `ProductReducer` spreads the category slice last. `/products` fires
-the product and category queries in parallel, so whenever the smaller categories
-response landed second it overwrote the catalog's page count with its own — a
-12-page catalog rendering as one page, intermittently, which is why it survived
-so long. Each list now owns its own paginator. The same merge also returned a
-fresh object for every action dispatched anywhere in the app, so `useSelector`'s
-reference check re-rendered every consumer of `state.products` on unrelated
-traffic; it now hands back the same reference when nothing moved.
+Expected Result: Order is placed, stock is permanently consumed in Postgres via the stock movement service, exact cent precision is maintained, and an outbox event triggers the confirmation email.
 
-**Configuration that only resolves in development is a production outage.**
-`app.password-reset.frontend-url` was hardcoded to `localhost:5173` with no
-placeholder, and the prod compose sets `FRONTEND_URL` — which relaxed binding
-maps to `frontend.url`, not to that key. `EmailService` used it for four links:
-password reset, email verification and both order-tracking mails. All four
-pointed at localhost in production, and nothing logged an error because the mail
-sent fine. The duplicate property is gone. Stripe had the mirror image: the key
-was read as `stripe.secret.key` by `StripeServiceImpl` and `stripe.api.key` by
-`SubscriptionServiceImpl`, and only the former is set in production, so
-subscriptions failed with "Stripe API key is not configured" while checkout
-worked. One property name, one environment variable, end to end.
+4. Stripe Subscriptions & Webhooks
+What to test: Subscription lifecycle management via unified Stripe webhooks.
 
-**Monitoring that cannot be scraped is not monitoring.** `/actuator/**` required
-`ADMIN`, and Prometheus scrapes with no JWT, so every metric was blackholed and
-every rule in `alert-rules.yml` sat un-evaluated — findable only during the first
-incident it was meant to catch. The obvious repair, opening `/actuator/prometheus`,
-is the wrong one, and the codebase says so: `IdorAuthorizationTest` asserts that
-every actuator endpoint bar health and info stays closed to anonymous and to a
-plain user. So the scraper gets a credential instead of the endpoint being
-opened — a second `SecurityFilterChain`, ordered ahead of the main one and
-scoped to `/actuator/**`, that accepts HTTP Basic against a single in-memory
-`METRICS` account, alongside the JWT filter so an `ADMIN` reaching actuator
-through the app's own cookie still works. *Trade-off:* the account is in memory
-and not in `users`, because a scrape credential is not a person and must not be
-able to sign in to the application; the cost is that it is configured rather
-than managed, and with no password set no account exists at all, so an
-unconfigured deployment fails closed rather than open. The stack itself had
-never been runnable either — `monitoring/` held a scrape config, alert rules and
-a dashboard that no compose file started — so Prometheus and Grafana are now
-services under a `monitoring` profile, with the scrape password materialised
-from the environment as a file so no credential is committed.
+Prerequisites: Stripe CLI configured for webhook forwarding to /api/public/webhooks/stripe.
 
-**Validation belongs at the edge, and an annotation nobody reads is not
-validation.** Nine `@RequestBody` parameters carried no `@Valid`, so `CouponDTO`'s
-`@Min(1) @Max(100)` had been sitting there unenforced — an admin could store a
-500% coupon and the pricing pipeline would take more off the running total than
-the order was worth. The DTOs with no constraints at all were worse, because the
-missing value got dereferenced anyway: a null `addressId` reached
-`findById(null)` and a null campaign `startTime` reached `LocalDateTime.parse`,
-both surfacing as 500s on input the *client* got wrong. Every constraint added
-corresponds to a dereference that throws or a number that breaks the arithmetic,
-rather than to a general wish for tidier input. `HandlerMethodValidationException`
-— what `List<@Valid CartItemDTO>` raises — had no case in the advice and fell
-through the catch-all as a 500; it now answers 400 naming the failing element's
-index.
+Steps:
 
-**A caught exception that changes nothing is a lie told to the user.** Four of
-`EmailService`'s sends already threw so the outbox would retry them. The other
-five caught, logged and returned normally, every one called straight from a
-request handler — so the endpoint above answered "check your email" for a message
-that was never sent, and the user simply waited. The contact form showed how
-invisible that was: its controller already had a "failed to send, please try
-again" branch that could never run. *Trade-off:* signup is the one place the
-failure is still swallowed. `AuthServiceImpl` is `@Transactional`, so letting it
-out would roll the registration back and the account would silently not exist
-while the user was told signup failed. An unverified account is a state the
-domain already models, so it is kept and the response says the mail did not go.
+Trigger a test subscription checkout.
 
-**Neither JPA nor Postgres indexes the child side of a foreign key.** A
-`@JoinColumn` generates no index and `REFERENCES` indexes only the parent's
-primary key, so seven FK columns were sequential scans — worst inside the
-cascade behind deleting a product, since `bundle_products.product_id` is
-`ON DELETE CASCADE` and gets scanned during the delete itself. Rather than a
-migration listing seven names and a test asserting those seven exist,
-`ForeignKeyIndexTest` asserts the invariant over `pg_constraint`: no foreign key
-anywhere lacks an index leading with its own column. The failure it guards
-against is the *next* `@JoinColumn` added without one, which a named list would
-happily pass. Two of the seven were ones the audit itself had missed; the query
-found them.
+Simulate Stripe events via CLI (e.g., stripe trigger customer.subscription.created, invoice.payment_failed).
 
-**The seller nobody renders.** `Product.user` was an EAGER `@ManyToOne` and
-`User.roles` is an EAGER `@ManyToMany`, so a page of twenty products issued a
-select per distinct seller and then a select for each of those sellers' roles —
-roughly forty queries for a list that needs one, each hydrating a whole `User`
-including its password hash for a DTO with no seller field. Now lazy, which is
-safe on three counts: ModelMapper has no target property to traverse into, the
-only readers call `getUserId()` and a proxy answers that without a query, and
-`Order.withDetails` already named the attribute so the order path is unchanged.
-*Deliberately partial:* `Product.category` stays eager, because the mapper reads
-`getCategoryName()` and converting it means an entity graph on every finder
-across the whole catalogue surface, for a cost bounded by distinct categories on
-a page rather than by rows. The seller was the part that scaled.
+Expected Result: The single deduped webhook endpoint processes the event, updates the subscription state via SubscriptionLifecycleService, and triggers outbox notifications for failures/cancellations.
 
-**CSRF was waived for `/api/auth/**` as a whole**, which swept up `POST /signout`
-and both device-revocation routes — state changes made by someone who already
-holds a session, which is the thing CSRF exists to stop. Signout takes a
-cross-site form post with no preflight to stand in the way, so any page could
-sign a visitor out, or drop every session they had. Now waived only for the
-routes reached before a token exists. Verified against the running stack rather
-than reasoned about, because this is the change most likely to break a real
-login: a normal GET issues the cookie, signin and forgot-password still pass
-without a token, signout passes with one and is refused without.
+5. Chargebacks & Disputes (New Feature - V33)
+What to test: Handling Stripe dispute events, evidence uploads, and dispute state machines.
 
-### In flight this iteration
+Prerequisites: Admin privileges, existing order in the system.
 
-The money migration is complete — all five slices are on `main`, and no column or
-field in the codebase holds money as a binary float.
+Steps:
 
-Current work: **chargebacks / disputes** (`feat/chargeback-disputes`, `V33`).
-Stripe `charge.dispute.*` events enter the existing deduped webhook endpoint and
-drive a `disputes` row through the `DisputeStatus` state machine; the open and
-close alerts go out through the transactional outbox; admins attach evidence
-files via the pluggable `FileService` into a non-web-served directory. See the
-Engineering-decisions entry above. Merged just before it: **multi-currency**
-(`V32`), **design-pattern cleanup**, **automated refunds** (`V31`),
-**subscription lifecycle webhooks**.
+Simulate a charge.dispute.created webhook event from Stripe.
+
+Log in as an admin, navigate to the disputes panel, and upload a supporting evidence file.
+
+Verify the file goes through FileService into the secure, non-web-served directory (app.disputes.evidence-dir).
+
+Expected Result: Dispute record is created in NEEDS_RESPONSE status, outbox fires the deadline alert, and evidence files are securely stored without public web access.
+
+6. Admin Actions & Sweeps (Async Outbox & Background Jobs)
+What to test: Outbox dispatcher processing and campaign/stock sweeps.
+
+Prerequisites: Background schedulers active (or triggered via test profiles).
+
+Steps:
+
+Trigger actions that generate outbox events (e.g., order creation or refund).
+
+Observe the outbox poller using FOR UPDATE SKIP LOCKED to process events with exponential backoff on failure.
+
+Expected Result: Background tasks run safely without overlapping, and emails/invoices are processed reliably.
 
 ## Getting Started
  
