@@ -25,15 +25,38 @@ import com.stripe.param.CustomerSearchParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.RefundCreateParams;
 import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Every method here spends most of its wall-clock time inside a blocking Stripe
+ * REST call (Stripe's Java client defaults: 30s connect, 80s read). None of them
+ * may run inside a transaction: a transaction borrows a HikariCP connection for
+ * its whole body, so a class-level {@code @Transactional} here parked a pooled
+ * connection for the duration of two-to-four sequential Stripe round-trips. Under
+ * a Stripe latency spike, {@code DB_POOL_MAX} concurrent checkouts drained the
+ * pool and every other request in the app then failed on
+ * {@code hikari.connection-timeout} — a partial Stripe outage became a full-site
+ * outage.
+ *
+ * <ul>
+ *   <li>{@link #retrievePaymentIntent(String)} and
+ *       {@link #issueRefund(String, long, String)} touch no database at all.</li>
+ *   <li>{@link #paymentIntent(StripePaymentDto)} reads the cart and address
+ *       first; {@code CartRepository.findCartByEmail} {@code JOIN FETCH}es the
+ *       user, items and their products, so every field it reads is initialised
+ *       before the Stripe calls begin and no open transaction is needed to keep
+ *       lazy proxies alive across them.</li>
+ * </ul>
+ *
+ * <p>Callers that genuinely need Stripe I/O and a DB write in one unit of work
+ * (e.g. {@code RefundHandler}) must order it call-Stripe-then-write in their own
+ * short transaction, not wrap this service.
+ */
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class StripeServiceImpl implements StripeService {
     @Value("${stripe.secret.key}")
