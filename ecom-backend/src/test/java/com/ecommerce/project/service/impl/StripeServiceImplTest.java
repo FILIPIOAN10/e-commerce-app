@@ -1,5 +1,6 @@
 package com.ecommerce.project.service.impl;
 
+import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.StripePaymentDto;
 import com.ecommerce.project.repository.AddressRepository;
@@ -12,6 +13,7 @@ import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.service.pricing.rule.CouponDiscountRule;
 import com.ecommerce.project.service.pricing.rule.ShippingRule;
 import com.ecommerce.project.util.AuthUtil;
+import com.stripe.exception.ApiConnectionException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.CustomerSearchResult;
@@ -36,7 +38,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import com.ecommerce.project.service.pricing.Money;
@@ -149,6 +153,26 @@ class StripeServiceImplTest {
             ArgumentCaptor<PaymentIntentCreateParams> captor = ArgumentCaptor.forClass(PaymentIntentCreateParams.class);
             paymentIntentStatic.verify(() -> PaymentIntent.create(captor.capture()));
             assertEquals(8900L, captor.getValue().getAmount());
+        }
+    }
+
+    @Test
+    @DisplayName("retrievePaymentIntent hides the Stripe error detail from the caller")
+    void retrievePaymentIntentMasksStripeErrorDetail() {
+        String stripeDetail = "No such payment_intent: 'pi_secret_123' (request req_leak_456)";
+
+        try (MockedStatic<PaymentIntent> paymentIntentStatic = mockStatic(PaymentIntent.class)) {
+            paymentIntentStatic.when(() -> PaymentIntent.retrieve("pi_1"))
+                    .thenThrow(new ApiConnectionException(stripeDetail));
+
+            APIException thrown = assertThrows(APIException.class,
+                    () -> stripeService.retrievePaymentIntent("pi_1"));
+
+            assertEquals("Unable to verify the payment right now. Please try again.", thrown.getMessage());
+            assertFalse(thrown.getMessage().contains("pi_secret_123"),
+                    "the Stripe payment_intent id must not reach the client");
+            assertFalse(thrown.getMessage().contains("req_leak_456"),
+                    "the Stripe request id must not reach the client");
         }
     }
 }

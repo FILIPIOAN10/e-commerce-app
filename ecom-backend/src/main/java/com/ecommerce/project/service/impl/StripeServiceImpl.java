@@ -99,16 +99,20 @@ public class StripeServiceImpl implements StripeService {
 
         long serverCalculatedAmountCents = pricing.total().toCents();
 
+        // The Stripe Customer is keyed on the authenticated account's email, not
+        // on anything in the request body: a caller must not be able to look up
+        // or create a Customer record for someone else's address by putting it
+        // in the payload.
         Customer customer;
         CustomerSearchParams searchParams =
                 CustomerSearchParams.builder()
-                        .setQuery("email:'" + escapeStripeSearchValue(stripePaymentDto.getEmail()) + "'")
+                        .setQuery("email:'" + escapeStripeSearchValue(email) + "'")
                         .build();
         CustomerSearchResult customers = Customer.search(searchParams);
         if (customers.getData().isEmpty()) {
             CustomerCreateParams customerParams =
                     CustomerCreateParams.builder()
-                            .setEmail(stripePaymentDto.getEmail())
+                            .setEmail(email)
                             .setName(stripePaymentDto.getName())
                             .setAddress(
                                     CustomerCreateParams.Address.builder()
@@ -155,9 +159,9 @@ public class StripeServiceImpl implements StripeService {
     /**
      * Escapes a value for interpolation into a single-quoted Stripe Search
      * query string. Stripe uses backslash as the escape character inside
-     * {@code '...'}; a stray quote would otherwise let the caller's input change
-     * the query's structure. {@code StripePaymentDto.email} is also
-     * {@code @Email}-validated at the controller, so this is defence in depth.
+     * {@code '...'}; a stray quote would otherwise change the query's structure.
+     * The only value passed here is the authenticated account email, so this is
+     * defence in depth rather than the primary control.
      */
     private static String escapeStripeSearchValue(String value) {
         if (value == null) {
