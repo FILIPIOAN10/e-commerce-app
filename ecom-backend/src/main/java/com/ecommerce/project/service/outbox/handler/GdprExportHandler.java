@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -45,6 +46,7 @@ public class GdprExportHandler implements OutboxHandler {
     private final GdprTokenService gdprTokenService;
     private final EmailService emailService;
     private final OutboxPayloadCodec payloadCodec;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${frontend.url:http://localhost:5173}")
     private String frontendUrl;
@@ -57,19 +59,55 @@ public class GdprExportHandler implements OutboxHandler {
         return OutboxEventTypes.GDPR_EXPORT_REQUESTED;
     }
 
+    /**
+     * Two phases, and the split is the point.
+     *
+     * <p>The archive build genuinely needs a transaction: it reads
+     * {@code export.getUser()} — a LAZY {@code @ManyToOne} — walks the whole
+     * account through the assembler, and persists {@code markReady} /
+     * {@code purge} by dirty checking. That used to ride on the transaction the
+     * dispatcher held open around the entire batch; the dispatcher no longer has
+     * one, so without a transaction here the entity would come back detached, the
+     * lazy read would throw, and the writes would be silently dropped — the same
+     * trap that broke the address book in 302618e.
+     *
+     * <p>The email send must stay <em>outside</em> it. SMTP is the slow, remote,
+     * unbounded part, and holding a pooled connection across it is the whole
+     * reason the dispatcher stopped wrapping handlers in the first place. Hence
+     * {@link TransactionTemplate} rather than {@code @Transactional} on the
+     * method: the boundary has to fall in the middle, not around the edge.
+     */
     @Override
     public void handle(String payload) {
         GdprExportOutboxPayload data = payloadCodec.deserialize(payload, GdprExportOutboxPayload.class);
 
+        Long readyExportId = transactionTemplate.execute(status -> buildArchive(data));
+        if (readyExportId == null) {
+            return; // gone or expired — nothing to send
+        }
+
+        String token = gdprTokenService.issueExportToken(readyExportId);
+        emailService.sendGdprExportReadyEmail(
+                data.recipientEmail(),
+                data.recipientName(),
+                frontendUrl + "/gdpr/export/download?token=" + token,
+                exportTtlDays);
+    }
+
+    /**
+     * @return the id of an archive that is ready to be linked, or {@code null}
+     *         when the export no longer exists or expired before it could be built
+     */
+    private Long buildArchive(GdprExportOutboxPayload data) {
         GdprExport export = gdprExportRepository.findById(data.exportId()).orElse(null);
         if (export == null) {
             log.warn("GDPR export {} no longer exists; dropping event", data.exportId());
-            return;
+            return null;
         }
         if (export.getExpiresAt().isBefore(Instant.now())) {
             log.warn("GDPR export {} expired before it could be built; dropping event", export.getId());
             export.purge();
-            return;
+            return null;
         }
 
         if (export.getStatus() != GdprExportStatus.READY) {
@@ -79,12 +117,6 @@ public class GdprExportHandler implements OutboxHandler {
             log.info("Built GDPR export {} for user {} ({} bytes)",
                     export.getId(), user.getUserId(), export.getByteSize());
         }
-
-        String token = gdprTokenService.issueExportToken(export.getId());
-        emailService.sendGdprExportReadyEmail(
-                data.recipientEmail(),
-                data.recipientName(),
-                frontendUrl + "/gdpr/export/download?token=" + token,
-                exportTtlDays);
+        return export.getId();
     }
 }
