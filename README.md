@@ -151,6 +151,21 @@ Observe the outbox poller using FOR UPDATE SKIP LOCKED to process events with ex
 
 Expected Result: Background tasks run safely without overlapping, and emails/invoices are processed reliably.
 
+7. Checkout Address Form (City Lookup)
+What to test: That the country → state → city dropdowns still cascade, and that opening the form no longer downloads a multi-megabyte dataset.
+
+Prerequisites: App running, signed-in user with something in the cart.
+
+Steps:
+
+Open devtools on the Network tab, then go to /en/checkout and open the address form.
+
+Pick a country, then a state, and watch the requests.
+
+Expected Result: Two lazy chunks load (country ~96 KB, state ~555 KB), and picking a state fires GET /api/public/geo/cities?country=RO&state=CJ returning a few KB of names. The city dropdown populates from that response. No chunk over 1 MB is fetched. A second visit re-uses the cached city response for a day.
+
+Why it matters: the form used to resolve cities in the browser from the country-state-city package, whose city.json is 7.9 MB — 92% of an 8.7 MB chunk (2.3 MB gzipped) downloaded the moment the address form opened, which is the single highest-value moment in the app and often the worst connection. Countries and states together are only 635 KB, so they stay client-side for instant dropdowns; only the cities moved to the backend. The package's barrel re-exports City, so importing it drags city.json in even when City is never called — hence the deep imports of `country-state-city/lib/country` and `/lib/state` in AddAddressForm. The backend reads a reshaped copy of the dataset (grouped by country-state, names only: 7.7 MB → 2.0 MB) that is parsed on first request rather than at startup; regenerate it with `python scripts/generate-city-index.py` after upgrading the npm package. If the lookup is unreachable the city list stays empty and the address can still be saved — a dropdown that never populates must not become a checkout the customer cannot complete.
+
 ## Getting Started
  
 ### Prerequisites

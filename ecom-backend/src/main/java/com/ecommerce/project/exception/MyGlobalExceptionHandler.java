@@ -16,6 +16,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import jakarta.validation.ConstraintViolationException;
 
 import java.util.HashMap;
@@ -217,6 +218,18 @@ public class MyGlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleUnreadableMessage(HttpMessageNotReadableException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse("Malformed request body", false));
+    }
+
+    /**
+     * A required query parameter was not sent. The sibling above already covers a
+     * parameter of the wrong type; without this one, omitting it entirely reached
+     * the catch-all and the caller was told "Internal server error" for a mistake
+     * that was theirs and that the message could have named.
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse> handleMissingParameter(MissingServletRequestParameterException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse("Missing required parameter '" + e.getParameterName() + "'", false));
     }
 
     /**
