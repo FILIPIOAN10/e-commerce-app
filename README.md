@@ -151,6 +151,21 @@ Observe the outbox poller using FOR UPDATE SKIP LOCKED to process events with ex
 
 Expected Result: Background tasks run safely without overlapping, and emails/invoices are processed reliably.
 
+7. Outbound Email (SMTP Timeouts)
+What to test: That a mail server which stops responding fails the send instead of hanging it.
+
+Prerequisites: A way to black-hole SMTP — a firewall DROP rule to port 587, or point `spring.mail.host` at an address that accepts connections and never replies.
+
+Steps:
+
+Trigger any email (register an account, or place an order).
+
+Watch the outbox row and the backend log.
+
+Expected Result: The send gives up after `mail.smtp.timeout` (10s by default) rather than blocking forever. The outbox records the failure, backs the event off, and retries it later; the dispatcher keeps draining everything else in the queue.
+
+Why it matters: all three JavaMail timeouts default to infinite. A server that accepts the TCP connection and then stops answering — a partial outage, a firewall that black-holes rather than rejects, a throttled sender — parks the calling thread permanently, with no exception and no log line, because the call never returns. Mail is sent from the outbox dispatcher, so a single stalled send would stop the queue that also carries refunds and GDPR exports, and only a restart would clear it. The defaults here are 5s connect and 10s read/write, overridable with `MAIL_SMTP_CONNECT_TIMEOUT_MS`, `MAIL_SMTP_READ_TIMEOUT_MS` and `MAIL_SMTP_WRITE_TIMEOUT_MS`. Connect is the tightest of the three: a TCP handshake either happens quickly or is not going to, while delivering the message legitimately takes longer. `SmtpTimeoutConfigurationTest` asserts them off the `JavaMailSender` bean rather than out of the environment — a misspelled key would still be present as a property and still be silently ignored by JavaMail.
+
 ## Getting Started
  
 ### Prerequisites
