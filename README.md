@@ -147,7 +147,9 @@ Steps:
 
 Trigger actions that generate outbox events (e.g., order creation or refund).
 
-Observe the outbox poller using FOR UPDATE SKIP LOCKED to process events with exponential backoff on failure.
+Observe the outbox poller claim rows with FOR UPDATE SKIP LOCKED, then run each handler with exponential backoff on failure.
+
+Watch a row through one delivery: it goes PENDING → IN_PROGRESS (claimed) → DONE, and the claim commits before the handler starts — a `SELECT status FROM outbox_event` from psql reads IN_PROGRESS while the handler is still working.
 
 Expected Result: Background tasks run safely without overlapping, and emails/invoices are processed reliably.
 
@@ -165,6 +167,7 @@ Watch the outbox row and the backend log.
 Expected Result: The send gives up after `mail.smtp.timeout` (10s by default) rather than blocking forever. The outbox records the failure, backs the event off, and retries it later; the dispatcher keeps draining everything else in the queue.
 
 Why it matters: all three JavaMail timeouts default to infinite. A server that accepts the TCP connection and then stops answering — a partial outage, a firewall that black-holes rather than rejects, a throttled sender — parks the calling thread permanently, with no exception and no log line, because the call never returns. Mail is sent from the outbox dispatcher, so a single stalled send would stop the queue that also carries refunds and GDPR exports, and only a restart would clear it. The defaults here are 5s connect and 10s read/write, overridable with `MAIL_SMTP_CONNECT_TIMEOUT_MS`, `MAIL_SMTP_READ_TIMEOUT_MS` and `MAIL_SMTP_WRITE_TIMEOUT_MS`. Connect is the tightest of the three: a TCP handshake either happens quickly or is not going to, while delivering the message legitimately takes longer. `SmtpTimeoutConfigurationTest` asserts them off the `JavaMailSender` bean rather than out of the environment — a misspelled key would still be present as a property and still be silently ignored by JavaMail.
+Why the claim is a lease, not a lock: handlers do slow external work — a Stripe refund, an SMTP send, building a GDPR archive — and `processBatch()` used to be `@Transactional`, so all of it ran inside the transaction that claimed the batch. That transaction held a pooled connection and the claimed rows' locks throughout. Stripe's client defaults to an 80s read timeout, so one latency spike against a batch of 20 could park one of `DB_POOL_MAX` connections for close to half an hour while the storefront's own checkouts timed out on `hikari.connection-timeout` — the same failure `StripeServiceImpl` documents for the request path. The dispatcher now opens only short transactions (claim, then record each outcome) and runs handlers with none. What keeps a second dispatcher off a row while its handler runs is the lease written at claim time (`app.outbox.lease-seconds`, default 300); once it expires the row is claimable again, which is how an event survives a process that died mid-handler without needing a reaper job. The attempt is counted at claim rather than on failure, so an event that takes the process down still exhausts its budget and dead-letters. Handlers must be idempotent — at-least-once delivery already required that.
 
 ## Getting Started
  

@@ -114,6 +114,11 @@ services:
       # Mail credentials are injected from Vault (see scripts/vault-init.sh)
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      # Vite's fallback ports, so a dev server that drifted off 5173 still
+      # passes CORS. Set CORS_ALLOWED_ORIGINS in .env to pin or extend the list.
+      # Spelled out rather than left empty: an empty env var wins over the
+      # property default in Spring, which would leave CORS with no origin at all.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:5174,http://localhost:5175}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       METRICS_SCRAPE_PASSWORD: ${METRICS_SCRAPE_PASSWORD:-dummy-scrape-password}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
