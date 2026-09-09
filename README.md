@@ -180,6 +180,7 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 | Coverage Gate | JaCoCo enforcing ≥60% line coverage on the service layer at `verify` |
 | API Documentation | SpringDoc OpenAPI with Swagger UI and a Postman collection |
 
+
 ## Engineering decisions
 1. Authentication & Security (JWT, OAuth2, CSRF)
 What to test: Login, registration, token refresh, and CSRF protection on state-changing routes.
@@ -264,7 +265,9 @@ Steps:
 
 Trigger actions that generate outbox events (e.g., order creation or refund).
 
-Observe the outbox poller using FOR UPDATE SKIP LOCKED to process events with exponential backoff on failure.
+Observe the outbox poller claim rows with FOR UPDATE SKIP LOCKED, then run each handler with exponential backoff on failure.
+
+Watch a row through one delivery: it goes PENDING → IN_PROGRESS (claimed) → DONE, and the claim commits before the handler starts — a `SELECT status FROM outbox_event` from psql reads IN_PROGRESS while the handler is still working.
 
 Expected Result: Background tasks run safely without overlapping, and emails/invoices are processed reliably.
 
@@ -282,6 +285,21 @@ Pick a country, then a state, and watch the requests.
 Expected Result: Two lazy chunks load (country ~96 KB, state ~555 KB), and picking a state fires GET /api/public/geo/cities?country=RO&state=CJ returning a few KB of names. The city dropdown populates from that response. No chunk over 1 MB is fetched. A second visit re-uses the cached city response for a day.
 
 Why it matters: the form used to resolve cities in the browser from the country-state-city package, whose city.json is 7.9 MB — 92% of an 8.7 MB chunk (2.3 MB gzipped) downloaded the moment the address form opened, which is the single highest-value moment in the app and often the worst connection. Countries and states together are only 635 KB, so they stay client-side for instant dropdowns; only the cities moved to the backend. The package's barrel re-exports City, so importing it drags city.json in even when City is never called — hence the deep imports of `country-state-city/lib/country` and `/lib/state` in AddAddressForm. The backend reads a reshaped copy of the dataset (grouped by country-state, names only: 7.7 MB → 2.0 MB) that is parsed on first request rather than at startup; regenerate it with `python scripts/generate-city-index.py` after upgrading the npm package. If the lookup is unreachable the city list stays empty and the address can still be saved — a dropdown that never populates must not become a checkout the customer cannot complete.
+7. Outbound Email (SMTP Timeouts)
+What to test: That a mail server which stops responding fails the send instead of hanging it.
+
+Prerequisites: A way to black-hole SMTP — a firewall DROP rule to port 587, or point `spring.mail.host` at an address that accepts connections and never replies.
+
+Steps:
+
+Trigger any email (register an account, or place an order).
+
+Watch the outbox row and the backend log.
+
+Expected Result: The send gives up after `mail.smtp.timeout` (10s by default) rather than blocking forever. The outbox records the failure, backs the event off, and retries it later; the dispatcher keeps draining everything else in the queue.
+
+Why it matters: all three JavaMail timeouts default to infinite. A server that accepts the TCP connection and then stops answering — a partial outage, a firewall that black-holes rather than rejects, a throttled sender — parks the calling thread permanently, with no exception and no log line, because the call never returns. Mail is sent from the outbox dispatcher, so a single stalled send would stop the queue that also carries refunds and GDPR exports, and only a restart would clear it. The defaults here are 5s connect and 10s read/write, overridable with `MAIL_SMTP_CONNECT_TIMEOUT_MS`, `MAIL_SMTP_READ_TIMEOUT_MS` and `MAIL_SMTP_WRITE_TIMEOUT_MS`. Connect is the tightest of the three: a TCP handshake either happens quickly or is not going to, while delivering the message legitimately takes longer. `SmtpTimeoutConfigurationTest` asserts them off the `JavaMailSender` bean rather than out of the environment — a misspelled key would still be present as a property and still be silently ignored by JavaMail.
+Why the claim is a lease, not a lock: handlers do slow external work — a Stripe refund, an SMTP send, building a GDPR archive — and `processBatch()` used to be `@Transactional`, so all of it ran inside the transaction that claimed the batch. That transaction held a pooled connection and the claimed rows' locks throughout. Stripe's client defaults to an 80s read timeout, so one latency spike against a batch of 20 could park one of `DB_POOL_MAX` connections for close to half an hour while the storefront's own checkouts timed out on `hikari.connection-timeout` — the same failure `StripeServiceImpl` documents for the request path. The dispatcher now opens only short transactions (claim, then record each outcome) and runs handlers with none. What keeps a second dispatcher off a row while its handler runs is the lease written at claim time (`app.outbox.lease-seconds`, default 300); once it expires the row is claimable again, which is how an event survives a process that died mid-handler without needing a reaper job. The attempt is counted at claim rather than on failure, so an event that takes the process down still exhausts its budget and dead-letters. Handlers must be idempotent — at-least-once delivery already required that.
 
 ## Getting Started
  
@@ -370,6 +388,27 @@ To add a change, create a new file — never edit an applied one:
 
 ```bash
 # ecom-backend/src/main/resources/db/migration/V35__add_product_sku.sql
+ALTER TABLE products ADD COLUMN sku VARCHAR(64);
+```
+
+An existing database created by the previous `ddl-auto=update` setup is adopted
+automatically: `baseline-on-migrate` stamps it at version 1 and continues from V2,
+so no data is lost. To rebuild from scratch:
+
+```bash
+docker compose down -v && docker compose up --build
+```
+
+Inspect applied migrations at any time:
+
+```bash
+docker exec -it ecommerce-postgres psql -U postgres -d ecommerce \
+  -c "SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+```
+To add a change, create a new file — never edit an applied one:
+
+```bash
+# ecom-backend/src/main/resources/db/migration/V3__add_product_sku.sql
 ALTER TABLE products ADD COLUMN sku VARCHAR(64);
 ```
 

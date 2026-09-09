@@ -50,6 +50,16 @@ public class WebSecurityConfig {
     @Value("${frontend.url}")
     String frontEndUrl;
 
+    /**
+     * Origins allowed through CORS. A list, not {@link #frontEndUrl} alone,
+     * because Vite silently moves to 5174/5175 when 5173 is taken and every
+     * request from the new origin then failed preflight with no hint as to why.
+     * Deployed profiles leave this at its default of {@code frontend.url}, so
+     * they still trust exactly one origin.
+     */
+    @Value("${app.cors.allowed-origins}")
+    List<String> allowedOrigins;
+
     public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthEntryPointJwt unauthorizedHandler) {
         this.userDetailsService = userDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
@@ -143,9 +153,7 @@ public class WebSecurityConfig {
 
     http.cors(corsConfig -> corsConfig.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(
-                    List.of(frontEndUrl)
-            );
+            config.setAllowedOrigins(allowedOrigins);
             config.setAllowedMethods(
                     List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
             );
