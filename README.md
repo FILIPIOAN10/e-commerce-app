@@ -40,28 +40,145 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 
 ## Key Features
 
+### Catalog & Discovery
+
+| Feature | Description |
+|---|---|
+| Product Management | Full CRUD with pagination, sorting, and `@Version` optimistic locking; admin sees all, sellers see their own |
+| Category Management | Admin CRUD with category → products browsing |
+| Product Image Gallery | Multiple images per product with carousel, thumbnails, and signed image URLs |
+| Faceted Search | `/public/products/search/faceted` with computed facet dimensions and filter composition |
+| Keyword Search & Autocomplete | Cached SQL keyword search plus a type-ahead autocomplete endpoint |
+| Semantic Search | OpenAI embeddings + pgvector (HNSW, cosine) with a NoOp fallback so the app runs with AI disabled |
+| Search Reindex | Admin-triggered re-embedding of the product catalogue |
+| AI Recommendations | "Recommended for You" and "Similar Products" via vector similarity |
+| Frequently Bought Together | Co-purchase suggestions on the product detail page |
+| Featured Products | Curated homepage product rail |
+| Recently Viewed | Per-user product tracking in Redis |
+| Product Q&A | Customer questions with seller/admin answers, public read |
+| Reviews & Ratings | Per-product reviews with pagination, helpful/unhelpful votes, and denormalised rating aggregates |
+| Wishlist | Per-user wishlist with add/remove/list |
+| Product Compare | Client-side side-by-side comparison page |
+| Product Bundles | Admin-managed bundles, public browse, add-bundle-to-cart |
+| Bulk Product Import | Admin file import for catalogue seeding |
+
+### Cart & Checkout
+
+| Feature | Description |
+|---|---|
+| Shopping Cart | Add/update/remove with one cart per user enforced at the DB level |
+| Save for Later | Move items out of the cart and back without losing them |
+| Guest Checkout | Full purchase flow with no account required |
+| Abandoned Cart Recovery | Advisory-locked sweep that sends staged reminders through the outbox with a tokenised recovery link |
+| Coupon System | Admin-managed discount coupons with expiry, usage limits, and checkout validation |
+| Promo Campaigns | Scheduled campaigns that apply and revert product pricing idempotently |
+| Pricing Pipeline | Ordered rules — coupon discount → shipping → VAT — over a shared BigDecimal breakdown |
+| VAT / Tax | Per-country rates with configurable default, taxable-shipping toggle, and a global off switch |
+| Order Preview | Price breakdown (subtotal + shipping + VAT) before payment |
+| Shipping Estimation | Per-address shipping cost lookup |
+| Stock Reservation | Redis-held checkout reservation with a TTL so carts cannot oversell |
+| Address Book | Full CRUD for user addresses with ownership checks |
+| Geo City Lookup | Backend-served city index so the address form no longer ships a 7.9 MB dataset to the browser |
+
+### Payments, Orders & Money
+
+| Feature | Description |
+|---|---|
+| Stripe Payments | PaymentIntent flow with order creation and inventory consumption |
+| Pluggable Payment Gateways | `PaymentGateway` + registry so a provider is a new bean, not an if/else branch |
+| Stripe Webhooks | Single signature-verified endpoint deduped on event id, dispatching to typed handlers |
+| Idempotency Keys | `Idempotency-Key` header makes state-changing requests replay-safe under a unique DB claim |
+| Order Lifecycle | Status transitions for admin and seller, customer-facing tracking, and customer cancel |
+| Invoice Generation | OpenPDF invoices backed by a gapless invoice-number sequence |
+| Order Export | Admin CSV and PDF exports of the order book |
+| Returns (RMA) | Customer return requests with admin approve/reject/refund and courier tracking |
+| Automated Refunds | Stripe refunds driven through the outbox with a refund status machine |
+| Disputes & Chargebacks | `charge.dispute.*` webhooks create dispute records; admins upload evidence into a non-web-served directory with deadline alerts |
+| Subscriptions | Public plans, Stripe checkout, my-subscriptions, cancel, and admin plan CRUD |
+| Subscription Lifecycle | Handlers for checkout completed, invoice paid/failed, subscription updated/deleted, with renewal sweep |
+| Multi-Currency | Frankfurter/ECB rate provider with fixed-rate fallback, cached rates, presentation-only conversion over a USD base |
+| Money Precision | BigDecimal end to end — no money field or column is a float |
+
+### Inventory
+
+| Feature | Description |
+|---|---|
+| Stock Movement Ledger | Every quantity change appends an append-only movement row with a reason code |
+| Stock Reconciliation | Hourly sweep flagging any product whose movements no longer sum to its quantity |
+| Low Stock Alerts | Threshold monitoring with admin/seller notifications, counts, and summary |
+| Admin Stock Views | Per-product movement history and a discrepancy report |
+
+### Authentication & Security
+
 | Feature | Description |
 |---|---|
 | Multi-role RBAC | Admin, Seller, Customer portals with route and API authorization |
+| JWT Auth | Access tokens in HttpOnly cookies, stateless Spring Security |
+| Refresh Token Rotation | Redis-backed refresh sessions with rotation on every use |
+| Device / Session Management | List active devices and revoke one or all sessions |
 | OAuth2 Login | GitHub and Google login with auto user provisioning |
-| 2FA / TOTP | Time-based one-time passwords with purpose-scoped JWT challenge tokens |
-| Semantic Search | OpenAI embeddings + pgvector with SQL fallback |
-| AI Recommendations | "Recommended for You" and "Similar Products" via vector similarity |
-| Rate Limiting | Redis-based distributed rate limiting per endpoint |
-| Caching | Redis TTL cache for products, categories, and search results |
-| Stripe Payments | PaymentIntent flow with order and inventory management |
-| Vault Integration | Centralized secrets management — zero secrets in version control |
-| Flyway Migrations | Versioned schema evolution with `ddl-auto=validate` drift detection |
+| 2FA / TOTP | Time-based one-time passwords with purpose-scoped JWT challenge tokens and QR enrolment |
+| Email Verification | Signup verification link with resend |
+| Password Reset | Forgot-password and tokenised reset flow |
+| Login Lockout | Failed-attempt lockout with a self-service unlock request and admin unlock |
+| Rate Limiting | Redis fixed-window limiting across ~16 per-endpoint rules keyed by IP or user, failing open |
 | CSRF Protection | CookieCsrfTokenRepository for SPA state-changing operations |
-| Admin Dashboard | Product/category/order/seller management with analytics |
-| Audit Logging | Request-level activity tracking |
-| Low Stock Alerts | Threshold monitoring with admin/seller notifications |
-| Product Image Gallery | Multiple images per product with carousel and thumbnails |
+| CORS Allow-list | Configurable origin list shared with the WebSocket handshake |
+| Vault Integration | Centralized secrets management — zero secrets in version control, fail-fast if unset |
+| Audit Logging | Admin audit log plus per-user activity tracking, both queryable in the admin UI |
+| GDPR Export | Art. 15 async ZIP export delivered as a single-use expiring link, purged on TTL |
+| GDPR Erasure | Art. 17 two-step deletion — password plus emailed confirmation — anonymising what must be kept |
+
+### Async & Messaging
+
+| Feature | Description |
+|---|---|
+| Transactional Outbox | Events written in the business transaction, drained with `FOR UPDATE SKIP LOCKED`, exponential backoff, and dead-lettering |
+| Outbox Handlers | Nine handlers: order confirmation, order status, cart abandonment, GDPR export, refund, dispute opened/closed, subscription ended, subscription payment failed |
+| Domain Events | Order-lifecycle listeners for email, invoice, notification, and activity log on a bounded executor |
+| Transactional Email | Seven HTML templates covering verification, reset, orders, cart recovery, and GDPR |
+| Real-time Notifications | STOMP/WebSocket authenticated at the handshake from the auth cookie, with per-user push |
+| Notification Bell | Unread count, notification list, and mark-all-read in the SPA |
+| Scheduled Jobs | Six schedulers: outbox dispatcher, abandoned-cart sweep, promo sweep, stock reconciliation, subscription renewal, GDPR purge |
+
+### Admin & Analytics
+
+| Feature | Description |
+|---|---|
+| Admin Dashboard | Sales over time, top products, order-status split, and revenue by category |
+| Admin Console | Fourteen managed areas: dashboard, products, bundles, subscriptions, sellers, orders, returns, categories, coupons, low stock, activity logs, import, campaigns, users |
+| Seller Portal | Seller-scoped products, orders, and low-stock views |
+| User Management | List users, change roles, delete accounts, unlock locked accounts |
+| GraphQL Admin API | Read-side queries for products, categories, orders, users, coupons, campaigns, and returns alongside REST |
+| Contact Form | Public contact endpoint with rate limiting |
+
+### Frontend Platform
+
+| Feature | Description |
+|---|---|
+| Localised Routing | Language in the URL (`/:lang/...`) as the single source of truth, with a language switcher |
+| i18n | Three locales (English, French, Romanian) via react-i18next |
+| SEO Meta | hreflang, canonical, and og:locale per language route |
+| Dark Mode & Theming | Tailwind v4 and MUI driven by one shared token set and one toggle |
 | Code Splitting | React.lazy + Suspense for route-level lazy loading |
-| Recently Viewed | Per-user product tracking in Redis |
-| Coupon System | Admin-managed discount coupons with expiry and usage limits |
-| Reviews & Ratings | Per-product reviews with pagination |
-| Wishlist | Per-user wishlist with add/remove |
+| UI State Kit | Skeletons, empty states, error boundary, spinners, status badges, trust badges, breadcrumbs |
+| Admin Data Grids | MUI X DataGrid tables with server-side pagination and row actions |
+| Accessible Forms | react-hook-form fields with announced validation errors |
+| Redux State | Nineteen reducers with an axios client carrying auth and CSRF interceptors |
+
+### Platform & Operations
+
+| Feature | Description |
+|---|---|
+| Flyway Migrations | 34 versioned migrations with `ddl-auto=validate` drift detection |
+| Redis Caching | Nine named caches with per-cache TTLs and transaction-aware eviction |
+| Observability | Actuator + Micrometer/Prometheus metrics, Grafana dashboard, alert rules, JSON logging |
+| Docker Compose | Eight-service local stack: Postgres+pgvector, Redis, Vault, vault-init, backend, frontend, Prometheus, Grafana |
+| Integration Testing | 97 backend test classes on Testcontainers Postgres + Redis, with RestAssured and OpenAPI request validation |
+| Frontend & E2E Testing | Vitest component suites, eight Playwright specs, and a Selenium page-object suite |
+| CI/CD | Five GitHub Actions workflows — CI, CodeQL, GHCR build-push, deploy, Selenium — plus gitleaks and Dependabot |
+| Coverage Gate | JaCoCo enforcing ≥60% line coverage on the service layer at `verify` |
+| API Documentation | SpringDoc OpenAPI with Swagger UI and a Postman collection |
 
 ## Engineering decisions
 1. Authentication & Security (JWT, OAuth2, CSRF)
