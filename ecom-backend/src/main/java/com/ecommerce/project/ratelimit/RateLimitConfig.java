@@ -49,7 +49,13 @@ public class RateLimitConfig {
 
                 // Codes are short and guessable, and the endpoint answers whether
                 // one exists. Keyed by user because it requires authentication.
-                new RateLimitRule("coupon-validate", "POST", "/api/coupons/validate", 10, oneMinute, RateLimitKeyType.USER)
+                new RateLimitRule("coupon-validate", "POST", "/api/coupons/validate", 10, oneMinute, RateLimitKeyType.USER),
+
+                // Public, and each miss walks a 3,432-entry map. Generous because
+                // filling one address form legitimately fires a handful of these as
+                // the customer changes their mind about the state, and the response
+                // is cached for a day after that.
+                new RateLimitRule("geo-cities", "GET", "/api/public/geo/cities", 60, oneMinute, RateLimitKeyType.IP)
         );
     }
 }

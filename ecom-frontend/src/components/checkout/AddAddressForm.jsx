@@ -7,15 +7,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { addUpdateUserAddress } from '../../store/actions';
 import Spinners from "../shared/Spinners";
+import api from '../../api/api';
 
-// Lazy-loaded so the (large, non tree-shakeable) country/state/city
-// dataset ships as its own chunk instead of bloating the checkout bundle.
-let countryStateCityModulePromise = null;
-const loadCountryStateCity = () => {
-    if (!countryStateCityModulePromise) {
-        countryStateCityModulePromise = import('country-state-city');
+// Countries and states only, and imported by their deep paths on purpose.
+//
+// `country-state-city`'s barrel re-exports City, whose city.json is 7.9 MB — 92%
+// of the 8.7 MB chunk (2.3 MB gzipped) this form used to pull down the moment it
+// opened. Importing the barrel drags that in even when City is never called,
+// because the JSON is a static import of a module the barrel re-exports.
+// country.json + state.json together are 635 KB, which is worth keeping local
+// for instant dropdowns; cities now come from /api/public/geo/cities instead.
+let countryStateModulePromise = null;
+const loadCountryState = () => {
+    if (!countryStateModulePromise) {
+        countryStateModulePromise = Promise.all([
+            import('country-state-city/lib/country'),
+            import('country-state-city/lib/state'),
+        ]).then(([country, state]) => ({
+            Country: country.default,
+            State: state.default,
+        }));
     }
-    return countryStateCityModulePromise;
+    return countryStateModulePromise;
 };
 
 const AddAddressForm = ({address, setOpenAddressModal}) => {
@@ -74,7 +87,7 @@ const AddAddressForm = ({address, setOpenAddressModal}) => {
 
     useEffect(() => {
         let isMounted = true;
-        loadCountryStateCity().then(({ Country }) => {
+        loadCountryState().then(({ Country }) => {
             if (isMounted) {
                 setCountries(Country.getAllCountries().map(c => c.name));
             }
@@ -85,7 +98,7 @@ const AddAddressForm = ({address, setOpenAddressModal}) => {
     useEffect(() => {
         let isMounted = true;
         if (selectedCountryName) {
-            loadCountryStateCity().then(({ Country, State }) => {
+            loadCountryState().then(({ Country, State }) => {
                 if (!isMounted) return;
                 const countryObj = Country.getAllCountries().find(c => c.name === selectedCountryName);
                 if (countryObj) {
@@ -111,21 +124,36 @@ const AddAddressForm = ({address, setOpenAddressModal}) => {
     useEffect(() => {
         let isMounted = true;
         if (selectedStateName && selectedCountryName) {
-            loadCountryStateCity().then(({ Country, State, City }) => {
+            loadCountryState().then(async ({ Country, State }) => {
                 if (!isMounted) return;
                 const countryObj = Country.getAllCountries().find(c => c.name === selectedCountryName);
-                if (countryObj) {
-                    const stateObj = State.getStatesOfCountry(countryObj.isoCode).find(s => s.name === selectedStateName);
-                    if (stateObj) {
-                        const stateCities = City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode).map(c => c.name);
-                        setCities(stateCities);
+                if (!countryObj) return;
+                const stateObj = State.getStatesOfCountry(countryObj.isoCode)
+                    .find(s => s.name === selectedStateName);
+                if (!stateObj) return;
 
-                        if (address?.addressId && address.state === selectedStateName) {
-                            setValue("city", address.city);
-                        } else {
-                            setValue("city", "");
-                        }
-                    }
+                // The city list is the one piece too large to ship to the browser.
+                // Codes rather than names, because they are stable and the backend
+                // dataset is keyed on them.
+                try {
+                    const { data } = await api.get("/public/geo/cities", {
+                        params: { country: countryObj.isoCode, state: stateObj.isoCode },
+                    });
+                    if (!isMounted) return;
+                    setCities(Array.isArray(data) ? data : []);
+                } catch {
+                    // An unreachable lookup must not block the form: city stays
+                    // empty and the customer can still save the address, which is
+                    // better than a dropdown that never populates and no way past it.
+                    if (!isMounted) return;
+                    setCities([]);
+                }
+
+                if (!isMounted) return;
+                if (address?.addressId && address.state === selectedStateName) {
+                    setValue("city", address.city);
+                } else {
+                    setValue("city", "");
                 }
             });
         } else {

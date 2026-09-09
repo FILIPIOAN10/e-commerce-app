@@ -6,6 +6,7 @@ import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductImageService;
+import com.ecommerce.project.service.ProductImportService;
 import com.ecommerce.project.service.ProductService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -23,10 +25,21 @@ public class ProductManagementController extends BaseController {
 
     private final ProductService productService;
     private final ProductImageService productImageService;
+    private final ProductImportService productImportService;
 
-    public ProductManagementController(ProductService productService, ProductImageService productImageService) {
+    public ProductManagementController(ProductService productService, ProductImageService productImageService,
+                                       ProductImportService productImportService) {
         this.productService = productService;
         this.productImageService = productImageService;
+        this.productImportService = productImportService;
+    }
+
+    @Tag(name = "Product Import")
+    @PostMapping("/admin/products/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> importProducts(@RequestParam("file") MultipartFile file) {
+        String message = productImportService.importProducts(file);
+        return new ResponseEntity<>(Map.of("message", message), HttpStatus.CREATED);
     }
 
     @Tag(name = "Product")

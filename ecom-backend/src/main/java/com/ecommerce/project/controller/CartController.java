@@ -2,9 +2,11 @@ package com.ecommerce.project.controller;
 
 
 import com.ecommerce.project.exception.APIException;
+import com.ecommerce.project.payload.ApiResponse;
 import com.ecommerce.project.payload.CartDTO;
 import com.ecommerce.project.payload.CartItemDTO;
 import com.ecommerce.project.service.CartService;
+import com.ecommerce.project.service.cart.CartRecoveryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +23,25 @@ import com.ecommerce.project.payload.PaginationParams;
 public class CartController {
 
     private final CartService cartService;
+    private final CartRecoveryService cartRecoveryService;
 
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, CartRecoveryService cartRecoveryService) {
         this.cartService = cartService;
+        this.cartRecoveryService = cartRecoveryService;
+    }
+
+    /**
+     * Landing point for the abandoned-cart recovery link. Public (the recipient is
+     * not necessarily logged in when they click) and safe — the token is single-use
+     * and only records the recovery; it grants no access.
+     */
+    @Tag(name = "Cart")
+    @PostMapping("/public/carts/recover")
+    public ResponseEntity<ApiResponse> recover(@RequestParam("token") String token) {
+        return cartRecoveryService.recover(token)
+                .map(cartId -> ResponseEntity.ok(new ApiResponse("Cart recovered", true)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse("Invalid or expired recovery link", false)));
     }
 
 

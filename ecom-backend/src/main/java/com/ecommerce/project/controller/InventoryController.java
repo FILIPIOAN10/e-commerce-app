@@ -2,11 +2,16 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.config.AppConstants;
 import com.ecommerce.project.model.Product;
+import com.ecommerce.project.payload.PaginationParams;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
+import com.ecommerce.project.payload.StockMovementDTO;
 import com.ecommerce.project.repository.ProductRepository;
+import com.ecommerce.project.repository.StockMovementRepository;
+import com.ecommerce.project.service.stock.StockReconciliationService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -23,14 +28,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import com.ecommerce.project.util.SortWhitelist;
 
+/**
+ * The state of stock: what is running out (low-stock alerts, for admins and
+ * sellers) and why a product's stock is the number it is (the movement ledger
+ * and its reconciliation report, admin only).
+ *
+ * <p>The {@code /admin/**} endpoints here carry no {@code @PreAuthorize} of their
+ * own — they are gated on ROLE_ADMIN by the security config, which matches on the
+ * URL. Their paths must keep the {@code /admin} prefix.
+ */
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class LowStockAlertController {
+public class InventoryController extends BaseController {
 
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
     private final AuthUtil authUtil;
+    private final StockMovementRepository stockMovementRepository;
+    private final StockReconciliationService reconciliationService;
 
     @Tag(name = "Low Stock Alerts")
     @GetMapping("/admin/low-stock")
@@ -98,6 +114,28 @@ public class LowStockAlertController {
                 "products", productDTOs
         );
         return new ResponseEntity<>(summary, HttpStatus.OK);
+    }
+
+    @Tag(name = "Stock")
+    @Operation(summary = "Stock movement history for a product",
+            description = "Every change to this product's stock, newest first, with the balance each one left.")
+    @GetMapping("/admin/products/{productId}/stock-movements")
+    public ResponseEntity<Page<StockMovementDTO>> stockMovements(@PathVariable Long productId,
+                                                                 @ModelAttribute PaginationParams params) {
+        Page<StockMovementDTO> page = stockMovementRepository
+                .findByProductIdOrderByCreatedAtDescIdDesc(productId,
+                        PaginationUtil.buildPageable(params.getPageNumber(), params.getPageSize(),
+                                "createdAt", "desc", "createdAt", SortWhitelist.STOCK_MOVEMENT))
+                .map(StockMovementDTO::from);
+        return ok(page);
+    }
+
+    @Tag(name = "Stock")
+    @Operation(summary = "Products whose stock does not match their ledger",
+            description = "Empty in a healthy system. A row here means a stock write bypassed the ledger.")
+    @GetMapping("/admin/stock/discrepancies")
+    public ResponseEntity<List<StockReconciliationService.Discrepancy>> discrepancies() {
+        return ok(reconciliationService.findDiscrepancies());
     }
 
     private ResponseEntity<ProductResponse> buildResponse(Page<Product> pageProducts) {
