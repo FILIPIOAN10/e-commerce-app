@@ -7,13 +7,16 @@ import com.ecommerce.project.service.order.OrderStatus;
 import jakarta.validation.Valid;
 
 import com.ecommerce.project.service.IdempotencyService;
+import com.ecommerce.project.service.InvoiceService;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +30,26 @@ public class OrderController extends BaseController {
     private final AuthUtil authUtil;
     private final StripeService stripeService;
     private final IdempotencyService idempotencyService;
+    private final InvoiceService invoiceService;
 
     public OrderController(OrderService orderService, AuthUtil authUtil, StripeService stripeService,
-                          IdempotencyService idempotencyService) {
+                          IdempotencyService idempotencyService, InvoiceService invoiceService) {
         this.orderService = orderService;
         this.authUtil = authUtil;
         this.stripeService = stripeService;
         this.idempotencyService = idempotencyService;
+        this.invoiceService = invoiceService;
+    }
+
+    @Tag(name = "Order")
+    @GetMapping("/orders/invoice/{orderId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long orderId) {
+        byte[] pdf = invoiceService.generateInvoicePdf(orderId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "invoice-" + orderId + ".pdf");
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
 
