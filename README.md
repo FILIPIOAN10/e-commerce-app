@@ -170,7 +170,7 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 
 | Feature | Description |
 |---|---|
-| Flyway Migrations | 34 versioned migrations with `ddl-auto=validate` drift detection |
+| Flyway Migrations | 35 versioned migrations with `ddl-auto=validate` drift detection |
 | Redis Caching | Nine named caches with per-cache TTLs and transaction-aware eviction |
 | Observability | Actuator + Micrometer/Prometheus metrics, Grafana dashboard, alert rules, JSON logging |
 | Docker Compose | Eight-service local stack: Postgres+pgvector, Redis, Vault, vault-init, backend, frontend, Prometheus, Grafana |
@@ -179,6 +179,7 @@ The stack is containerized with **Docker Compose** and uses **PostgreSQL + pgvec
 | CI/CD | Five GitHub Actions workflows — CI, CodeQL, GHCR build-push, deploy, Selenium — plus gitleaks and Dependabot |
 | Coverage Gate | JaCoCo enforcing ≥60% line coverage on the service layer at `verify` |
 | API Documentation | SpringDoc OpenAPI with Swagger UI and a Postman collection |
+
 
 ## Engineering decisions
 1. Authentication & Security (JWT, OAuth2, CSRF)
@@ -264,11 +265,29 @@ Steps:
 
 Trigger actions that generate outbox events (e.g., order creation or refund).
 
-Observe the outbox poller using FOR UPDATE SKIP LOCKED to process events with exponential backoff on failure.
+Observe the outbox poller claim rows with FOR UPDATE SKIP LOCKED, then run each handler with exponential backoff on failure.
+
+Watch a row through one delivery: it goes PENDING → IN_PROGRESS (claimed) → DONE, and the claim commits before the handler starts — a `SELECT status FROM outbox_event` from psql reads IN_PROGRESS while the handler is still working.
 
 Expected Result: Background tasks run safely without overlapping, and emails/invoices are processed reliably.
 
-7. Checkout Address Form (City Lookup)
+7. Outbound Email (SMTP Timeouts)
+What to test: That a mail server which stops responding fails the send instead of hanging it.
+
+Prerequisites: A way to black-hole SMTP — a firewall DROP rule to port 587, or point `spring.mail.host` at an address that accepts connections and never replies.
+
+Steps:
+
+Trigger any email (register an account, or place an order).
+
+Watch the outbox row and the backend log.
+
+Expected Result: The send gives up after `mail.smtp.timeout` (10s by default) rather than blocking forever. The outbox records the failure, backs the event off, and retries it later; the dispatcher keeps draining everything else in the queue.
+
+Why it matters: all three JavaMail timeouts default to infinite. A server that accepts the TCP connection and then stops answering — a partial outage, a firewall that black-holes rather than rejects, a throttled sender — parks the calling thread permanently, with no exception and no log line, because the call never returns. Mail is sent from the outbox dispatcher, so a single stalled send would stop the queue that also carries refunds and GDPR exports, and only a restart would clear it. The defaults here are 5s connect and 10s read/write, overridable with `MAIL_SMTP_CONNECT_TIMEOUT_MS`, `MAIL_SMTP_READ_TIMEOUT_MS` and `MAIL_SMTP_WRITE_TIMEOUT_MS`. Connect is the tightest of the three: a TCP handshake either happens quickly or is not going to, while delivering the message legitimately takes longer. `SmtpTimeoutConfigurationTest` asserts them off the `JavaMailSender` bean rather than out of the environment — a misspelled key would still be present as a property and still be silently ignored by JavaMail.
+Why the claim is a lease, not a lock: handlers do slow external work — a Stripe refund, an SMTP send, building a GDPR archive — and `processBatch()` used to be `@Transactional`, so all of it ran inside the transaction that claimed the batch. That transaction held a pooled connection and the claimed rows' locks throughout. Stripe's client defaults to an 80s read timeout, so one latency spike against a batch of 20 could park one of `DB_POOL_MAX` connections for close to half an hour while the storefront's own checkouts timed out on `hikari.connection-timeout` — the same failure `StripeServiceImpl` documents for the request path. The dispatcher now opens only short transactions (claim, then record each outcome) and runs handlers with none. What keeps a second dispatcher off a row while its handler runs is the lease written at claim time (`app.outbox.lease-seconds`, default 300); once it expires the row is claimable again, which is how an event survives a process that died mid-handler without needing a reaper job. The attempt is counted at claim rather than on failure, so an event that takes the process down still exhausts its budget and dead-letters. Handlers must be idempotent — at-least-once delivery already required that.
+
+8. Checkout Address Form (City Lookup)
 What to test: That the country → state → city dropdowns still cascade, and that opening the form no longer downloads a multi-megabyte dataset.
 
 Prerequisites: App running, signed-in user with something in the cart.
@@ -319,7 +338,7 @@ only for load tests.
 
 The schema is owned by **Flyway**, not by Hibernate. Migrations live in
 `ecom-backend/src/main/resources/db/migration` and run automatically on startup.
-There are **34 versioned migrations** covering **38 tables**:
+There are **35 versioned migrations** covering **38 tables**:
 
 | Migration | Purpose |
 |---|---|
@@ -357,6 +376,7 @@ There are **34 versioned migrations** covering **38 tables**:
 | `V32__multi_currency.sql` | Presentation currency on top of the USD base |
 | `V33__disputes.sql` | `disputes` + `dispute_evidence_files` for chargebacks |
 | `V34__remove_demo_catalog_seed.sql` | Drops the V12 demo catalogue everywhere except the Selenium suite |
+| `V35__outbox_in_progress_lease.sql` | Outbox claim becomes a lease (IN_PROGRESS + expiry) so handlers run outside the claim transaction |
 
 The Selenium suite drives fixed URLs (`/products/1`) and needs a known catalogue,
 so its workflow re-adds the seed by appending `classpath:db/seed` (the repeatable
@@ -369,7 +389,7 @@ entity ever drifts out of sync with the schema.
 To add a change, create a new file — never edit an applied one:
 
 ```bash
-# ecom-backend/src/main/resources/db/migration/V35__add_product_sku.sql
+# ecom-backend/src/main/resources/db/migration/V36__add_product_sku.sql
 ALTER TABLE products ADD COLUMN sku VARCHAR(64);
 ```
 

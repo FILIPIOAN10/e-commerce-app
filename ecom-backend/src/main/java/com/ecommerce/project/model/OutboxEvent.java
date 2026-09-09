@@ -77,22 +77,49 @@ public class OutboxEvent {
         return event;
     }
 
+    /**
+     * Claimed for dispatch. The attempt is counted <em>here</em> rather than on
+     * failure, because the handler now runs outside any transaction: if the JVM
+     * dies mid-handler nobody is left to call {@link #recordFailure}, and an
+     * attempt that was never counted would let a row that crashes the process
+     * retry forever. Counting at claim time makes a poison event dead-letter on
+     * schedule whether it fails politely or takes the process down with it.
+     *
+     * <p>{@code nextAttemptAt} becomes the lease expiry: until then the row is
+     * invisible to the claim query, and after it the row is claimable again even
+     * though it still reads {@code IN_PROGRESS}. Handlers must therefore be
+     * idempotent — which an at-least-once outbox already required of them.
+     *
+     * @param lease how long this dispatcher may hold the event before another
+     *              one is entitled to assume it died
+     */
+    public void markInProgress(Duration lease) {
+        this.status = OutboxStatus.IN_PROGRESS;
+        this.attempts += 1;
+        this.nextAttemptAt = Instant.now().plus(lease);
+    }
+
     /** The side effect completed. */
     public void markDone() {
         this.status = OutboxStatus.DONE;
     }
 
     /**
-     * A dispatch attempt failed. Increments the attempt count and either schedules
-     * an exponentially backed-off retry or, once {@code maxAttempts} is reached,
-     * dead-letters the event.
+     * A dispatch attempt failed. Schedules an exponentially backed-off retry or,
+     * once {@code maxAttempts} is reached, dead-letters the event.
+     *
+     * <p>The attempt count is not touched here — {@link #markInProgress} already
+     * counted this delivery when it claimed the row.
      */
     public void recordFailure(Throwable error, int maxAttempts, Duration baseBackoff) {
-        this.attempts += 1;
         this.lastError = abbreviate(String.valueOf(error));
         if (this.attempts >= maxAttempts) {
             this.status = OutboxStatus.DEAD;
         } else {
+            // Back to PENDING explicitly: the row is IN_PROGRESS at this point,
+            // and leaving it there would make the retry wait for a lease expiry
+            // instead of the backoff we just computed.
+            this.status = OutboxStatus.PENDING;
             long backoff = Math.min(
                     baseBackoff.getSeconds() * (1L << (this.attempts - 1)),
                     MAX_BACKOFF_SECONDS);
