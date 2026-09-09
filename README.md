@@ -322,16 +322,75 @@ only for load tests.
 ### Database migrations
 
 The schema is owned by **Flyway**, not by Hibernate. Migrations live in
-`ecom-backend/src/main/resources/db/migration` and run automatically on startup:
+`ecom-backend/src/main/resources/db/migration` and run automatically on startup.
+There are **34 versioned migrations** covering **38 tables**:
 
 | Migration | Purpose |
 |---|---|
-| `V1__baseline_schema.sql` | Full schema: 17 tables, FKs, unique constraints, indexes |
+| `V1__baseline_schema.sql` | Baseline: 17 tables, FKs, unique constraints, indexes |
 | `V2__seed_roles_and_users.sql` | Roles and demo users (replaces the old `data.sql`) |
+| `V3__add_cart_checkout_columns.sql` | Cart-item and order columns needed by checkout |
+| `V4__reviews_social_and_questions.sql` | Helpful/unhelpful votes on reviews, plus the product Q&A table |
+| `V5__admin_analytics.sql` | `user_activity_logs`, `promo_campaigns`, `promo_campaign_products` |
+| `V6__return_tracking_columns.sql` | Courier tracking columns on return requests |
+| `V7__create_bundles.sql` | `bundles` + `bundle_products` |
+| `V8__create_subscriptions.sql` | `subscription_plans` + `user_subscriptions` |
+| `V9__db_indexes.sql` | Performance indexes for orders, cart items and products |
+| `V10__create_processed_webhook_events.sql` | Webhook dedup table — the unique event id is the exactly-once claim |
+| `V11__create_admin_audit_logs.sql` | Admin audit trail |
+| `V12__seed_demo_products.sql` | Demo catalogue for local/Selenium runs (removed again by V34) |
+| `V13__unique_payment_intent.sql` | One order per Stripe payment id; NULL/empty (COD) excluded |
+| `V14__stock_and_coupon_integrity.sql` | Database-level invariants for stock and coupon usage, after clamping bad rows |
+| `V15__hnsw_vector_index.sql` | HNSW index on the semantic-search vector store |
+| `V16__create_idempotency_keys.sql` | `Idempotency-Key` records — request hash + stored response, replayed on retry |
+| `V17__add_optimistic_lock_versions.sql` | `version` columns so concurrent edits 409 instead of last-write-wins |
+| `V18__create_invoice_numbering.sql` | Gapless per-year fiscal invoice numbering (a SEQUENCE would burn numbers) |
+| `V19__create_outbox.sql` | Transactional outbox for durable post-commit side effects |
+| `V20__abandoned_cart_recovery.sql` | `last_activity_at` on carts, reminder stages, recovery tokens |
+| `V21__gdpr_export_and_erasure.sql` | Art. 15 export records and Art. 17 erasure/anonymisation support |
+| `V22__product_rating_denormalisation_and_facet_indexes.sql` | Denormalised product rating + facet indexes for filtered search |
+| `V23__create_stock_movement.sql` | Append-only stock ledger behind `products.quantity` |
+| `V24__order_money_to_numeric.sql` | Order money: `DOUBLE PRECISION` → `NUMERIC` |
+| `V25__product_and_cart_money_to_numeric.sql` | Product and cart money → `NUMERIC` |
+| `V26__carts_one_per_user.sql` | One cart per user, enforced by the database |
+| `V27__promo_campaign_apply_and_revert.sql` | Remembers original prices so a campaign can be reverted |
+| `V28__missing_foreign_key_indexes.sql` | The foreign keys that were still unindexed |
+| `V29__order_tax_amount.sql` | `tax_amount` on orders for the VAT line |
+| `V30__legacy_money_fields_to_numeric.sql` | The last four money columns leave `double` — no float money remains |
+| `V31__create_refunds.sql` | `refunds` table behind automated Stripe refunds |
+| `V32__multi_currency.sql` | Presentation currency on top of the USD base |
+| `V33__disputes.sql` | `disputes` + `dispute_evidence_files` for chargebacks |
+| `V34__remove_demo_catalog_seed.sql` | Drops the V12 demo catalogue everywhere except the Selenium suite |
+
+The Selenium suite drives fixed URLs (`/products/1`) and needs a known catalogue,
+so its workflow re-adds the seed by appending `classpath:db/seed` (the repeatable
+`R__demo_catalog.sql`) to `spring.flyway.locations`. Every other database stays
+without it.
 
 Hibernate runs with `ddl-auto=validate`, so the application refuses to start if an
 entity ever drifts out of sync with the schema.
 
+To add a change, create a new file — never edit an applied one:
+
+```bash
+# ecom-backend/src/main/resources/db/migration/V35__add_product_sku.sql
+ALTER TABLE products ADD COLUMN sku VARCHAR(64);
+```
+
+An existing database created by the previous `ddl-auto=update` setup is adopted
+automatically: `baseline-on-migrate` stamps it at version 1 and continues from V2,
+so no data is lost. To rebuild from scratch:
+
+```bash
+docker compose down -v && docker compose up --build
+```
+
+Inspect applied migrations at any time:
+
+```bash
+docker exec -it ecommerce-postgres psql -U postgres -d ecommerce \
+  -c "SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+```
 To add a change, create a new file — never edit an applied one:
 
 ```bash
