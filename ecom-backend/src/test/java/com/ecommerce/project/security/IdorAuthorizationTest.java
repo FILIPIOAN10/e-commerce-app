@@ -310,4 +310,12 @@ class IdorAuthorizationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[*].password").doesNotExist());
     }
+    @Test
+    @WithMockUser(username = "user1", roles = "USER")
+    void plainUserCannotQueryAdminGraphQl() throws Exception {
+        mockMvc.perform(post("/graphql")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"{ adminUsers { content { email } } }\"}"))
+                .andExpect(status().is4xxClientError());
+    }
 }

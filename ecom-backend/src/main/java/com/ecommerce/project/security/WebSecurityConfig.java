@@ -192,6 +192,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/ws-notifications/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/graphql", "/graphql/**", "/graphiql/**").hasRole("ADMIN")
                         .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/*/questions").permitAll()

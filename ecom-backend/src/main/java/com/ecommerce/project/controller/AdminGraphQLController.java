@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import com.ecommerce.project.util.SortWhitelist;
 import com.ecommerce.project.config.AppConstants;
 
 @Controller
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminGraphQLController {
 
     private final ProductService productService;
