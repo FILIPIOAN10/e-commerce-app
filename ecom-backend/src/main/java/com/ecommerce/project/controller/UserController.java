@@ -25,6 +25,7 @@ public class UserController extends BaseController {
         this.authUtil = authUtil;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/sellers")
     public ResponseEntity<?> getAllSellers(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber
