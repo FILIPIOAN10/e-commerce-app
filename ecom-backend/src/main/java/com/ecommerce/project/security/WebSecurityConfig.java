@@ -187,6 +187,7 @@ public class WebSecurityConfig {
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/auth/sellers").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**","/error").permitAll()
                         .requestMatchers("/api/ws-notifications/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()

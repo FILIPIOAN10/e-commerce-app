@@ -30,6 +30,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 /**
  * Parameterized IDOR authorization suite.
@@ -128,6 +129,7 @@ class IdorAuthorizationTest {
             "PUT, /api/cart/items/1/save-for-later",
             "PUT, /api/cart/items/1/move-to-cart",
             "DELETE, /api/carts/1/product/1",
+            "GET, /api/auth/sellers",
     })
     void anonymousAccessIsRejected(String method, String path) throws Exception {
         mockMvc.perform(http(method, path)
@@ -153,6 +155,7 @@ class IdorAuthorizationTest {
             "GET, /api/carts",
             "GET, /actuator/metrics",
             "GET, /actuator/prometheus",
+            "GET, /api/auth/sellers",
     })
     void plainUserCannotReachAdminResources(String method, String path) throws Exception {
         mockMvc.perform(http(method, path)
@@ -299,5 +302,12 @@ class IdorAuthorizationTest {
         mockMvc.perform(delete("/api/seller/products/{id}", productOwnedBySeller1)
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful());
+    }
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void sellerListNeverCarriesAPasswordHash() throws Exception {
+        mockMvc.perform(get("/api/auth/sellers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].password").doesNotExist());
     }
 }
