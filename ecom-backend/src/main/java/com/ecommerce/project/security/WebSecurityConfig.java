@@ -25,6 +25,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -184,8 +185,20 @@ public class WebSecurityConfig {
                                 "/api/auth/unlock-request",
                                 "/oauth2/**", "/login/oauth2/**", "/api/ws-notifications/**"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                // NullAuthenticatedSessionStrategy, because the default composite
+                // includes CsrfAuthenticationStrategy: it rotates the CSRF token
+                // whenever a request authenticates, which for session auth happens
+                // once at login. Here every request authenticates from its JWT, so
+                // every response deleted the XSRF-TOKEN cookie and issued a new
+                // one — and a page that fires several calls at once then sent a
+                // token another response had already replaced, which the server
+                // rejected as 403. Intermittent by nature: the first request of a
+                // pair succeeded and the second did not. Rotation earns nothing
+                // here anyway; there is no session to fixate.
                 .sessionManagement(sessionManagement ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        sessionManagement
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                                .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy()))
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(HttpMethod.GET, "/api/auth/sellers").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**","/error").permitAll()

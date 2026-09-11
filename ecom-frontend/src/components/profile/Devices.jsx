@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import LangLink from '../shared/LangLink';
 import api from '../../api/api';
 import { FaDesktop, FaMobileAlt, FaTabletAlt, FaTimes, FaSignOutAlt, FaLaptop, FaArrowLeft } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -64,9 +64,9 @@ const Devices = () => {
     <div className="max-w-3xl mx-auto p-6 mt-10 dark:text-white">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link to="/profile" className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition">
+          <LangLink to="/profile" className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition">
             <FaArrowLeft />
-          </Link>
+          </LangLink>
           <h1 className="text-2xl font-bold dark:text-white">Active Devices</h1>
         </div>
         {otherSessions.length > 0 && (

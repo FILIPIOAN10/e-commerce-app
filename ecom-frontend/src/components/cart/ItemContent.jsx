@@ -35,6 +35,13 @@ const ItemContent = ({
     };
 
     const toggleSaveForLater = () => {
+        // Save for later addresses a cart *item* by id, which only exists once
+        // the cart has been pushed to the server. Before that the id is
+        // undefined and the request went out as /cart/items/undefined/... → 400.
+        if (!cartItemId) {
+            toast.error("Still syncing your cart — try again in a moment");
+            return;
+        }
         if (savedForLater) {
             dispatch(moveItemToCart(cartItemId, toast));
         } else {

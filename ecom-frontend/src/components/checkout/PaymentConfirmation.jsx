@@ -1,5 +1,5 @@
 import { Skeleton } from '@mui/material';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FaCheckCircle } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom'
@@ -27,13 +27,21 @@ const PaymentConfirmation = () => {
         sessionStorage.removeItem("checkoutProgress");
     }, []);
 
+    // One confirmation per payment intent. React mounts effects twice in
+    // development, and both runs posted the same order — the server's
+    // idempotency key caught the duplicate and answered 409, but the cleanest
+    // duplicate is the one never sent.
+    const confirmedIntent = useRef(null);
+
     useEffect(() => {
         if(paymentIntent &&
             clientSecret &&
             redirectStatus &&
             cart &&
-            cart?.length > 0)
+            cart?.length > 0 &&
+            confirmedIntent.current !== paymentIntent)
         {
+            confirmedIntent.current = paymentIntent;
             const sendData = {
                     "addressId":selectedUserCheckoutAddress.addressId,
                     "pgName":"Stripe",

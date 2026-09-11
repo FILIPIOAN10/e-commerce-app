@@ -103,6 +103,28 @@ export const createStripePaymentSecret = (sendData) => async (dispatch) => {
     }
 };
 
+/**
+ * 409 on a checkout POST does not mean the payment failed — it means this
+ * exact Idempotency-Key is still being processed, and the server will replay
+ * the original response once it lands. Treating it as a failure told a customer
+ * whose order had just been accepted that their payment had not gone through.
+ *
+ * A repeat is normal: React runs effects twice in development, and in
+ * production a double click or a network retry does the same. Send the same
+ * key again and wait for the answer the first attempt is producing.
+ */
+const postWithIdempotencyRetry = async (url, payload, key, attempts = 4) => {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await api.post(url, payload, { headers: { "Idempotency-Key": key } });
+        } catch (error) {
+            const inFlight = error?.response?.status === 409;
+            if (!inFlight || attempt >= attempts - 1) throw error;
+            await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** attempt));
+        }
+    }
+};
+
 export const stripePaymentConfirmation = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
     try {
         const { coupon: { appliedCoupons } } = getState();
@@ -110,9 +132,11 @@ export const stripePaymentConfirmation = (sendData, setErrorMesssage, setLoadng,
         if (appliedCoupons && appliedCoupons.length > 0) {
             payload.couponCodes = appliedCoupons;
         }
-        const response = await api.post("/order/users/payments/online", payload, {
-            headers: { "Idempotency-Key": checkoutIdempotencyKey(payload) },
-        });
+        const response = await postWithIdempotencyRetry(
+            "/order/users/payments/online",
+            payload,
+            checkoutIdempotencyKey(payload)
+        );
         if (response.data) {
             removeKey("CHECKOUT_ADDRESS");
             removeKey("cartItems");

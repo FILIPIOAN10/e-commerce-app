@@ -118,7 +118,13 @@ public class CartServiceImpl implements CartService {
                 .collect(Collectors.toList());
     }
 
+    // @Transactional because mapToCartDTO maps each line's Product, and
+    // ProductDTO carries categoryName: Product.category is LAZY with
+    // open-in-view off, so mapping outside a session hit a detached proxy and
+    // turned "show me my cart" into a 500. Not readOnly — createCart() inserts
+    // the cart row when the user has none yet.
     @Override
+    @Transactional
     public CartDTO getOrCreateCartForCurrentUser() {
         Cart cart = createCart();
         return mapToCartDTO(cart);

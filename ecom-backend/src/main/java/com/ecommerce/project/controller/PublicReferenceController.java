@@ -30,6 +30,27 @@ public class PublicReferenceController extends BaseController {
     private final CityCatalog cityCatalog;
 
     /**
+     * Mints the CSRF cookie and nothing else.
+     *
+     * <p>Sign-in is one of the endpoints CSRF deliberately exempts (there is no
+     * token to send before you have a session), which means logging in does not
+     * hand the SPA a token either. The cookie is only written by the first
+     * request that goes through the CSRF filter, so whichever state-changing
+     * call happened to be first — order preview, add address, save for later —
+     * was rejected with 403 once, and then everything worked. This gives the
+     * client a request whose only job is to produce that cookie, so it can ask
+     * for one before it needs it rather than discovering the gap on a POST.
+     *
+     * <p>204 with no body: the value the caller wants is in the Set-Cookie
+     * header, written by {@code CsrfCookieFilter} on the way out.
+     */
+    @Tag(name = "Authentication")
+    @GetMapping("/csrf")
+    public ResponseEntity<Void> csrfCookie() {
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * The currencies the storefront may offer in its picker. The list is short
      * and cached, so this is a cheap call the SPA can make once on load.
      */
