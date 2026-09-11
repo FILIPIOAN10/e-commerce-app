@@ -55,7 +55,11 @@ public class TwoFactorController {
         return ResponseEntity.ok("2FA enabled successfully");
     }
 
-    @PostMapping("/user/2fa-status")
+    // A read, so a GET: as a POST it was subject to CSRF (it is not one of the
+    // pre-session endpoints exempted in WebSecurityConfig) and answered 403
+    // whenever the hook fired before anything had materialised the XSRF-TOKEN
+    // cookie the interceptor copies into the header.
+    @GetMapping("/user/2fa-status")
     public ResponseEntity<?> get2FAStatus() {
         User user = authUtil.loggedInUser();
         if (user != null) {

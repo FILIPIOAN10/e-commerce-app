@@ -25,10 +25,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpe
     Page<Product> findByUser(User user, Pageable pageDetails);
     boolean existsByCategoryAndProductName(Category category, String productName);
 
-    @Query("SELECT p FROM Product p WHERE p.quantity <= COALESCE(p.lowStockThreshold, 10)")
+    // LEFT JOIN FETCH the category: InventoryController maps these Products to DTOs
+    // in the controller, outside any transaction, and Product.category is LAZY
+    // with open-in-view off — so ModelMapper's getCategoryName() would hit a
+    // detached proxy and fail with LazyInitializationException (a 500 on both
+    // low-stock endpoints). A separate count query is required because the
+    // fetch join makes Spring Data unable to derive one for the Page.
+    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.category WHERE p.quantity <= COALESCE(p.lowStockThreshold, 10)",
+            countQuery = "SELECT COUNT(p) FROM Product p WHERE p.quantity <= COALESCE(p.lowStockThreshold, 10)")
     Page<Product> findLowStockProducts(Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE p.user = :user AND p.quantity <= COALESCE(p.lowStockThreshold, 10)")
+    @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.category WHERE p.user = :user AND p.quantity <= COALESCE(p.lowStockThreshold, 10)",
+            countQuery = "SELECT COUNT(p) FROM Product p WHERE p.user = :user AND p.quantity <= COALESCE(p.lowStockThreshold, 10)")
     Page<Product> findLowStockProductsBySeller(@Param("user") User user, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.discount > 0 ORDER BY p.discount DESC")

@@ -7,15 +7,40 @@ const api = axios.create({
     withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
+const readCsrfToken = () =>
+    document.cookie
+        .split("; ")
+        .find(row => row.startsWith("XSRF-TOKEN="))
+        ?.split("=")[1];
+
+// Sign-in is CSRF-exempt — there is no token to send before you have a session
+// — so logging in does not leave one behind either. The cookie appears only
+// once a request has passed through the CSRF filter, which made the first
+// state-changing call of a fresh session fail with 403 and every call after it
+// succeed. /public/csrf exists to mint that cookie; one in-flight priming
+// request is shared, so six parallel writes do not fetch six tokens.
+let priming = null;
+const primeCsrfToken = () => {
+    priming = priming
+        || api.get("/public/csrf").catch(() => {}).finally(() => { priming = null; });
+    return priming;
+};
+
+const SAFE_METHODS = new Set(["get", "head", "options"]);
+
+api.interceptors.request.use(async (config) => {
     config.headers = config.headers || {};
 
     config.headers["Accept-Language"] = currentLang();
 
-    const csrfToken = document.cookie
-        .split("; ")
-        .find(row => row.startsWith("XSRF-TOKEN="))
-        ?.split("=")[1];
+    let csrfToken = readCsrfToken();
+
+    // Only writes need the header, and only when we have nothing — priming on
+    // every request would double the traffic for no gain.
+    if (!csrfToken && !SAFE_METHODS.has((config.method || "get").toLowerCase())) {
+        await primeCsrfToken();
+        csrfToken = readCsrfToken();
+    }
 
     if (csrfToken) {
         config.headers["X-XSRF-TOKEN"] = csrfToken;

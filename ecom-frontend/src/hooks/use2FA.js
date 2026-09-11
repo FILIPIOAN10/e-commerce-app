@@ -10,7 +10,7 @@ export const use2FA = () => {
 const get2FAStatus = async () => {
     try {
         setLoading(true);
-        const response = await api.post('/auth/user/2fa-status'); // <- fix
+        const response = await api.get('/auth/user/2fa-status');
         setIs2FAEnabled(response.data.is2faEnabled);
         return response.data.is2faEnabled;
     } catch (err) {

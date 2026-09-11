@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchProducts, addToCart, removeFromCart, logOutUser } from '../../store/actions'
+import { fetchProducts, addToCart, removeFromCart, logOutUser, createUserCart } from '../../store/actions'
 
 vi.mock('../../api/api', () => ({
   default: {
@@ -134,5 +134,47 @@ describe('logOutUser action', () => {
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'LOG_OUT' })
     expect(localStorage.getItem('auth')).toBeNull()
     expect(mockNavigate).toHaveBeenCalledWith('/en/login')
+  })
+})
+
+describe('createUserCart action', () => {
+  const mockGetState = () => ({ carts: { cart: [], cartId: 1, totalPrice: 0 } })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
+
+  // isLoading is a count of in-flight requests, so an action that opens
+  // IS_FETCHING and never closes it leaves every isLoading-driven screen
+  // (checkout's address step first) stuck on skeletons for the rest of the
+  // session. Assert the pair balances rather than that it merely fires.
+  it('balances IS_FETCHING with a closing status action', async () => {
+    api.post.mockResolvedValue({ data: 'created' })
+    api.get.mockResolvedValue({ data: { products: [], totalPrice: 0, cartId: 1 } })
+
+    const dispatch = vi.fn((action) =>
+      typeof action === 'function' ? action(dispatch, mockGetState) : action
+    )
+
+    await createUserCart([{ productId: 1, quantity: 1 }])(dispatch)
+
+    const types = dispatch.mock.calls.map((c) => c[0]?.type).filter(Boolean)
+    const opened = types.filter((t) => t === 'IS_FETCHING').length
+    const closed = types.filter((t) => t === 'IS_SUCCESS' || t === 'IS_ERROR').length
+    expect(opened).toBeGreaterThan(0)
+    expect(closed).toBe(opened)
+  })
+
+  it('closes IS_FETCHING when the request fails', async () => {
+    api.post.mockRejectedValue({ response: { data: { message: 'boom' } } })
+
+    const dispatch = vi.fn()
+    await createUserCart([{ productId: 1, quantity: 1 }])(dispatch)
+
+    const types = dispatch.mock.calls.map((c) => c[0]?.type).filter(Boolean)
+    expect(types.filter((t) => t === 'IS_FETCHING').length).toBe(
+      types.filter((t) => t === 'IS_SUCCESS' || t === 'IS_ERROR').length
+    )
   })
 })

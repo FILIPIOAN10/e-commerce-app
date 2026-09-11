@@ -1,13 +1,40 @@
+import { useEffect, useRef } from "react";
 import { MdArrowBack, MdShoppingCart } from "react-icons/md";
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import LangLink from "../shared/LangLink";
 import ItemContent from "./ItemContent";
 import CartEmpty from "./CartEmpty";
 import { formatPrice } from "../../utils/formatPrice";
 import Breadcrumb from "../shared/Breadcrumb";
+import { syncServerCart } from "../../store/actions";
 
 const Cart = () => {
-    const {cart} = useSelector((state) => state.carts);
+    const dispatch = useDispatch();
+    const {user} = useSelector((state) => state.auth);
+    const {cart, cartId} = useSelector((state) => state.carts);
+
+    // Adding to the cart is client-side only: it writes Redux and localStorage,
+    // never the API. Every other cart action (quantity, save for later, remove)
+    // addresses a server cart, so anything the server has not been told about
+    // fails there — 404 "Cart not found" with no cart at all, 400 "not
+    // available in the cart" for an item added after one existed, and the same
+    // again for a cart that outlived the database it was created against.
+    //
+    // An item the server knows about carries a cartItemId, so a missing one is
+    // the signal to push. The pushed signature is remembered so a rejected push
+    // (stale product, stock) is not retried on every render.
+    const pushedSignature = useRef(null);
+    useEffect(() => {
+        if (!user || !cart?.length) return;
+        if (cartId && cart.every((item) => item.cartItemId)) return;
+
+        const signature = cart.map((i) => `${i.productId}:${i.quantity}`).sort().join("|");
+        if (pushedSignature.current === signature) return;
+        pushedSignature.current = signature;
+
+        dispatch(syncServerCart());
+    }, [user, cartId, cart, dispatch]);
+
     const activeCart = cart?.filter((item) => !item.savedForLater) || [];
     const savedCart = cart?.filter((item) => item.savedForLater) || [];
     const totalPrice = activeCart?.reduce(
@@ -69,7 +96,7 @@ const Cart = () => {
                     <p className="text-slate-500 dark:text-gray-400">
                         Taxes and shipping calculated at checkout
                     </p>
-                    <Link className="w-full flex justify-end" to="/checkout">
+                    <LangLink className="w-full flex justify-end" to="/checkout">
                     <button
                     disabled={activeCart.length === 0}
                     className="font-semibold w-75 py-2 px-4 rounded-sm  bg-custom-blue text-white  flex items-center justify-center gap-2 hover:text-gray-300 transition duration-500 disabled:opacity-50"
@@ -78,9 +105,9 @@ const Cart = () => {
 
                         Checkout
                     </button>
-                    </Link>
+                    </LangLink>
 
-                    <Link className="w-full flex justify-end text-sm" to="/guest-checkout">
+                    <LangLink className="w-full flex justify-end text-sm" to="/guest-checkout">
                     <button
                     data-testid="guest-checkout-button"
                     disabled={activeCart.length === 0}
@@ -88,16 +115,16 @@ const Cart = () => {
                     >
                         Checkout as guest
                     </button>
-                    </Link>
+                    </LangLink>
 
 
-                    <Link className="flex gap-2 items-center mt-2 text-slate-500 dark:text-gray-400" to="/products">
+                    <LangLink className="flex gap-2 items-center mt-2 text-slate-500 dark:text-gray-400" to="/products">
 
                     <MdArrowBack/>
                     <span>
                         Continue Shopping
                     </span>
-                    </Link>
+                    </LangLink>
                 </div>
             </div>
         </div>
