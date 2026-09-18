@@ -57,8 +57,10 @@ public class ProductImportServiceImpl implements ProductImportService {
 
                 String productName = cols[0].trim();
                 String description = cols[1].trim();
-                double price = Double.parseDouble(cols[2].trim());
-                double discount = Double.parseDouble(cols[3].trim());
+                // The CSV carries decimal text; parse it into an exact decimal
+                // rather than through a double that cannot hold most cent values.
+                BigDecimal price = new BigDecimal(cols[2].trim());
+                BigDecimal discount = new BigDecimal(cols[3].trim());
                 int quantity = Integer.parseInt(cols[4].trim());
                 String image = cols[5].trim();
                 String tags = cols[6].trim();
@@ -72,11 +74,10 @@ public class ProductImportServiceImpl implements ProductImportService {
                 Product product = new Product();
                 product.setProductName(productName);
                 product.setDescription(description);
-                // The CSV carries decimal text; parse it into an exact decimal
-                // rather than through a double that cannot hold most cent values.
-                product.setPrice(BigDecimal.valueOf(price));
-                product.setDiscount(BigDecimal.valueOf(discount));
-                product.setSpecialPrice(Money.of(price).percentage(100.0 - discount).toBigDecimal());
+                product.setPrice(price);
+                product.setDiscount(discount);
+                product.setSpecialPrice(
+                        Money.of(price).percentage(new BigDecimal("100").subtract(discount)).toBigDecimal());
                 product.setQuantity(quantity);
                 product.setImage(image);
                 product.setTags(tags);
