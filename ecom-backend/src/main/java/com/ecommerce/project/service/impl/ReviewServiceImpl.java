@@ -4,11 +4,14 @@ import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.model.Review;
+import com.ecommerce.project.model.ReviewVote;
 import com.ecommerce.project.model.User;
+import com.ecommerce.project.model.VoteType;
 import com.ecommerce.project.payload.ReviewDTO;
 import com.ecommerce.project.payload.ReviewResponse;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.ReviewRepository;
+import com.ecommerce.project.repository.ReviewVoteRepository;
 import com.ecommerce.project.service.ReviewService;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.PaginationUtil;
@@ -18,8 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import com.ecommerce.project.util.SortWhitelist;
 
 @Service
@@ -28,6 +33,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
+    private final ReviewVoteRepository reviewVoteRepository;
     private final AuthUtil authUtil;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -131,21 +137,79 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public String markReviewHelpful(Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
-        review.setHelpfulCount((review.getHelpfulCount() == null ? 0 : review.getHelpfulCount()) + 1);
-        reviewRepository.save(review);
-        return "Marked as helpful";
+        return castVote(reviewId, VoteType.HELPFUL);
     }
 
     @Override
     @Transactional
     public String markReviewUnhelpful(Long reviewId) {
+        return castVote(reviewId, VoteType.UNHELPFUL);
+    }
+
+    /**
+     * Records the current user's vote on a review, and keeps the two counter
+     * columns on {@code reviews} in step.
+     *
+     * <p>Three cases:
+     * <ul>
+     *   <li><em>No prior vote.</em> Insert a {@link ReviewVote} row; the
+     *       {@code (review_id, user_id)} PK is what stops a second vote from
+     *       the same user — the old code kept no per-user record and let a
+     *       caller loop the endpoint to inflate the counter without limit.</li>
+     *   <li><em>Same vote repeated.</em> Return "already voted" (400): the
+     *       counter must not move.</li>
+     *   <li><em>Switched vote (helpful → unhelpful or vice versa).</em> Flip
+     *       the vote row and shift one from the old counter to the new.</li>
+     * </ul>
+     *
+     * <p>Every counter change is an atomic {@code UPDATE reviews SET
+     * helpful_count = helpful_count + :delta}, not a read-modify-write in
+     * application code: two concurrent votes cannot lose an increment
+     * against each other the way {@code getHelpfulCount() + 1} used to.
+     */
+    private String castVote(Long reviewId, VoteType desired) {
+        // Confirm the review exists so we return 404, not the FK error that
+        // an insert would throw a moment later.
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review", "reviewId", reviewId));
-        review.setUnhelpfulCount((review.getUnhelpfulCount() == null ? 0 : review.getUnhelpfulCount()) + 1);
-        reviewRepository.save(review);
-        return "Marked as unhelpful";
+
+        User user = authUtil.loggedInUser();
+        if (user.getUserId().equals(review.getUser().getUserId())) {
+            throw new APIException("You cannot vote on your own review");
+        }
+
+        Optional<ReviewVote> existing = reviewVoteRepository.findByReviewIdAndUserId(reviewId, user.getUserId());
+
+        if (existing.isPresent()) {
+            ReviewVote current = existing.get();
+            if (current.getVoteType() == desired) {
+                throw new APIException("You have already voted on this review");
+            }
+            // Switched vote: subtract from the old counter, add to the new.
+            // Order doesn't matter — the two UPDATEs are independent rows in
+            // the same transaction.
+            if (current.getVoteType() == VoteType.HELPFUL) {
+                reviewVoteRepository.adjustHelpfulCount(reviewId, -1);
+                reviewVoteRepository.adjustUnhelpfulCount(reviewId, +1);
+            } else {
+                reviewVoteRepository.adjustUnhelpfulCount(reviewId, -1);
+                reviewVoteRepository.adjustHelpfulCount(reviewId, +1);
+            }
+            current.setVoteType(desired);
+            current.setUpdatedAt(LocalDateTime.now());
+            reviewVoteRepository.save(current);
+        } else {
+            ReviewVote vote = new ReviewVote(
+                    reviewId, user.getUserId(), desired, LocalDateTime.now(), LocalDateTime.now());
+            reviewVoteRepository.save(vote);
+            if (desired == VoteType.HELPFUL) {
+                reviewVoteRepository.adjustHelpfulCount(reviewId, +1);
+            } else {
+                reviewVoteRepository.adjustUnhelpfulCount(reviewId, +1);
+            }
+        }
+
+        return desired == VoteType.HELPFUL ? "Marked as helpful" : "Marked as unhelpful";
     }
 
     private ReviewDTO mapToDTO(Review review) {
