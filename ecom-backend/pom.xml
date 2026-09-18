@@ -246,6 +246,16 @@
             <artifactId>spring-boot-starter-graphql</artifactId>
         </dependency>
 
+        <!-- RFC 4180 CSV parsing for the product bulk-import endpoint.
+             The importer used to split on comma, which corrupted rows whose
+             description or category contained one; opencsv reads quoted fields
+             correctly and treats embedded commas as data. -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
