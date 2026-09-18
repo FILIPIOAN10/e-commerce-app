@@ -3,7 +3,6 @@ package com.ecommerce.project.service.impl;
 import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.*;
-import com.ecommerce.project.payload.CartDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repository.CartRepository;
@@ -37,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import org.springframework.security.access.AccessDeniedException;
 import java.util.*;
-import java.util.stream.Collectors;
 import com.ecommerce.project.service.pricing.Money;
 
 
@@ -241,15 +239,16 @@ public class ProductServiceImpl implements ProductService {
         cacheEvictor.evictAllAfterCommit(PRODUCT_CACHE_NAMES);
         cacheEvictor.evictKeyAfterCommit("product", productId);
 
-        List<Cart> carts = cartRepository.findCartsByProductId(productId);
-
-        List<CartDTO> cartDTOS = carts.stream().map(cart -> {
-            CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
-            cartDTO.setProducts(productMapper.mapCartItemsToProductDTOs(cart.getCartItems()));
-            return cartDTO;
-        }).collect(Collectors.toList());
-
-        cartDTOS.forEach(cart -> cartService.updateProductsInCarts(cart.getCartId(),productId));
+        // A price edit on a popular product fans out to every cart that holds
+        // it. The old code JOIN FETCHed each of those carts, mapped a CartDTO
+        // that walked its cart items and their products through the product
+        // mapper's two review-aggregate queries, then threw the DTO away and
+        // called updateProductsInCarts with just the cartId — which reloads
+        // the cart from scratch. The projection below picks the ids straight
+        // out of cart_items in one query; each downstream call still owns its
+        // own read.
+        cartRepository.findCartIdsByProductId(productId)
+                .forEach(cartId -> cartService.updateProductsInCarts(cartId, productId));
         productSemanticSearchService.indexProduct(savedProduct);
 
         ProductDTO response = productMapper.mapProductToDTO(savedProduct);
@@ -272,8 +271,8 @@ public class ProductServiceImpl implements ProductService {
 
         productImageService.deleteProductImages(product);
 
-        List<Cart> carts = cartRepository.findCartsByProductId(productId);
-        carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(),productId));
+        cartRepository.findCartIdsByProductId(productId)
+                .forEach(cartId -> cartService.deleteProductFromCart(cartId, productId));
 
         productRepository.delete(product);
 

@@ -229,7 +229,7 @@ class ProductServiceImplTest {
         when(modelMapper.map(productDTO, Product.class)).thenReturn(mappedProduct);
         when(authUtil.loggedInUser()).thenReturn(user);
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(cartRepository.findCartsByProductId(1L)).thenReturn(List.of());
+        when(cartRepository.findCartIdsByProductId(1L)).thenReturn(List.of());
         when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(inv -> mapToDto(inv.getArgument(0)));
 
         productService.updateProduct(1L, productDTO);
@@ -272,7 +272,7 @@ class ProductServiceImplTest {
         when(authUtil.loggedInUser()).thenReturn(user);
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
         when(productRepository.saveAndFlush(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(cartRepository.findCartsByProductId(1L)).thenReturn(List.of());
+        when(cartRepository.findCartIdsByProductId(1L)).thenReturn(List.of());
         when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(inv -> mapToDto(inv.getArgument(0)));
 
         productService.updateProduct(1L, productDTO);
@@ -304,7 +304,7 @@ class ProductServiceImplTest {
         when(authUtil.loggedInUser()).thenReturn(user);
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
         when(productRepository.saveAndFlush(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(cartRepository.findCartsByProductId(1L)).thenReturn(List.of());
+        when(cartRepository.findCartIdsByProductId(1L)).thenReturn(List.of());
         when(productMapper.mapProductToDTO(any(Product.class))).thenAnswer(inv -> mapToDto(inv.getArgument(0)));
 
         productService.updateProduct(1L, productDTO);
