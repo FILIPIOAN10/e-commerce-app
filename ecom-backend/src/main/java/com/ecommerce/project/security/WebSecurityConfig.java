@@ -165,7 +165,7 @@ public class WebSecurityConfig {
             return config;
         }))
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRepository(StableCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
                         // Exempt the endpoints a caller reaches *before* they hold
                         // a session, since there is no token for them to send yet.
