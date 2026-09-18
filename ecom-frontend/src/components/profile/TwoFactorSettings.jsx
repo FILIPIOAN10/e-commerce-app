@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { use2FA } from '../../hooks/use2FA';
+import useCleanupTimeout from '../../hooks/useCleanupTimeout';
 import Setup2FA from '../auth/Setup2FA';
 import './TwoFactorSettings.css';
 
@@ -9,6 +10,11 @@ const TwoFactorSettings = () => {
   const [statusLoading, setStatusLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [disableConfirm, setDisableConfirm] = useState(false);
+  // Both handlers below queue a 3s "clear the success banner" timer. The
+  // hook cancels an in-flight timer if the caller schedules another one, and
+  // cancels whatever is pending on unmount.
+  const scheduleTimeout = useCleanupTimeout();
+  const scheduleClearBanner = () => scheduleTimeout(() => setSuccessMessage(''), 3000);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -34,8 +40,7 @@ const TwoFactorSettings = () => {
       setDisableConfirm(false);
       await fetchStatus();
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      scheduleClearBanner();
     } catch (err) {
       console.error('Error disabling 2FA:', err);
     }
@@ -45,7 +50,7 @@ const TwoFactorSettings = () => {
     setShowSetupModal(false);
     fetchStatus();
     setSuccessMessage('✓ Two-Factor Authentication has been enabled');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    scheduleClearBanner();
   };
 
   return (

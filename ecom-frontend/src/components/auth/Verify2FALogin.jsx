@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { use2FA } from '../../hooks/use2FA';
+import useCleanupTimeout from '../../hooks/useCleanupTimeout';
 import './Verify2FALogin.css';
 
 const Verify2FALogin = ({ jwtToken, onVerifySuccess, onCancel, email }) => {
   const { verify2FALogin, loading, error, setError } = use2FA();
   const [verificationCode, setVerificationCode] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  // The 1.5s delay before calling onVerifySuccess lets the user read the
+  // "logging in" banner. Cancels on unmount so a caller who cancels or
+  // navigates away is not silently logged in a moment later.
+  const scheduleLogin = useCleanupTimeout();
 
 const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,8 +24,8 @@ const handleSubmit = async (e) => {
     try {
       const fullAuthData = await verify2FALogin(parseInt(verificationCode), jwtToken);
       setSuccessMessage('✓ 2FA verified successfully! Logging in...');
-      
-      setTimeout(() => {
+
+      scheduleLogin(() => {
         if (onVerifySuccess) onVerifySuccess(fullAuthData); // <- obiectul complet
       }, 1500);
     } catch (err) {

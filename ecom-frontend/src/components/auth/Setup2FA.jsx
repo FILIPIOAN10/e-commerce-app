@@ -1,6 +1,7 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { useState, useEffect, useCallback } from 'react';
 import { use2FA } from '../../hooks/use2FA';
+import useCleanupTimeout from '../../hooks/useCleanupTimeout';
 import './Setup2FA.css';
 
 
@@ -9,6 +10,10 @@ const Setup2FA = ({ onClose, onSuccess }) => {
   const [verificationCode, setVerificationCode] = useState('');
   const [step, setStep] = useState('qrcode'); // 'qrcode' or 'verify'
   const [successMessage, setSuccessMessage] = useState('');
+  // The success timer below fires onSuccess+onClose 1.5s after verification.
+  // Without cancelling it on unmount, closing the modal (or navigating away)
+  // during that window would still fire those callbacks on gone state.
+  const scheduleClose = useCleanupTimeout();
 
   const generateQRCode = useCallback(async () => {
     try {
@@ -38,8 +43,8 @@ const Setup2FA = ({ onClose, onSuccess }) => {
       setSuccessMessage('✓ 2FA has been enabled successfully!');
       setVerificationCode('');
       
-      // Call onSuccess callback after 1 second
-      setTimeout(() => {
+      // Call onSuccess callback after 1.5 seconds. Cancels on unmount.
+      scheduleClose(() => {
         if (onSuccess) onSuccess();
         if (onClose) onClose();
       }, 1500);
