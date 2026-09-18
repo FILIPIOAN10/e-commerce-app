@@ -4,11 +4,14 @@ import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.model.Review;
+import com.ecommerce.project.model.ReviewVote;
 import com.ecommerce.project.model.User;
+import com.ecommerce.project.model.VoteType;
 import com.ecommerce.project.payload.ReviewDTO;
 import com.ecommerce.project.payload.ReviewResponse;
 import com.ecommerce.project.repository.ProductRepository;
 import com.ecommerce.project.repository.ReviewRepository;
+import com.ecommerce.project.repository.ReviewVoteRepository;
 import com.ecommerce.project.service.impl.ReviewServiceImpl;
 import com.ecommerce.project.util.AuthUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,12 +44,14 @@ class ReviewServiceImplTest {
 
     @Mock private ReviewRepository reviewRepository;
     @Mock private ProductRepository productRepository;
+    @Mock private ReviewVoteRepository reviewVoteRepository;
     @Mock private AuthUtil authUtil;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
 
     private User user;
+    private User voter;
     private Product product;
     private Review review;
 
@@ -56,6 +61,14 @@ class ReviewServiceImplTest {
         user.setUserId(1L);
         user.setUserName("user1");
         user.setEmail("user1@test.com");
+
+        // The author of a review and the caller voting on it are different
+        // people — the service now rejects self-votes, so tests exercising the
+        // vote path need a distinct authenticated user.
+        voter = new User();
+        voter.setUserId(2L);
+        voter.setUserName("voter");
+        voter.setEmail("voter@test.com");
 
         product = new Product();
         product.setProductId(1L);
@@ -67,6 +80,8 @@ class ReviewServiceImplTest {
                 .product(product)
                 .rating(4)
                 .comment("Great product")
+                .helpfulCount(0)
+                .unhelpfulCount(0)
                 .createdAt(LocalDateTime.of(2026, 8, 12, 10, 0))
                 .build();
     }
@@ -194,15 +209,18 @@ class ReviewServiceImplTest {
     }
 
     @Test
-    @DisplayName("markReviewHelpful increments helpful count")
-    void markReviewHelpful_success() {
+    @DisplayName("first helpful vote inserts a vote row and increments the counter atomically")
+    void markReviewHelpful_firstVote() {
         when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+        when(authUtil.loggedInUser()).thenReturn(voter);
+        when(reviewVoteRepository.findByReviewIdAndUserId(1L, 2L)).thenReturn(Optional.empty());
 
         String result = reviewService.markReviewHelpful(1L);
 
         assertEquals("Marked as helpful", result);
-        assertEquals(1, review.getHelpfulCount());
-        verify(reviewRepository).save(review);
+        verify(reviewVoteRepository).save(any(ReviewVote.class));
+        verify(reviewVoteRepository).adjustHelpfulCount(1L, +1);
+        verify(reviewVoteRepository, never()).adjustUnhelpfulCount(anyLong(), anyInt());
     }
 
     @Test
@@ -215,15 +233,18 @@ class ReviewServiceImplTest {
     }
 
     @Test
-    @DisplayName("markReviewUnhelpful increments unhelpful count")
-    void markReviewUnhelpful_success() {
+    @DisplayName("first unhelpful vote inserts a vote row and increments the counter atomically")
+    void markReviewUnhelpful_firstVote() {
         when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+        when(authUtil.loggedInUser()).thenReturn(voter);
+        when(reviewVoteRepository.findByReviewIdAndUserId(1L, 2L)).thenReturn(Optional.empty());
 
         String result = reviewService.markReviewUnhelpful(1L);
 
         assertEquals("Marked as unhelpful", result);
-        assertEquals(1, review.getUnhelpfulCount());
-        verify(reviewRepository).save(review);
+        verify(reviewVoteRepository).save(any(ReviewVote.class));
+        verify(reviewVoteRepository).adjustUnhelpfulCount(1L, +1);
+        verify(reviewVoteRepository, never()).adjustHelpfulCount(anyLong(), anyInt());
     }
 
     @Test
@@ -233,5 +254,50 @@ class ReviewServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> reviewService.markReviewUnhelpful(99L));
+    }
+
+    @Test
+    @DisplayName("a repeated same-type vote is rejected with 400 and does not move the counter")
+    void repeatedVoteRejected() {
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+        when(authUtil.loggedInUser()).thenReturn(voter);
+        ReviewVote existing = new ReviewVote(1L, 2L, VoteType.HELPFUL, LocalDateTime.now(), LocalDateTime.now());
+        when(reviewVoteRepository.findByReviewIdAndUserId(1L, 2L)).thenReturn(Optional.of(existing));
+
+        APIException thrown = assertThrows(APIException.class,
+                () -> reviewService.markReviewHelpful(1L));
+        assertTrue(thrown.getMessage().contains("already voted"));
+        verify(reviewVoteRepository, never()).adjustHelpfulCount(anyLong(), anyInt());
+        verify(reviewVoteRepository, never()).adjustUnhelpfulCount(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("switching a vote flips the row and shifts one from the old counter to the new")
+    void switchedVoteMovesOne() {
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+        when(authUtil.loggedInUser()).thenReturn(voter);
+        ReviewVote existing = new ReviewVote(1L, 2L, VoteType.HELPFUL, LocalDateTime.now(), LocalDateTime.now());
+        when(reviewVoteRepository.findByReviewIdAndUserId(1L, 2L)).thenReturn(Optional.of(existing));
+
+        String result = reviewService.markReviewUnhelpful(1L);
+
+        assertEquals("Marked as unhelpful", result);
+        verify(reviewVoteRepository).adjustHelpfulCount(1L, -1);
+        verify(reviewVoteRepository).adjustUnhelpfulCount(1L, +1);
+        assertEquals(VoteType.UNHELPFUL, existing.getVoteType());
+    }
+
+    @Test
+    @DisplayName("voting on one's own review is rejected — the counter does not move")
+    void selfVoteRejected() {
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
+        // The review's author (user) is the caller.
+        when(authUtil.loggedInUser()).thenReturn(user);
+
+        APIException thrown = assertThrows(APIException.class,
+                () -> reviewService.markReviewHelpful(1L));
+        assertTrue(thrown.getMessage().contains("your own review"));
+        verify(reviewVoteRepository, never()).save(any(ReviewVote.class));
+        verify(reviewVoteRepository, never()).adjustHelpfulCount(anyLong(), anyInt());
     }
 }
