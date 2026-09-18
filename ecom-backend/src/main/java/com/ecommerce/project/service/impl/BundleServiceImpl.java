@@ -66,7 +66,12 @@ public class BundleServiceImpl implements BundleService {
 
     @Override
     public BundleDTO getBundleById(Long bundleId) {
-        Bundle bundle = bundleRepository.findById(bundleId)
+        // findByIdWithProducts, not findById: mapToDTO walks bundle.getProducts()
+        // through the product mapper, and this method runs with no transaction
+        // and open-in-view=false, so a LAZY collection here would throw
+        // LazyInitializationException on every call. The same fetch-join shape
+        // as getAllBundles / getActiveBundles just above.
+        Bundle bundle = bundleRepository.findByIdWithProducts(bundleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bundle", "bundleId", bundleId));
         return mapToDTO(bundle);
     }

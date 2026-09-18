@@ -219,6 +219,34 @@ class RepositoryNPlusOneAuditTest {
     }
 
     @Test
+    @DisplayName("getBundleById returns the bundle with its products without a LazyInitializationException")
+    void bundleDetailInitialisesProducts() {
+        Category category = newCategory();
+        List<Product> products = new java.util.ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            products.add(newProduct(category, i));
+        }
+        Bundle bundle = new Bundle();
+        bundle.setName("np-audit-bundle-detail");
+        bundle.setActive(true);
+        bundle.setDiscountPercentage(new BigDecimal("15.00"));
+        bundle.setProducts(products);
+        em.persist(bundle);
+        em.flush();
+        Long bundleId = bundle.getBundleId();
+        em.clear(); // simulate a fresh request: no session-cached graph
+
+        // Was findById() alone: mapToDTO walked bundle.getProducts() outside
+        // the Hibernate session and threw LazyInitializationException — every
+        // call to GET /api/public/bundles/{id} returned 500. The fetch-join
+        // means the collection is initialised before the entity leaves the
+        // repository, so mapping succeeds.
+        BundleDTO dto = bundleService.getBundleById(bundleId);
+        assertThat(dto).isNotNull();
+        assertThat(dto.getProducts()).hasSize(5);
+    }
+
+    @Test
     @DisplayName("getAllReturnRequests resolves every row's order total in one query")
     void returnRequestListAvoidsNPlusOne() {
         for (int i = 0; i < N; i++) {
