@@ -321,6 +321,23 @@ Expected Result: The first four wrong codes answer 401 with the number of attemp
 
 Why it matters: the second factor was the least protected step in the login, not the most. `RateLimitFilter` throttles only paths that match a rule in `RateLimitConfig` — `findRule()` is an allowlist, and an unmatched path passes straight through — and `POST /api/auth/public/verify-2fa-login` had no rule. Nothing else was counting either: reaching the challenge means the password already succeeded, and `AuthServiceImpl` calls `resetAttempts()` on success, so the password lockout had just been cleared. What remained between a stolen password and the account was a six-digit number with unlimited guesses, bounded only by the challenge token's five-minute life — and signing in again mints another, so the space was exhaustible in about an hour. Two layers now: rate limit rules cap `verify-2fa-login` per IP and `verify-2fa` per user, and `TwoFactorAttemptService` locks the account after five wrong codes. The counter is keyed on the username, not on the token, because a token is free — a lock keyed on one is escaped by asking for the next; the username is the part an attacker cannot vary. A rejected token is deliberately *not* counted, or anyone could lock any account out of its second factor by posting garbage without knowing the password, and a rejected token answers with the same "Invalid 2FA code" as a rejected code, since telling them apart tells an attacker whether a challenge is still live. `AccountLockedException` reaches the global handler as 429 rather than being flattened into the 401 of a merely wrong code, which is why `TwoFactorController` catches the two credential exceptions by name instead of `RuntimeException`.
 
+10. Subscription Lookups (Indexing the Stripe Ids)
+What to test: That the columns `user_subscriptions` is searched by are indexed, and that two rows cannot claim the same Stripe subscription.
+
+Prerequisites: Migrations applied through V37.
+
+Steps:
+
+`\d user_subscriptions` in psql, and read the index list.
+
+`EXPLAIN SELECT * FROM user_subscriptions WHERE stripe_subscription_id = 'sub_x';` — confirm an Index Scan rather than a Seq Scan.
+
+Try inserting two rows with the same `stripe_subscription_id`.
+
+Expected Result: Four indexes: the primary key, `idx_user_subscriptions_plan`, the two partial uniques on the Stripe ids, and the composite on `(email, created_at DESC)`. The duplicate insert is rejected by `uk_user_subscriptions_stripe_id`.
+
+Why it matters: V8 created this table with no index of its own and V28 added only the `plan_id` foreign key, so all three of its real access paths were sequential scans — `findByStripeSubscriptionId` on every recurring webhook, `findByStripeCheckoutSessionId` on every new subscription, and `findByEmailOrderByCreatedAtDesc` on the account page and in the GDPR export. `ForeignKeyIndexTest` could not catch it because none of the three is a foreign key. The table only grows, since cancelled subscriptions are kept as history, so the scan gets slower for the life of the install on the one path with a deadline attached: Stripe gives a webhook 20 seconds, then redelivers it into the same handler. Both Stripe ids are UNIQUE rather than plain, because the repository returns `Optional` for each — a second row would not be a duplicate to live with, it would throw `IncorrectResultSizeDataAccessException` inside a webhook handler — and because `refunds` and `disputes`, the later Stripe-backed tables, already carry exactly that constraint. They are partial (`WHERE ... IS NOT NULL`) so the abandoned checkouts that never reached Stripe neither collide with each other nor sit in the index — which on a real install is most of the rows. If either index fails to build, the database holds rows that disagree about which subscription is which, and Postgres names the duplicated value in the error; V37 does not clamp them automatically, because choosing which subscription row survives is a billing decision.
+
 ## Getting Started
  
 ### Prerequisites
