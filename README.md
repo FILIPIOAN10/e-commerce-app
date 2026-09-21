@@ -302,6 +302,25 @@ Expected Result: Two lazy chunks load (country ~96 KB, state ~555 KB), and picki
 
 Why it matters: the form used to resolve cities in the browser from the country-state-city package, whose city.json is 7.9 MB — 92% of an 8.7 MB chunk (2.3 MB gzipped) downloaded the moment the address form opened, which is the single highest-value moment in the app and often the worst connection. Countries and states together are only 635 KB, so they stay client-side for instant dropdowns; only the cities moved to the backend. The package's barrel re-exports City, so importing it drags city.json in even when City is never called — hence the deep imports of `country-state-city/lib/country` and `/lib/state` in AddAddressForm. The backend reads a reshaped copy of the dataset (grouped by country-state, names only: 7.7 MB → 2.0 MB) that is parsed on first request rather than at startup; regenerate it with `python scripts/generate-city-index.py` after upgrading the npm package. If the lookup is unreachable the city list stays empty and the address can still be saved — a dropdown that never populates must not become a checkout the customer cannot complete.
 
+9. Two-Factor Login (Throttling the Second Factor)
+What to test: That a wrong TOTP code is counted, that the account's 2FA step locks after five of them, and that the lock is not escapable by asking for a new challenge token.
+
+Prerequisites: App running, a user with 2FA enabled (Profile → enable 2FA and pair an authenticator), Redis up.
+
+Steps:
+
+Sign in with the correct password. You are handed a challenge, not a session.
+
+Submit a wrong six-digit code five times. Watch the message count down, then answer 429 with `{"locked": true}`.
+
+Sign in again with the correct password to mint a fresh challenge token, and submit another wrong code.
+
+Wait for the window to pass (or `DEL 2fa_attempts:<username>` in Redis) and submit the correct code.
+
+Expected Result: The first four wrong codes answer 401 with the number of attempts remaining. The fifth locks the account's second factor for fifteen minutes. The fresh token from step 3 is refused with the same 429 — a new token does not buy new attempts. After the window, the correct code completes the login and the counter resets.
+
+Why it matters: the second factor was the least protected step in the login, not the most. `RateLimitFilter` throttles only paths that match a rule in `RateLimitConfig` — `findRule()` is an allowlist, and an unmatched path passes straight through — and `POST /api/auth/public/verify-2fa-login` had no rule. Nothing else was counting either: reaching the challenge means the password already succeeded, and `AuthServiceImpl` calls `resetAttempts()` on success, so the password lockout had just been cleared. What remained between a stolen password and the account was a six-digit number with unlimited guesses, bounded only by the challenge token's five-minute life — and signing in again mints another, so the space was exhaustible in about an hour. Two layers now: rate limit rules cap `verify-2fa-login` per IP and `verify-2fa` per user, and `TwoFactorAttemptService` locks the account after five wrong codes. The counter is keyed on the username, not on the token, because a token is free — a lock keyed on one is escaped by asking for the next; the username is the part an attacker cannot vary. A rejected token is deliberately *not* counted, or anyone could lock any account out of its second factor by posting garbage without knowing the password, and a rejected token answers with the same "Invalid 2FA code" as a rejected code, since telling them apart tells an attacker whether a challenge is still live. `AccountLockedException` reaches the global handler as 429 rather than being flattened into the 401 of a merely wrong code, which is why `TwoFactorController` catches the two credential exceptions by name instead of `RuntimeException`.
+
 ## Getting Started
  
 ### Prerequisites

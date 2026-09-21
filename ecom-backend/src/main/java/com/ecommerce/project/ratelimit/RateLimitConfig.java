@@ -25,6 +25,16 @@ public class RateLimitConfig {
         return List.of(
                 new RateLimitRule("auth-signin", "POST", "/api/auth/signin", 5, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("auth-signup", "POST", "/api/auth/signup", 3, oneMinute, RateLimitKeyType.IP),
+
+                // The second factor, which had no rule at all and so no cap:
+                // findRule() is an allowlist, and an unmatched path is
+                // unlimited. Reaching the challenge means the password already
+                // passed, so this was the last step between a stolen password
+                // and an account — answered by a six-digit number. The IP cap
+                // is the outer wall; TwoFactorAttemptService locks the account
+                // itself, which is what survives an attacker changing IP.
+                new RateLimitRule("verify-2fa-login", "POST", "/api/auth/public/verify-2fa-login", 5, oneMinute, RateLimitKeyType.IP),
+                new RateLimitRule("verify-2fa-enable", "POST", "/api/auth/verify-2fa", 5, oneMinute, RateLimitKeyType.USER),
                 new RateLimitRule("order-payment", "POST", "/api/order/users/payments/*", 3, oneMinute, RateLimitKeyType.USER),
                 new RateLimitRule("product-search", "GET", "/api/public/products/keyword/*", 30, oneMinute, RateLimitKeyType.IP),
                 new RateLimitRule("product-search-query", "GET", "/api/public/products/search", 30, oneMinute, RateLimitKeyType.IP),

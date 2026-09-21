@@ -1,5 +1,6 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.exception.AccountLockedException;
 import com.ecommerce.project.exception.InvalidCredentialsException;
 import com.ecommerce.project.exception.UserNotFoundException;
 import com.ecommerce.project.model.User;
@@ -7,6 +8,7 @@ import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.jwt.JwtUtils;
 import com.ecommerce.project.security.redis.RefreshTokenService;
+import com.ecommerce.project.security.redis.TwoFactorAttemptService;
 import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import com.ecommerce.project.service.impl.TwoFactorServiceImpl;
@@ -47,6 +49,9 @@ class TwoFactorServiceTest {
 
     @Mock
     private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private TwoFactorAttemptService twoFactorAttemptService;
 
     @InjectMocks
     private TwoFactorServiceImpl twoFactorService;
@@ -191,6 +196,84 @@ class TwoFactorServiceTest {
         InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class,
                 () -> twoFactorService.complete2FALogin("2fa-token", 999999));
         assertTrue(ex.getMessage().contains("Invalid 2FA code"));
+    }
+
+    @Test
+    @DisplayName("a wrong code is counted, so the six-digit space cannot be walked")
+    void complete2FALogin_invalidCode_countsTheAttempt() {
+        user.setTwoFactorSecret("SECRETKEY");
+
+        when(jwtUtils.validateTwoFactorToken("2fa-token")).thenReturn(true);
+        when(jwtUtils.getUserNameFromJWTToken("2fa-token")).thenReturn("user1");
+        when(userRepository.findByUserName("user1")).thenReturn(Optional.of(user));
+        when(totpService.verifyCode("SECRETKEY", 999999)).thenReturn(false);
+        when(twoFactorAttemptService.getRemainingAttempts("user1")).thenReturn(4);
+
+        InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class,
+                () -> twoFactorService.complete2FALogin("2fa-token", 999999));
+
+        verify(twoFactorAttemptService).recordFailedAttempt("user1");
+        assertTrue(ex.getMessage().contains("4 attempts remaining"));
+    }
+
+    @Test
+    @DisplayName("once the account is locked the code is not even checked")
+    void complete2FALogin_locked_rejectsWithoutVerifying() {
+        when(jwtUtils.validateTwoFactorToken("2fa-token")).thenReturn(true);
+        when(jwtUtils.getUserNameFromJWTToken("2fa-token")).thenReturn("user1");
+        when(twoFactorAttemptService.isLocked("user1")).thenReturn(true);
+        when(twoFactorAttemptService.getLockTimeRemaining("user1")).thenReturn(600L);
+
+        AccountLockedException ex = assertThrows(AccountLockedException.class,
+                () -> twoFactorService.complete2FALogin("2fa-token", 123456));
+
+        assertTrue(ex.getMessage().contains("10 minutes"));
+        // The point of the lock: no TOTP check, so a correct guess arriving
+        // after the cap does not let the attacker in either.
+        verify(totpService, never()).verifyCode(anyString(), anyInt());
+        verify(twoFactorAttemptService, never()).recordFailedAttempt(anyString());
+    }
+
+    @Test
+    @DisplayName("a completed login clears the counter")
+    void complete2FALogin_success_resetsTheCounter() {
+        user.setTwoFactorEnabled(true);
+        user.setTwoFactorSecret("SECRETKEY");
+
+        when(jwtUtils.validateTwoFactorToken("2fa-token")).thenReturn(true);
+        when(jwtUtils.getUserNameFromJWTToken("2fa-token")).thenReturn("user1");
+        when(userRepository.findByUserName("user1")).thenReturn(Optional.of(user));
+        when(totpService.verifyCode("SECRETKEY", 123456)).thenReturn(true);
+        when(refreshTokenService.createRefreshToken("user1")).thenReturn("refresh-token");
+        when(refreshTokenService.generateRefreshCookie("refresh-token"))
+                .thenReturn(ResponseCookie.from("refresh", "refresh-token").build());
+
+        try (MockedStatic<UserDetailsImpl> userDetails = mockStatic(UserDetailsImpl.class);
+             MockedStatic<UserInfoMapper> infoMapper = mockStatic(UserInfoMapper.class)) {
+
+            UserDetailsImpl details = new UserDetailsImpl(1L, "user1", "user1@test.com", "pass", null);
+            userDetails.when(() -> UserDetailsImpl.build(user)).thenReturn(details);
+            infoMapper.when(() -> UserInfoMapper.toUserInfoResponse(user))
+                    .thenReturn(new UserInfoResponse(1L, "user1", List.of("ROLE_USER")));
+            when(jwtUtils.generateJwtCookie(details)).thenReturn(ResponseCookie.from("jwt", "jwt-token").build());
+
+            twoFactorService.complete2FALogin("2fa-token", 123456);
+        }
+
+        verify(twoFactorAttemptService).resetAttempts("user1");
+    }
+
+    @Test
+    @DisplayName("a rejected challenge token is not counted against the account it names")
+    void complete2FALogin_badToken_doesNotCountAgainstTheUser() {
+        when(jwtUtils.validateTwoFactorToken("forged")).thenReturn(false);
+
+        assertThrows(InvalidCredentialsException.class,
+                () -> twoFactorService.complete2FALogin("forged", 123456));
+
+        // Otherwise anyone could lock any account out of its second factor by
+        // posting garbage tokens, without ever knowing the password.
+        verify(twoFactorAttemptService, never()).recordFailedAttempt(anyString());
     }
 
     @Test
