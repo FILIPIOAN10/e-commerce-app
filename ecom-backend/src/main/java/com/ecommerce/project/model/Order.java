@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +105,12 @@ public class Order {
 
     private String appliedCoupons;
     private String orderStatus;
+
+    // When the order first reached Delivered: the return window starts here.
+    // Set once by OrderServiceImpl.updateOrder; a rejected return that puts the
+    // order back to Delivered does not restart the clock. See V37.
+    @Column(name = "delivered_at")
+    private Instant deliveredAt;
 
     @ManyToOne
     @JoinColumn(name = "address_id")
