@@ -15,12 +15,17 @@ const Products  = () => {
 
     // Per-request status: this screen can no longer be blanked by an unrelated
     // feature's failure, and its skeleton survives until its own data arrives.
-    const { isLoading, error } = useProductQuery();
+    // The list comes from this query's own result, not the shared slice: the
+    // slice holds whichever product request finished last, which after a cache
+    // hit or an admin visit is not the list this URL asked for.
+    const { data, isLoading, error } = useProductQuery();
     useGetCategoriesQuery();
 
-    const { products, categories, productPagination } = useSelector(
-        (state) => state.products
-    );
+    const { categories } = useSelector((state) => state.products);
+    const products = data?.content;
+    const productPagination = data
+        ? { totalPages: data.totalPages, totalElements: data.totalElements }
+        : undefined;
     const { t } = useTranslation();
     const lang = useLanguage();
 

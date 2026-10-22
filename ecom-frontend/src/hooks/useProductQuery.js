@@ -20,7 +20,9 @@ export const buildProductQuery = (searchParams) => {
     // `sortBy` in the URL carries the direction, not the field: the storefront
     // only sorts by price. Renaming it is a separate change with a redirect for
     // existing links, so the mapping stays explicit here.
-    params.set("sortBy", "price");
+    // The price a card shows - and the customer pays - is specialPrice; sorting
+    // by list price put 9.43 after 9.83 whenever discounts differed.
+    params.set("sortBy", "specialPrice");
     params.set("sortOrder", searchParams.get("sortBy") || "asc");
 
     const category = searchParams.get("category");

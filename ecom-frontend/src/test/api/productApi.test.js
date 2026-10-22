@@ -41,9 +41,9 @@ describe('buildProductQuery', () => {
     expect(query('page=-5').get('pageNumber')).toBe('0')
   })
 
-  it('treats the URL sortBy as a direction, sorting by price', () => {
+  it('treats the URL sortBy as a direction, sorting by the price shown (specialPrice)', () => {
     const q = query('sortBy=desc')
-    expect(q.get('sortBy')).toBe('price')
+    expect(q.get('sortBy')).toBe('specialPrice')
     expect(q.get('sortOrder')).toBe('desc')
   })
 

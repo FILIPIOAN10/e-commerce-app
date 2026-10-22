@@ -207,13 +207,13 @@ const Filter = ({categories}) => {
             setCategory(event.target.value);
         };
 
+        // Navigation stays outside the state updater: React may run updaters
+        // twice (StrictMode does, on purpose), and a navigate inside one ran twice.
         const toggleSortOrder = () =>{
-            setSortOrder((prevOrder) => {
-                const newOrder = (prevOrder === "asc" ) ? "desc": "asc";
-                params.set("sortBy",newOrder);
-                navigate(`${pathName}?${params}`);
-                return newOrder;
-            })
+            const newOrder = (sortOrder === "asc" ) ? "desc": "asc";
+            params.set("sortBy",newOrder);
+            navigate(`${pathName}?${params}`);
+            setSortOrder(newOrder);
         };
 
         const handleClearFilters = () =>{
