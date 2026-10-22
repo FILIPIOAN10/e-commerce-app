@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import api from '../api/api';
 
 export const use2FA = () => {
@@ -7,7 +7,15 @@ export const use2FA = () => {
   const [qrCode, setQrCode] = useState(null);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
 
-const get2FAStatus = async () => {
+// Every function below is memoised. Callers put them in useCallback/useEffect
+// dependency lists (TwoFactorSettings fetches the status on mount, Setup2FA
+// generates the QR code on mount); a new function on every render re-ran
+// those effects on every render - an endless stream of 2fa-status calls that
+// kept the profile on "Loading", and a fresh TOTP secret per render that made
+// the QR code impossible to verify. They only touch state setters, which React
+// keeps stable, so the dependency lists are empty.
+
+const get2FAStatus = useCallback(async () => {
     try {
         setLoading(true);
         const response = await api.get('/auth/user/2fa-status');
@@ -19,9 +27,9 @@ const get2FAStatus = async () => {
     } finally {
         setLoading(false);
     }
-};
+}, []);
 
-const enable2FA = async () => {
+const enable2FA = useCallback(async () => {
     try {
         setLoading(true);
         setError(null);
@@ -35,9 +43,9 @@ const enable2FA = async () => {
     } finally {
         setLoading(false);
     }
-};
+}, []);
 
-const verify2FA = async (code) => {
+const verify2FA = useCallback(async (code) => {
     try {
         setLoading(true);
         setError(null);
@@ -52,9 +60,9 @@ const verify2FA = async (code) => {
     } finally {
         setLoading(false);
     }
-};
+}, []);
 
-const disable2FA = async () => {
+const disable2FA = useCallback(async () => {
     try {
         setLoading(true);
         setError(null);
@@ -68,9 +76,9 @@ const disable2FA = async () => {
     } finally {
         setLoading(false);
     }
-};
+}, []);
 
-const verify2FALogin = async (code, jwtToken) => {
+const verify2FALogin = useCallback(async (code, jwtToken) => {
     try {
         setLoading(true);
         setError(null);
@@ -86,7 +94,7 @@ const verify2FALogin = async (code, jwtToken) => {
     } finally {
         setLoading(false);
     }
-};
+}, []);
   return {
     loading,
     error,
