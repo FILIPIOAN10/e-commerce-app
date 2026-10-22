@@ -35,4 +35,7 @@ public final class OutboxEventTypes {
 
     /** A chargeback reached a terminal state (won / lost / closed) — alert the admins of the outcome. */
     public static final String DISPUTE_CLOSED = "DISPUTE_CLOSED";
+
+    /** GDPR erasure reached the AI support agent: delete the customer's conversations in SupportPilot. */
+    public static final String SUPPORT_CHAT_ERASURE = "SUPPORT_CHAT_ERASURE";
 }

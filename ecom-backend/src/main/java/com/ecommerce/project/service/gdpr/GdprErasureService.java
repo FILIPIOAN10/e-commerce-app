@@ -1,5 +1,10 @@
 package com.ecommerce.project.service.gdpr;
 
+import com.ecommerce.project.repository.SupportConversationRepository;
+import com.ecommerce.project.service.outbox.OutboxEventPublisher;
+import com.ecommerce.project.service.outbox.OutboxEventTypes;
+import com.ecommerce.project.service.outbox.payload.SupportChatErasureOutboxPayload;
+import com.ecommerce.project.service.support.SupportCustomerIds;
 import com.ecommerce.project.exception.ResourceNotFoundException;
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.repository.ProductRepository;
@@ -66,6 +71,8 @@ public class GdprErasureService {
     private final GdprTokenService gdprTokenService;
     private final StringRedisTemplate redisTemplate;
     private final AdminAuditLogService adminAuditLogService;
+    private final SupportConversationRepository supportConversationRepository;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     public GdprErasureService(EntityManager entityManager,
                               UserRepository userRepository,
@@ -74,7 +81,9 @@ public class GdprErasureService {
                               RefreshTokenService refreshTokenService,
                               GdprTokenService gdprTokenService,
                               StringRedisTemplate redisTemplate,
-                              AdminAuditLogService adminAuditLogService) {
+                              AdminAuditLogService adminAuditLogService,
+                              SupportConversationRepository supportConversationRepository,
+                              OutboxEventPublisher outboxEventPublisher) {
         this.entityManager = entityManager;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
@@ -83,6 +92,8 @@ public class GdprErasureService {
         this.gdprTokenService = gdprTokenService;
         this.redisTemplate = redisTemplate;
         this.adminAuditLogService = adminAuditLogService;
+        this.supportConversationRepository = supportConversationRepository;
+        this.outboxEventPublisher = outboxEventPublisher;
     }
 
     /**
@@ -109,6 +120,7 @@ public class GdprErasureService {
 
         revokeAccess(userId, originalUsername);
         deletePersonalContent(user, originalEmail, originalUsername);
+        eraseSupportConversations(userId);
         anonymiseRetainedRecords(originalEmail, originalUsername, pseudonym);
         tombstoneAccount(user, pseudonym);
 
@@ -122,6 +134,17 @@ public class GdprErasureService {
         refreshProductRatings(reviewedProductIds);
         adminAuditLogService.logGdprErasure(userId, pseudonym);
         log.info("GDPR erasure completed for user {} (pseudonym {})", userId, pseudonym);
+    }
+
+    /**
+     * The chat transcripts live in SupportPilot; the call to delete them goes on
+     * the outbox so it runs only if this erasure commits. The shop's index of the
+     * conversations goes now, in this transaction.
+     */
+    private void eraseSupportConversations(Long userId) {
+        supportConversationRepository.deleteByUserId(userId);
+        outboxEventPublisher.publish(OutboxEventTypes.SUPPORT_CHAT_ERASURE,
+                new SupportChatErasureOutboxPayload(SupportCustomerIds.of(userId)));
     }
 
     /** Kills every live session and any pending erasure link for the account. */

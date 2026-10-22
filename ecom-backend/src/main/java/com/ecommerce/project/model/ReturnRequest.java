@@ -59,4 +59,19 @@ public class ReturnRequest {
     // NUMERIC(12,2), so this is too rather than a Double that widens it. See V30.
     @Column(precision = 12, scale = 2)
     private BigDecimal refundAmount;
+
+    /** CUSTOMER (the My Orders button) or SUPPORTPILOT (filed by the AI agent after an admin approved it). */
+    @Column(nullable = false, length = 20)
+    private String source = SOURCE_CUSTOMER;
+
+    /** The SupportPilot conversation that asked for this return, so an admin can read why. */
+    @Column(name = "support_conversation_id", length = 64)
+    private String supportConversationId;
+
+    /** The agent's Idempotency-Key: a retried tool call finds this row instead of creating a second. Unique (partial), see V37. */
+    @Column(name = "support_idempotency_key", length = 100)
+    private String supportIdempotencyKey;
+
+    public static final String SOURCE_CUSTOMER = "CUSTOMER";
+    public static final String SOURCE_SUPPORTPILOT = "SUPPORTPILOT";
 }
