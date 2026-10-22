@@ -37,6 +37,8 @@ const ProductImport = lazy(() => import('./components/admin/import/ProductImport
 const PromoCampaigns = lazy(() => import('./components/admin/promo/PromoCampaigns'))
 const Orders = lazy(() => import('./components/admin/orders/Orders'))
 const AdminReturns = lazy(() => import('./components/admin/returns/AdminReturns'))
+const AdminSupportApprovals = lazy(() => import('./components/admin/support/AdminSupportApprovals'))
+const SupportChatWidget = lazy(() => import('./components/support/SupportChatWidget'))
 const Bundles = lazy(() => import('./components/bundles/Bundles'))
 const AdminBundles = lazy(() => import('./components/admin/bundles/AdminBundles'))
 const SubscriptionPlans = lazy(() => import('./components/subscriptions/SubscriptionPlans'))
@@ -113,6 +115,7 @@ function App() {
               <Route path='sellers' element={<Sellers />}/>
               <Route path='orders' element={<Orders />}/>
               <Route path='returns' element={<AdminReturns />}/>
+              <Route path='ai-refunds' element={<AdminSupportApprovals />}/>
               <Route path='categories' element={<Category />}/>
               <Route path='coupons' element={<Coupons />}/>
               <Route path='low-stock' element={<LowStockAlerts />}/>
@@ -131,6 +134,9 @@ function App() {
         </Route>
       </Routes>
       </RoutedErrorBoundary>
+      </Suspense>
+      <Suspense fallback={null}>
+      <SupportChatWidget />
       </Suspense>
       </div>
     </Router>

@@ -64,6 +64,18 @@ public class StripeServiceImpl implements StripeService {
     @Value("${stripe.secret.key}")
     private String stripeApiKey;
 
+    // Stripe's Java client defaults to 30s connect + 80s read. That is a
+    // failure mode dressed as a default: one stalled Stripe socket parks a
+    // caller thread for ~a minute and a half, and if the caller is a
+    // @Scheduled sweep (outbox dispatcher, subscription renewal) sharing the
+    // single scheduler thread, every other job waits too. Bind them to
+    // properties so tests can shorten them and ops can widen them.
+    @Value("${stripe.connect-timeout-ms:2000}")
+    private int stripeConnectTimeoutMs;
+
+    @Value("${stripe.read-timeout-ms:10000}")
+    private int stripeReadTimeoutMs;
+
     private final AuthUtil authUtil;
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
@@ -72,6 +84,11 @@ public class StripeServiceImpl implements StripeService {
     @PostConstruct
     public void init(){
         Stripe.apiKey = stripeApiKey;
+        // Static globals on the Stripe SDK: one setter reaches every call in
+        // the JVM, including SubscriptionServiceImpl and StripePaymentGateway,
+        // both of which share this same HTTP client.
+        Stripe.setConnectTimeout(stripeConnectTimeoutMs);
+        Stripe.setReadTimeout(stripeReadTimeoutMs);
     }
 
 

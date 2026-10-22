@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -43,7 +47,24 @@ class RefundHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new RefundHandler(refundRepository, stripeService, notificationService, new OutboxPayloadCodec());
+        handler = new RefundHandler(refundRepository, stripeService, notificationService,
+                new OutboxPayloadCodec(), new InlinePlatformTransactionManager());
+    }
+
+    /**
+     * The handler now uses {@link org.springframework.transaction.support.TransactionTemplate}
+     * to open a short read-only transaction, then a short write transaction, around the
+     * Stripe call — because {@code @Transactional} on a self-invoked method inside the same
+     * bean is bypassed by Spring's proxy and would silently open no transaction at all.
+     * The unit test does not need real transactional semantics, only for the templates to
+     * run their callbacks; this stub invokes them inline.
+     */
+    private static final class InlinePlatformTransactionManager implements PlatformTransactionManager {
+        @Override public TransactionStatus getTransaction(TransactionDefinition def) {
+            return new SimpleTransactionStatus();
+        }
+        @Override public void commit(TransactionStatus status) { /* no-op */ }
+        @Override public void rollback(TransactionStatus status) { /* no-op */ }
     }
 
     private Refund pending(long id) {

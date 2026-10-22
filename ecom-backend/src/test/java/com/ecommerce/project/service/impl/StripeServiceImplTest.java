@@ -13,6 +13,7 @@ import com.ecommerce.project.service.pricing.ShippingCalculator;
 import com.ecommerce.project.service.pricing.rule.CouponDiscountRule;
 import com.ecommerce.project.service.pricing.rule.ShippingRule;
 import com.ecommerce.project.util.AuthUtil;
+import com.stripe.Stripe;
 import com.stripe.exception.ApiConnectionException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -173,6 +174,38 @@ class StripeServiceImplTest {
                     "the Stripe payment_intent id must not reach the client");
             assertFalse(thrown.getMessage().contains("req_leak_456"),
                     "the Stripe request id must not reach the client");
+        }
+    }
+
+    @Test
+    @DisplayName("init() pushes the configured connect and read timeouts onto the Stripe SDK, "
+            + "so a stalled Stripe socket cannot park a request thread for over a minute")
+    void initConfiguresStripeTimeouts() throws Exception {
+        int originalConnect = Stripe.getConnectTimeout();
+        int originalRead = Stripe.getReadTimeout();
+        try {
+            java.lang.reflect.Field connectField =
+                    StripeServiceImpl.class.getDeclaredField("stripeConnectTimeoutMs");
+            connectField.setAccessible(true);
+            connectField.set(stripeService, 2000);
+
+            java.lang.reflect.Field readField =
+                    StripeServiceImpl.class.getDeclaredField("stripeReadTimeoutMs");
+            readField.setAccessible(true);
+            readField.set(stripeService, 10000);
+
+            java.lang.reflect.Field apiKeyField =
+                    StripeServiceImpl.class.getDeclaredField("stripeApiKey");
+            apiKeyField.setAccessible(true);
+            apiKeyField.set(stripeService, "sk_test_unit");
+
+            stripeService.init();
+
+            assertEquals(2000, Stripe.getConnectTimeout());
+            assertEquals(10000, Stripe.getReadTimeout());
+        } finally {
+            Stripe.setConnectTimeout(originalConnect);
+            Stripe.setReadTimeout(originalRead);
         }
     }
 }

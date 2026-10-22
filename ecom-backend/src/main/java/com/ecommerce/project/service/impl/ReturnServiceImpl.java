@@ -291,6 +291,8 @@ public class ReturnServiceImpl implements ReturnService {
         dto.setTrackingStatus(r.getTrackingStatus());
         dto.setLastTrackedAt(r.getLastTrackedAt());
         dto.setRefundAmount(r.getRefundAmount() != null ? r.getRefundAmount() : orderTotal);
+        dto.setSource(r.getSource());
+        dto.setSupportConversationId(r.getSupportConversationId());
         return dto;
     }
 

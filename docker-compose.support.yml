@@ -1,0 +1,108 @@
+# AI customer support next to the shop: SupportPilot (the agent) + DocuAsk (policy RAG).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.support.yml up -d --build
+#
+# Both services are built from their own repositories (paths below, override in .env).
+# Nothing here publishes a port to the internet: the browser only ever talks to the
+# shop's /api/support/*, and SupportPilot reaches the shop on the compose network.
+# The 127.0.0.1 ports are for poking at them from this machine only.
+
+x-support-keys: &support-keys
+  SUPPORTPILOT_GATEWAY_KEY: ${SUPPORTPILOT_GATEWAY_KEY:?SUPPORTPILOT_GATEWAY_KEY is required - see .env.example}
+  SUPPORTPILOT_ADMIN_KEY: ${SUPPORTPILOT_ADMIN_KEY:?SUPPORTPILOT_ADMIN_KEY is required - see .env.example}
+  SUPPORT_INTERNAL_API_KEY: ${SUPPORT_INTERNAL_API_KEY:?SUPPORT_INTERNAL_API_KEY is required - see .env.example}
+
+services:
+  backend:
+    environment:
+      <<: *support-keys
+      SUPPORT_ENABLED: "true"
+      SUPPORTPILOT_URL: http://supportpilot:8000
+
+  supportpilot-mongo:
+    image: mongo:8
+    volumes:
+      - supportpilot-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  supportpilot:
+    build: ${SUPPORTPILOT_DIR:-../roadmaps/ai-engineer/supportpilot}
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      GATEWAY_API_KEY: ${SUPPORTPILOT_GATEWAY_KEY}
+      ADMIN_API_KEY: ${SUPPORTPILOT_ADMIN_KEY}
+      MONGO_URL: mongodb://supportpilot-mongo:27017
+      # The shop's Redis, its own database index so rate-limit keys never collide.
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379/2
+      # The real order system: the shop's internal API, same contract as orders_mock.py.
+      ORDERS_BASE_URL: http://backend:8080/internal/support
+      ORDERS_API_KEY: ${SUPPORT_INTERNAL_API_KEY}
+      DOCUASK_BASE_URL: http://docuask:8000
+      DOCUASK_API_KEY: ${DOCUASK_API_KEY:?DOCUASK_API_KEY is required - see .env.example}
+      LLM_PROVIDER: ${SUPPORT_LLM_PROVIDER:-fake}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CHAT_MODEL: ${SUPPORT_CHAT_MODEL:-gpt-4.1-mini}
+    depends_on:
+      supportpilot-mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      docuask:
+        condition: service_started
+
+  docuask-db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: docuask
+      POSTGRES_PASSWORD: ${DOCUASK_DB_PASSWORD:-docuask}
+      POSTGRES_DB: docuask
+    volumes:
+      - docuask-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docuask -d docuask"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  docuask-migrate:
+    build: ${DOCUASK_DIR:-../roadmaps/ai-engineer/docuask}
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://docuask:${DOCUASK_DB_PASSWORD:-docuask}@docuask-db:5432/docuask
+    depends_on:
+      docuask-db:
+        condition: service_healthy
+
+  docuask:
+    build: ${DOCUASK_DIR:-../roadmaps/ai-engineer/docuask}
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment: &docuask-env
+      DATABASE_URL: postgresql+psycopg://docuask:${DOCUASK_DB_PASSWORD:-docuask}@docuask-db:5432/docuask
+      API_KEYS: ${DOCUASK_API_KEY}
+      LLM_PROVIDER: ${SUPPORT_LLM_PROVIDER:-fake}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MAX_DISTANCE: ${DOCUASK_MAX_DISTANCE:-0.95}
+    depends_on:
+      docuask-migrate:
+        condition: service_completed_successfully
+
+  # One-shot: loads this shop's policies. Safe to re-run - unchanged files are skipped (sha256).
+  docuask-ingest:
+    build: ${DOCUASK_DIR:-../roadmaps/ai-engineer/docuask}
+    command: ["python", "-m", "docuask.cli", "ingest", "/policies"]
+    environment: *docuask-env
+    volumes:
+      - ./support/policies:/policies:ro
+    depends_on:
+      docuask-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  supportpilot-mongo-data:
+  docuask-data:
