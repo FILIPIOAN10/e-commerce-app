@@ -51,8 +51,19 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
      */
     List<Cart> findByUserUserIdOrderByCartIdAsc(Long userId);
 
-    @Query("SELECT c FROM Cart c JOIN  FETCH c.cartItems ci JOIN  FETCH  ci.product p WHERE  p.productId = ?1")
-    List<Cart> findCartsByProductId(Long productId);
+    /**
+     * Ids of every cart that currently holds the given product, and nothing
+     * else. {@code ProductServiceImpl.updateProduct} used to run a JOIN FETCH
+     * that materialised each cart with its items and products, only to read
+     * {@code cart.getCartId()} off the DTO it built from them — a full graph
+     * fetched, mapped and discarded per cart on every admin price edit.
+     * Fetching just the id keeps the fan-out but eliminates the waste; each
+     * downstream call to {@link
+     * com.ecommerce.project.service.CartService#updateProductsInCarts} still
+     * reloads its own cart to write to it.
+     */
+    @Query("SELECT DISTINCT ci.cart.cartId FROM CartItem ci WHERE ci.product.productId = :productId")
+    List<Long> findCartIdsByProductId(@Param("productId") Long productId);
 
     /**
      * Page 1 of the admin cart list: ids only. A JOIN FETCH plus a Pageable

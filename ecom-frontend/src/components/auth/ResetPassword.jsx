@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import LangLink from "../shared/LangLink";
 import { useLangNavigate } from "../../hooks/useLangNavigate";
+import useCleanupTimeout from "../../hooks/useCleanupTimeout";
 import { FaKey, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import InputField from "../shared/InputField";
@@ -15,6 +16,10 @@ const ResetPassword = () => {
     const [loader, setLoader] = useState(false);
     const [status, setStatus] = useState("form");
     const [message, setMessage] = useState("");
+    // The 3s post-success navigate("/login") below is convenience, not
+    // policy — a caller who has already gone elsewhere should not be forced
+    // back to /login by a stale timer.
+    const scheduleRedirect = useCleanupTimeout();
 
     const token = searchParams.get("token");
 
@@ -49,7 +54,7 @@ const ResetPassword = () => {
             setMessage(resp.message || "Password reset successfully!");
             toast.success("Password reset successfully!");
             reset();
-            setTimeout(() => navigate("/login"), 3000);
+            scheduleRedirect(() => navigate("/login"), 3000);
         } catch (error) {
             setStatus("error");
             setMessage(error?.response?.data?.message || "Failed to reset password. The link may be expired or invalid.");

@@ -36,6 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -169,6 +170,9 @@ public class OrderServiceImpl implements OrderService {
             restockOrderItems(order, status);
         }
 
+        if (OrderStatus.DELIVERED.equals(status) && order.getDeliveredAt() == null) {
+            order.setDeliveredAt(Instant.now());
+        }
         order.setOrderStatus(status);
         orderRepository.save(order);
         OrderDTO orderDTO = orderDtoAssembler.forStatusUpdate(order);
