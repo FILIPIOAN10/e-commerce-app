@@ -55,12 +55,18 @@ jobs:
         run: |
           echo "name=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
+      # type=ref,event=tag publishes the git tag verbatim (v1.2.3). deploy.yml
+      # pulls <image>:${{ github.ref_name }}, which is exactly that string, but
+      # the semver patterns strip the leading "v" ({{version}} of v1.2.3 is
+      # 1.2.3) — so without this rule no image ever carried the tag the deploy
+      # asks for, and `docker compose pull` failed on every release.
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
+            type=ref,event=tag
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
@@ -137,12 +143,14 @@ jobs:
         run: |
           echo "name=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
+      # See the backend job: type=ref,event=tag is the tag deploy.yml pulls.
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
+            type=ref,event=tag
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
