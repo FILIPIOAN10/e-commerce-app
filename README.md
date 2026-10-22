@@ -302,6 +302,23 @@ Expected Result: Two lazy chunks load (country ~96 KB, state ~555 KB), and picki
 
 Why it matters: the form used to resolve cities in the browser from the country-state-city package, whose city.json is 7.9 MB — 92% of an 8.7 MB chunk (2.3 MB gzipped) downloaded the moment the address form opened, which is the single highest-value moment in the app and often the worst connection. Countries and states together are only 635 KB, so they stay client-side for instant dropdowns; only the cities moved to the backend. The package's barrel re-exports City, so importing it drags city.json in even when City is never called — hence the deep imports of `country-state-city/lib/country` and `/lib/state` in AddAddressForm. The backend reads a reshaped copy of the dataset (grouped by country-state, names only: 7.7 MB → 2.0 MB) that is parsed on first request rather than at startup; regenerate it with `python scripts/generate-city-index.py` after upgrading the npm package. If the lookup is unreachable the city list stays empty and the address can still be saved — a dropdown that never populates must not become a checkout the customer cannot complete.
 
+9. AI Customer Support (SupportPilot + DocuAsk)
+What to test: A signed-in customer asks the support chat about an order and a policy, asks for a refund, and an admin approves it.
+
+Prerequisites: `docker compose -f docker-compose.yml -f docker-compose.support.yml up -d --build` with the four support keys set in `.env`; an order of `user1` moved to Delivered by an admin. With `SUPPORT_LLM_PROVIDER=fake` use a 4–6 digit order number.
+
+Steps:
+
+Sign in as user1, open the chat bubble, ask "Where is my order 1042?" and "How much does shipping cost?".
+
+Ask "I want a refund for order 1042, it arrived broken". The input locks while a colleague decides.
+
+As admin open AI Refunds, read the transcript and approve.
+
+Expected Result: The order answer comes from the real order; the policy answer cites `support/policies/shipping.md`. After approval the customer's chat unlocks with the agent's answer, Returns shows the return APPROVED with an AI badge, and the order is Returned. No money moves until the return is marked refunded, exactly as for a customer-filed return.
+
+Why it matters: the agent and the RAG service are separate Python services (`roadmaps/ai-engineer/supportpilot`, `.../docuask`), and the shop is their gateway and system of record. The browser only calls `/api/support/**`, so no service key reaches it and the customer id SupportPilot sees (`u-<userId>`, never the email) is set by the shop. SupportPilot calls back into `/internal/support/**`, a separate filter chain authenticated by its own key and not proxied by nginx; its refund call becomes `ReturnService.requestReturn` + `approveReturn`, idempotent on the agent's key, with ownership, Delivered and the 30-day window (`orders.delivered_at`, V37) re-checked by the shop. The LangGraph interrupt is the one human gate, transcripts stay in SupportPilot's MongoDB, and GDPR erasure reaches them through the outbox. Full walkthrough: `docs/supportpilot-integration/GUIDE.md`.
+
 ## Getting Started
  
 ### Prerequisites

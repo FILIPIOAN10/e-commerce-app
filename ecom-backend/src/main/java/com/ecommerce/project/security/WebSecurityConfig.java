@@ -3,6 +3,7 @@ package com.ecommerce.project.security;
 
 
 import com.ecommerce.project.config.OAuth2LoginSuccessHandler;
+import com.ecommerce.project.config.SupportPilotProperties;
 import com.ecommerce.project.ratelimit.RateLimitFilter;
 import com.ecommerce.project.security.jwt.AuthEntryPointJwt;
 import com.ecommerce.project.security.jwt.AuthTokenFilter;
@@ -31,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.ecommerce.project.security.filter.CsrfCookieFilter;
+import com.ecommerce.project.security.filter.ServiceApiKeyFilter;
 
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -142,6 +144,33 @@ public class WebSecurityConfig {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(accounts);
         provider.setPasswordEncoder(passwordEncoder());
         return new ProviderManager(provider);
+    }
+
+    /**
+     * SupportPilot's way back into the shop: {@code /internal/support/**}.
+     *
+     * <p>A service, not a person — no cookie, so no CSRF, and no session. It
+     * proves itself with {@code app.support.internal-api-key} and gets
+     * {@code ROLE_SUPPORT_SERVICE}, which no user account can hold, so a stolen
+     * customer JWT opens nothing here and the service key opens nothing else.
+     * nginx only proxies {@code /api/}, so this is reachable on the internal
+     * network alone.
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain supportInternalFilterChain(HttpSecurity http, SupportPilotProperties support)
+            throws Exception {
+        http.securityMatcher("/internal/support/**")
+                // Exempted by path rather than switched off, as the main chain does
+                // for its pre-session endpoints: the exemption stays explicit and
+                // cannot outlive the matcher it was written for.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/internal/support/**"))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("SUPPORT_SERVICE"))
+                .addFilterBefore(new ServiceApiKeyFilter(support.getInternalApiKey(), "supportpilot", "SUPPORT_SERVICE"),
+                        UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
     @Bean
