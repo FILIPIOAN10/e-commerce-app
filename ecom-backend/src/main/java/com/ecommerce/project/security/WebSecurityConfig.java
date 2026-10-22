@@ -161,7 +161,10 @@ public class WebSecurityConfig {
     public SecurityFilterChain supportInternalFilterChain(HttpSecurity http, SupportPilotProperties support)
             throws Exception {
         http.securityMatcher("/internal/support/**")
-                .csrf(AbstractHttpConfigurer::disable)
+                // Exempted by path rather than switched off, as the main chain does
+                // for its pre-session endpoints: the exemption stays explicit and
+                // cannot outlive the matcher it was written for.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/internal/support/**"))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("SUPPORT_SERVICE"))
