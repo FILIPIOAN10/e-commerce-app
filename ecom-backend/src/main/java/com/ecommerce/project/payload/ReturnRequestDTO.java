@@ -25,4 +25,6 @@ public class ReturnRequestDTO {
     private String trackingStatus;
     private LocalDateTime lastTrackedAt;
     private BigDecimal refundAmount;
+    private String source;
+    private String supportConversationId;
 }

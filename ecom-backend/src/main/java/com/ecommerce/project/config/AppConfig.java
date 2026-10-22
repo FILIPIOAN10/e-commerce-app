@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({TaxProperties.class, CurrencyProperties.class})
+@EnableConfigurationProperties({TaxProperties.class, CurrencyProperties.class, SupportPilotProperties.class})
 public class AppConfig {
     @Bean
     public ModelMapper modelMapper() {

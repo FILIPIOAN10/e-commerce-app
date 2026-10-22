@@ -116,7 +116,15 @@ const AdminReturns = () => {
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {returns.map((r) => (
                                     <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">#{r.id}</td>
+                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                            #{r.id}
+                                            {r.source === "SUPPORTPILOT" && (
+                                                <span title={`Filed by the AI assistant (conversation ${r.supportConversationId})`}
+                                                      className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700">
+                                                    AI
+                                                </span>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400">#{r.orderId}</td>
                                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{r.userEmail}</td>
                                         <td className="px-4 py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate">{r.reason}</td>

@@ -55,7 +55,11 @@ public class RateLimitConfig {
                 // filling one address form legitimately fires a handful of these as
                 // the customer changes their mind about the state, and the response
                 // is cached for a day after that.
-                new RateLimitRule("geo-cities", "GET", "/api/public/geo/cities", 60, oneMinute, RateLimitKeyType.IP)
+                new RateLimitRule("geo-cities", "GET", "/api/public/geo/cities", 60, oneMinute, RateLimitKeyType.IP),
+
+                // Every message is one or more paid model calls. SupportPilot has its
+                // own per-customer limit too; this one stops the traffic at the door.
+                new RateLimitRule("support-chat", "POST", "/api/support/chat", 20, oneMinute, RateLimitKeyType.USER)
         );
     }
 }
