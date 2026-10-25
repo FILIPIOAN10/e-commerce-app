@@ -1,6 +1,8 @@
 package com.ecommerce.project.service.impl;
 
 import com.ecommerce.project.service.FileService;
+import com.ecommerce.project.service.media.ImageUploadValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,35 +18,38 @@ import java.util.UUID;
 @ConditionalOnProperty(name = "file.storage.provider", havingValue = "local", matchIfMissing = true)
 public class FileServiceImpl implements FileService {
 
+    private final ImageUploadValidator imageValidator;
 
+    @Autowired
+    public FileServiceImpl(ImageUploadValidator imageValidator) {
+        this.imageValidator = imageValidator;
+    }
 
-
-
-
+    /**
+     * Every image upload the app takes on the product path lands here. The old
+     * implementation read {@code file.getOriginalFilename()} and copied the
+     * stream to disk with no content check, so an admin (or anyone with that
+     * permission) could upload {@code xss.svg} carrying inline JavaScript and
+     * the server would serve it back from {@code /images/**}, executing it in
+     * the API origin against authenticated cookies. The old code also called
+     * {@code substring(lastIndexOf('.'))} without checking the {@code -1}
+     * return, turning a filename without a dot into a 500. Both are handled by
+     * {@link ImageUploadValidator#validate} now — extension whitelist plus a
+     * magic-byte check, and a defensive extension parser.
+     */
     @Override
     public String uploadImage(String path, MultipartFile file) throws IOException {
+        ImageUploadValidator.Validated validated = imageValidator.validate(file);
 
-        // File names of current / original file
-        String originalFilename = file.getOriginalFilename();
-
-        // Generate a unique file name
-        String randomId = UUID.randomUUID().toString();
-        // fileName is -> mat.jpg
-        // UUID is  1234
-        // fileName ->1234.jpg
-        String fileName = randomId.concat(originalFilename.substring(originalFilename.lastIndexOf('.')));
+        String fileName = UUID.randomUUID() + validated.extension();
         String filePath = path + File.separator + fileName;
 
-        // Check if path exist and create
         File folder = new File(path);
         if (!folder.exists()) {
             folder.mkdir();
         }
 
-        // Upload to server
-        Files.copy(file.getInputStream(), Paths.get(filePath));
-
-        // returning file name
+        Files.write(Paths.get(filePath), validated.bytes());
         return fileName;
     }
 
