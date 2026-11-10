@@ -7,8 +7,9 @@ import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.request.ChangePasswordRequest;
 import com.ecommerce.project.security.request.UpdateProfileRequest;
 import com.ecommerce.project.security.response.UserInfoResponse;
+import com.ecommerce.project.exception.APIException;
 import com.ecommerce.project.service.ProfileService;
-import com.ecommerce.project.service.media.ImageSignature;
+import com.ecommerce.project.service.media.ImageUploadValidator;
 import com.ecommerce.project.util.AuthUtil;
 import com.ecommerce.project.util.UserInfoMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @Service
 @Transactional
 public class ProfileServiceImpl implements ProfileService {
@@ -27,14 +26,17 @@ public class ProfileServiceImpl implements ProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final AuthUtil authUtil;
+    private final ImageUploadValidator imageValidator;
 
     @Value("${image.base.url}")
     private String imageBaseUrl;
 
-    public ProfileServiceImpl(UserRepository userRepository, PasswordEncoder encoder, AuthUtil authUtil) {
+    public ProfileServiceImpl(UserRepository userRepository, PasswordEncoder encoder,
+                              AuthUtil authUtil, ImageUploadValidator imageValidator) {
         this.userRepository = userRepository;
         this.encoder = encoder;
         this.authUtil = authUtil;
+        this.imageValidator = imageValidator;
     }
 
     @Override
@@ -77,8 +79,23 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    /**
+     * Validation and I/O now sit in separate paths so a bad request maps to 400,
+     * not 500. The old code wrapped everything in {@code try/catch(Exception)}
+     * and rethrew as {@code RuntimeException}, which the global handler treated
+     * as a server error — a caller uploading a {@code .txt} saw a 500 with the
+     * message "Failed to upload avatar: Invalid file type...", and legitimate
+     * disk I/O failures were indistinguishable from client mistakes.
+     *
+     * <p>{@link ImageUploadValidator#validate} throws {@link APIException} for
+     * every client-side failure (missing file, disallowed extension, bytes not
+     * matching the declared type) — mapped to 400 by the global handler. The
+     * try/catch below is now scoped to the actual disk write, where an
+     * {@code IOException} is a legitimate 500.
+     */
     public String uploadAvatar(MultipartFile file, Authentication authentication) {
         User user = authUtil.loggedInUser();
+        ImageUploadValidator.Validated validated = imageValidator.validate(file);
 
         try {
             String uploadDir = "images/avatars/";
@@ -87,33 +104,18 @@ public class ProfileServiceImpl implements ProfileService {
                 java.nio.file.Files.createDirectories(uploadPath);
             }
 
-            String originalFilename = file.getOriginalFilename();
-            String fileExtension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
-            }
-
-            List<String> allowedExtensions = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
-            if (!allowedExtensions.contains(fileExtension)) {
-                throw new RuntimeException("Invalid file type. Allowed: jpg, jpeg, png, gif, webp");
-            }
-
-            byte[] fileBytes = file.getBytes();
-            if (!ImageSignature.contentMatchesExtension(fileBytes, fileExtension)) {
-                throw new RuntimeException("Invalid file content. File does not match the declared image type.");
-            }
-
-            String fileName = "avatar_" + user.getUserId() + "_" + System.currentTimeMillis() + fileExtension;
+            String fileName = "avatar_" + user.getUserId() + "_"
+                    + System.currentTimeMillis() + validated.extension();
             java.nio.file.Path filePath = uploadPath.resolve(fileName);
-            java.nio.file.Files.write(filePath, fileBytes);
+            java.nio.file.Files.write(filePath, validated.bytes());
 
             String avatarUrl = imageBaseUrl + "/avatars/" + fileName;
             user.setAvatarUrl(avatarUrl);
             userRepository.save(user);
 
             return avatarUrl;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to upload avatar: " + e.getMessage());
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to save avatar to disk", e);
         }
     }
 

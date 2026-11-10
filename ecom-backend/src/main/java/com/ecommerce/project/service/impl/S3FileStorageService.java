@@ -1,6 +1,7 @@
 package com.ecommerce.project.service.impl;
 
 import com.ecommerce.project.service.FileService;
+import com.ecommerce.project.service.media.ImageUploadValidator;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class S3FileStorageService implements FileService {
 
     private final MinioClient minioClient;
+    private final ImageUploadValidator imageValidator;
 
     @Value("${minio.bucket:images}")
     private String bucketName;
@@ -30,21 +33,28 @@ public class S3FileStorageService implements FileService {
     @Value("${minio.public.url:${minio.url}}")
     private String publicUrl;
 
+    /**
+     * Validates the upload with the same shared rules the local provider uses
+     * before shipping it to S3/MinIO. Without this the object store cheerfully
+     * accepted anything the caller declared — the local path already rejects a
+     * mismatched or unlisted file type, and the two providers must agree so
+     * ops can flip {@code file.storage.provider} without changing the security
+     * posture of image uploads.
+     */
     @Override
     public String uploadImage(String path, MultipartFile file) throws IOException {
-        String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null && originalFilename.contains(".")
-                ? originalFilename.substring(originalFilename.lastIndexOf('.'))
-                : "";
-        String folder = path != null && path.endsWith("/") ? path.substring(0, path.length() - 1) : (path != null ? path : "uploads");
-        String objectName = folder + "/" + UUID.randomUUID() + extension;
+        ImageUploadValidator.Validated validated = imageValidator.validate(file);
+
+        String folder = path != null && path.endsWith("/") ? path.substring(0, path.length() - 1)
+                : (path != null ? path : "uploads");
+        String objectName = folder + "/" + UUID.randomUUID() + validated.extension();
 
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
-                            .stream(file.getInputStream(), file.getSize(), null)
+                            .stream(new ByteArrayInputStream(validated.bytes()), (long) validated.bytes().length, -1L)
                             .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
                             .build()
             );
