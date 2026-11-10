@@ -56,6 +56,7 @@ class StripePaymentGatewayTest {
         PaymentIntent intent = mock(PaymentIntent.class);
         when(intent.getStatus()).thenReturn("succeeded");
         when(intent.getAmount()).thenReturn(8499L);
+        when(intent.getCurrency()).thenReturn("usd");
         when(stripeService.retrievePaymentIntent(anyString())).thenReturn(intent);
 
         PaymentVerification result = gateway.verify(attempt("STRIPE", "Stripe", 84.99));
@@ -103,5 +104,35 @@ class StripePaymentGatewayTest {
 
         assertThat(result.verified()).isFalse();
         assertThat(result.reason()).isEqualTo("Payment amount does not match order total");
+    }
+
+    @Test
+    @DisplayName("rejects a succeeded intent whose amount matches but in another currency")
+    void rejectsCurrencyMismatch() {
+        // 8499 JPY is about $55, not $84.99: the number alone proves nothing.
+        PaymentIntent intent = mock(PaymentIntent.class);
+        when(intent.getStatus()).thenReturn("succeeded");
+        when(intent.getAmount()).thenReturn(8499L);
+        when(intent.getCurrency()).thenReturn("jpy");
+        when(stripeService.retrievePaymentIntent(anyString())).thenReturn(intent);
+
+        PaymentVerification result = gateway.verify(attempt("STRIPE", "Stripe", 84.99));
+
+        assertThat(result.verified()).isFalse();
+        assertThat(result.reason()).isEqualTo("Payment currency does not match the shop's settlement currency");
+    }
+
+    @Test
+    @DisplayName("rejects a succeeded intent with no currency")
+    void rejectsNullCurrency() {
+        PaymentIntent intent = mock(PaymentIntent.class);
+        when(intent.getStatus()).thenReturn("succeeded");
+        when(intent.getAmount()).thenReturn(8499L);
+        when(intent.getCurrency()).thenReturn(null);
+        when(stripeService.retrievePaymentIntent(anyString())).thenReturn(intent);
+
+        PaymentVerification result = gateway.verify(attempt("STRIPE", "Stripe", 84.99));
+
+        assertThat(result.verified()).isFalse();
     }
 }

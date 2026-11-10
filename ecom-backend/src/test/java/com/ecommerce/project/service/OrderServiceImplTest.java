@@ -175,6 +175,7 @@ class OrderServiceImplTest {
 
         paymentIntent = mock(PaymentIntent.class);
         when(paymentIntent.getStatus()).thenReturn("succeeded");
+        when(paymentIntent.getCurrency()).thenReturn("usd");
         doReturn(paymentIntent).when(stripeService).retrievePaymentIntent(anyString());
 
         Payment savedPayment = new Payment("STRIPE", "pi_123", "succeeded", "OK", "Stripe");
@@ -414,6 +415,7 @@ class OrderServiceImplTest {
             PaymentIntent intent = mock(PaymentIntent.class);
             when(intent.getStatus()).thenReturn("succeeded");
             when(intent.getAmount()).thenReturn(10000L);
+            when(intent.getCurrency()).thenReturn("usd");
             doReturn(intent).when(stripeService).retrievePaymentIntent(anyString());
 
             doThrow(new APIException(String.format(

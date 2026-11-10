@@ -212,6 +212,11 @@ public class WebSecurityConfig {
                                 "/api/auth/verify-email",
                                 "/api/auth/resend-verification",
                                 "/api/auth/unlock-request",
+                                // Stripe posts with no cookie and no token; the
+                                // Stripe-Signature HMAC authenticates it instead.
+                                // Lost once in a merge (61b6355) and every webhook
+                                // got a 403 — StripeWebhookCsrfTest guards it now.
+                                "/api/public/webhooks/stripe",
                                 "/oauth2/**", "/login/oauth2/**", "/api/ws-notifications/**"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 // NullAuthenticatedSessionStrategy, because the default composite

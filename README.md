@@ -319,6 +319,21 @@ Expected Result: The order answer comes from the real order; the policy answer c
 
 Why it matters: the agent and the RAG service are separate Python services (`roadmaps/ai-engineer/supportpilot`, `.../docuask`), and the shop is their gateway and system of record. The browser only calls `/api/support/**`, so no service key reaches it and the customer id SupportPilot sees (`u-<userId>`, never the email) is set by the shop. SupportPilot calls back into `/internal/support/**`, a separate filter chain authenticated by its own key and not proxied by nginx; its refund call becomes `ReturnService.requestReturn` + `approveReturn`, idempotent on the agent's key, with ownership, Delivered and the 30-day window (`orders.delivered_at`, V37) re-checked by the shop. The LangGraph interrupt is the one human gate, transcripts stay in SupportPilot's MongoDB, and GDPR erasure reaches them through the outbox. Full walkthrough: `docs/supportpilot-integration/GUIDE.md`.
 
+10. Stripe Webhook Reachability & Settlement Currency
+What to test: That Stripe's webhook gets past the security chain, and that a payment can only settle in the shop's own currency.
+
+Prerequisites: Backend running; for the payment half, the Stripe CLI (`stripe listen --forward-to localhost:8080/api/public/webhooks/stripe`) and a signed-in user with something in the cart.
+
+Steps:
+
+Run `curl -i -X POST localhost:8080/api/public/webhooks/stripe -H "Stripe-Signature: t=1,v1=x" -d "{}"` with no cookie and no CSRF token.
+
+Pay for an order with a test card while `stripe listen` is forwarding, and watch its output.
+
+Expected Result: The curl gets 400 "Invalid Stripe webhook signature" (our check), never 403 (the CsrfFilter). `stripe listen` shows 200s for `payment_intent.succeeded`. The PaymentIntent in the Stripe dashboard is in USD whatever currency the storefront displays.
+
+Why it matters: two independent holes on the payment path. First, the webhook's CSRF exemption was dropped by a merge, so Stripe's cookie-less POST got a 403 before reaching the controller and every payment, refund, subscription and dispute event was refused; the service tests were Mockito-only and never went through the filter chain, so nothing caught it. `StripeWebhookCsrfTest` now posts exactly what Stripe sends, through the real chain, and also checks that the exemption is the one exact path and no wider. Second, the PaymentIntent took its currency from the request body while its amount is computed server-side in USD cents, and verification compared status and amount only — so 8900 JPY (about $60) passed as $89.00. The currency is now pinned to `StripeService.SETTLEMENT_CURRENCY` when the intent is created and checked again in `StripePaymentGateway.verify`, because the intent id at checkout comes from the client and could name an intent created some other way; the request DTO no longer has a currency field at all. The display currency (V32) is unaffected: it is still frozen onto the order for invoices, it is just never what Stripe charges in. Known follow-up: now that webhooks arrive, the duplicate-event and illegal-transition `catch` blocks inside `StripeWebhookServiceImpl`'s single transaction mark it rollback-only, which turns those cases into a 500 and a Stripe retry loop.
+
 ## Getting Started
  
 ### Prerequisites

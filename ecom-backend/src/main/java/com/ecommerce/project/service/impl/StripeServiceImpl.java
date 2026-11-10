@@ -148,7 +148,10 @@ public class StripeServiceImpl implements StripeService {
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
                         .setAmount(serverCalculatedAmountCents)
-                        .setCurrency(stripePaymentDto.getCurrency())
+                        // Pinned, not taken from the request: the amount above
+                        // is USD cents, so any other currency would charge the
+                        // same number in a different unit.
+                        .setCurrency(SETTLEMENT_CURRENCY)
                         .setCustomer(customer.getId())
                         .setDescription(stripePaymentDto.getDescription())
                         .setAutomaticPaymentMethods(

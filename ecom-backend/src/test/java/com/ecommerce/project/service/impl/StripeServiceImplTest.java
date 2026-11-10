@@ -20,6 +20,7 @@ import com.stripe.model.Customer;
 import com.stripe.model.CustomerSearchResult;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.CustomerSearchParams;
+import com.ecommerce.project.service.StripeService;
 import com.stripe.param.PaymentIntentCreateParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -112,7 +113,6 @@ class StripeServiceImplTest {
         dto.setAddress(address);
         dto.setEmail(EMAIL);
         dto.setName("Test User");
-        dto.setCurrency("usd");
         dto.setDescription("Order");
         dto.setCouponCodes(List.of("save20"));
 
@@ -154,6 +154,9 @@ class StripeServiceImplTest {
             ArgumentCaptor<PaymentIntentCreateParams> captor = ArgumentCaptor.forClass(PaymentIntentCreateParams.class);
             paymentIntentStatic.verify(() -> PaymentIntent.create(captor.capture()));
             assertEquals(8900L, captor.getValue().getAmount());
+            // The amount is USD cents, so the currency is pinned server-side;
+            // the request body no longer carries one at all.
+            assertEquals(StripeService.SETTLEMENT_CURRENCY, captor.getValue().getCurrency());
         }
     }
 
