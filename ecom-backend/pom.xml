@@ -38,6 +38,20 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Transitive via io.minio:minio. Guava 33.6.0 carries a HIGH DoS
+                 (CVE-2026-102554, fixed 33.7.2); snappy-java 1.1.10.8 a DoS and a
+                 buffer overflow (CVE-2026-108106, CVE-2026-93451, fixed 1.1.10.9).
+                 Drop these pins once MinIO ships the patched versions itself. -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.7.2-jre</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>1.1.10.9</version>
+            </dependency>
             <!-- Spring AI BOM -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
