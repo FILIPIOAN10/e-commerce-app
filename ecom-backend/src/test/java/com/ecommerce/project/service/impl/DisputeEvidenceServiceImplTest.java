@@ -62,7 +62,7 @@ class DisputeEvidenceServiceImplTest {
     @Test
     void attach_storesTheFileAndRecordsMetadata() throws Exception {
         MockMultipartFile pdf = new MockMultipartFile("file", "receipt.pdf", "application/pdf", new byte[]{1, 2, 3});
-        when(fileService.uploadImage(eq("./target/test-evidence"), any())).thenReturn("stored-uuid.pdf");
+        when(fileService.storeFile(eq("./target/test-evidence"), any())).thenReturn("stored-uuid.pdf");
 
         DisputeEvidenceFileDTO dto = service.attach(1L, pdf, "admin@example.com");
 
@@ -98,7 +98,7 @@ class DisputeEvidenceServiceImplTest {
 
         assertThatThrownBy(() -> service.attach(2L, pdf, "admin@example.com"))
                 .isInstanceOf(APIException.class);
-        verify(fileService, never()).uploadImage(any(), any());
+        verify(fileService, never()).storeFile(any(), any());
     }
 
     @Test

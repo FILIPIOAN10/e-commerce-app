@@ -55,7 +55,9 @@ public class DisputeEvidenceServiceImpl implements DisputeEvidenceService {
 
         String storedName;
         try {
-            storedName = fileService.uploadImage(evidenceDir, file);
+            // Not uploadImage: that one accepts images only, and evidence is
+            // mostly PDFs. validate() above already restricted the type.
+            storedName = fileService.storeFile(evidenceDir, file);
         } catch (IOException e) {
             throw new APIException("Could not store evidence file: " + e.getMessage());
         }

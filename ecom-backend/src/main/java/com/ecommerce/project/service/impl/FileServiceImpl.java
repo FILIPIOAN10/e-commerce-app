@@ -54,6 +54,17 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public String storeFile(String path, MultipartFile file) throws IOException {
+        String fileName = UUID.randomUUID() + FileService.safeExtension(file.getOriginalFilename());
+        File folder = new File(path);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        Files.write(Paths.get(path, fileName), file.getBytes());
+        return fileName;
+    }
+
+    @Override
     public void deleteImage(String path, String imageName) throws IOException {
         if (imageName == null || imageName.isBlank() || imageName.startsWith("http://") || imageName.startsWith("https://")) {
             return;

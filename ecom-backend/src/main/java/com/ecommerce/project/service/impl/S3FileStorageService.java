@@ -67,6 +67,28 @@ public class S3FileStorageService implements FileService {
     }
 
     @Override
+    public String storeFile(String path, MultipartFile file) throws IOException {
+        String folder = path != null && path.endsWith("/") ? path.substring(0, path.length() - 1)
+                : (path != null ? path : "uploads");
+        String objectName = folder + "/" + UUID.randomUUID() + FileService.safeExtension(file.getOriginalFilename());
+        byte[] bytes = file.getBytes();
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(new ByteArrayInputStream(bytes), (long) bytes.length, -1L)
+                            .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
+                            .build()
+            );
+        } catch (MinioException e) {
+            log.error("Failed to store file in S3/MinIO: {}", e.getMessage());
+            throw new IOException("File upload failed", e);
+        }
+        return publicUrl + "/" + bucketName + "/" + objectName;
+    }
+
+    @Override
     public void deleteImage(String path, String imageName) throws IOException {
         if (imageName == null || imageName.isBlank()) {
             return;
