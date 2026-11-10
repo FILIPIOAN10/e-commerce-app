@@ -15,8 +15,8 @@ public class StripePaymentDto {
     @NotNull
     @Positive
     private Long amount;
-    @NotBlank
-    private String currency;
+    // No currency field: the charge is always StripeService.SETTLEMENT_CURRENCY.
+    // A client-chosen one let an order be paid in a weaker unit for the same number.
 
     @NotBlank
     @Email

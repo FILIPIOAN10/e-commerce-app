@@ -28,7 +28,6 @@ const StripePayment = () => {
     if(!clientSecret){
       const sendData = {
         amount: Number(totalPrice) *100,
-        currency : "usd",
         email:user.email,
         name: `${user.username}`,
         address: selectedUserCheckoutAddress,
