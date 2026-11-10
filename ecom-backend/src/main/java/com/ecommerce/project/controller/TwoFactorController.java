@@ -1,5 +1,7 @@
 package com.ecommerce.project.controller;
 
+import com.ecommerce.project.exception.InvalidCredentialsException;
+import com.ecommerce.project.exception.UserNotFoundException;
 import com.ecommerce.project.model.User;
 import com.ecommerce.project.payload.AuthenticationResult;
 import com.ecommerce.project.service.TotpService;
@@ -78,7 +80,11 @@ public class TwoFactorController {
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, result.getJwtCookie().toString())
                     .body(result.getResponse());
-        } catch (RuntimeException e) {
+        } catch (InvalidCredentialsException | UserNotFoundException e) {
+            // Narrower than the RuntimeException it replaces, so that
+            // AccountLockedException reaches MyGlobalExceptionHandler and
+            // answers 429 with {"locked": true} instead of being flattened
+            // into the same 401 as a merely wrong code.
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", e.getMessage()));
         }

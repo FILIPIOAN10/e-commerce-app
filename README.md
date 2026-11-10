@@ -334,6 +334,42 @@ Expected Result: The curl gets 400 "Invalid Stripe webhook signature" (our check
 
 Why it matters: two independent holes on the payment path. First, the webhook's CSRF exemption was dropped by a merge, so Stripe's cookie-less POST got a 403 before reaching the controller and every payment, refund, subscription and dispute event was refused; the service tests were Mockito-only and never went through the filter chain, so nothing caught it. `StripeWebhookCsrfTest` now posts exactly what Stripe sends, through the real chain, and also checks that the exemption is the one exact path and no wider. Second, the PaymentIntent took its currency from the request body while its amount is computed server-side in USD cents, and verification compared status and amount only — so 8900 JPY (about $60) passed as $89.00. The currency is now pinned to `StripeService.SETTLEMENT_CURRENCY` when the intent is created and checked again in `StripePaymentGateway.verify`, because the intent id at checkout comes from the client and could name an intent created some other way; the request DTO no longer has a currency field at all. The display currency (V32) is unaffected: it is still frozen onto the order for invoices, it is just never what Stripe charges in. Known follow-up: now that webhooks arrive, the duplicate-event and illegal-transition `catch` blocks inside `StripeWebhookServiceImpl`'s single transaction mark it rollback-only, which turns those cases into a 500 and a Stripe retry loop.
 
+11. Two-Factor Login (Throttling the Second Factor)
+What to test: That a wrong TOTP code is counted, that the account's 2FA step locks after five of them, and that the lock is not escapable by asking for a new challenge token.
+
+Prerequisites: App running, a user with 2FA enabled (Profile → enable 2FA and pair an authenticator), Redis up.
+
+Steps:
+
+Sign in with the correct password. You are handed a challenge, not a session.
+
+Submit a wrong six-digit code five times. Watch the message count down, then answer 429 with `{"locked": true}`.
+
+Sign in again with the correct password to mint a fresh challenge token, and submit another wrong code.
+
+Wait for the window to pass (or `DEL 2fa_attempts:<username>` in Redis) and submit the correct code.
+
+Expected Result: The first four wrong codes answer 401 with the number of attempts remaining. The fifth locks the account's second factor for fifteen minutes. The fresh token from step 3 is refused with the same 429 — a new token does not buy new attempts. After the window, the correct code completes the login and the counter resets.
+
+Why it matters: the second factor was the least protected step in the login, not the most. `RateLimitFilter` throttles only paths that match a rule in `RateLimitConfig` — `findRule()` is an allowlist, and an unmatched path passes straight through — and `POST /api/auth/public/verify-2fa-login` had no rule. Nothing else was counting either: reaching the challenge means the password already succeeded, and `AuthServiceImpl` calls `resetAttempts()` on success, so the password lockout had just been cleared. What remained between a stolen password and the account was a six-digit number with unlimited guesses, bounded only by the challenge token's five-minute life — and signing in again mints another, so the space was exhaustible in about an hour. Two layers now: rate limit rules cap `verify-2fa-login` per IP and `verify-2fa` per user, and `TwoFactorAttemptService` locks the account after five wrong codes. The counter is keyed on the username, not on the token, because a token is free — a lock keyed on one is escaped by asking for the next; the username is the part an attacker cannot vary. A rejected token is deliberately *not* counted, or anyone could lock any account out of its second factor by posting garbage without knowing the password, and a rejected token answers with the same "Invalid 2FA code" as a rejected code, since telling them apart tells an attacker whether a challenge is still live. `AccountLockedException` reaches the global handler as 429 rather than being flattened into the 401 of a merely wrong code, which is why `TwoFactorController` catches the two credential exceptions by name instead of `RuntimeException`.
+
+12. Subscription Lookups (Indexing the Stripe Ids)
+What to test: That the columns `user_subscriptions` is searched by are indexed, and that two rows cannot claim the same Stripe subscription.
+
+Prerequisites: Migrations applied through V38.
+
+Steps:
+
+`\d user_subscriptions` in psql, and read the index list.
+
+`EXPLAIN SELECT * FROM user_subscriptions WHERE stripe_subscription_id = 'sub_x';` — confirm an Index Scan rather than a Seq Scan.
+
+Try inserting two rows with the same `stripe_subscription_id`.
+
+Expected Result: Four indexes: the primary key, `idx_user_subscriptions_plan`, the two partial uniques on the Stripe ids, and the composite on `(email, created_at DESC)`. The duplicate insert is rejected by `uk_user_subscriptions_stripe_id`.
+
+Why it matters: V8 created this table with no index of its own and V28 added only the `plan_id` foreign key, so all three of its real access paths were sequential scans — `findByStripeSubscriptionId` on every recurring webhook, `findByStripeCheckoutSessionId` on every new subscription, and `findByEmailOrderByCreatedAtDesc` on the account page and in the GDPR export. `ForeignKeyIndexTest` could not catch it because none of the three is a foreign key. The table only grows, since cancelled subscriptions are kept as history, so the scan gets slower for the life of the install on the one path with a deadline attached: Stripe gives a webhook 20 seconds, then redelivers it into the same handler. Both Stripe ids are UNIQUE rather than plain, because the repository returns `Optional` for each — a second row would not be a duplicate to live with, it would throw `IncorrectResultSizeDataAccessException` inside a webhook handler — and because `refunds` and `disputes`, the later Stripe-backed tables, already carry exactly that constraint. They are partial (`WHERE ... IS NOT NULL`) so the abandoned checkouts that never reached Stripe neither collide with each other nor sit in the index — which on a real install is most of the rows. If either index fails to build, the database holds rows that disagree about which subscription is which, and Postgres names the duplicated value in the error; V38 does not clamp them automatically, because choosing which subscription row survives is a billing decision.
+
 ## Getting Started
  
 ### Prerequisites

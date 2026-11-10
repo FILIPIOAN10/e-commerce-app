@@ -50,6 +50,10 @@ class RateLimitCoverageTest {
             "POST, /api/public/orders/guest",
             // Authenticated, but answers whether a short guessable code exists.
             "POST, /api/coupons/validate",
+            // The second factor. Unmatched paths are unlimited, so the absence
+            // of these two rules meant a six-digit code and nothing counting.
+            "POST, /api/auth/public/verify-2fa-login",
+            "POST, /api/auth/verify-2fa",
             // The pre-existing rules, so removing one is also a failure.
             "POST, /api/auth/signin",
             "POST, /api/auth/signup",
@@ -72,6 +76,21 @@ class RateLimitCoverageTest {
         RateLimitRule rule = ruleFor("POST", path).orElseThrow();
         assertThat(rule.getLimit()).isEqualTo(expectedLimit);
         assertThat(rule.getWindow().toMinutes()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("the 2FA challenge is capped at least as tightly as the password step")
+    void twoFactorChallengeIsCappedNoLooserThanSignin() {
+        RateLimitRule signin = ruleFor("POST", "/api/auth/signin").orElseThrow();
+        RateLimitRule challenge = ruleFor("POST", "/api/auth/public/verify-2fa-login").orElseThrow();
+
+        assertThat(challenge.getLimit())
+                .as("guessing the second factor must not be cheaper than guessing the first")
+                .isLessThanOrEqualTo(signin.getLimit());
+        assertThat(challenge.getWindow()).isEqualTo(signin.getWindow());
+        assertThat(challenge.getKeyType())
+                .as("the challenge is answered before there is an authenticated user")
+                .isEqualTo(RateLimitKeyType.IP);
     }
 
     @Test
